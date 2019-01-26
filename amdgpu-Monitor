@@ -75,7 +75,9 @@ def main():
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
     gpu_list.read_hw_data()
-    gpu_list.print()
+    gpu_list.read_device_data()
+    #gpu_list.print()
+    gpu_list.print_table()
 
 
 

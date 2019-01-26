@@ -72,6 +72,7 @@ class GPU_STAT:
         self.vddgfx = -1
         self.loading = -1
         self.mclk_ps = -1
+        self.mclk_ps = ""
         self.sclk_ps = -1
         self.sclk_f = ""
         self.link_spd = ""
@@ -102,7 +103,13 @@ class GPU_STAT:
                 if line[len(line)-2] == "*":
                     lineitems = line.split(sep=':')
                     self.sclk_ps = lineitems[0].strip()
-                    self.sclk_f = lineitems[1].strip()
+                    self.sclk_f = lineitems[1].strip().strip('*')
+        with open(self.card_path + "pp_dpm_mclk") as card_file:
+            for line in card_file:
+                if line[len(line)-2] == "*":
+                    lineitems = line.split(sep=':')
+                    self.mclk_ps = lineitems[0].strip()
+                    self.mclk_f = lineitems[1].strip().strip('*')
 
     def read_amdfeaturemask():
         with open(gut_const.featuremask) as fm_file:
@@ -122,6 +129,8 @@ class GPU_STAT:
         print("vBIOS Version: ", self.vbios)
         print("SCLK P-State: ", self.sclk_ps)
         print("SCLK: ", self.sclk_f)
+        print("MCLK P-State: ", self.mclk_ps)
+        print("MCLK: ", self.mclk_f)
 
 
 class GPU_LIST:
@@ -158,11 +167,80 @@ class GPU_LIST:
             print("sysfspath: ", sysfspath)
             print("sysfspath-7: ", sysfspath[-7:])
 
-
+    def num_gpus(self):
+        cnt = 0
+        for k, v in self.list.items():
+            cnt += 1
+        return(cnt)
 
     def print(self):
         for k, v in self.list.items():
             v.print()
+
+    def print_table(self):
+        num_gpus = self.num_gpus()
+        if num_gpus < 1: return(-1)
+
+        print("┌", "─".ljust(8,'─'), sep="", end="")
+        for k, v in self.list.items():
+                print("┬", "─".ljust(8,'─'), sep="", end="")
+        print("┐")
+
+        print("│", " ".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+            print("│", ("card"+ v.card_num).ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("├", "─".ljust(8,'─'), sep="", end="")
+        for k, v in self.list.items():
+                print("┼", "─".ljust(8,'─'), sep="", end="")
+        print("┤")
+
+        print("│", "Load".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.loading) + "%").ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Power".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.power/1000000) +"W").ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Temp".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.temp/1000) + "C").ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "VddGFX".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.vddgfx) + "mV").ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Sclk".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", str(v.sclk_f).ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Sclk-Pst".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.sclk_ps)).ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Mclk".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", str(v.mclk_f).ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("│", "Mclk-Pst".ljust(8,' '), sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.mclk_ps)).ljust(8,' '), sep="", end="")
+        print("│")
+
+        print("└", "─".ljust(8,'─'), sep="", end="")
+        for k, v in self.list.items():
+                print("┴", "─".ljust(8,'─'), sep="", end="")
+        print("┘")
+
         
 def test():
     gut_const.DEBUG = True
@@ -172,7 +250,8 @@ def test():
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     gpu_list.print()
-    gpu_list.get_gpu_details()
+    gpu_list.print_table()
+    #gpu_list.get_gpu_details()
 
 
 if __name__ == "__main__":
