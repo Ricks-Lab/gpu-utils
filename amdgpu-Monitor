@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""amdgpu-Monitor  -  displays current status of all active GPUs
+
+
+    Copyright (C) 2019  RueiKe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = "RueiKe"
+__copyright__ = "Copyright (C) 2019 RueiKe"
+__credits__ = ""
+__license__ = "GNU General Public License"
+__program_name__ = "benchMT"
+__version__ = "v0.0.0"
+__maintainer__ = "RueiKe"
+__status__ = "Development"
+
+import argparse
+import re
+import subprocess
+import shlex
+import socket
+import os
+import platform
+import sys
+import time
+from GPUmodules import GPUmodules
+from datetime import datetime
+from uuid import uuid4
+import glob 
+import shutil 
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    args = parser.parse_args()
+
+    if args.debug == True :  mb_const.DEBUG = True
+
+    # About me
+    if args.about == True :  
+        print(__doc__ )
+        print("Author: ", __author__ )
+        print("Copyright: ", __copyright__)
+        print("Credits: ", __credits__)
+        print("License: ", __license__)
+        print("Version: ", __version__)
+        print("Maintainer: ", __maintainer__)
+        print("Status: ", __status__)
+        sys.exit(0)
+
+    # Check python version
+    (python_major, python_minor, python_patch) = platform.python_version_tuple()
+    if python_major < "3":
+        print("Using python" + python_major + ", but benchMT requires python3. Exiting...")
+        sys.exit(0)
+    if python_minor < "6":
+        print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
+                " but, benchMT requires python 3.6 and up. Exiting...")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
