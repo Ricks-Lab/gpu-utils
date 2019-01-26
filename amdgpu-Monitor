@@ -35,7 +35,7 @@ import os
 import platform
 import sys
 import time
-from GPUmodules import GPUmodules
+from GPUmodules import GPUmodules as GPU
 from datetime import datetime
 from uuid import uuid4
 import glob 
@@ -48,7 +48,7 @@ def main():
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-    if args.debug == True :  mb_const.DEBUG = True
+    if args.debug == True :  gut_const.DEBUG = True
 
     # About me
     if args.about == True :  
@@ -71,6 +71,12 @@ def main():
         print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
                 " but, benchMT requires python 3.6 and up. Exiting...")
         sys.exit(0)
+
+    gpu_list = GPU.GPU_LIST()
+    gpu_list.get_gpu_list()
+    gpu_list.read_hw_data()
+    gpu_list.print()
+
 
 
 if __name__ == "__main__":
