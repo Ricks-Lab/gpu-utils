@@ -34,7 +34,6 @@ import os
 import platform
 import sys
 import time
-from GPUmodules import GPUmodules
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -54,7 +53,8 @@ import shutil
 class GUT_CONST:
     def __init__(self):
         self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
-        self.hwmon = "/sys/class/hwmon/"
+        self.card_root = "/sys/class/drm/"
+        self.hwmon_sub = "/hwmon/hwmon"
         self.cur_power = "power1_average"
         self.cur_temp = "temp1_average"
         self.DEBUG = False
@@ -64,13 +64,65 @@ gut_const = GUT_CONST()
 class GPU_STAT:
     def __init__(self, item_id):
         self.uuid = item_id
+        self.card_num = ""
+        self.card_path = ""
+        self.hwmon_path = ""
+        self.power = -1
+        self.temp = -1
+
+    def read_hw_data(self):
+        #power1_average
+        with open(self.hwmon_path + "power1_average") as hwmon_file:
+            self.power = int(hwmon_file.readline())
+        with open(self.hwmon_path + "temp1_input") as hwmon_file:
+            self.temp = int(hwmon_file.readline())
+        #in0_input
+        #in0_label
+        #temp1_input
 
     def read_amdfeaturemask():
         with open(gut_const.featuremask) as fm_file:
             return int(fm_file.readline())
 
+    def print(self):
+        print("UUID: ", self.uuid)
+        print("Card Number: ", self.card_num)
+        print("Card Path: ", self.card_path)
+        print("HWmon: ", self.hwmon_path)
+        print("Power: ", self.power/1000000,"W")
+        print("Temp: ", self.temp/1000, "C")
+
+
 class GPU_LIST:
     def __init__(self):
         self.list = {}
 
+    def get_gpu_list(self):
+        for card_names in glob.glob(gut_const.card_root + "card*/device/pp_od_clk_voltage"):
+            gpu_item = GPU_STAT(uuid4().hex)
+            gpu_item.card_path = card_names.replace("pp_od_clk_voltage",'')
+            gpu_item.card_num = card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", '')
+            gpu_item.hwmon_path = gpu_item.card_path + gut_const.hwmon_sub + gpu_item.card_num + "/"
+            self.list[gpu_item.uuid] = gpu_item
+
+    def read_hw_data(self):
+        for k, v in self.list.items():
+            v.read_hw_data()
+
+
+    def print(self):
+        for k, v in self.list.items():
+            v.print()
+        
+def main():
+    #gut_const.DEBUG = True
+
+    gpu_list = GPU_LIST()
+    gpu_list.get_gpu_list()
+    gpu_list.read_hw_data()
+    gpu_list.print()
+
+
+if __name__ == "__main__":
+    main()
 
