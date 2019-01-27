@@ -232,7 +232,8 @@ class GPU_LIST:
 
         print("│", '\x1b[1;36m'+"Model".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-            print("│", (v.model.replace("Radeon",'')).ljust(12,' ')[:12], sep="", end="")
+            #print("│", (v.model.replace("Radeon",'')).ljust(12,' ')[:12], sep="", end="")
+            print("│", (re.sub(r'.*Radeon', '', v.model)).replace(']','').ljust(12,' ')[:12], sep="", end="")
         print("│")
 
         print("│", '\x1b[1;36m'+"Load".ljust(8,' ')+'\x1b[0m', sep="", end="")
