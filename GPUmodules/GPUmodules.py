@@ -82,7 +82,7 @@ class GPU_STAT:
         self.vddgfx = -1
         self.loading = -1
         self.mclk_ps = -1
-        self.mclk_ps = ""
+        self.mclk_f = ""
         self.sclk_ps = -1
         self.sclk_f = ""
         self.link_spd = ""
@@ -180,7 +180,8 @@ class GPU_LIST:
         for pcie_id in pcie_ids:
             if gut_const.DEBUG: print("GPU: ", pcie_id)
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
-            gpu_name = lspci_items[1].split('[')[2].replace(']','')
+            #gpu_name = lspci_items[1].split('[')[2].replace(']','')
+            gpu_name = lspci_items[1].split('[AMD/ATI]')[1]
             driver_module = lspci_items[2].split(':')[1]
             if gut_const.DEBUG: print(lspci_items)
             # Find matching card
@@ -231,7 +232,7 @@ class GPU_LIST:
 
         print("│", '\x1b[1;36m'+"Model".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (v.model.replace("Radeon",'')).ljust(12,' '), sep="", end="")
+            print("│", (v.model.replace("Radeon",'')).ljust(12,' ')[:12], sep="", end="")
         print("│")
 
         print("│", '\x1b[1;36m'+"Load".ljust(8,' ')+'\x1b[0m', sep="", end="")
