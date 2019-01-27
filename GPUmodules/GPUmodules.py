@@ -58,6 +58,13 @@ class GUT_CONST:
         self.cur_power = "power1_average"
         self.cur_temp = "temp1_average"
         self.DEBUG = False
+        self.amdfeaturemask = ""
+
+    def read_amdfeaturemask(self):
+        with open(gut_const.featuremask) as fm_file:
+            self.amdfeaturemask = int(fm_file.readline())
+            return (self.amdfeaturemask)
+
 gut_const = GUT_CONST()
 
 
@@ -83,40 +90,45 @@ class GPU_STAT:
         self.vbios = ""
 
     def read_hw_data(self):
-        with open(self.hwmon_path + "power1_average") as hwmon_file:
-            self.power = int(hwmon_file.readline())
-        with open(self.hwmon_path + "temp1_input") as hwmon_file:
-            self.temp = int(hwmon_file.readline())
-        with open(self.hwmon_path + "in0_label") as hwmon_file:
-            if hwmon_file.readline().rstrip() == "vddgfx":
-                with open(self.hwmon_path + "in0_input") as hwmon_file2:
-                    self.vddgfx = int(hwmon_file2.readline())
+        if(os.path.isfile(self.hwmon_path + "power1_average") == True):
+            with open(self.hwmon_path + "power1_average") as hwmon_file:
+                self.power = int(hwmon_file.readline())
+        if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
+            with open(self.hwmon_path + "temp1_input") as hwmon_file:
+                self.temp = int(hwmon_file.readline())
+        if(os.path.isfile(self.hwmon_path + "in0_label") == True):
+            with open(self.hwmon_path + "in0_label") as hwmon_file:
+                if hwmon_file.readline().rstrip() == "vddgfx":
+                    with open(self.hwmon_path + "in0_input") as hwmon_file2:
+                        self.vddgfx = int(hwmon_file2.readline())
 
     def read_device_data(self):
-        with open(self.card_path + "gpu_busy_percent") as card_file:
-            self.loading = int(card_file.readline())
-        with open(self.card_path + "current_link_speed") as card_file:
-            self.link_spd = card_file.readline().strip()
-        with open(self.card_path + "current_link_width") as card_file:
-            self.link_wth = card_file.readline().strip()
-        with open(self.card_path + "vbios_version") as card_file:
-            self.vbios = card_file.readline().strip()
-        with open(self.card_path + "pp_dpm_sclk") as card_file:
-            for line in card_file:
-                if line[len(line)-2] == "*":
-                    lineitems = line.split(sep=':')
-                    self.sclk_ps = lineitems[0].strip()
-                    self.sclk_f = lineitems[1].strip().strip('*')
-        with open(self.card_path + "pp_dpm_mclk") as card_file:
-            for line in card_file:
-                if line[len(line)-2] == "*":
-                    lineitems = line.split(sep=':')
-                    self.mclk_ps = lineitems[0].strip()
-                    self.mclk_f = lineitems[1].strip().strip('*')
-
-    def read_amdfeaturemask():
-        with open(gut_const.featuremask) as fm_file:
-            return int(fm_file.readline())
+        if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
+            with open(self.card_path + "gpu_busy_percent") as card_file:
+                self.loading = int(card_file.readline())
+        if(os.path.isfile(self.card_path + "current_link_speed") == True):
+            with open(self.card_path + "current_link_speed") as card_file:
+                self.link_spd = card_file.readline().strip()
+        if(os.path.isfile(self.card_path + "current_link_width") == True):
+            with open(self.card_path + "current_link_width") as card_file:
+                self.link_wth = card_file.readline().strip()
+        if(os.path.isfile(self.card_path + "vbios_version") == True):
+            with open(self.card_path + "vbios_version") as card_file:
+                self.vbios = card_file.readline().strip()
+        if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
+            with open(self.card_path + "pp_dpm_sclk") as card_file:
+                for line in card_file:
+                    if line[len(line)-2] == "*":
+                        lineitems = line.split(sep=':')
+                        self.sclk_ps = lineitems[0].strip()
+                        self.sclk_f = lineitems[1].strip().strip('*')
+        if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
+            with open(self.card_path + "pp_dpm_mclk") as card_file:
+                for line in card_file:
+                    if line[len(line)-2] == "*":
+                        lineitems = line.split(sep=':')
+                        self.mclk_ps = lineitems[0].strip()
+                        self.mclk_f = lineitems[1].strip().strip('*')
 
     def print(self):
         print("UUID: ", self.uuid)
@@ -170,19 +182,18 @@ class GPU_LIST:
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
             gpu_name = lspci_items[1].split('[')[2].replace(']','')
             driver_module = lspci_items[2].split(':')[1]
-            print(lspci_items)
+            if gut_const.DEBUG: print(lspci_items)
             # Find matching card
             device_dirs = glob.glob(gut_const.card_root + "card?/device")
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
-                print("device_dir: ", device_dir)
-                print("sysfspath: ", sysfspath)
-                print("pcie_id: ", pcie_id)
-                print("sysfspath-7: ", sysfspath[-7:])
+                if gut_const.DEBUG: print("device_dir: ", device_dir)
+                if gut_const.DEBUG: print("sysfspath: ", sysfspath)
+                if gut_const.DEBUG: print("pcie_id: ", pcie_id)
+                if gut_const.DEBUG: print("sysfspath-7: ", sysfspath[-7:])
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
-                            print("Match pcie_id: ", pcie_id)
                             v.pcie_id = pcie_id
                             v.driver = driver_module
                             v.model = gpu_name
@@ -271,6 +282,18 @@ class GPU_LIST:
         
 def test():
     gut_const.DEBUG = True
+
+    try:
+        featuremask = gut_const.read_amdfeaturemask()
+    except FileNotFoundError:
+        print("Cannot read ppfeaturemask. Exiting...")
+        sys.exit(-1)
+    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
+        print("AMD Wattman features enabled: %s" % hex(featuremask))
+    else:
+        print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+        sys.exit(-1)
+
 
     gpu_list = GPU_LIST()
     gpu_list.get_gpu_list()
