@@ -3,7 +3,7 @@
 
     A utility to give the current state of all compatible GPUs.  The default behavior
     is to just output relevant parameters. With the *--loop* option, a table of relevant
-    paramters will be continuously updated.
+    paramters will be continuously updated.  Use Ctrl-c to exit the loop.
 
     Copyright (C) 2019  RueiKe
 
@@ -76,6 +76,15 @@ def main():
     if python_minor < "6":
         print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
                 " but, benchMT requires python 3.6 and up. Exiting...")
+        sys.exit(0)
+
+    # Check Linux Kernel version
+    linux_version = platform.release()
+    if int(linux_version.split(".")[0]) < 4:
+        print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
+        sys.exit(0)
+    if int(linux_version.split(".")[1]) < 8:
+        print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
         sys.exit(0)
 
     # Check value of AMD Feature mask
