@@ -67,101 +67,128 @@ class GUT_CONST:
 
 gut_const = GUT_CONST()
 
-
 class GPU_STAT:
     def __init__(self, item_id):
         self.uuid = item_id
-        self.card_num = ""
-        self.pcie_id = ""
-        self.driver = ""
-        self.model = ""
+        self.card_num = -1
         self.card_path = ""
         self.hwmon_path = ""
-        self.power = -1
-        self.temp = -1
-        self.vddgfx = -1
-        self.loading = -1
-        self.mclk_ps = -1
-        self.mclk_f = ""
-        self.sclk_ps = -1
-        self.sclk_f = ""
-        self.link_spd = ""
-        self.link_wth = ""
-        self.vbios = ""
+        self.params = {
+        "uuid" : item_id,
+        "card_num" : "",
+        "pcie_id" : "",
+        "driver" : "",
+        "model" : "",
+        "model_short" : "",
+        "card_path" : "",
+        "hwmon_path" : "",
+        "power" : -1,
+        "temp" : -1,
+        "vddgfx" : -1,
+        "loading" : -1,
+        "mclk_ps" : -1,
+        "mclk_f" : "",
+        "sclk_ps" : -1,
+        "sclk_f" : "",
+        "link_spd" : "",
+        "link_wth" : "",
+        "vbios" : ""
+        }
+
+    def set_value(self, name, value):
+        self.params[name] = value
+        if name == "card_num":
+            self.card_num = value
+        if name == "card_path":
+            self.card_path = value
+        if name == "hwmon_path":
+            self.hwmon_path = value
+
+    def get_value(self, name):
+        return(self.params[name])
+
+    def get_all_labels(self):
+        GPU_Param_Labels = {"uuid": "UUID",
+                "model" : "Card Model",
+                "card_num" : "Card Number",
+                "card_path" : "Card Path",
+                "pcie_id" : "PCIe ID",
+                "driver" : "Driver",
+                "hwmon_path" : "HWmon",
+                "power" : "Power",
+                "temp" : "Temp",
+                "vddgfx" : "VddGFX",
+                "loading" : "Loading",
+                "link_spd" : "Link Speed",
+                "link_wth" : "Link Width",
+                "vbios" : "vBIOS Version",
+                "sclk_ps" : "SCLK P-State",
+                "sclk_f" : "SCLK",
+                "mclk_ps" : "MCLK P-State",
+                "mclk_f" : "MCLK"
+                }
+        return(GPU_Param_Labels)
 
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
-                self.power = int(hwmon_file.readline())
+                self.set_value("power", int(hwmon_file.readline())/1000000)
         if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
-                self.temp = int(hwmon_file.readline())
+                self.set_value("temp",  int(hwmon_file.readline())/1000)
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
             with open(self.hwmon_path + "in0_label") as hwmon_file:
                 if hwmon_file.readline().rstrip() == "vddgfx":
                     with open(self.hwmon_path + "in0_input") as hwmon_file2:
-                        self.vddgfx = int(hwmon_file2.readline())
+                        self.set_value("vddgfx",  int(hwmon_file2.readline()))
 
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
-                self.loading = int(card_file.readline())
+                self.set_value("loading", int(card_file.readline()))
         if(os.path.isfile(self.card_path + "current_link_speed") == True):
             with open(self.card_path + "current_link_speed") as card_file:
-                self.link_spd = card_file.readline().strip()
+                self.set_value("link_spd", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "current_link_width") == True):
             with open(self.card_path + "current_link_width") as card_file:
-                self.link_wth = card_file.readline().strip()
+                self.set_value("link_wth", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "vbios_version") == True):
             with open(self.card_path + "vbios_version") as card_file:
-                self.vbios = card_file.readline().strip()
+                self.set_value("vbios", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
             with open(self.card_path + "pp_dpm_sclk") as card_file:
                 for line in card_file:
                     if line[len(line)-2] == "*":
                         lineitems = line.split(sep=':')
-                        self.sclk_ps = lineitems[0].strip()
-                        self.sclk_f = lineitems[1].strip().strip('*')
+                        self.set_value("sclk_ps", lineitems[0].strip())
+                        self.set_value("sclk_f", lineitems[1].strip().strip('*'))
         if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
             with open(self.card_path + "pp_dpm_mclk") as card_file:
                 for line in card_file:
                     if line[len(line)-2] == "*":
                         lineitems = line.split(sep=':')
-                        self.mclk_ps = lineitems[0].strip()
-                        self.mclk_f = lineitems[1].strip().strip('*')
+                        self.set_value("mclk_ps", lineitems[0].strip())
+                        self.set_value("mclk_f", lineitems[1].strip().strip('*'))
 
     def print(self):
-        print("UUID: ", self.uuid)
-        print("Card Model: ", self.model)
-        print("Card Number: ", self.card_num)
-        print("Card Path: ", self.card_path)
-        print("PCIe ID: ", self.pcie_id)
-        print("Driver: ", self.driver)
-        print("HWmon: ", self.hwmon_path)
-        print("Power: ", self.power/1000000,"W")
-        print("Temp: ", self.temp/1000, "C")
-        print("VddGFX: ", self.vddgfx, "mV")
-        print("Loading: ", self.loading, "%")
-        print("Link Speed: ", self.link_spd)
-        print("Link Width: ", self.link_wth)
-        print("vBIOS Version: ", self.vbios)
-        print("SCLK P-State: ", self.sclk_ps)
-        print("SCLK: ", self.sclk_f)
-        print("MCLK P-State: ", self.mclk_ps)
-        print("MCLK: ", self.mclk_f)
+        #for k, v in GPU_Param_Labels.items():
+        for k, v in self.get_all_labels().items():
+            print(v +": "+ str(self.get_value(k)))
         print("")
-
 
 class GPU_LIST:
     def __init__(self):
         self.list = {}
+        self.table_parameters = ["model_short", "loading", "power", "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f", "mclk_ps"]
+        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power": "Power (W)", "temp":"T (C)", "vddgfx":"VddGFX (mV)",
+                "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk-ps", "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk-ps"}
 
     def get_gpu_list(self):
         for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_STAT(uuid4().hex)
-            gpu_item.card_path = card_names.replace("pp_od_clk_voltage",'')
-            gpu_item.card_num = card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", '')
-            gpu_item.hwmon_path = gpu_item.card_path + gut_const.hwmon_sub + gpu_item.card_num + "/"
+            gpu_item.set_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
+            gpu_item.set_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
+            gpu_item.set_value("hwmon_path",  gpu_item.get_value("card_path") + gut_const.hwmon_sub + gpu_item.get_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
     def read_hw_data(self):
@@ -195,9 +222,10 @@ class GPU_LIST:
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
-                            v.pcie_id = pcie_id
-                            v.driver = driver_module
-                            v.model = gpu_name
+                            v.set_value("pcie_id", pcie_id)
+                            v.set_value("driver",  driver_module)
+                            v.set_value("model", gpu_name)
+                            v.set_value("model_short",  (re.sub(r'.*Radeon', '', gpu_name)).replace(']',''))
                             break
                     break
 
@@ -211,72 +239,35 @@ class GPU_LIST:
         for k, v in self.list.items():
             v.print()
 
+    def num_table_rows(self):
+        return(len(self.table_parameters))
+
     def print_table(self):
         num_gpus = self.num_gpus()
         if num_gpus < 1: return(-1)
 
-        print("┌", "─".ljust(8,'─'), sep="", end="")
+        print("┌", "─".ljust(12,'─'), sep="", end="")
         for k, v in self.list.items():
                 print("┬", "─".ljust(12,'─'), sep="", end="")
         print("┐")
 
-        print("│", " ".ljust(8,' '), sep="", end="")
+        print("│", " ".ljust(12,' '), sep="", end="")
         for k, v in self.list.items():
-            print("│", '\x1b[1;36m'+("card"+ v.card_num).ljust(12,' ') + '\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+("card"+ v.get_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
         print("│")
 
-        print("├", "─".ljust(8,'─'), sep="", end="")
+        print("├", "─".ljust(12,'─'), sep="", end="")
         for k, v in self.list.items():
                 print("┼", "─".ljust(12,'─'), sep="", end="")
         print("┤")
 
-        print("│", '\x1b[1;36m'+"Model".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-            #print("│", (v.model.replace("Radeon",'')).ljust(12,' ')[:12], sep="", end="")
-            print("│", (re.sub(r'.*Radeon', '', v.model)).replace(']','').ljust(12,' ')[:12], sep="", end="")
-        print("│")
+        for table_item in self.table_parameters:
+            print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(12,' ')[:12]+'\x1b[0m', sep="", end="")
+            for k, v in self.list.items():
+                print("│", str(v.get_value(table_item)).ljust(12,' ')[:12], sep="", end="")
+            print("│")
 
-        print("│", '\x1b[1;36m'+"Load".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.loading) + "%").ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Power".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.power/1000000) +"W").ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Temp".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.temp/1000) + "C").ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"VddGFX".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.vddgfx) + "mV").ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Sclk".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", str(v.sclk_f).ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Sclk-Pst".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.sclk_ps)).ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Mclk".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", str(v.mclk_f).ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("│", '\x1b[1;36m'+"Mclk-Pst".ljust(8,' ')+'\x1b[0m', sep="", end="")
-        for k, v in self.list.items():
-                print("│", (str(v.mclk_ps)).ljust(12,' '), sep="", end="")
-        print("│")
-
-        print("└", "─".ljust(8,'─'), sep="", end="")
+        print("└", "─".ljust(12,'─'), sep="", end="")
         for k, v in self.list.items():
                 print("┴", "─".ljust(12,'─'), sep="", end="")
         print("┘")

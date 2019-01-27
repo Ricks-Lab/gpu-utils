@@ -29,11 +29,13 @@ __version__ = "v0.1.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk
 import argparse
 import re
 import subprocess
-import shlex
-import socket
+#import socket
 import os
 import platform
 import sys
@@ -44,13 +46,23 @@ from uuid import uuid4
 import glob 
 import shutil 
 
-# Not sure why I need this statement since it is in GPUmodules
+# Instantiate project constants
 gut_const = GPU.GUT_CONST()
 
+class MonitorWindow(Gtk.Window):
+    def __init__(self, rows, cols):
+        Gtk.Window.__init__(self, title="GPU Monitor")
+        grid = Gtk.Grid()
+        self.add(grid)
+
+
+
+        
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--loop", help="looped output in table", action="store_true", default=False)
+    parser.add_argument("--loop", help="Looped output in table", action="store_true", default=False)
+    #parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -109,6 +121,10 @@ def main():
     if args.loop == False:
         gpu_list.print()
         sys.exit(0)
+
+    #if args.gui == True:
+        #gmonitor = MonitorWindow(gpu_list)
+
 
     try:
         while True:
