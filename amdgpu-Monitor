@@ -50,10 +50,31 @@ import shutil
 gut_const = GPU.GUT_CONST()
 
 class MonitorWindow(Gtk.Window):
-    def __init__(self, rows, cols):
+    def __init__(self, gpu_list):
         Gtk.Window.__init__(self, title="GPU Monitor")
+        self.set_border_width(10)
         grid = Gtk.Grid()
         self.add(grid)
+
+        r = 0
+        row_labels = {"card_num": Gtk.Label(label="")}
+        for k, v in gpu_list.table_param_labels.items():
+            row_labels[k] = Gtk.Label(label=str(v))
+        i=0
+        for k, v in row_labels.items():
+            grid.attach(v, r, i, 1, 1)
+            i += 1
+
+        for k, v in gpu_list.list.items():
+            devices = {v.uuid : {"card_num":  Gtk.Label(label="card"+v.get_value("card_num"))}}
+            for cv in gpu_list.table_param_labels:
+                devices[v.uuid][cv] = Gtk.Label(label=v.get_value(str(cv)))
+        for dk, dv in devices.items():
+            r += 1
+            i = 0
+            for lk, lv in dv.items():
+                grid.attach(lv, r, i, 1, 1)
+                i += 1
 
 
 
@@ -62,7 +83,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--loop", help="Looped output in table", action="store_true", default=False)
-    #parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
+    parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -118,23 +139,26 @@ def main():
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
 
-    if args.loop == False:
+    if args.loop == False and args.gui == False:
         gpu_list.print()
         sys.exit(0)
 
-    #if args.gui == True:
-        #gmonitor = MonitorWindow(gpu_list)
+    if args.gui == True:
+        gmonitor = MonitorWindow(gpu_list)
+        gmonitor.connect("delete-event", Gtk.main_quit)
+        gmonitor.show_all()
+        Gtk.main()
+    else:
 
-
-    try:
-        while True:
-            gpu_list.read_hw_data()
-            gpu_list.read_device_data()
-            if gut_const.DEBUG == False: os.system('clear')
-            gpu_list.print_table()
-            time.sleep(2)
-    except KeyboardInterrupt:
-        sys.exit(0)
+        try:
+            while True:
+                gpu_list.read_hw_data()
+                gpu_list.read_device_data()
+                if gut_const.DEBUG == False: os.system('clear')
+                gpu_list.print_table()
+                time.sleep(2)
+        except KeyboardInterrupt:
+            sys.exit(0)
 
 
 if __name__ == "__main__":
