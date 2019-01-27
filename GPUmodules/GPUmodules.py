@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "benchMT"
-__version__ = "v0.0.0"
+__version__ = "v0.1.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
@@ -65,6 +65,9 @@ class GPU_STAT:
     def __init__(self, item_id):
         self.uuid = item_id
         self.card_num = ""
+        self.pcie_id = ""
+        self.driver = ""
+        self.model = ""
         self.card_path = ""
         self.hwmon_path = ""
         self.power = -1
@@ -117,8 +120,11 @@ class GPU_STAT:
 
     def print(self):
         print("UUID: ", self.uuid)
+        print("Card Model: ", self.model)
         print("Card Number: ", self.card_num)
         print("Card Path: ", self.card_path)
+        print("PCIe ID: ", self.pcie_id)
+        print("Driver: ", self.driver)
         print("HWmon: ", self.hwmon_path)
         print("Power: ", self.power/1000000,"W")
         print("Temp: ", self.temp/1000, "C")
@@ -131,6 +137,7 @@ class GPU_STAT:
         print("SCLK: ", self.sclk_f)
         print("MCLK P-State: ", self.mclk_ps)
         print("MCLK: ", self.mclk_f)
+        print("")
 
 
 class GPU_LIST:
@@ -157,15 +164,30 @@ class GPU_LIST:
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
-        if gut_const.DEBUG:
-            print("Found %s GPUs" % len(pcie_ids))
-            for pcie_id in pcie_ids:
-                print("GPU: ", pcie_id)
-        device_dirs = glob.glob(gut_const.card_root + "card?/device")
-        for device_dir in device_dirs:
-            sysfspath = str(Path(device_dir).resolve())
-            print("sysfspath: ", sysfspath)
-            print("sysfspath-7: ", sysfspath[-7:])
+        if gut_const.DEBUG: print("Found %s GPUs" % len(pcie_ids))
+        for pcie_id in pcie_ids:
+            if gut_const.DEBUG: print("GPU: ", pcie_id)
+            lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
+            gpu_name = lspci_items[1].split('[')[2].replace(']','')
+            driver_module = lspci_items[2].split(':')[1]
+            print(lspci_items)
+            # Find matching card
+            device_dirs = glob.glob(gut_const.card_root + "card?/device")
+            for device_dir in device_dirs:
+                sysfspath = str(Path(device_dir).resolve())
+                print("device_dir: ", device_dir)
+                print("sysfspath: ", sysfspath)
+                print("pcie_id: ", pcie_id)
+                print("sysfspath-7: ", sysfspath[-7:])
+                if pcie_id == sysfspath[-7:]:
+                    for k, v in self.list.items():
+                        if v.card_path == device_dir + '/':
+                            print("Match pcie_id: ", pcie_id)
+                            v.pcie_id = pcie_id
+                            v.driver = driver_module
+                            v.model = gpu_name
+                            break
+                    break
 
     def num_gpus(self):
         cnt = 0
@@ -183,62 +205,67 @@ class GPU_LIST:
 
         print("┌", "─".ljust(8,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┬", "─".ljust(8,'─'), sep="", end="")
+                print("┬", "─".ljust(12,'─'), sep="", end="")
         print("┐")
 
         print("│", " ".ljust(8,' '), sep="", end="")
         for k, v in self.list.items():
-            print("│", ("card"+ v.card_num).ljust(8,' '), sep="", end="")
+            print("│", '\x1b[1;36m'+("card"+ v.card_num).ljust(12,' ') + '\x1b[0m', sep="", end="")
         print("│")
 
         print("├", "─".ljust(8,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┼", "─".ljust(8,'─'), sep="", end="")
+                print("┼", "─".ljust(12,'─'), sep="", end="")
         print("┤")
 
-        print("│", "Load".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Model".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.loading) + "%").ljust(8,' '), sep="", end="")
+                print("│", (v.model.replace("Radeon",'')).ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Power".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Load".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.power/1000000) +"W").ljust(8,' '), sep="", end="")
+                print("│", (str(v.loading) + "%").ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Temp".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Power".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.temp/1000) + "C").ljust(8,' '), sep="", end="")
+                print("│", (str(v.power/1000000) +"W").ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "VddGFX".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Temp".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.vddgfx) + "mV").ljust(8,' '), sep="", end="")
+                print("│", (str(v.temp/1000) + "C").ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Sclk".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"VddGFX".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", str(v.sclk_f).ljust(8,' '), sep="", end="")
+                print("│", (str(v.vddgfx) + "mV").ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Sclk-Pst".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Sclk".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.sclk_ps)).ljust(8,' '), sep="", end="")
+                print("│", str(v.sclk_f).ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Mclk".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Sclk-Pst".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", str(v.mclk_f).ljust(8,' '), sep="", end="")
+                print("│", (str(v.sclk_ps)).ljust(12,' '), sep="", end="")
         print("│")
 
-        print("│", "Mclk-Pst".ljust(8,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Mclk".ljust(8,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-                print("│", (str(v.mclk_ps)).ljust(8,' '), sep="", end="")
+                print("│", str(v.mclk_f).ljust(12,' '), sep="", end="")
+        print("│")
+
+        print("│", '\x1b[1;36m'+"Mclk-Pst".ljust(8,' ')+'\x1b[0m', sep="", end="")
+        for k, v in self.list.items():
+                print("│", (str(v.mclk_ps)).ljust(12,' '), sep="", end="")
         print("│")
 
         print("└", "─".ljust(8,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┴", "─".ljust(8,'─'), sep="", end="")
+                print("┴", "─".ljust(12,'─'), sep="", end="")
         print("┘")
 
         
@@ -249,9 +276,9 @@ def test():
     gpu_list.get_gpu_list()
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
-    gpu_list.print()
+    gpu_list.get_gpu_details()
     gpu_list.print_table()
-    #gpu_list.get_gpu_details()
+    gpu_list.print()
 
 
 if __name__ == "__main__":
