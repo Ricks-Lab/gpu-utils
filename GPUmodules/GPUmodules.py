@@ -181,7 +181,7 @@ class GPU_LIST:
         self.list = {}
         self.table_parameters = ["model_short", "loading", "power", "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f", "mclk_ps"]
         self.table_param_labels = {"model_short":"Model", "loading":"Load %","power": "Power (W)", "temp":"T (C)", "vddgfx":"VddGFX (mV)",
-                "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk-ps", "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk-ps"}
+                "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate"}
 
     def get_gpu_list(self):
         for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):

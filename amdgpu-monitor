@@ -31,12 +31,11 @@ __status__ = "Development"
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, Gdk
 import argparse
 import re
 import subprocess
 import threading
-#import socket
 import os
 import platform
 import sys
@@ -53,7 +52,8 @@ gut_const = GPU.GUT_CONST()
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list):
         Gtk.Window.__init__(self, title="GPU Monitor")
-        self.set_border_width(10)
+        self.set_border_width(1)
+        #self.set_border_width(10)
 
 def updateData(gpu_list, devices):
     gpu_list.read_hw_data()
@@ -139,12 +139,32 @@ def main():
         gmonitor.add(grid)
 
         col = 0
-        row_labels = {"card_num": Gtk.Label(label="")}
+        #row_labels = {"card_num": Gtk.Label(label="Card #")}
+        row_labels = {"card_num": Gtk.Label()}
+        row_labels["card_num"].set_markup("<b>Card #</b>")
+        #Justification statement doesn't work!! Please help if you can
+        row_labels["card_num"].set_justify(Gtk.Justification.LEFT)
         for k, v in gpu_list.table_param_labels.items():
-            row_labels[k] = Gtk.Label(label=str(v))
+            #row_labels[k] = Gtk.Label(label=str(v))
+            row_labels[k] = Gtk.Label()
+            row_labels[k].set_markup("<b>"+str(v)+"</b>")
+            #Justification statement doesn't work!! Please help if you can
+            row_labels[k].set_justify(Gtk.Justification.LEFT)
         i=0
         for k, v in row_labels.items():
-            grid.attach(v, col, i, 1, 1)
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            v.set_property("margin-top", 1)
+            v.set_property("margin-bottom", 1)
+            v.set_property("margin-right", 3)
+            v.set_property("margin-left", 3)
+            lbox.pack_start(v, True, True, 0)
+            grid.attach(lbox, col, i, 1, 1)
+            #grid.attach(v, col, i, 1, 1)
             i += 1
 
         devices = {}
@@ -156,7 +176,19 @@ def main():
             col += 1
             i = 0
             for lk, lv in dv.items():
-                grid.attach(lv, col, i, 1, 1)
+                lbox = Gtk.Box(spacing=6)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lv.set_property("margin-top", 1)
+                lv.set_property("margin-bottom", 1)
+                lv.set_property("margin-right", 3)
+                lv.set_property("margin-left", 3)
+                lbox.pack_start(lv, True, True, 0)
+                grid.attach(lbox, col, i, 1, 1)
+                #grid.attach(lv, col, i, 1, 1)
                 i += 1
 
         gmonitor.connect("delete-event", Gtk.main_quit)
