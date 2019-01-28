@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "benchMT"
-__version__ = "v0.1.0"
+__version__ = "v0.3.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
