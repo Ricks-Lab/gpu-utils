@@ -58,6 +58,8 @@ class GUT_CONST:
         self.cur_power = "power1_average"
         self.cur_temp = "temp1_average"
         self.DEBUG = False
+        self.SLEEP = 2
+        self.PATH = "."
         self.amdfeaturemask = ""
 
     def read_amdfeaturemask(self):
