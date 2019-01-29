@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""amdgpu-Monitor  -  Displays current status of all active GPUs
+"""amdgpu-monitor  -  Displays current status of all active GPUs
 
     A utility to give the current state of all compatible GPUs.  The default behavior
     is to just output relevant parameters. With the *--loop* option, a table of relevant
-    paramters will be continuously updated.  Use Ctrl-c to exit the loop.
+    parameters will be continuously updated in the current window until Ctrl-C is pressed.
+    With the *--gui* option, a table of relevant parameters will be updated in a Gtk
+    window.  You can specify the delay between updates with the *--sleep N* option where
+    N is an integer > zero that specifies the number of seconds to sleep.
 
     Copyright (C) 2019  RueiKe
 
@@ -25,9 +28,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "benchMT"
-__version__ = "v0.3.0"
+__version__ = "v1.0.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Initial Release"
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -53,14 +56,20 @@ class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list):
         Gtk.Window.__init__(self, title="GPU Monitor")
         self.set_border_width(1)
-        #self.set_border_width(10)
+        self.set_icon_from_file('amdgpu-monitor.icon.jpg')
+
 
 def updateData(gpu_list, devices):
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     for dk, dv in devices.items():
         for lk, lv in dv.items():
-            lv.set_text(str(gpu_list.list[dk].get_value(lk)))
+            if lk == "card_num":
+                data_value = "card"+gpu_list.list[dk].get_value("card_num")
+            else:
+                data_value = str(gpu_list.list[dk].get_value(lk))
+            lv.set_text(data_value)
+            #lv.set_text(str(gpu_list.list[dk].get_value(lk)))
 
 def refresh(refreshtime, updateData, gpu_list, devices):
     while True:
@@ -73,10 +82,10 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--loop", help="Looped output in table", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
+    parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-    if args.debug == True :  gut_const.DEBUG = True
 
     # About me
     if args.about == True :  
@@ -89,6 +98,13 @@ def main():
         print("Maintainer: ", __maintainer__)
         print("Status: ", __status__)
         sys.exit(0)
+
+    if args.debug == True :  gut_const.DEBUG = True
+    if int(args.sleep) > 0 :
+        gut_const.SLEEP = int(args.sleep)
+    else:
+        print("Invalid value for sleep specified.  Must be an integer great than zero")
+        sys.exit(-1)
 
     # Check python version
     (python_major, python_minor, python_patch) = platform.python_version_tuple()
@@ -136,20 +152,17 @@ def main():
         # Display Gtk style Monitor
         gmonitor = MonitorWindow(gpu_list)
         grid = Gtk.Grid()
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
         gmonitor.add(grid)
 
         col = 0
         #row_labels = {"card_num": Gtk.Label(label="Card #")}
         row_labels = {"card_num": Gtk.Label()}
         row_labels["card_num"].set_markup("<b>Card #</b>")
-        #Justification statement doesn't work!! Please help if you can
-        row_labels["card_num"].set_justify(Gtk.Justification.LEFT)
         for k, v in gpu_list.table_param_labels.items():
-            #row_labels[k] = Gtk.Label(label=str(v))
             row_labels[k] = Gtk.Label()
+            #row_labels[k] = Gtk.Label(label=str(v))
             row_labels[k].set_markup("<b>"+str(v)+"</b>")
-            #Justification statement doesn't work!! Please help if you can
-            row_labels[k].set_justify(Gtk.Justification.LEFT)
         i=0
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
@@ -160,10 +173,12 @@ def main():
             lbox.set_property("margin-left", 1)
             v.set_property("margin-top", 1)
             v.set_property("margin-bottom", 1)
-            v.set_property("margin-right", 3)
-            v.set_property("margin-left", 3)
+            v.set_property("margin-right", 4)
+            v.set_property("margin-left", 4)
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, i, 1, 1)
+            #v.set_hexpand(True)
+            #v.set_justify(Gtk.Justification.LEFT)
             #grid.attach(v, col, i, 1, 1)
             i += 1
 
@@ -195,7 +210,7 @@ def main():
         gmonitor.show_all()
 
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[2, updateData, gpu_list, devices]).start()
+        monthread = threading.Thread(target=refresh, daemon=True, args=[gut_const.SLEEP, updateData, gpu_list, devices]).start()
 
         Gtk.main()
 
@@ -207,7 +222,7 @@ def main():
                 gpu_list.read_device_data()
                 if gut_const.DEBUG == False: os.system('clear')
                 gpu_list.print_table()
-                time.sleep(2)
+                time.sleep(gut_const.SLEEP)
         except KeyboardInterrupt:
             sys.exit(0)
 
