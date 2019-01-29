@@ -15,9 +15,9 @@ window.  You can specify the delay between updates with the *--sleep N* option w
 N is an integer > zero that specifies the number of seconds to sleep.
 
 ## New in this Release  -  v1.0.0
-* Completed the implementation of the GPU Monitor tool.
+* Completed implementation of the GPU Monitor tool.
 
-## Development plans
+## Development Plans
 * Enhance formatting Gtk monitor tool. Need to figure out how to left justify the labels amdgpu-monitor!
 * Need to figure out how to left justify text in a Gtk label.
 * Develop a tool to customize GPU settings including p-state details.
