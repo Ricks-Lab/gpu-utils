@@ -28,7 +28,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "benchMT"
-__version__ = "v1.0.0"
+__version__ = "v1.0.1"
 __maintainer__ = "RueiKe"
 __status__ = "Initial Release"
 
@@ -180,8 +180,7 @@ def main():
             v.set_property("margin-left", 4)
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, i, 1, 1)
-            #v.set_hexpand(True)
-            #v.set_justify(Gtk.Justification.LEFT)
+            v.set_alignment(0, 0.5)
             #grid.attach(v, col, i, 1, 1)
             i += 1
 
