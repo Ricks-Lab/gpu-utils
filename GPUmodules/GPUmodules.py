@@ -87,15 +87,20 @@ class GPU_STAT:
         "power" : -1,
         "temp" : -1,
         "vddgfx" : -1,
+        "vddc_range" : ["",""],
         "loading" : -1,
         "mclk_ps" : -1,
         "mclk_f" : "",
+        "mclk_f_range" : ["",""],
         "sclk_ps" : -1,
         "sclk_f" : "",
+        "sclk_f_range" : ["",""],
         "link_spd" : "",
         "link_wth" : "",
         "vbios" : ""
         }
+        self.sclk_state = {} #{"1":["Mhz","mV]}
+        self.mclk_state = {}
 
     def set_value(self, name, value):
         self.params[name] = value
@@ -130,6 +135,37 @@ class GPU_STAT:
                 "mclk_f" : "MCLK"
                 }
         return(GPU_Param_Labels)
+
+    def get_pstates(self):
+        range_mode = False
+        if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
+            print("Error getting pstates: ", self.card_path)
+            sys.exit(-1)
+        with open(self.card_path + "pp_od_clk_voltage") as card_file:
+            for line in card_file:
+                if re.fullmatch('OD_.*:$', line.strip()):
+                    if re.fullmatch('OD_.CLK:$', line.strip()):
+                        clk_name = line.strip()
+                    elif re.fullmatch('OD_RANGE:$', line.strip()):
+                        range_mode = True
+                    continue
+                lineitems = line.split()
+                if range_mode == False:
+                    lineitems[0] = int(re.sub(':','', lineitems[0]))
+                    if clk_name == "OD_SCLK:":
+                        self.sclk_state = {lineitems[0]: [lineitems[1],lineitems[2]]}
+                        #print(self.sclk_state)
+                    elif clk_name == "OD_MCLK:":
+                        self.mclk_state = {lineitems[0]: [lineitems[1],lineitems[2]]}
+                        #print(self.mclk_state)
+                else:
+                    if lineitems[0] == "SCLK:":
+                        self.sclk_f_range = [lineitems[1],lineitems[2]]
+                    elif lineitems[0] == "MCLK:":
+                        self.mclk_f_range = [lineitems[1],lineitems[2]]
+                    elif lineitems[0] == "VDDC:":
+                        self.vddc_range = [lineitems[1],lineitems[2]]
+
 
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
@@ -192,6 +228,10 @@ class GPU_LIST:
             gpu_item.set_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
             gpu_item.set_value("hwmon_path",  gpu_item.get_value("card_path") + gut_const.hwmon_sub + gpu_item.get_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
+
+    def get_pstates(self):
+        for k, v in self.list.items():
+            v.get_pstates()
 
     def read_hw_data(self):
         for k, v in self.list.items():
@@ -297,6 +337,8 @@ def test():
     gpu_list.get_gpu_details()
     gpu_list.print_table()
     gpu_list.print()
+
+    gpu_list.get_pstates()
 
 
 if __name__ == "__main__":
