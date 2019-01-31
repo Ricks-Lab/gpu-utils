@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """amdgpu-monitor  -  Displays current status of all active GPUs
 
-    A utility to give the current state of all compatible GPUs.  The default behavior
+    A utility to give the current state of all compatible AMD GPUs.  The default behavior
     is to just output relevant GPU card parameters.  With the *--pstates* otion, the
     p-state tables are output instead of GPU details. With the *--loop* option, a table
     of relevant parameters will be continuously updated in the current window until
