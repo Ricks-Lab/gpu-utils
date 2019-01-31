@@ -125,14 +125,17 @@ class GPU_STAT:
                 "power" : "Power",
                 "temp" : "Temp",
                 "vddgfx" : "VddGFX",
+                "vddc_range" : "Vddc Range",
                 "loading" : "Loading",
                 "link_spd" : "Link Speed",
                 "link_wth" : "Link Width",
                 "vbios" : "vBIOS Version",
                 "sclk_ps" : "SCLK P-State",
                 "sclk_f" : "SCLK",
+                "sclk_f_range" : "SCLK Range",
                 "mclk_ps" : "MCLK P-State",
-                "mclk_f" : "MCLK"
+                "mclk_f" : "MCLK",
+                "mclk_f_range" : "MCLK Range"
                 }
         return(GPU_Param_Labels)
 
@@ -153,19 +156,18 @@ class GPU_STAT:
                 if range_mode == False:
                     lineitems[0] = int(re.sub(':','', lineitems[0]))
                     if clk_name == "OD_SCLK:":
-                        self.sclk_state = {lineitems[0]: [lineitems[1],lineitems[2]]}
+                        self.sclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
                         #print(self.sclk_state)
                     elif clk_name == "OD_MCLK:":
-                        self.mclk_state = {lineitems[0]: [lineitems[1],lineitems[2]]}
+                        self.mclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
                         #print(self.mclk_state)
                 else:
                     if lineitems[0] == "SCLK:":
-                        self.sclk_f_range = [lineitems[1],lineitems[2]]
+                        self.set_value("sclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "MCLK:":
-                        self.mclk_f_range = [lineitems[1],lineitems[2]]
+                        self.set_value("mclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "VDDC:":
-                        self.vddc_range = [lineitems[1],lineitems[2]]
-
+                        self.set_value("vddc_range", [lineitems[1],lineitems[2]])
 
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
@@ -208,6 +210,11 @@ class GPU_STAT:
                         self.set_value("mclk_ps", lineitems[0].strip())
                         self.set_value("mclk_f", lineitems[1].strip().strip('*'))
 
+    def print_pstates(self):
+        for k, v in self.sclk_state.items():
+            print(f"{str(k)}:\t{v[0]}\t{v[1]}")
+        print("")
+
     def print(self):
         #for k, v in GPU_Param_Labels.items():
         for k, v in self.get_all_labels().items():
@@ -232,6 +239,10 @@ class GPU_LIST:
     def get_pstates(self):
         for k, v in self.list.items():
             v.get_pstates()
+
+    def print_pstates(self):
+        for k, v in self.list.items():
+            v.print_pstates()
 
     def read_hw_data(self):
         for k, v in self.list.items():

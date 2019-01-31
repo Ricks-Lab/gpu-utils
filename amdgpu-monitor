@@ -82,6 +82,7 @@ def refresh(refreshtime, updateData, gpu_list, devices):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
     parser.add_argument("--loop", help="Looped output in table", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
@@ -108,6 +109,10 @@ def main():
     else:
         print("Invalid value for sleep specified.  Must be an integer great than zero")
         sys.exit(-1)
+
+    if args.loop == True or args.loop == True:
+        if args.pstates == True : print("--pstates has no effect with --loop or --gui")
+
 
     # Check python version
     (python_major, python_minor, python_patch) = platform.python_version_tuple()
@@ -162,7 +167,11 @@ def main():
         print("")
 
     if args.loop == False and args.gui == False:
-        gpu_list.print()
+        gpu_list.get_pstates()
+        if args.pstates == True :
+            gpu_list.print_pstates()
+        else:
+            gpu_list.print()
         sys.exit(0)
 
     if args.gui == True:
