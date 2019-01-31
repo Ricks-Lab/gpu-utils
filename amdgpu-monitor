@@ -136,16 +136,30 @@ def main():
         sys.exit(-1)
     if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
         print("AMD Wattman features enabled: %s" % hex(featuremask))
-        print("")
     else:
         print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
         sys.exit(-1)
 
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
+    num_amd_gpus = gpu_list.num_gpus()
+
+    if num_amd_gpus == 0:
+        print("No AMD GPUs detected, exiting...")
+        sys.exit(-1)
+    else:
+        print(f"{num_amd_gpus} AMD GPUs detected")
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
+
+    num_com_amd_gpus = gpu_list.num_compatible_gpus()
+    if num_com_amd_gpus == 0:
+        print("None are Compatible, exiting...")
+        #sys.exit(-1)
+    else:
+        print(f"{num_amd_gpus} are Compatible")
+        print("")
 
     if args.loop == False and args.gui == False:
         gpu_list.print()

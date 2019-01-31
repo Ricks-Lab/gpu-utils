@@ -251,7 +251,7 @@ class GPU_LIST:
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
             #gpu_name = lspci_items[1].split('[')[2].replace(']','')
             gpu_name = lspci_items[1].split('[AMD/ATI]')[1]
-            driver_module = lspci_items[2].split(':')[1]
+            driver_module = (lspci_items[2].split(':')[1]).strip()
             if gut_const.DEBUG: print(lspci_items)
             # Find matching card
             device_dirs = glob.glob(gut_const.card_root + "card?/device")
@@ -275,6 +275,13 @@ class GPU_LIST:
         cnt = 0
         for k, v in self.list.items():
             cnt += 1
+        return(cnt)
+
+    def num_compatible_gpus(self):
+        cnt = 0
+        for k, v in self.list.items():
+            if v.get_value("driver") == "amdgpu":
+                cnt += 1
         return(cnt)
 
     def print(self):
