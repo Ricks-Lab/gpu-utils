@@ -40,23 +40,12 @@ from uuid import uuid4
 import glob 
 import shutil 
 
-#/sys/class/drm/card0/device/pp_od_clk_voltage
-#echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
-#echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
-# commit the changes to the hw
-#echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
-# reset to the default dpm states
-#echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage
-# commit the reset state to the hw
-#echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
 
 class GUT_CONST:
     def __init__(self):
         self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
         self.card_root = "/sys/class/drm/"
         self.hwmon_sub = "/hwmon/hwmon"
-        self.cur_power = "power1_average"
-        self.cur_temp = "temp1_average"
         self.DEBUG = False
         self.SLEEP = 2
         self.PATH = "."
@@ -138,6 +127,22 @@ class GPU_STAT:
                 "mclk_f_range" : "MCLK Range"
                 }
         return(GPU_Param_Labels)
+
+    def write_pstates(self):
+        # Sample commands to set p states.  Problem is that the file that needs to
+        # be written to, is only writeable by root.  Maybe the best approach is to 
+        # create a script for the user to execute with sudo.
+        #
+        #echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        #echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # reset to the default dpm states
+        #echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # commit the changes to the hw
+        #echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
+            print("Can not access card{self.card_num} file: ", self.card_path + "pp_od_clk_voltage")
+        # currently does nothing
+        return
 
     def get_pstates(self):
         range_mode = False
