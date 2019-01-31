@@ -8,11 +8,13 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 ## amdgpu-monitor
 A utility to give the current state of all compatible GPUs.  The default behavior
-is to just output relevant parameters. With the *--loop* option, a table of relevant
-parameters will be continuously updated in the current window until Ctrl-C is pressed.
-With the *--gui* option, a table of relevant parameters will be updated in a Gtk
-window.  You can specify the delay between updates with the *--sleep N* option where
-N is an integer > zero that specifies the number of seconds to sleep.
+is to just output relevant GPU card parameters.  With the *--pstates* otion, the
+p-state tables are output instead of GPU details. With the *--loop* option, a table
+of relevant parameters will be continuously updated in the current window until
+Ctrl-C is pressed.  With the *--gui* option, a table of relevant parameters will be
+updated in a Gtk window.  You can specify the delay between updates with the
+*--sleep N* option where N is an integer > zero that specifies the number of seconds
+to sleep.
 
 ## New in this Release  -  v1.0.0
 * Completed implementation of the GPU Monitor tool.

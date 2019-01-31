@@ -211,8 +211,13 @@ class GPU_STAT:
                         self.set_value("mclk_f", lineitems[1].strip().strip('*'))
 
     def print_pstates(self):
+        print(f"Card: {self.card_path}")
         for k, v in self.sclk_state.items():
-            print(f"{str(k)}:\t{v[0]}\t{v[1]}")
+            print(f"{str(k)}:\t{v[0]}\t{v[1]}", end='')
+            if k in self.mclk_state.keys():
+                print(f"\t{str(k)}:\t{self.mclk_state[k][0]}\t{self.mclk_state[k][1]}")
+            else:
+                print("")
         print("")
 
     def print(self):
