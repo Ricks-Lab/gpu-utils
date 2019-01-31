@@ -112,6 +112,7 @@ def main():
         print("Invalid value for sleep specified.  Must be an integer great than zero")
         sys.exit(-1)
 
+    # 
     if args.loop == True and args.gui == True: print("--loop and --gui are mutually exclusive")
 
     if args.loop == True or args.gui == True:
