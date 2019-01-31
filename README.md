@@ -16,7 +16,11 @@ updated in a Gtk window.  You can specify the delay between updates with the
 *--sleep N* option where N is an integer > zero that specifies the number of seconds
 to sleep.
 
-## New in this Release  -  v1.0.0
+## New in this Release  -  v1.1.0
+* Added --pstates feature display table of p-states instead of GPU details.
+* Added error checking to exit if no compatible AMD GPUs are found.
+
+## New in Previous Release  -  v1.0.0
 * Completed implementation of the GPU Monitor tool.
 
 ## Development Plans
