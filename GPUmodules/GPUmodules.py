@@ -21,7 +21,7 @@ __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
-__program_name__ = "GPUmodules.py Module"
+__program_name__ = "amdgpu-utils"
 __version__ = "v1.1.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
@@ -212,10 +212,11 @@ class GPU_STAT:
 
     def print_pstates(self):
         print(f"Card: {self.card_path}")
+        print("SCLK:" + " ".ljust(19,' ') + "MCLK:")
         for k, v in self.sclk_state.items():
-            print(f"{str(k)}:\t{v[0]}\t{v[1]}", end='')
+            print(f"{str(k)}:  {v[0].ljust(8,' ')}  {v[1].ljust(8,' ')}", end='')
             if k in self.mclk_state.keys():
-                print(f"\t{str(k)}:\t{self.mclk_state[k][0]}\t{self.mclk_state[k][1]}")
+                print(f"  {str(k)}:  {self.mclk_state[k][0].ljust(8,' ')}  {self.mclk_state[k][1].ljust(8,' ')}")
             else:
                 print("")
         print("")
