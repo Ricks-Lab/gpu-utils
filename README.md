@@ -24,7 +24,6 @@ to sleep.
 * Completed implementation of the GPU Monitor tool.
 
 ## Development Plans
-* Enhance formatting Gtk monitor tool. Need to improve my Gtk skills!
-* Need to figure out how to left justify text in a Gtk label.
+* Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a tool to customize GPU settings including p-state details.
 * Develop a startup utility to initialize GPU settings at boot up.
