@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v1.1.0"
+__version__ = "v2.0.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
@@ -129,16 +129,18 @@ class GPU_STAT:
         return(GPU_Param_Labels)
 
     def write_pstates(self):
-        # Sample commands to set p states.  Problem is that the file that needs to
-        # be written to, is only writeable by root.  Maybe the best approach is to 
-        # create a script for the user to execute with sudo.
+
+        #  Sample commands to set p states.  Problem is that the file that needs to
+        #  be written to, is only writeable by root.  Maybe the best approach is to 
+        #  create a script for the user to execute with sudo.
         #
-        #echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        #echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # reset to the default dpm states
-        #echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # commit the changes to the hw
-        #echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        #  reset to the default dpm states
+        # echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        #  commit the changes to the hw
+        # echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
+
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Can not access card{self.card_num} file: ", self.card_path + "pp_od_clk_voltage")
         # currently does nothing
