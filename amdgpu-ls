@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""amdgpu-ls  -  Displays details about installed AMD GPUs
+
+    The default behavior is to just output relevant GPU card parameters.  With the
+    *--pstates* otion, the p-state tables are output instead of GPU details.
+
+    Copyright (C) 2019  RueiKe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = "RueiKe"
+__copyright__ = "Copyright (C) 2019 RueiKe"
+__credits__ = ""
+__license__ = "GNU General Public License"
+__program_name__ = "amdgpu-ls"
+__version__ = "v2.0.0"
+__maintainer__ = "RueiKe"
+__status__ = "Beta"
+
+import argparse
+import re
+import subprocess
+import os
+import platform
+import sys
+import time
+from GPUmodules import GPUmodules as GPU
+from datetime import datetime
+from uuid import uuid4
+import glob 
+import shutil 
+from pathlib import Path
+
+# Instantiate project constants
+gut_const = GPU.GUT_CONST()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
+    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    args = parser.parse_args()
+
+
+    # About me
+    if args.about == True :  
+        print(__doc__ )
+        print("Author: ", __author__ )
+        print("Copyright: ", __copyright__)
+        print("Credits: ", __credits__)
+        print("License: ", __license__)
+        print("Version: ", __version__)
+        print("Maintainer: ", __maintainer__)
+        print("Status: ", __status__)
+        sys.exit(0)
+
+    gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    if args.debug == True :  gut_const.DEBUG = True
+
+    gut_const.check_env()
+
+    # Check value of AMD Feature mask
+    try:
+        featuremask = gut_const.read_amdfeaturemask()
+    except FileNotFoundError:
+        print("Cannot read ppfeaturemask. Exiting...")
+        sys.exit(-1)
+    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
+        print("AMD Wattman features enabled: %s" % hex(featuremask))
+    else:
+        print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+        sys.exit(-1)
+
+    #Get list of AMD GPUs
+    gpu_list = GPU.GPU_LIST()
+    gpu_list.get_gpu_list()
+
+    #Check list of AMD GPUs
+    num_amd_gpus = gpu_list.num_gpus()
+    if num_amd_gpus == 0:
+        print("No AMD GPUs detected, exiting...")
+        sys.exit(-1)
+    else:
+        print(f"{num_amd_gpus} AMD GPUs detected")
+
+    #Get GPU details
+    gpu_list.read_hw_data()
+    gpu_list.read_device_data()
+    gpu_list.get_gpu_details()
+
+    #TODO check opencl details
+
+    #Check list of AMD GPUs for driver compatibility
+    num_com_amd_gpus = gpu_list.num_compatible_gpus()
+    if num_com_amd_gpus == 0:
+        print("None are Compatible, will still try...")
+    else:
+        print(f"{num_amd_gpus} are Compatible")
+    print("")
+
+    gpu_list.get_pstates()
+    if args.pstates == True :
+        gpu_list.print_pstates()
+    else:
+        gpu_list.print()
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
