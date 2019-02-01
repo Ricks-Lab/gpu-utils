@@ -56,6 +56,27 @@ class GUT_CONST:
             self.amdfeaturemask = int(fm_file.readline())
             return (self.amdfeaturemask)
 
+    def check_env(self):
+        # Check python version
+        (python_major, python_minor, python_patch) = platform.python_version_tuple()
+        if python_major < "3":
+            print("Using python" + python_major + ", but benchMT requires python3. Exiting...")
+            sys.exit(0)
+        if python_minor < "6":
+            print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
+                    " but, benchMT requires python 3.6 and up. Exiting...")
+            sys.exit(0)
+
+        # Check Linux Kernel version
+        linux_version = platform.release()
+        if int(linux_version.split(".")[0]) < 4:
+            print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
+            sys.exit(0)
+        if int(linux_version.split(".")[1]) < 8:
+            print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
+            sys.exit(0)
+
+
 gut_const = GUT_CONST()
 
 class GPU_STAT:
