@@ -178,7 +178,8 @@ def main():
         else:
             gpu_list.print()
         sys.exit(0)
-
+        
+    # It would be better to create separate functions or classes for above and below sections, keep main tidy and easy to read.
     if args.gui == True:
         # Display Gtk style Monitor
         gmonitor = MonitorWindow(gpu_list)
