@@ -238,6 +238,34 @@ class GPU_STAT:
                         self.set_value("mclk_ps", lineitems[0].strip())
                         self.set_value("mclk_f", lineitems[1].strip().strip('*'))
 
+    def read_opencl_data(self):
+        pass
+        #clinfo sample output
+        #Device Name                                     gfx900
+        #Device Vendor ID                                0x1002
+        #Device Version                                  OpenCL 2.0 AMD-APP (2766.4)
+        #Driver Version                                  2766.4 (PAL,HSAIL)
+        #Device OpenCL C Version                         OpenCL C 2.0
+        #Device Board Name (AMD)                         Radeon RX Vega
+        #Device Topology (AMD)                           PCI-E, 44:00.0
+        #Device Profile                                  FULL_PROFILE
+        #Device Available                                Yes
+        #Compiler Available                              Yes
+        #Linker Available                                Yes
+        #Max compute units                               64
+        #SIMD per compute unit (AMD)                     4
+        #SIMD width (AMD)                                16
+        #SIMD instruction width (AMD)                    1
+        #Graphics IP (AMD)                               9.0
+        #Max work item dimensions                        3
+        #Max work item sizes                             1024x1024x1024
+        #Max work group size                             256
+        #Preferred work group size (AMD)                 256
+        #Max work group size (AMD)                       1024
+        #Preferred work group size multiple              64
+        #Wavefront width (AMD)                           64
+
+
     def print_pstates(self):
         print(f"Card: {self.card_path}")
         print("SCLK:" + " ".ljust(19,' ') + "MCLK:")
