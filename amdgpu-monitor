@@ -67,11 +67,11 @@ def updateData(gpu_list, devices):
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == "card_num":
-                data_value = "card"+gpu_list.list[dk].get_value("card_num")
+                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
             else:
-                data_value = str(gpu_list.list[dk].get_value(lk))
+                data_value = str(gpu_list.list[dk].get_params_value(lk))
             lv.set_text(data_value)
-            #lv.set_text(str(gpu_list.list[dk].get_value(lk)))
+            #lv.set_text(str(gpu_list.list[dk].get_params_value(lk)))
 
 def refresh(refreshtime, updateData, gpu_list, devices):
     while True:
@@ -108,7 +108,9 @@ def main():
         print("Invalid value for sleep specified.  Must be an integer great than zero")
         sys.exit(-1)
 
-    gut_const.check_env()
+    if gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
@@ -178,9 +180,9 @@ def main():
 
         devices = {}
         for k, v in gpu_list.list.items():
-            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_value("card_num"))}
+            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
-                devices[v.uuid][cv] = Gtk.Label(label=v.get_value(str(cv)))
+                devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
         for dk, dv in devices.items():
             col += 1
             i = 0

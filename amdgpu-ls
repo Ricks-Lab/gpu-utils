@@ -70,7 +70,9 @@ def main():
     gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     if args.debug == True :  gut_const.DEBUG = True
 
-    gut_const.check_env()
+    if gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
