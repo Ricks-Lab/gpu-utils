@@ -45,7 +45,7 @@ class GUT_CONST:
     def __init__(self):
         self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
         self.card_root = "/sys/class/drm/"
-        self.hwmon_sub = "/hwmon/hwmon"
+        self.hwmon_sub = "hwmon/hwmon"
         self.DEBUG = False
         self.SLEEP = 2
         self.PATH = "."
@@ -152,6 +152,10 @@ class GPU_ITEM:
         # reads clinfo dictionary
         return(self.clinfo[name])
 
+    def copy_clinfo_values(self, gpu_item):
+        for k, v in gpu_item.clinfo.items():
+            self.clinfo[k] = v
+
     def get_all_params_labels(self):
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
@@ -161,19 +165,19 @@ class GPU_ITEM:
                 "pcie_id" : "PCIe ID",
                 "driver" : "Driver",
                 "hwmon_path" : "HWmon",
-                "power" : "Power",
-                "temp" : "Temp",
-                "vddgfx" : "VddGFX",
+                "power" : "Current Power (W)",
+                "temp" : "Current Temp (C)",
+                "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
-                "loading" : "Loading",
+                "loading" : "Current Loading (%)",
                 "link_spd" : "Link Speed",
                 "link_wth" : "Link Width",
                 "vbios" : "vBIOS Version",
-                "sclk_ps" : "SCLK P-State",
-                "sclk_f" : "SCLK",
+                "sclk_ps" : "Current SCLK P-State",
+                "sclk_f" : "Current SCLK",
                 "sclk_f_range" : "SCLK Range",
-                "mclk_ps" : "MCLK P-State",
-                "mclk_f" : "MCLK",
+                "mclk_ps" : "Current MCLK P-State",
+                "mclk_f" : "Current MCLK",
                 "mclk_f_range" : "MCLK Range"
                 }
         return(GPU_Param_Labels)
@@ -184,7 +188,6 @@ class GPU_ITEM:
                 "device_version" : "Device Version",
                 "driver_version" : "Driver Version",
                 "opencl_version" : "Device OpenCL C Version",
-                "pcie_id" : "PCIe ID",
                 "max_cu" : "Max Compute Units",
                 "simd_per_cu" : "SIMD per CU",
                 "simd_width" : "SIMD Width",
@@ -297,10 +300,13 @@ class GPU_ITEM:
                 print("")
         print("")
 
-    def print(self):
+    def print(self, clflag=False):
         #for k, v in GPU_Param_Labels.items():
         for k, v in self.get_all_params_labels().items():
             print(v +": "+ str(self.get_params_value(k)))
+        if clflag:
+            for k, v in self.get_all_clinfo_labels().items():
+                print(v +": "+ str(self.get_clinfo_value(k)))
         print("")
 
 class GPU_LIST:
@@ -366,36 +372,97 @@ class GPU_LIST:
 
     def read_opencl_data(self):
         # Check access to clinfo command
-        #"device_name"
-        #"device_version"
-        #"driver_version"
-        #"opencl_version"
-        #"pcie_id"
-        #"max_cu"
-        #"simd_per_cu"
-        #"simd_width"
-        #"simd_ins_width"
-        #"graphics_ip"
-        #"max_wi_dim"
-        #"max_wi_sizes"
-        #"max_wg_size"
-        #"prf_wg_multiple"
         if shutil.which("/usr/bin/clinfo") == None:
             print("OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install", file=sys.stderr)
             return(-1)
-        #TODO write code to extract GPU clinfo params
-        tmp_gpu = GPU_ITEM()
         cmd = subprocess.Popen('/usr/bin/clinfo', shell=False, stdout=subprocess.PIPE)
         for line in cmd.stdout:
             linestr = line.decode("utf-8").strip()
+            linestr = re.sub(r'      [ ]*',':-:', linestr)
             searchObj = re.search('Device Name', linestr)
             if(searchObj != None):
                 # Found a new device
-                lineItem = linestr.split('          ')
-                tmp_gpu.set_clinfo_item("device_name", lineItem[1].strip())
+                tmp_gpu = GPU_ITEM(uuid4().hex)
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("device_name", lineItem[1].strip())
                 continue
+            searchObj = re.search('Device Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("device_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Driver Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("driver_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device OpenCL C Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("opencl_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device Topology', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                pcie_id_str = lineItem[1].split(',')[1].strip()
+                tmp_gpu.set_clinfo_value("pcie_id", pcie_id_str)
+                continue
+            searchObj = re.search('Max compute units', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_cu", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD per compute unit', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_per_cu", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD width', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_width", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD instruction width', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_ins_width", lineItem[1].strip())
+                continue
+            searchObj = re.search('Graphics IP', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("graphics_ip", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work item dimensions', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wi_dim", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work item sizes', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wi_sizes", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work group size', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wg_size", lineItem[1].strip())
+                continue
+            searchObj = re.search('Preferred work group size multiple', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("prf_wg_multiple", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device Extensions', linestr)
+            if(searchObj != None):
+                # End of Device 
+                target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value("pcie_id"))
+                self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
 
-        return(0)
+    def find_gpu_by_pcie_id(self, pcie_id):
+        for k, v in self.list.items():
+            if v.get_params_value("pcie_id") == pcie_id:
+                return(v.uuid)
+        return(-1)
 
     def num_gpus(self):
         cnt = 0
@@ -410,9 +477,9 @@ class GPU_LIST:
                 cnt += 1
         return(cnt)
 
-    def print(self):
+    def print(self, clflag=False):
         for k, v in self.list.items():
-            v.print()
+            v.print(clflag)
 
     def num_table_rows(self):
         return(len(self.table_parameters))

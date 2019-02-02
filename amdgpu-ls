@@ -2,8 +2,9 @@
 """amdgpu-ls  -  Displays details about installed AMD GPUs
 
     This utility displays most relevant parameters for installed AMD GPUs.  The default
-    behavior is to list relevant parameters by GPU.  The *--pstate* option can be used
-    to output the p-state table for each GPU instead.
+    behavior is to list relevant parameters by GPU.  OpenCL platform information is added
+    when the *--clinfo* option is used.  The *--pstate* option can be used to output the
+    p-state table for each GPU instead.
 
     Copyright (C) 2019  RueiKe
 
@@ -51,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
+    parser.add_argument("--clinfo", help="Include openCL with card details", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -102,6 +104,8 @@ def main():
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
+    if args.clinfo:
+        gpu_list.read_opencl_data()
 
     #TODO check opencl details
 
@@ -117,7 +121,7 @@ def main():
     if args.pstates == True :
         gpu_list.print_pstates()
     else:
-        gpu_list.print()
+        gpu_list.print(args.clinfo)
     sys.exit(0)
 
 
