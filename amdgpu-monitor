@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """amdgpu-monitor  -  Displays current status of all active GPUs
 
-    A utility to give the current state of all compatible AMD GPUs.  The default behavior
-    is to just output relevant GPU card parameters.  With the *--pstates* otion, the
-    p-state tables are output instead of GPU details. With the *--loop* option, a table
-    of relevant parameters will be continuously updated in the current window until
-    Ctrl-C is pressed.  With the *--gui* option, a table of relevant parameters will be
+    A utility to give the current state of all compatible AMD GPUs. The default behavior
+    is to coninuously update a text based table in the current window unitl Ctrl-C is
+    pressed.  With the *--gui* option, a table of relevant parameters will be
     updated in a Gtk window.  You can specify the delay between updates with the
     *--sleep N* option where N is an integer > zero that specifies the number of seconds
     to sleep.
@@ -30,7 +28,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-monitor"
-__version__ = "v1.1.0"
+__version__ = "v2.0.0"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -69,11 +67,11 @@ def updateData(gpu_list, devices):
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == "card_num":
-                data_value = "card"+gpu_list.list[dk].get_value("card_num")
+                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
             else:
-                data_value = str(gpu_list.list[dk].get_value(lk))
+                data_value = str(gpu_list.list[dk].get_params_value(lk))
             lv.set_text(data_value)
-            #lv.set_text(str(gpu_list.list[dk].get_value(lk)))
+            #lv.set_text(str(gpu_list.list[dk].get_params_value(lk)))
 
 def refresh(refreshtime, updateData, gpu_list, devices):
     while True:
@@ -84,8 +82,6 @@ def refresh(refreshtime, updateData, gpu_list, devices):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
-    parser.add_argument("--loop", help="Looped output in table", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
@@ -112,30 +108,9 @@ def main():
         print("Invalid value for sleep specified.  Must be an integer great than zero")
         sys.exit(-1)
 
-    if args.loop == True and args.gui == True: print("--loop and --gui are mutually exclusive")
-
-    if args.loop == True or args.gui == True:
-        if args.pstates == True : print("--pstates has no effect with --loop or --gui")
-
-
-    # Check python version
-    (python_major, python_minor, python_patch) = platform.python_version_tuple()
-    if python_major < "3":
-        print("Using python" + python_major + ", but benchMT requires python3. Exiting...")
-        sys.exit(0)
-    if python_minor < "6":
-        print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
-                " but, benchMT requires python 3.6 and up. Exiting...")
-        sys.exit(0)
-
-    # Check Linux Kernel version
-    linux_version = platform.release()
-    if int(linux_version.split(".")[0]) < 4:
-        print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
-        sys.exit(0)
-    if int(linux_version.split(".")[1]) < 8:
-        print(f"Using Linux Kernel {linux} but benchMT requires > 4.17. Exiting...")
-        sys.exit(0)
+    if gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
@@ -169,14 +144,6 @@ def main():
     else:
         print(f"{num_amd_gpus} are Compatible")
         print("")
-
-    if args.loop == False and args.gui == False:
-        gpu_list.get_pstates()
-        if args.pstates == True :
-            gpu_list.print_pstates()
-        else:
-            gpu_list.print()
-        sys.exit(0)
 
     if args.gui == True:
         # Display Gtk style Monitor
@@ -213,9 +180,9 @@ def main():
 
         devices = {}
         for k, v in gpu_list.list.items():
-            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_value("card_num"))}
+            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
-                devices[v.uuid][cv] = Gtk.Label(label=v.get_value(str(cv)))
+                devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
         for dk, dv in devices.items():
             col += 1
             i = 0

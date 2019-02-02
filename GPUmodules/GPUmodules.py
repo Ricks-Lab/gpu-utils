@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v1.1.0"
+__version__ = "v2.0.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
@@ -45,7 +45,7 @@ class GUT_CONST:
     def __init__(self):
         self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
         self.card_root = "/sys/class/drm/"
-        self.hwmon_sub = "/hwmon/hwmon"
+        self.hwmon_sub = "hwmon/hwmon"
         self.DEBUG = False
         self.SLEEP = 2
         self.PATH = "."
@@ -56,14 +56,37 @@ class GUT_CONST:
             self.amdfeaturemask = int(fm_file.readline())
             return (self.amdfeaturemask)
 
+    def check_env(self):
+        # Check python version
+        (python_major, python_minor, python_patch) = platform.python_version_tuple()
+        if python_major < "3":
+            print("Using python" + python_major + ", but benchMT requires python3.", file=sys.stderr)
+            return(-1)
+        if python_minor < "6":
+            print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
+                    " but, benchMT requires python 3.6 and up.", file=sys.stderr)
+            return(-1)
+
+        # Check Linux Kernel version
+        linux_version = platform.release()
+        if int(linux_version.split(".")[0]) < 4:
+            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
+            return(-2)
+        if int(linux_version.split(".")[1]) < 8:
+            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
+            return(-2)
+        return(0)
+
+
 gut_const = GUT_CONST()
 
-class GPU_STAT:
+class GPU_ITEM:
     def __init__(self, item_id):
         self.uuid = item_id
         self.card_num = -1
         self.card_path = ""
         self.hwmon_path = ""
+
         self.params = {
         "uuid" : item_id,
         "card_num" : "",
@@ -88,10 +111,27 @@ class GPU_STAT:
         "link_wth" : "",
         "vbios" : ""
         }
+        self.clinfo = {
+        "device_name" : "",
+        "device_version" : "",
+        "driver_version" : "",
+        "opencl_version" : "",
+        "pcie_id" : "",
+        "max_cu" : "",
+        "simd_per_cu" : "",
+        "simd_width" : "",
+        "simd_ins_width" : "",
+        "graphics_ip" : "",
+        "max_wi_dim" : "",
+        "max_wi_sizes" : "",
+        "max_wg_size" : "",
+        "prf_wg_multiple" : ""
+        }
         self.sclk_state = {} #{"1":["Mhz","mV]}
         self.mclk_state = {}
 
-    def set_value(self, name, value):
+    def set_params_value(self, name, value):
+        # update params dictionary
         self.params[name] = value
         if name == "card_num":
             self.card_num = value
@@ -100,10 +140,24 @@ class GPU_STAT:
         if name == "hwmon_path":
             self.hwmon_path = value
 
-    def get_value(self, name):
+    def get_params_value(self, name):
+        # reads params dictionary
         return(self.params[name])
 
-    def get_all_labels(self):
+    def set_clinfo_value(self, name, value):
+        # update clinfo dictionary
+        self.clinfo[name] = value
+
+    def get_clinfo_value(self, name):
+        # reads clinfo dictionary
+        return(self.clinfo[name])
+
+    def copy_clinfo_values(self, gpu_item):
+        for k, v in gpu_item.clinfo.items():
+            self.clinfo[k] = v
+
+    def get_all_params_labels(self):
+        # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
                 "model" : "Card Model",
                 "card_num" : "Card Number",
@@ -111,43 +165,63 @@ class GPU_STAT:
                 "pcie_id" : "PCIe ID",
                 "driver" : "Driver",
                 "hwmon_path" : "HWmon",
-                "power" : "Power",
-                "temp" : "Temp",
-                "vddgfx" : "VddGFX",
+                "power" : "Current Power (W)",
+                "temp" : "Current Temp (C)",
+                "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
-                "loading" : "Loading",
+                "loading" : "Current Loading (%)",
                 "link_spd" : "Link Speed",
                 "link_wth" : "Link Width",
                 "vbios" : "vBIOS Version",
-                "sclk_ps" : "SCLK P-State",
-                "sclk_f" : "SCLK",
+                "sclk_ps" : "Current SCLK P-State",
+                "sclk_f" : "Current SCLK",
                 "sclk_f_range" : "SCLK Range",
-                "mclk_ps" : "MCLK P-State",
-                "mclk_f" : "MCLK",
+                "mclk_ps" : "Current MCLK P-State",
+                "mclk_f" : "Current MCLK",
                 "mclk_f_range" : "MCLK Range"
                 }
         return(GPU_Param_Labels)
+
+    def get_all_clinfo_labels(self):
+        # Human friendly labels for clinfo keys
+        GPU_CLINFO_Labels = { "device_name" : "Device Name",
+                "device_version" : "Device Version",
+                "driver_version" : "Driver Version",
+                "opencl_version" : "Device OpenCL C Version",
+                "max_cu" : "Max Compute Units",
+                "simd_per_cu" : "SIMD per CU",
+                "simd_width" : "SIMD Width",
+                "simd_ins_width" : "SIMD Instruction Width",
+                "graphics_ip" : "Graphics IP",
+                "max_wi_dim" : "Max Work Item Dimensions",
+                "max_wi_sizes" : "Max Work Item Sizes",
+                "max_wg_size" : "Max Work Group Size",
+                "prf_wg_multiple" : "Preferred Work Group Multiple"
+                }
+        return(GPU_CLINFO_Labels)
 
     def write_pstates(self):
         # Sample commands to set p states.  Problem is that the file that needs to
         # be written to, is only writeable by root.  Maybe the best approach is to 
         # create a script for the user to execute with sudo.
         #
-        #echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        #echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # reset to the default dpm states
-        #echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # commit the changes to the hw
-        #echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # Write p-state details
+        # echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
+        # Reset
+        # echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage 
+        # Commit Changes
+        # echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
+
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
-            print("Can not access card{self.card_num} file: ", self.card_path + "pp_od_clk_voltage")
-        # currently does nothing
+            print("Can not access card{self.card_num} file: ", self.card_path + "pp_od_clk_voltage", file=sys.stderr)
+        # TODO write the code to do this!
         return
 
     def get_pstates(self):
         range_mode = False
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
-            print("Error getting pstates: ", self.card_path)
+            print("Error getting pstates: ", self.card_path, file=sys.stderr)
             sys.exit(-1)
         with open(self.card_path + "pp_od_clk_voltage") as card_file:
             for line in card_file:
@@ -168,52 +242,52 @@ class GPU_STAT:
                         #print(self.mclk_state)
                 else:
                     if lineitems[0] == "SCLK:":
-                        self.set_value("sclk_f_range", [lineitems[1],lineitems[2]])
+                        self.set_params_value("sclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "MCLK:":
-                        self.set_value("mclk_f_range", [lineitems[1],lineitems[2]])
+                        self.set_params_value("mclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "VDDC:":
-                        self.set_value("vddc_range", [lineitems[1],lineitems[2]])
+                        self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
 
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
-                self.set_value("power", int(hwmon_file.readline())/1000000)
+                self.set_params_value("power", int(hwmon_file.readline())/1000000)
         if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
-                self.set_value("temp",  int(hwmon_file.readline())/1000)
+                self.set_params_value("temp",  int(hwmon_file.readline())/1000)
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
             with open(self.hwmon_path + "in0_label") as hwmon_file:
                 if hwmon_file.readline().rstrip() == "vddgfx":
                     with open(self.hwmon_path + "in0_input") as hwmon_file2:
-                        self.set_value("vddgfx",  int(hwmon_file2.readline()))
+                        self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
 
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
-                self.set_value("loading", int(card_file.readline()))
+                self.set_params_value("loading", int(card_file.readline()))
         if(os.path.isfile(self.card_path + "current_link_speed") == True):
             with open(self.card_path + "current_link_speed") as card_file:
-                self.set_value("link_spd", card_file.readline().strip())
+                self.set_params_value("link_spd", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "current_link_width") == True):
             with open(self.card_path + "current_link_width") as card_file:
-                self.set_value("link_wth", card_file.readline().strip())
+                self.set_params_value("link_wth", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "vbios_version") == True):
             with open(self.card_path + "vbios_version") as card_file:
-                self.set_value("vbios", card_file.readline().strip())
+                self.set_params_value("vbios", card_file.readline().strip())
         if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
             with open(self.card_path + "pp_dpm_sclk") as card_file:
                 for line in card_file:
                     if line[len(line)-2] == "*":
                         lineitems = line.split(sep=':')
-                        self.set_value("sclk_ps", lineitems[0].strip())
-                        self.set_value("sclk_f", lineitems[1].strip().strip('*'))
+                        self.set_params_value("sclk_ps", lineitems[0].strip())
+                        self.set_params_value("sclk_f", lineitems[1].strip().strip('*'))
         if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
             with open(self.card_path + "pp_dpm_mclk") as card_file:
                 for line in card_file:
                     if line[len(line)-2] == "*":
                         lineitems = line.split(sep=':')
-                        self.set_value("mclk_ps", lineitems[0].strip())
-                        self.set_value("mclk_f", lineitems[1].strip().strip('*'))
+                        self.set_params_value("mclk_ps", lineitems[0].strip())
+                        self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
 
     def print_pstates(self):
         print(f"Card: {self.card_path}")
@@ -226,10 +300,13 @@ class GPU_STAT:
                 print("")
         print("")
 
-    def print(self):
+    def print(self, clflag=False):
         #for k, v in GPU_Param_Labels.items():
-        for k, v in self.get_all_labels().items():
-            print(v +": "+ str(self.get_value(k)))
+        for k, v in self.get_all_params_labels().items():
+            print(v +": "+ str(self.get_params_value(k)))
+        if clflag:
+            for k, v in self.get_all_clinfo_labels().items():
+                print(v +": "+ str(self.get_clinfo_value(k)))
         print("")
 
 class GPU_LIST:
@@ -241,10 +318,10 @@ class GPU_LIST:
 
     def get_gpu_list(self):
         for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):
-            gpu_item = GPU_STAT(uuid4().hex)
-            gpu_item.set_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
-            gpu_item.set_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
-            gpu_item.set_value("hwmon_path",  gpu_item.get_value("card_path") + gut_const.hwmon_sub + gpu_item.get_value("card_num") + "/")
+            gpu_item = GPU_ITEM(uuid4().hex)
+            gpu_item.set_params_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
+            gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
+            gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
     def get_pstates(self):
@@ -286,12 +363,106 @@ class GPU_LIST:
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
-                            v.set_value("pcie_id", pcie_id)
-                            v.set_value("driver",  driver_module)
-                            v.set_value("model", gpu_name)
-                            v.set_value("model_short",  (re.sub(r'.*Radeon', '', gpu_name)).replace(']',''))
+                            v.set_params_value("pcie_id", pcie_id)
+                            v.set_params_value("driver",  driver_module)
+                            v.set_params_value("model", gpu_name)
+                            v.set_params_value("model_short",  (re.sub(r'.*Radeon', '', gpu_name)).replace(']',''))
                             break
                     break
+
+    def read_opencl_data(self):
+        # Check access to clinfo command
+        if shutil.which("/usr/bin/clinfo") == None:
+            print("OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install", file=sys.stderr)
+            return(-1)
+        cmd = subprocess.Popen('/usr/bin/clinfo', shell=False, stdout=subprocess.PIPE)
+        for line in cmd.stdout:
+            linestr = line.decode("utf-8").strip()
+            linestr = re.sub(r'      [ ]*',':-:', linestr)
+            searchObj = re.search('Device Name', linestr)
+            if(searchObj != None):
+                # Found a new device
+                tmp_gpu = GPU_ITEM(uuid4().hex)
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("device_name", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("device_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Driver Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("driver_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device OpenCL C Version', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("opencl_version", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device Topology', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                pcie_id_str = lineItem[1].split(',')[1].strip()
+                tmp_gpu.set_clinfo_value("pcie_id", pcie_id_str)
+                continue
+            searchObj = re.search('Max compute units', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_cu", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD per compute unit', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_per_cu", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD width', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_width", lineItem[1].strip())
+                continue
+            searchObj = re.search('SIMD instruction width', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("simd_ins_width", lineItem[1].strip())
+                continue
+            searchObj = re.search('Graphics IP', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("graphics_ip", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work item dimensions', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wi_dim", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work item sizes', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wi_sizes", lineItem[1].strip())
+                continue
+            searchObj = re.search('Max work group size', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("max_wg_size", lineItem[1].strip())
+                continue
+            searchObj = re.search('Preferred work group size multiple', linestr)
+            if(searchObj != None):
+                lineItem = linestr.split(':-:')
+                tmp_gpu.set_clinfo_value("prf_wg_multiple", lineItem[1].strip())
+                continue
+            searchObj = re.search('Device Extensions', linestr)
+            if(searchObj != None):
+                # End of Device 
+                target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value("pcie_id"))
+                self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
+
+    def find_gpu_by_pcie_id(self, pcie_id):
+        for k, v in self.list.items():
+            if v.get_params_value("pcie_id") == pcie_id:
+                return(v.uuid)
+        return(-1)
 
     def num_gpus(self):
         cnt = 0
@@ -302,13 +473,13 @@ class GPU_LIST:
     def num_compatible_gpus(self):
         cnt = 0
         for k, v in self.list.items():
-            if v.get_value("driver") == "amdgpu":
+            if v.get_params_value("driver") == "amdgpu":
                 cnt += 1
         return(cnt)
 
-    def print(self):
+    def print(self, clflag=False):
         for k, v in self.list.items():
-            v.print()
+            v.print(clflag)
 
     def num_table_rows(self):
         return(len(self.table_parameters))
@@ -324,7 +495,7 @@ class GPU_LIST:
 
         print("│", " ".ljust(12,' '), sep="", end="")
         for k, v in self.list.items():
-            print("│", '\x1b[1;36m'+("card"+ v.get_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
         print("│")
 
         print("├", "─".ljust(12,'─'), sep="", end="")
@@ -335,7 +506,7 @@ class GPU_LIST:
         for table_item in self.table_parameters:
             print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(12,' ')[:12]+'\x1b[0m', sep="", end="")
             for k, v in self.list.items():
-                print("│", str(v.get_value(table_item)).ljust(12,' ')[:12], sep="", end="")
+                print("│", str(v.get_params_value(table_item)).ljust(12,' ')[:12], sep="", end="")
             print("│")
 
         print("└", "─".ljust(12,'─'), sep="", end="")
