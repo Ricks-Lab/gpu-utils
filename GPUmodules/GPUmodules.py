@@ -314,7 +314,7 @@ class GPU_ITEM:
                     searchObj = re.search('\*:', linestr)
                     if(searchObj != None):
                         lineitems = linestr.split(sep='*:')
-                        mode_str = re.sub(r'[ ]+',' ',lineitems[0]).strip()
+                        mode_str = re.sub(r'[ ]+','-',lineitems[0]).strip()
                         self.set_params_value("ppm", mode_str)
                         break
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
