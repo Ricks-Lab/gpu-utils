@@ -24,6 +24,7 @@ to sleep.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which list openCL platform details for each GPU.
 * Error messages are now output to stderr.
+* Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
 
 ## New in Previous Release  -  v1.1.0
 * Added --pstates feature to display table of p-states instead of GPU details.
