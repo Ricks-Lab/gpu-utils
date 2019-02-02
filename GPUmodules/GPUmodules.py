@@ -97,6 +97,9 @@ class GPU_ITEM:
         "card_path" : "",
         "hwmon_path" : "",
         "power" : -1,
+        "power_cap" : -1,
+        "power_cap_min" : -1,
+        "power_cap_max" : -1,
         "temp" : -1,
         "vddgfx" : -1,
         "vddc_range" : ["",""],
@@ -109,6 +112,8 @@ class GPU_ITEM:
         "sclk_f_range" : ["",""],
         "link_spd" : "",
         "link_wth" : "",
+        "ppm" : "",
+        "power_dpm_force" : "",
         "vbios" : ""
         }
         self.clinfo = {
@@ -166,6 +171,9 @@ class GPU_ITEM:
                 "driver" : "Driver",
                 "hwmon_path" : "HWmon",
                 "power" : "Current Power (W)",
+                "power_cap" : "Power Cap (W)",
+                "power_cap_min" : "Min Power Cap (W)",
+                "power_cap_max" : "Max Power Cap (W)",
                 "temp" : "Current Temp (C)",
                 "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
@@ -178,7 +186,9 @@ class GPU_ITEM:
                 "sclk_f_range" : "SCLK Range",
                 "mclk_ps" : "Current MCLK P-State",
                 "mclk_f" : "Current MCLK",
-                "mclk_f_range" : "MCLK Range"
+                "mclk_f_range" : "MCLK Range",
+                "ppm" : "Power Performance Mode",
+                "power_dpm_force" : "Power Force Performance Level"
                 }
         return(GPU_Param_Labels)
 
@@ -249,6 +259,15 @@ class GPU_ITEM:
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
 
     def read_hw_data(self):
+        if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
+            with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
+                self.set_params_value("power_cap_max", int(hwmon_file.readline())/1000000)
+        if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
+            with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
+                self.set_params_value("power_cap_min", int(hwmon_file.readline())/1000000)
+        if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
+            with open(self.hwmon_path + "power1_cap") as hwmon_file:
+                self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
                 self.set_params_value("power", int(hwmon_file.readline())/1000000)
@@ -288,6 +307,19 @@ class GPU_ITEM:
                         lineitems = line.split(sep=':')
                         self.set_params_value("mclk_ps", lineitems[0].strip())
                         self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
+        if(os.path.isfile(self.card_path + "pp_power_profile_mode") == True):
+            with open(self.card_path + "pp_power_profile_mode") as card_file:
+                for line in card_file:
+                    linestr = line.strip()
+                    searchObj = re.search('\*:', linestr)
+                    if(searchObj != None):
+                        lineitems = linestr.split(sep='*:')
+                        mode_str = re.sub(r'[ ]+',' ',lineitems[0]).strip()
+                        self.set_params_value("ppm", mode_str)
+                        break
+        if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
+            with open(self.card_path + "power_dpm_force_performance_level") as card_file:
+                self.set_params_value("power_dpm_force", card_file.readline().strip())
 
     def print_pstates(self):
         print(f"Card: {self.card_path}")
@@ -312,9 +344,12 @@ class GPU_ITEM:
 class GPU_LIST:
     def __init__(self):
         self.list = {}
-        self.table_parameters = ["model_short", "loading", "power", "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f", "mclk_ps"]
-        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power": "Power (W)", "temp":"T (C)", "vddgfx":"VddGFX (mV)",
-                "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate"}
+        self.table_parameters = ["model_short", "loading", "power", "power_cap",
+                "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f",
+                "mclk_ps", "ppm"]
+        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"MaxPower (W)",
+                "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)",
+                "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
         for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):
