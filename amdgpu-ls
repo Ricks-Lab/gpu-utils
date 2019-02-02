@@ -105,7 +105,8 @@ def main():
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
     if args.clinfo:
-        gpu_list.read_opencl_data()
+        if gpu_list.read_opencl_data() < 0:
+            args.clinfo = False
 
     #TODO check opencl details
 

@@ -457,6 +457,7 @@ class GPU_LIST:
                 # End of Device 
                 target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value("pcie_id"))
                 self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
+        return(0)
 
     def find_gpu_by_pcie_id(self, pcie_id):
         for k, v in self.list.items():
