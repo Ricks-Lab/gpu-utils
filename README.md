@@ -23,7 +23,7 @@ to sleep.
 ## New in this Release  -  v2.0.0
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which list openCL platform details for each GPU.
-* Error messages are now output to stderr.
+* Error messages are now output to stderr instead stdout.
 * Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
 
 ## New in Previous Release  -  v1.1.0
@@ -35,6 +35,6 @@ to sleep.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
-* Add the capability for amdgpu-ls to also read relevant clinfo for each AMD GPU installed.
-* Develop a tool to customize GPU settings including p-state details.
+* Add the capability for amdgpu-ls to display power/performance modes.
+* Develop a tool to customize GPU settings including p-state details, power cap, and power/performance modes.
 * Develop a startup utility to initialize GPU settings at boot up.
