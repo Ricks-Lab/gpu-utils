@@ -4,7 +4,9 @@
     This utility displays most relevant parameters for installed AMD GPUs.  The default
     behavior is to list relevant parameters by GPU.  OpenCL platform information is added
     when the *--clinfo* option is used.  The *--pstate* option can be used to output the
-    p-state table for each GPU instead.
+    p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
+    is used to output the table of available power/performance modes instead of basic
+    parameters.
 
     Copyright (C) 2019  RueiKe
 
