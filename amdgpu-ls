@@ -52,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
+    parser.add_argument("--ppm", help="Output power/performance mode tables instead of GPU details", action="store_true", default=False)
     parser.add_argument("--clinfo", help="Include openCL with card details", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
@@ -119,9 +120,12 @@ def main():
     print("")
 
     gpu_list.get_pstates()
+    gpu_list.get_ppm_table()
     if args.pstates == True :
         gpu_list.print_pstates()
-    else:
+    if args.ppm == True:
+        gpu_list.print_ppm_table()
+    if args.pstates == False and args.ppm == False:
         gpu_list.print(args.clinfo)
     sys.exit(0)
 

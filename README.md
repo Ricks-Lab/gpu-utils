@@ -10,7 +10,9 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 This utility displays most relevant parameters for installed AMD GPUs.  The default
 behavior is to list relevant parameters by GPU.  OpenCL platform information is added
 when the *--clinfo* option is used.  The *--pstate* option can be used to output the
-p-state table for each GPU instead.
+p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
+is used to output the table of available power/performance modes instead of basic
+parameters.
 
 ## amdgpu-monitor
 A utility to give the current state of all compatible AMD GPUs. The default behavior
@@ -22,7 +24,8 @@ to sleep.
 
 ## New in this Release  -  v2.0.0
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
-* Added --clinfo option to amdgpu-ls which list openCL platform details for each GPU.
+* Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
+* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
 * Error messages are now output to stderr instead stdout.
 * Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
 

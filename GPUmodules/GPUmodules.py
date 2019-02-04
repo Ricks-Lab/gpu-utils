@@ -133,7 +133,8 @@ class GPU_ITEM:
         "prf_wg_multiple" : ""
         }
         self.sclk_state = {} #{"1":["Mhz","mV]}
-        self.mclk_state = {}
+        self.mclk_state = {} #{"1":["Mhz","mV]}
+        self.ppm_modes = {}  #{"1":["Name","Description"]}
 
     def set_params_value(self, name, value):
         # update params dictionary
@@ -228,6 +229,20 @@ class GPU_ITEM:
         # TODO write the code to do this!
         return
 
+    def get_ppm_table(self):
+        if(os.path.isfile(self.card_path + "pp_power_profile_mode") == False):
+            print("Error getting power profile modes: ", self.card_path, file=sys.stderr)
+            sys.exit(-1)
+        with open(self.card_path + "pp_power_profile_mode") as card_file:
+            for line in card_file:
+                linestr = line.strip()
+                linestr = re.sub(r'[*]+:',' ', linestr)
+                lineItems = linestr.split()
+                self.ppm_modes[lineItems[0]] = lineItems[1:]
+        if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
+            with open(self.card_path + "power_dpm_force_performance_level") as card_file:
+                self.set_params_value("power_dpm_force", card_file.readline().strip())
+
     def get_pstates(self):
         range_mode = False
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
@@ -321,6 +336,13 @@ class GPU_ITEM:
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
 
+    def print_ppm_table(self):
+        print(f"Card: {self.card_path}")
+        print("Power Performance Mode: %s" % self.get_params_value("power_dpm_force"))
+        for k, v in self.ppm_modes.items():
+            print(f"{str(k)}:  {v}")
+        print("")
+
     def print_pstates(self):
         print(f"Card: {self.card_path}")
         print("SCLK:" + " ".ljust(19,' ') + "MCLK:")
@@ -358,6 +380,14 @@ class GPU_LIST:
             gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
             gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
+
+    def get_ppm_table(self):
+        for k, v in self.list.items():
+            v.get_ppm_table()
+
+    def print_ppm_table(self):
+        for k, v in self.list.items():
+            v.print_ppm_table()
 
     def get_pstates(self):
         for k, v in self.list.items():
@@ -410,7 +440,7 @@ class GPU_LIST:
         if shutil.which("/usr/bin/clinfo") == None:
             print("OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install", file=sys.stderr)
             return(-1)
-        cmd = subprocess.Popen('/usr/bin/clinfo --raw', shell=True, stdout=subprocess.PIPE)
+        cmd = subprocess.Popen(shlex.split('/usr/bin/clinfo --raw'), shell=False, stdout=subprocess.PIPE)
         for line in cmd.stdout:
             linestr = line.decode("utf-8").strip()
             if len(linestr) < 1:
@@ -539,7 +569,7 @@ class GPU_LIST:
                 print("┬", "─".ljust(12,'─'), sep="", end="")
         print("┐")
 
-        print("│", "Card #".ljust(12,' '), sep="", end="")
+        print("│", '\x1b[1;36m'+"Card #".ljust(12,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
             print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
         print("│")
