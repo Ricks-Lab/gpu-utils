@@ -126,7 +126,7 @@ class GPU_ITEM:
         "simd_per_cu" : "",
         "simd_width" : "",
         "simd_ins_width" : "",
-        "graphics_ip" : "",
+        "max_mem_allocation" : "",
         "max_wi_dim" : "",
         "max_wi_sizes" : "",
         "max_wg_size" : "",
@@ -202,7 +202,7 @@ class GPU_ITEM:
                 "simd_per_cu" : "SIMD per CU",
                 "simd_width" : "SIMD Width",
                 "simd_ins_width" : "SIMD Instruction Width",
-                "graphics_ip" : "Graphics IP",
+                "max_mem_allocation" : "CL Max Memory Allocation",
                 "max_wi_dim" : "Max Work Item Dimensions",
                 "max_wi_sizes" : "Max Work Item Sizes",
                 "max_wg_size" : "Max Work Group Size",
@@ -347,7 +347,7 @@ class GPU_LIST:
         self.table_parameters = ["model_short", "loading", "power", "power_cap",
                 "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f",
                 "mclk_ps", "ppm"]
-        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"MaxPower (W)",
+        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
                 "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)",
                 "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
@@ -410,86 +410,96 @@ class GPU_LIST:
         if shutil.which("/usr/bin/clinfo") == None:
             print("OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install", file=sys.stderr)
             return(-1)
-        cmd = subprocess.Popen('/usr/bin/clinfo', shell=False, stdout=subprocess.PIPE)
+        cmd = subprocess.Popen('/usr/bin/clinfo --raw', shell=True, stdout=subprocess.PIPE)
         for line in cmd.stdout:
             linestr = line.decode("utf-8").strip()
-            linestr = re.sub(r'      [ ]*',':-:', linestr)
-            searchObj = re.search('Device Name', linestr)
+            if len(linestr) < 1:
+                continue
+            if linestr[0] != "[":
+                continue
+            linestr = re.sub(r'   [ ]*',':-:', linestr)
+            #print(linestr)
+            searchObj = re.search('CL_DEVICE_NAME', linestr)
             if(searchObj != None):
                 # Found a new device
                 tmp_gpu = GPU_ITEM(uuid4().hex)
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("device_name", lineItem[1].strip())
+                dev_str = lineItem[0].split('/')[1]
+                dev_num = int(re.sub(']','',dev_str))
+                #print(f"Device: {dev_num}")
+                tmp_gpu.set_clinfo_value("device_name", lineItem[2].strip())
                 continue
-            searchObj = re.search('Device Version', linestr)
+            searchObj = re.search('CL_DEVICE_VERSION', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("device_version", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("device_version", lineItem[2].strip())
                 continue
-            searchObj = re.search('Driver Version', linestr)
+            searchObj = re.search('CL_DRIVER_VERSION', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("driver_version", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("driver_version", lineItem[2].strip())
                 continue
-            searchObj = re.search('Device OpenCL C Version', linestr)
+            searchObj = re.search('CL_DEVICE_OPENCL_C_VERSION', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("opencl_version", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("opencl_version", lineItem[2].strip())
                 continue
-            searchObj = re.search('Device Topology', linestr)
+            searchObj = re.search('CL_DEVICE_TOPOLOGY_AMD', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                pcie_id_str = lineItem[1].split(',')[1].strip()
+                pcie_id_str = (lineItem[2].split()[1]).strip()
+                #print(f"CL PCIE ID: [{pcie_id_str}]")
                 tmp_gpu.set_clinfo_value("pcie_id", pcie_id_str)
                 continue
-            searchObj = re.search('Max compute units', linestr)
+            searchObj = re.search('CL_DEVICE_MAX_COMPUTE_UNITS', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("max_cu", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("max_cu", lineItem[2].strip())
                 continue
-            searchObj = re.search('SIMD per compute unit', linestr)
+            searchObj = re.search('CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("simd_per_cu", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("simd_per_cu", lineItem[2].strip())
                 continue
-            searchObj = re.search('SIMD width', linestr)
+            searchObj = re.search('CL_DEVICE_SIMD_WIDTH_AMD', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("simd_width", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("simd_width", lineItem[2].strip())
                 continue
-            searchObj = re.search('SIMD instruction width', linestr)
+            searchObj = re.search('CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("simd_ins_width", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("simd_ins_width", lineItem[2].strip())
                 continue
-            searchObj = re.search('Graphics IP', linestr)
+            searchObj = re.search('CL_DEVICE_MAX_MEM_ALLOC_SIZE', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("graphics_ip", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("max_mem_allocation", lineItem[2].strip())
                 continue
-            searchObj = re.search('Max work item dimensions', linestr)
+            searchObj = re.search('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("max_wi_dim", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("max_wi_dim", lineItem[2].strip())
                 continue
-            searchObj = re.search('Max work item sizes', linestr)
+            searchObj = re.search('CL_DEVICE_MAX_WORK_ITEM_SIZES', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("max_wi_sizes", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("max_wi_sizes", lineItem[2].strip())
                 continue
-            searchObj = re.search('Max work group size', linestr)
+            searchObj = re.search('CL_DEVICE_MAX_WORK_GROUP_SIZE', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("max_wg_size", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("max_wg_size", lineItem[2].strip())
                 continue
-            searchObj = re.search('Preferred work group size multiple', linestr)
+            searchObj = re.search('CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE', linestr)
             if(searchObj != None):
                 lineItem = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value("prf_wg_multiple", lineItem[1].strip())
+                tmp_gpu.set_clinfo_value("prf_wg_multiple", lineItem[2].strip())
                 continue
-            searchObj = re.search('Device Extensions', linestr)
+            searchObj = re.search('CL_DEVICE_EXTENSIONS', linestr)
             if(searchObj != None):
                 # End of Device 
+                #print("finding gpu with pcie ID: ", tmp_gpu.get_clinfo_value("pcie_id"))
                 target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value("pcie_id"))
                 self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
         return(0)
@@ -529,7 +539,7 @@ class GPU_LIST:
                 print("┬", "─".ljust(12,'─'), sep="", end="")
         print("┐")
 
-        print("│", " ".ljust(12,' '), sep="", end="")
+        print("│", "Card #".ljust(12,' '), sep="", end="")
         for k, v in self.list.items():
             print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
         print("│")
