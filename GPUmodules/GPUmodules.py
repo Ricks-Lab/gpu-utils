@@ -236,7 +236,7 @@ class GPU_ITEM:
         with open(self.card_path + "pp_power_profile_mode") as card_file:
             for line in card_file:
                 linestr = line.strip()
-                linestr = re.sub(r'[*]+:',' ', linestr)
+                linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                 lineItems = linestr.split()
                 self.ppm_modes[lineItems[0]] = lineItems[1:]
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
@@ -329,7 +329,8 @@ class GPU_ITEM:
                     searchObj = re.search('\*:', linestr)
                     if(searchObj != None):
                         lineitems = linestr.split(sep='*:')
-                        mode_str = re.sub(r'[ ]+','-',lineitems[0]).strip()
+                        mode_str = lineitems[0].strip()
+                        mode_str = re.sub(r'[ ]+','-', mode_str)
                         self.set_params_value("ppm", mode_str)
                         break
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
@@ -337,10 +338,15 @@ class GPU_ITEM:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
 
     def print_ppm_table(self):
+        # Formatting optimized for Nano, but I think Vega64 just has 1 item for description
         print(f"Card: {self.card_path}")
         print("Power Performance Mode: %s" % self.get_params_value("power_dpm_force"))
         for k, v in self.ppm_modes.items():
-            print(f"{str(k)}:  {v}")
+            #print(f"{str(k)}:  {v}")
+            print(str(k).rjust(3,' ') +": "+v[0].rjust(15,' ') , end='')
+            for v_item in v[1:]:
+                print(str(v_item).rjust(18,' '), end='')
+            print("")
         print("")
 
     def print_pstates(self):
