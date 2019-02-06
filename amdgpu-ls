@@ -111,8 +111,6 @@ def main():
         if gpu_list.read_opencl_data() < 0:
             args.clinfo = False
 
-    #TODO check opencl details
-
     #Check list of AMD GPUs for driver compatibility
     num_com_amd_gpus = gpu_list.num_compatible_gpus()
     if num_com_amd_gpus == 0:
