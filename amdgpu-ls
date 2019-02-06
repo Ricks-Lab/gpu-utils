@@ -103,7 +103,7 @@ def main():
     else:
         print(f"{num_amd_gpus} AMD GPUs detected")
 
-    #Get GPU details
+    #Get all GPU details
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
