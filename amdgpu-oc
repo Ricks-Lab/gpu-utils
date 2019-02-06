@@ -1,0 +1,241 @@
+#!/usr/bin/env python3
+"""amdgpu-oc  -  A utility to modify AMD GPU settings
+
+    A utility modify the settings, including p-states and power-performance modes, of
+    compatible AMD GPUs.
+
+    Copyright (C) 2019  RueiKe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = "RueiKe"
+__copyright__ = "Copyright (C) 2019 RueiKe"
+__credits__ = ""
+__license__ = "GNU General Public License"
+__program_name__ = "amdgpu-oc"
+__version__ = "v2.0.0"
+__maintainer__ = "RueiKe"
+__status__ = "Development"
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk, Gdk
+import argparse
+import re
+import subprocess
+import threading
+import os
+import platform
+import sys
+import time
+from GPUmodules import GPUmodules as GPU
+from datetime import datetime
+from uuid import uuid4
+import glob 
+import shutil 
+from pathlib import Path
+
+# Instantiate project constants
+gut_const = GPU.GUT_CONST()
+
+class MonitorWindow(Gtk.Window):
+    def __init__(self, gpu_list):
+        Gtk.Window.__init__(self, title="GPU OC")
+        self.set_border_width(1)
+        if(os.path.isfile(gut_const.PATH + '/amdgpu-oc.icon.jpg') == True):
+            self.set_icon_from_file(gut_const.PATH + '/amdgpu-oc.icon.jpg')
+
+
+def updateData(gpu_list, devices):
+    gpu_list.read_hw_data()
+    gpu_list.read_device_data()
+    for dk, dv in devices.items():
+        for lk, lv in dv.items():
+            if lk == "card_num":
+                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
+            else:
+                data_value = str(gpu_list.list[dk].get_params_value(lk))
+            lv.set_text(data_value)
+            #lv.set_text(str(gpu_list.list[dk].get_params_value(lk)))
+
+def refresh(refreshtime, updateData, gpu_list, devices):
+    while True:
+        GLib.idle_add(updateData, gpu_list, devices)
+        time.sleep(refreshtime)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--about", help="README", action="store_true", default=False)
+    #parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
+    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    args = parser.parse_args()
+
+
+    # About me
+    if args.about == True :  
+        print(__doc__ )
+        print("Author: ", __author__ )
+        print("Copyright: ", __copyright__)
+        print("Credits: ", __credits__)
+        print("License: ", __license__)
+        print("Version: ", __version__)
+        print("Maintainer: ", __maintainer__)
+        print("Status: ", __status__)
+        sys.exit(0)
+
+    gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    if args.debug == True :  gut_const.DEBUG = True
+
+    if gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
+
+    # Check value of AMD Feature mask
+    try:
+        featuremask = gut_const.read_amdfeaturemask()
+    except FileNotFoundError:
+        print("Cannot read ppfeaturemask. Exiting...")
+        sys.exit(-1)
+    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
+        print("AMD Wattman features enabled: %s" % hex(featuremask))
+    else:
+        print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+        sys.exit(-1)
+
+    gpu_list = GPU.GPU_LIST()
+    gpu_list.get_gpu_list()
+    num_amd_gpus = gpu_list.num_gpus()
+
+    if num_amd_gpus == 0:
+        print("No AMD GPUs detected, exiting...")
+        sys.exit(-1)
+    else:
+        print(f"{num_amd_gpus} AMD GPUs detected")
+    gpu_list.read_hw_data()
+    gpu_list.read_device_data()
+    gpu_list.get_gpu_details()
+    gpu_list.get_pstates()
+    gpu_list.get_ppm_table()
+
+
+    num_com_amd_gpus = gpu_list.num_compatible_gpus()
+    if num_com_amd_gpus == 0:
+        print("None are Compatible, exiting...")
+        #sys.exit(-1)
+    else:
+        print(f"{num_amd_gpus} are Compatible")
+        print("")
+
+    # Display Gtk style Monitor
+    gmonitor = MonitorWindow(gpu_list)
+    grid = Gtk.Grid()
+    grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+    gmonitor.add(grid)
+
+    col = 0
+    row = 0
+
+    print("WARNING: Under Deveopment")
+    print("WARNING: Doesn't really work yet!")
+    print()
+
+    devices = {}
+    for k, v in gpu_list.list.items():
+        # Card Number in top center of box
+        devices[v.uuid] = {"card_num":  Gtk.Label()}
+        devices[v.uuid]["card_num"].set_markup("<b>Card "+v.get_params_value(str("card_num"))+"</b>")
+        lbox = Gtk.Box(spacing=6)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        devices[v.uuid]["card_num"].set_property("margin-top", 1)
+        devices[v.uuid]["card_num"].set_property("margin-bottom", 1)
+        devices[v.uuid]["card_num"].set_property("margin-right", 4)
+        devices[v.uuid]["card_num"].set_property("margin-left", 4)
+        lbox.pack_start(devices[v.uuid]["card_num"], True, True, 0)
+        grid.attach(lbox, col, row, 1, 1)
+        devices[v.uuid]["card_num"].set_alignment(0, 0.5)
+        row += 1
+
+        # Card Model
+        devices[v.uuid]["card_model"] = Gtk.Label()
+        devices[v.uuid]["card_model"].set_markup(v.get_params_value("model"))
+        lbox = Gtk.Box(spacing=6)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        devices[v.uuid]["card_model"].set_property("margin-top", 1)
+        devices[v.uuid]["card_model"].set_property("margin-bottom", 1)
+        devices[v.uuid]["card_model"].set_property("margin-right", 4)
+        devices[v.uuid]["card_model"].set_property("margin-left", 4)
+        lbox.pack_start(devices[v.uuid]["card_model"], True, True, 0)
+        grid.attach(lbox, col, row, 1, 1)
+        row += 1
+
+        # Card Path
+        devices[v.uuid]["card_path"] = Gtk.Label()
+        devices[v.uuid]["card_path"].set_markup(v.get_params_value("card_path"))
+        lbox = Gtk.Box(spacing=6)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        devices[v.uuid]["card_path"].set_property("margin-top", 1)
+        devices[v.uuid]["card_path"].set_property("margin-bottom", 1)
+        devices[v.uuid]["card_path"].set_property("margin-right", 4)
+        devices[v.uuid]["card_path"].set_property("margin-left", 4)
+        lbox.pack_start(devices[v.uuid]["card_path"], True, True, 0)
+        grid.attach(lbox, col, row, 1, 1)
+        row += 1
+
+        # Card Power Cap
+        devices[v.uuid]["power_cap"] = Gtk.Label()
+        devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+ str(v.get_params_value("power_cap")) + " (" +
+                str(v.get_params_value("power_cap_min"))+" - "+str(v.get_params_value("power_cap_max"))+" W)")
+        lbox = Gtk.Box(spacing=6)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        devices[v.uuid]["power_cap"].set_property("margin-top", 1)
+        devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
+        devices[v.uuid]["power_cap"].set_property("margin-right", 4)
+        devices[v.uuid]["power_cap"].set_property("margin-left", 4)
+        lbox.pack_start(devices[v.uuid]["power_cap"], True, True, 0)
+        grid.attach(lbox, col, row, 1, 1)
+        row += 1
+
+        print(devices)
+        col += 1
+
+
+    gmonitor.connect("delete-event", Gtk.main_quit)
+    gmonitor.show_all()
+
+    # Start thread to update Monitor
+    #monthread = threading.Thread(target=refresh, daemon=True, args=[gut_const.SLEEP, updateData, gpu_list, devices]).start()
+
+    Gtk.main()
+
+
+
+if __name__ == "__main__":
+    main()
