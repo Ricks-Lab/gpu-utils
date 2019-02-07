@@ -93,6 +93,9 @@ class GUT_CONST:
         return(0)
 
     def get_amd_driver_version(self):
+        if shutil.which("/usr/bin/dpkg") == None:
+            print("can not determine amdgpu version")
+            return(-1)
         dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu-pro'), shell=False,
                 stderr=subprocess.DEVNULL).decode().split("\n")
         for dpkg_line in dpkg_out:
@@ -100,6 +103,7 @@ class GUT_CONST:
             if(searchObj != None):
                dpkg_items = dpkg_line.split()
                print(f"amdgpu version: {dpkg_items[2]}")
+        return(0)
 
 gut_const = GUT_CONST()
 
