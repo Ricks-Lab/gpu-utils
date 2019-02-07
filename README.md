@@ -1,8 +1,9 @@
 # amdgpu-utils
 A set of utilities for monitoring and customizing GPU performance
 
-In order to use any of these utilities, you must first set your linux machine 
-to boot with amdgpu.ppfeaturemask=0xffff7fff.  This can be accomplished by adding
+In order to use any of these utilities, you must have *amdgpu* open source driver
+package installed. You also must first set your linux machine to boot with
+amdgpu.ppfeaturemask=0xffff7fff.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
 /etc/default/grub and executing *sudo update-grub*
 
