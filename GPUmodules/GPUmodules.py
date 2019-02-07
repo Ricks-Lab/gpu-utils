@@ -75,8 +75,31 @@ class GUT_CONST:
         if int(linux_version.split(".")[1]) < 8:
             print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
             return(-2)
+
+        # Check AMD GPU Driver Version
+        lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
+                stderr=subprocess.DEVNULL).decode().split("\n")
+        for lshw_line in lshw_out:
+            searchObj = re.search('configuration:', lshw_line)
+            if(searchObj != None):
+                lineitems = lshw_line.split(sep=':')
+                driver_str = lineitems[1].strip()
+                searchObj = re.search('driver=amdgpu', driver_str)
+                if(searchObj != None):
+                    return(0)
+                else:
+                    print(f"amdgpu-utils non-compatible driver: {driver_str}")
+                    return(-3)
         return(0)
 
+    def get_amd_driver_version(self):
+        dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu-pro'), shell=False,
+                stderr=subprocess.DEVNULL).decode().split("\n")
+        for dpkg_line in dpkg_out:
+            searchObj = re.search('amdgpu-pro', dpkg_line)
+            if(searchObj != None):
+               dpkg_items = dpkg_line.split()
+               print(f"amdgpu version: {dpkg_items[2]}")
 
 gut_const = GUT_CONST()
 
