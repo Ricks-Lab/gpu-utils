@@ -248,14 +248,15 @@ def main():
         devices[v.uuid]["power_cap_ent"].set_property("margin-right", 2)
         devices[v.uuid]["power_cap_ent"].set_property("margin-left", 2)
 
-        lbox = Gtk.Box(spacing=6)
+        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=6)
+        lbox.set_homogeneous(False)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
         lbox.set_property("margin-right", 1)
         lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["power_cap_cur"], True, True, 0)
-        lbox.pack_start(devices[v.uuid]["power_cap_ent"], True, True, 0)
+        lbox.pack_start(devices[v.uuid]["power_cap_cur"], False, False, 0)
+        lbox.pack_start(devices[v.uuid]["power_cap_ent"], False, False, 0)
         grid.attach(lbox, col, row, 1, 1)
         row += 1
 
@@ -270,7 +271,7 @@ def main():
         devices[v.uuid]["sclk_range"].set_property("margin-left", 2)
         devices[v.uuid]["sclk_range"].set_alignment(0, 0.5)
 
-        lbox = Gtk.Box(Gtk.Orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
         lbox.set_homogeneous(False)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
         lbox.set_property("margin-top", 1)
@@ -311,15 +312,16 @@ def main():
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 2)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 2)
 
-            lbox = Gtk.Box(spacing=6)
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox.set_homogeneous(False)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
             lbox.set_property("margin-left", 1)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"], True, True, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"], True, True, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"], True, True, 0)
+            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
@@ -334,7 +336,8 @@ def main():
         devices[v.uuid]["mclk_range"].set_property("margin-left", 2)
         devices[v.uuid]["mclk_range"].set_alignment(0, 0.5)
 
-        lbox = Gtk.Box(spacing=6)
+        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        lbox.set_homogeneous(False)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
@@ -374,15 +377,16 @@ def main():
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 2)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 2)
 
-            lbox = Gtk.Box(spacing=6)
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox.set_homogeneous(False)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
             lbox.set_property("margin-left", 1)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"], True, True, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"], True, True, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"], True, True, 0)
+            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
