@@ -23,7 +23,12 @@ updated in a Gtk window.  You can specify the delay between updates with the
 *--sleep N* option where N is an integer > zero that specifies the number of seconds
 to sleep.
 
+## amdgpu-pac
+Program and Control compatible AMD GPUs with this utility.  Still under development and
+currently non-functional.  Feel free to review the code and suggest an approach.
+
 ## New in this Release  -  v2.0.0
+* Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
 * Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
@@ -39,6 +44,5 @@ to sleep.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
-* Add the capability for amdgpu-ls to display power/performance modes.
 * Develop a tool to customize GPU settings including p-state details, power cap, and power/performance modes.
 * Develop a startup utility to initialize GPU settings at boot up.
