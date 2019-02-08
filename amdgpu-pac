@@ -231,24 +231,24 @@ def main():
         row += 1
 
         # Card Power Cap Value and Entry
-        devices[v.uuid]["power_cap_cur"] = Gtk.Entry()
-        devices[v.uuid]["power_cap_cur"].set_text(str(v.get_params_value("power_cap")))
-        devices[v.uuid]["power_cap_cur"].set_editable(False)
-        devices[v.uuid]["power_cap_cur"].set_max_length(6)
+        devices[v.uuid]["power_cap_cur"] = Gtk.Label()
+        devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
         devices[v.uuid]["power_cap_cur"].set_property("margin-top", 1)
         devices[v.uuid]["power_cap_cur"].set_property("margin-bottom", 1)
         devices[v.uuid]["power_cap_cur"].set_property("margin-right", 2)
         devices[v.uuid]["power_cap_cur"].set_property("margin-left", 2)
 
         devices[v.uuid]["power_cap_ent"] = Gtk.Entry()
+        devices[v.uuid]["power_cap_ent"].set_width_chars(6)
         devices[v.uuid]["power_cap_ent"].set_max_length(6)
+        devices[v.uuid]["power_cap_ent"].set_alignment(xalign=1)
         devices[v.uuid]["power_cap_ent"].set_text(str(v.get_params_value("power_cap")))
         devices[v.uuid]["power_cap_ent"].set_property("margin-top", 1)
         devices[v.uuid]["power_cap_ent"].set_property("margin-bottom", 1)
         devices[v.uuid]["power_cap_ent"].set_property("margin-right", 2)
         devices[v.uuid]["power_cap_ent"].set_property("margin-left", 2)
 
-        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=6)
+        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
         lbox.set_homogeneous(False)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
         lbox.set_property("margin-top", 1)
@@ -264,7 +264,7 @@ def main():
         devices[v.uuid]["sclk_range"] = Gtk.Label()
         devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " +
                 "Ranges " + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) +
-                ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1]))
+                ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1])+"  ")
         devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
         devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
         devices[v.uuid]["sclk_range"].set_property("margin-right", 2)
@@ -287,17 +287,19 @@ def main():
             devices[v.uuid] = {"sclk_pstate":{ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
                 "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}}
 
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Entry()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text((str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_editable(False)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_max_length(20)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
 
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(8)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(10)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(10)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(str(psd[0]))
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
@@ -305,7 +307,9 @@ def main():
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 2)
 
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(8)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(10)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(10)
+            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(psd[1]))
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
             devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
@@ -352,17 +356,19 @@ def main():
             devices[v.uuid] = {"mclk_pstate":{ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
                 "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}}
 
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Entry()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text((str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_editable(False)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_max_length(20)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
 
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(8)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(10)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(10)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_text(str(psd[0]))
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
@@ -370,7 +376,9 @@ def main():
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 2)
 
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(8)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(10)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(10)
+            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(psd[1]))
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
             devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
