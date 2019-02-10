@@ -256,6 +256,12 @@ class GPU_ITEM:
         # TODO write the code to do this!
         return
 
+    def get_current_ppm_mode(self):
+        if self.get_params_value("power_dpm_force").lower() == "auto":
+            return([-1,"AUTO"])
+        ppm_item = self.get_params_value("ppm").split('-')
+        return([int(ppm_item[0]), ppm_item[1]])
+
     def get_ppm_table(self):
         if(os.path.isfile(self.card_path + "pp_power_profile_mode") == False):
             print("Error getting power profile modes: ", self.card_path, file=sys.stderr)
@@ -266,6 +272,7 @@ class GPU_ITEM:
                 linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                 lineItems = linestr.split()
                 self.ppm_modes[lineItems[0]] = lineItems[1:]
+            self.ppm_modes["-1"] = ["AUTO","Auto"]
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
