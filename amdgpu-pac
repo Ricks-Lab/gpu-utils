@@ -57,10 +57,13 @@ class MonitorWindow(Gtk.Window):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-oc.icon.jpg')
 
 def save_card(self, device):
-    for dk, dv in device.items():
-        print(dk)
-        print(dv)
-    pass
+    print("power_cap: %s" % device["power_cap_ent"].get_text())
+    for pk, pv in device["sclk_pstate"].items():
+        print("sck p-state: %s : %s MHz, %s mV" % (pk, pv["gtk_ent_f_obj"].get_text(), pv["gtk_ent_v_obj"].get_text()))
+    for pk, pv in device["mclk_pstate"].items():
+        print("mck p-state: %s : %s MHz, %s mV" % (pk, pv["gtk_ent_f_obj"].get_text(), pv["gtk_ent_v_obj"].get_text()))
+    print("ppm: ID=%d, name=%s" % (device["new_ppm"][0], device["new_ppm"][1]))
+    return
 
 def reset_card(self, device):
     pass
@@ -70,8 +73,9 @@ def ppm_select(self, device):
     if tree_iter is not None:
         model = device["ppm_modes_combo"].get_model()
         row_id, name = model[tree_iter][:2]
-        print("Selected: ID=%d, name=%s" % (row_id, name))
-    pass
+        device["new_ppm"] = [row_id, name]
+        #print("Selected: ID=%d, name=%s" % (device["new_ppm"][0], device["new_ppm"][1]))
+    return
 
 
 def main():
