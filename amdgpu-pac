@@ -65,6 +65,14 @@ def save_card(self, device):
 def reset_card(self, device):
     pass
 
+def ppm_select(self, device):
+    tree_iter = device["ppm_modes_combo"].get_active_iter()
+    if tree_iter is not None:
+        model = device["ppm_modes_combo"].get_model()
+        row_id, name = model[tree_iter][:2]
+        print("Selected: ID=%d, name=%s" % (row_id, name))
+    pass
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -285,8 +293,7 @@ def main():
         # Sclk P-State Values and Entry
         devices[v.uuid]["sclk_pstate"] = {}
         for ps, psd in v.sclk_state.items():
-            devices[v.uuid]["sclk_pstate"] = {ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
-                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}
+            devices[v.uuid]["sclk_pstate"][ps] = {}
 
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -374,10 +381,10 @@ def main():
         grid.attach(lbox, col, row, 1, 1)
         row += 1
 
-        # Sclk M-State Values and Entry
+        # Mclk P-State Values and Entry
+        devices[v.uuid]["mclk_pstate"] = {}
         for ps, psd in v.mclk_state.items():
-            devices[v.uuid]["mclk_pstate"] = {ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
-                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}
+            devices[v.uuid]["mclk_pstate"][ps] = {}
 
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -478,11 +485,11 @@ def main():
         lbox.set_property("margin-right", 1)
         lbox.set_property("margin-left", 1)
 
-        ppm_mode_combo = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]["ppm_modes"])
-        #name_combo.connect("changed", self.on_name_combo_changed)
-        ppm_mode_combo.set_entry_text_column(1)
-        ppm_mode_combo.set_active(mode_item[v.get_current_ppm_mode()[0]])
-        lbox.pack_start(ppm_mode_combo, False, False, 0)
+        devices[v.uuid]["ppm_modes_combo"] = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]["ppm_modes"])
+        devices[v.uuid]["ppm_modes_combo"].connect("changed", ppm_select, devices[v.uuid])
+        devices[v.uuid]["ppm_modes_combo"].set_entry_text_column(1)
+        devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
+        lbox.pack_start(devices[v.uuid]["ppm_modes_combo"], False, False, 0)
         grid.attach(lbox, col, row, 1, 1)
         row += 1
 
