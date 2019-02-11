@@ -56,23 +56,14 @@ class MonitorWindow(Gtk.Window):
         if(os.path.isfile(gut_const.PATH + '/amdgpu-oc.icon.jpg') == True):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-oc.icon.jpg')
 
+def save_card(self, device):
+    for dk, dv in device.items():
+        print(dk)
+        print(dv)
+    pass
 
-def updateData(gpu_list, devices):
-    gpu_list.read_hw_data()
-    gpu_list.read_device_data()
-    for dk, dv in devices.items():
-        for lk, lv in dv.items():
-            if lk == "card_num":
-                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
-            else:
-                data_value = str(gpu_list.list[dk].get_params_value(lk))
-            lv.set_text(data_value)
-            #lv.set_text(str(gpu_list.list[dk].get_params_value(lk)))
-
-def refresh(refreshtime, updateData, gpu_list, devices):
-    while True:
-        GLib.idle_add(updateData, gpu_list, devices)
-        time.sleep(refreshtime)
+def reset_card(self, device):
+    pass
 
 
 def main():
@@ -157,7 +148,7 @@ def main():
     for k, v in gpu_list.list.items():
         # Card Number in top center of box
         devices[v.uuid] = {"card_num":  Gtk.Label()}
-        devices[v.uuid]["card_num"].set_markup("<b>Card "+v.get_params_value(str("card_num"))+"</b>")
+        devices[v.uuid]["card_num"].set_markup("<big><b>Card "+v.get_params_value(str("card_num"))+"</b></big>")
         devices[v.uuid]["card_num"].set_property("margin-top", 1)
         devices[v.uuid]["card_num"].set_property("margin-bottom", 1)
         devices[v.uuid]["card_num"].set_property("margin-right", 4)
@@ -292,9 +283,10 @@ def main():
         row += 1
 
         # Sclk P-State Values and Entry
+        devices[v.uuid]["sclk_pstate"] = {}
         for ps, psd in v.sclk_state.items():
-            devices[v.uuid] = {"sclk_pstate":{ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
-                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}}
+            devices[v.uuid]["sclk_pstate"] = {ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
+                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}
 
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
             devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -384,8 +376,8 @@ def main():
 
         # Sclk M-State Values and Entry
         for ps, psd in v.mclk_state.items():
-            devices[v.uuid] = {"mclk_pstate":{ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
-                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}}
+            devices[v.uuid]["mclk_pstate"] = {ps:{"cur_f":"","cur_v":"", "gtk_cur_obj":"",
+                "ent_f":"", "gtk_ent_f_obj":"", "ent_v":"", "gtk_ent_v_obj":""}}
 
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
             devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -494,7 +486,34 @@ def main():
         grid.attach(lbox, col, row, 1, 1)
         row += 1
 
-        #print(devices)
+        # Save/Reset Card Buttons
+        devices[v.uuid]["save_button"] = Gtk.Button("")
+        for child in devices[v.uuid]["save_button"].get_children():
+            child.set_label("<big><b>Save</b></big>")
+            child.set_use_markup(True)
+        devices[v.uuid]["save_button"].connect("clicked", save_card, devices[v.uuid])
+        devices[v.uuid]["save_button"].set_property("width-request", 90)
+
+        devices[v.uuid]["reset_button"] = Gtk.Button("")
+        for child in devices[v.uuid]["reset_button"].get_children():
+            child.set_label("<big><b>Reset</b></big>")
+            child.set_use_markup(True)
+        devices[v.uuid]["reset_button"].connect("clicked", reset_card, devices[v.uuid])
+        devices[v.uuid]["reset_button"].set_property("width-request", 90)
+
+        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        lbox.set_homogeneous(False)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        lbox.pack_start(devices[v.uuid]["save_button"], True, False, 0)
+        lbox.pack_start(devices[v.uuid]["reset_button"], True, False, 0)
+        grid.attach(lbox, col, row, 1, 1)
+        row += 1
+
+        # Increment column before going to next Device
         col += 1
 
 
