@@ -238,6 +238,20 @@ class GPU_ITEM:
                 }
         return(GPU_CLINFO_Labels)
 
+    def is_valid_power_cap(self, power_cap):
+        if power_cap >= self.get_params_value("power_cap_min") and power_cap <= self.get_params_value("power_cap_max"):
+            return(True)
+        else:
+            return(False)
+
+    def is_valid_mclk_pstate(self, pstate):
+        # TODO write the code to do this!
+        return(True)
+
+    def is_valid_sclk_pstate(self, pstate):
+        # TODO write the code to do this!
+        return(True)
+
     def write_pstates(self):
         # Sample commands to set p states.  Problem is that the file that needs to
         # be written to, is only writeable by root.  Maybe the best approach is to 

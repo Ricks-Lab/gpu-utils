@@ -390,14 +390,14 @@ class PACWindow(Gtk.Window):
             for child in devices[v.uuid]["save_button"].get_children():
                 child.set_label("<big><b>Save</b></big>")
                 child.set_use_markup(True)
-            devices[v.uuid]["save_button"].connect("clicked", save_card, devices[v.uuid])
+            devices[v.uuid]["save_button"].connect("clicked", save_card, gpu_list, devices, v.uuid)
             devices[v.uuid]["save_button"].set_property("width-request", 90)
     
             devices[v.uuid]["reset_button"] = Gtk.Button("")
             for child in devices[v.uuid]["reset_button"].get_children():
                 child.set_label("<big><b>Reset</b></big>")
                 child.set_use_markup(True)
-            devices[v.uuid]["reset_button"].connect("clicked", reset_card, devices[v.uuid])
+            devices[v.uuid]["reset_button"].connect("clicked", reset_card, gpu_list, devices, v.uuid)
             devices[v.uuid]["reset_button"].set_property("width-request", 90)
 
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -456,16 +456,114 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
         return
 
-def save_card(self, device):
-    print("This utility currently only outputs settings to stdout, still working on capability to write to device")
-    print("card path: %s" % device["card_path"].get_text())
-    print("power_cap: %s" % device["power_cap_ent"].get_text())
-    for pk, pv in device["sclk_pstate"].items():
-        print("sck p-state: %s : %s MHz, %s mV" % (pk, pv["gtk_ent_f_obj"].get_text(), pv["gtk_ent_v_obj"].get_text()))
-    for pk, pv in device["mclk_pstate"].items():
-        print("mck p-state: %s : %s MHz, %s mV" % (pk, pv["gtk_ent_f_obj"].get_text(), pv["gtk_ent_v_obj"].get_text()))
-    print("ppm: ID=%d, name=%s" % (device["new_ppm"][0], device["new_ppm"][1]))
+def save_card(self, gpu_list, devices, uuid):
+    # specify output bacth file name
+    out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
+    fileptr = open(out_filename, 'x')
+    # output header
+    print("#!/bin/sh", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("## amdgpu-pac generated script to modify GPU configuration/settings", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("## WARNING - Do not execute this script without completely", file=fileptr)
+    print("## understanding appropriate value to write to your specific GPUs", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("#", file=fileptr)
+    print("#    Copyright (C) 2019  RueiKe", file=fileptr)
+    print("#", file=fileptr)
+    print("#    This program is free software: you can redistribute it and/or modify", file=fileptr)
+    print("#    it under the terms of the GNU General Public License as published by", file=fileptr)
+    print("#    the Free Software Foundation, either version 3 of the License, or", file=fileptr)
+    print("#    (at your option) any later version.", file=fileptr)
+    print("#", file=fileptr)
+    print("#    This program is distributed in the hope that it will be useful,", file=fileptr)
+    print("#    but WITHOUT ANY WARRANTY; without even the implied warranty of", file=fileptr)
+    print("#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the", file=fileptr)
+    print("#    GNU General Public License for more details.", file=fileptr)
+    print("#", file=fileptr)
+    print("#    You should have received a copy of the GNU General Public License", file=fileptr)
+    print("#    along with this program.  If not, see <https://www.gnu.org/licenses/>.", file=fileptr)
+    print("###########################################################################", file=fileptr)
+
+    #/sys/class/drm/card1/device/
+    #sudo sh -c "echo 's 6 1450 1150' > /sys/class/drm/card1/device/pp_od_clk_voltage"
+    #sudo sh -c "echo 's 7 1550 1200' > /sys/class/drm/card1/device/pp_od_clk_voltage"
+    #sudo sh -c "echo 'm 3 900 1100' > /sys/class/drm/card1/device/pp_od_clk_voltage"
+    # Commit changes
+    #sudo sh -c "echo 'c' > /sys/class/drm/card1/device/pp_od_clk_voltage"
+    # Reset to defaults
+    #sudo sh -c "echo 'r' > /sys/class/drm/card1/device/pp_od_clk_voltage"
+    
+    #sudo sh -c "echo 'manual' > /sys/class/drm/card0/device/power_dpm_force_performance_level"
+    #sudo sh -c "echo '4' > /sys/class/drm/card0/device/pp_power_profile_mode"
+    #sudo sh -c "echo '150000000' > /sys/class/drm/card0/device/hwmon/hwmon0/power1_cap"
+    #sudo sh -c "echo 'c' > /sys/class/drm/card0/device/pp_od_clk_voltage"
+    
+    #sudo sh -c "echo 'manual' > /sys/class/drm/card1/device/power_dpm_force_performance_level"
+
+    v = gpu_list.list[uuid]
+    print("# ", file=fileptr)
+    print("# Card" + v.card_num + "  " + v.get_params_value("model"), file=fileptr)
+    print("# " + v.card_path, file=fileptr)
+    print("# ", file=fileptr)
+
+    # Power Cap
+    device_file = v.hwmon_path + "power1_cap"
+    old_power_cap = int(v.get_params_value("power_cap"))
+    new_power_cap = int(devices[uuid]["power_cap_ent"].get_text())
+    print("# Powercap Old: ", str(old_power_cap), end="", file=fileptr)
+    print(" New: ", str(new_power_cap), end="", file=fileptr)
+    print(" Min: ", v.get_params_value("power_cap_min"), end="", file=fileptr)
+    print(" Max: ", v.get_params_value("power_cap_max"), end="", file=fileptr)
+    print("", file=fileptr)
+
+    if new_power_cap == old_power_cap :
+        print("# No changes, skipped", file=fileptr)
+    else:
+        if v.is_valid_power_cap(new_power_cap):
+            print("sudo sh -c \"echo \'%s\' >  %s\"" % ((str(int(1000*new_power_cap))), device_file), file=fileptr)
+        else:
+            print("# Invalid paramater values", file=fileptr)
+
+    # Sclk P-states
+    device_file = v.card_path + "pp_od_clk_voltage"
+    for pk, pv in devices[uuid]["sclk_pstate"].items():
+        pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
+        print("#sck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
+        if v.is_valid_sclk_pstate(pstate):
+            print("sudo sh -c \"echo \'s %s %s %s\' >  %s\"" % (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+        else:
+            print("# Invalid sclk pstate values", file=fileptr)
+
+
+    # Mclk P-states
+    device_file = v.card_path + "pp_od_clk_voltage"
+    for pk, pv in devices[uuid]["mclk_pstate"].items():
+        pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
+        print("#mck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
+        if v.is_valid_sclk_pstate(pstate):
+            print("sudo sh -c \"echo \'m %s %s %s\' >  %s\"" % (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+        else:
+            print("# Invalid mclk pstate values", file=fileptr)
+
+    # PPM
+    ppm_mode_file = v.card_path + "power_dpm_force"
+    ppm_level_file = v.card_path + "pp_power_profile_mode"
+
+    tree_iter = devices[uuid]["ppm_modes_combo"].get_active_iter()
+    if tree_iter is not None:
+        model = devices[uuid]["ppm_modes_combo"].get_model()
+        row_id, name = model[tree_iter][:2]
+        selected_mode = devices[uuid]["new_ppm"][0]
+        print("Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
+
+    # Close file and Set permissions
+    fileptr.close()
+    os.chmod(out_filename, 0o744)
     return
+
 
 def reset_card(self, device):
     pass
