@@ -37,7 +37,9 @@
 #sudo sh -c "echo 'manual' > /sys/class/drm/card0/device/power_dpm_force_performance_level" 
 #sudo sh -c "echo '4' > /sys/class/drm/card0/device/pp_power_profile_mode" 
 #sudo sh -c "echo '150000000' > /sys/class/drm/card0/device/hwmon/hwmon0/power1_cap"
+#sudo sh -c "echo 'c' > /sys/class/drm/card0/device/pp_od_clk_voltage"
 
 #sudo sh -c "echo 'manual' > /sys/class/drm/card1/device/power_dpm_force_performance_level" 
 #sudo sh -c "echo '4' > /sys/class/drm/card1/device/pp_power_profile_mode" 
 #sudo sh -c "echo '150000000' > /sys/class/drm/card1/device/hwmon/hwmon1/power1_cap"
+#sudo sh -c "echo 'c' > /sys/class/drm/card1/device/pp_od_clk_voltage"
