@@ -57,8 +57,8 @@ class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list):
         Gtk.Window.__init__(self, title="GPU Monitor")
         self.set_border_width(1)
-        if(os.path.isfile(gut_const.PATH + '/amdgpu-monitor.icon.jpg') == True):
-            self.set_icon_from_file(gut_const.PATH + '/amdgpu-monitor.icon.jpg')
+        if(os.path.isfile(gut_const.PATH + '/amdgpu-monitor.icon.png') == True):
+            self.set_icon_from_file(gut_const.PATH + '/amdgpu-monitor.icon.png')
 
 
 def updateData(gpu_list, devices):

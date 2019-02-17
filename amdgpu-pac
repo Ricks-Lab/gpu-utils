@@ -53,8 +53,8 @@ class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list):
         Gtk.Window.__init__(self, title="GPU OC")
         self.set_border_width(1)
-        if(os.path.isfile(gut_const.PATH + '/amdgpu-oc.icon.jpg') == True):
-            self.set_icon_from_file(gut_const.PATH + '/amdgpu-oc.icon.jpg')
+        if(os.path.isfile(gut_const.PATH + '/amdgpu-pac.icon.png') == True):
+            self.set_icon_from_file(gut_const.PATH + '/amdgpu-pac.icon.png')
 
 def save_card(self, device):
     print("power_cap: %s" % device["power_cap_ent"].get_text())
@@ -150,7 +150,6 @@ def main():
     gmonitor.add(grid)
 
     col = 0
-    row = 0
 
     print("WARNING: Under Deveopment")
     print("WARNING: Doesn't really work yet!")
@@ -158,6 +157,7 @@ def main():
 
     devices = {}
     for k, v in gpu_list.list.items():
+        row = 0
         # Card Number in top center of box
         devices[v.uuid] = {"card_num":  Gtk.Label()}
         devices[v.uuid]["card_num"].set_markup("<big><b>Card "+v.get_params_value(str("card_num"))+"</b></big>")
