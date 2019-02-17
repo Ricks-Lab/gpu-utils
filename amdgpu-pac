@@ -60,7 +60,6 @@ class PACWindow(Gtk.Window):
         self.add(grid)
 
         col = 0
-        #devices = {}
         for k, v in gpu_list.list.items():
             row = 0
             # Card Number in top center of box

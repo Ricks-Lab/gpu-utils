@@ -86,7 +86,7 @@ class MonitorWindow(Gtk.Window):
             v.set_alignment(0, 0.5)
             i += 1
 
-        devices = {}
+        #devices = {}
         for k, v in gpu_list.list.items():
             devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
