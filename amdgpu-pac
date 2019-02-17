@@ -49,14 +49,393 @@ from pathlib import Path
 # Instantiate project constants
 gut_const = GPU.GUT_CONST()
 
-class MonitorWindow(Gtk.Window):
-    def __init__(self, gpu_list):
+class PACWindow(Gtk.Window):
+    def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="GPU OC")
         self.set_border_width(1)
         if(os.path.isfile(gut_const.PATH + '/amdgpu-pac.icon.png') == True):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-pac.icon.png')
+        grid = Gtk.Grid()
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+        self.add(grid)
+
+        col = 0
+        #devices = {}
+        for k, v in gpu_list.list.items():
+            row = 0
+            # Card Number in top center of box
+            devices[v.uuid] = {"card_num":  Gtk.Label()}
+            devices[v.uuid]["card_num"].set_markup("<big><b>Card "+v.get_params_value(str("card_num"))+"</b></big>")
+            devices[v.uuid]["card_num"].set_property("margin-top", 1)
+            devices[v.uuid]["card_num"].set_property("margin-bottom", 1)
+            devices[v.uuid]["card_num"].set_property("margin-right", 4)
+            devices[v.uuid]["card_num"].set_property("margin-left", 4)
+            devices[v.uuid]["card_num"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["card_num"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Card Model
+            devices[v.uuid]["card_model"] = Gtk.Label()
+            devices[v.uuid]["card_model"].set_markup(v.get_params_value("model"))
+            devices[v.uuid]["card_model"].set_property("margin-top", 1)
+            devices[v.uuid]["card_model"].set_property("margin-bottom", 1)
+            devices[v.uuid]["card_model"].set_property("margin-right", 4)
+            devices[v.uuid]["card_model"].set_property("margin-left", 4)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["card_model"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Card Path
+            devices[v.uuid]["card_path"] = Gtk.Label()
+            devices[v.uuid]["card_path"].set_markup(v.get_params_value("card_path"))
+            devices[v.uuid]["card_path"].set_property("margin-top", 1)
+            devices[v.uuid]["card_path"].set_property("margin-bottom", 1)
+            devices[v.uuid]["card_path"].set_property("margin-right", 4)
+            devices[v.uuid]["card_path"].set_property("margin-left", 4)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["card_path"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Card Power Cap
+            devices[v.uuid]["power_cap"] = Gtk.Label()
+            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+ "Range (" +
+                    str(v.get_params_value("power_cap_min"))+" - "+str(v.get_params_value("power_cap_max"))+" W)")
+            devices[v.uuid]["power_cap"].set_property("margin-top", 1)
+            devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
+            devices[v.uuid]["power_cap"].set_property("margin-right", 2)
+            devices[v.uuid]["power_cap"].set_property("margin-left", 2)
+            devices[v.uuid]["power_cap"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["power_cap"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Card Power Cap Value and Entry
+            devices[v.uuid]["power_cap_cur"] = Gtk.Label()
+            devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
+            devices[v.uuid]["power_cap_cur"].set_property("margin-top", 1)
+            devices[v.uuid]["power_cap_cur"].set_property("margin-bottom", 1)
+            devices[v.uuid]["power_cap_cur"].set_property("margin-right", 2)
+            devices[v.uuid]["power_cap_cur"].set_property("margin-left", 2)
+
+            devices[v.uuid]["power_cap_ent"] = Gtk.Entry()
+            devices[v.uuid]["power_cap_ent"].set_width_chars(4)
+            devices[v.uuid]["power_cap_ent"].set_max_length(4)
+            devices[v.uuid]["power_cap_ent"].set_alignment(xalign=1)
+            devices[v.uuid]["power_cap_ent"].set_text(str(int(v.get_params_value("power_cap"))))
+            devices[v.uuid]["power_cap_ent"].set_property("margin-top", 1)
+            devices[v.uuid]["power_cap_ent"].set_property("margin-bottom", 1)
+            devices[v.uuid]["power_cap_ent"].set_property("margin-right", 0)
+            devices[v.uuid]["power_cap_ent"].set_property("margin-left", 2)
+
+            devices[v.uuid]["power_cap_ent_unit"] = Gtk.Label()
+            devices[v.uuid]["power_cap_ent_unit"].set_text("W")
+            devices[v.uuid]["power_cap_ent_unit"].set_property("margin-top", 1)
+            devices[v.uuid]["power_cap_ent_unit"].set_property("margin-bottom", 1)
+            devices[v.uuid]["power_cap_ent_unit"].set_property("margin-right", 0)
+            devices[v.uuid]["power_cap_ent_unit"].set_property("margin-left", 0)
+            devices[v.uuid]["power_cap_ent_unit"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["power_cap_cur"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["power_cap_ent"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["power_cap_ent_unit"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Sclk P-States
+            devices[v.uuid]["sclk_range"] = Gtk.Label()
+            devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " +
+                    "Ranges " + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) +
+                    ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1])+"  ")
+            devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
+            devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
+            devices[v.uuid]["sclk_range"].set_property("margin-right", 2)
+            devices[v.uuid]["sclk_range"].set_property("margin-left", 2)
+            devices[v.uuid]["sclk_range"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["sclk_range"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Sclk P-State Values and Entry
+            devices[v.uuid]["sclk_pstate"] = {}
+            for ps, psd in v.sclk_state.items():
+                devices[v.uuid]["sclk_pstate"][ps] = {}
+
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
+
+                item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
+                item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-right", 0)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 0)
+
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"] = Gtk.Label()
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_alignment(0, 0.5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-right", 4)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-left", 0)
+
+                item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
+                item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 0)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 0)
+
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"] = Gtk.Label()
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_alignment(0, 0.5)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-right", 0)
+                devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-left", 0)
+
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
+            # Mclk P-States
+            devices[v.uuid]["mclk_range"] = Gtk.Label()
+            devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " +
+                    "Ranges " + str(v.get_params_value("mclk_f_range")[0]) +"-"+ str(v.get_params_value("mclk_f_range")[1]) +
+                    ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1]))
+            devices[v.uuid]["mclk_range"].set_property("margin-top", 1)
+            devices[v.uuid]["mclk_range"].set_property("margin-bottom", 1)
+            devices[v.uuid]["mclk_range"].set_property("margin-right", 2)
+            devices[v.uuid]["mclk_range"].set_property("margin-left", 2)
+            devices[v.uuid]["mclk_range"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["mclk_range"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Mclk P-State Values and Entry
+            devices[v.uuid]["mclk_pstate"] = {}
+            for ps, psd in v.mclk_state.items():
+                devices[v.uuid]["mclk_pstate"][ps] = {}
+
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
+
+                item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
+                item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-right", 0)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 0)
+
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"] = Gtk.Label()
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_alignment(0, 0.5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-right", 4)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-left", 0)
+
+                item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
+                item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(item_value)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 0)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 0)
+
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"] = Gtk.Label()
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_alignment(0, 0.5)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-right", 4)
+                devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-left", 0)
+
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
+            # Power Performance Mode Selection
+            devices[v.uuid]["ppm"] = Gtk.Label()
+            devices[v.uuid]["ppm"].set_markup("<b>Power Performance Modes:</b>")
+            devices[v.uuid]["ppm"].set_property("margin-top", 1)
+            devices[v.uuid]["ppm"].set_property("margin-bottom", 1)
+            devices[v.uuid]["ppm"].set_property("margin-right", 2)
+            devices[v.uuid]["ppm"].set_property("margin-left", 2)
+            devices[v.uuid]["ppm"].set_alignment(0, 0.5)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["ppm"], True, True, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            devices[v.uuid]["ppm_modes"] = Gtk.ListStore(int, str)
+            mode_item = {}
+            item_num = 0
+            for mode_num, mode in v.ppm_modes.items():
+                if mode_num == "NUM": continue
+                devices[v.uuid]["ppm_modes"].append([int(mode_num), mode[0]])
+                mode_item[int(mode_num)] = item_num
+                item_num += 1
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+
+            devices[v.uuid]["ppm_modes_combo"] = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]["ppm_modes"])
+            devices[v.uuid]["ppm_modes_combo"].connect("changed", ppm_select, devices[v.uuid])
+            devices[v.uuid]["ppm_modes_combo"].set_entry_text_column(1)
+            devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
+            lbox.pack_start(devices[v.uuid]["ppm_modes_combo"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
+            # Save/Reset Card Buttons
+            devices[v.uuid]["save_button"] = Gtk.Button("")
+            for child in devices[v.uuid]["save_button"].get_children():
+                child.set_label("<big><b>Save</b></big>")
+                child.set_use_markup(True)
+            devices[v.uuid]["save_button"].connect("clicked", save_card, devices[v.uuid])
+            devices[v.uuid]["save_button"].set_property("width-request", 90)
+    
+            devices[v.uuid]["reset_button"] = Gtk.Button("")
+            for child in devices[v.uuid]["reset_button"].get_children():
+                child.set_label("<big><b>Reset</b></big>")
+                child.set_use_markup(True)
+            devices[v.uuid]["reset_button"].connect("clicked", reset_card, devices[v.uuid])
+            devices[v.uuid]["reset_button"].set_property("width-request", 90)
+
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["save_button"], True, False, 0)
+            lbox.pack_start(devices[v.uuid]["reset_button"], True, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+    
+            # Increment column before going to next Device
+            col += 1
+
 
 def save_card(self, device):
+    print("This utility currently only outputs settings to stdout, still working on capability to write to device")
+    print("card path: %s" % device["card_path"].get_text())
     print("power_cap: %s" % device["power_cap_ent"].get_text())
     for pk, pv in device["sclk_pstate"].items():
         print("sck p-state: %s : %s MHz, %s mV" % (pk, pv["gtk_ent_f_obj"].get_text(), pv["gtk_ent_v_obj"].get_text()))
@@ -81,10 +460,8 @@ def ppm_select(self, device):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
-    #parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
-
 
     # About me
     if args.about == True :  
@@ -128,6 +505,8 @@ def main():
         sys.exit(-1)
     else:
         print(f"{num_amd_gpus} AMD GPUs detected")
+
+    # Get GPU info
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
@@ -143,399 +522,17 @@ def main():
         print(f"{num_amd_gpus} are compatible")
         print("")
 
-    # Display Gtk style Monitor
-    gmonitor = MonitorWindow(gpu_list)
-    grid = Gtk.Grid()
-    grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
-    gmonitor.add(grid)
-
-    col = 0
-
     print("WARNING: Under Deveopment")
     print("WARNING: Doesn't really work yet!")
     print()
 
+    # Display Gtk style Monitor
     devices = {}
-    for k, v in gpu_list.list.items():
-        row = 0
-        # Card Number in top center of box
-        devices[v.uuid] = {"card_num":  Gtk.Label()}
-        devices[v.uuid]["card_num"].set_markup("<big><b>Card "+v.get_params_value(str("card_num"))+"</b></big>")
-        devices[v.uuid]["card_num"].set_property("margin-top", 1)
-        devices[v.uuid]["card_num"].set_property("margin-bottom", 1)
-        devices[v.uuid]["card_num"].set_property("margin-right", 4)
-        devices[v.uuid]["card_num"].set_property("margin-left", 4)
-        devices[v.uuid]["card_num"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["card_num"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Card Model
-        devices[v.uuid]["card_model"] = Gtk.Label()
-        devices[v.uuid]["card_model"].set_markup(v.get_params_value("model"))
-        devices[v.uuid]["card_model"].set_property("margin-top", 1)
-        devices[v.uuid]["card_model"].set_property("margin-bottom", 1)
-        devices[v.uuid]["card_model"].set_property("margin-right", 4)
-        devices[v.uuid]["card_model"].set_property("margin-left", 4)
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["card_model"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Card Path
-        devices[v.uuid]["card_path"] = Gtk.Label()
-        devices[v.uuid]["card_path"].set_markup(v.get_params_value("card_path"))
-        devices[v.uuid]["card_path"].set_property("margin-top", 1)
-        devices[v.uuid]["card_path"].set_property("margin-bottom", 1)
-        devices[v.uuid]["card_path"].set_property("margin-right", 4)
-        devices[v.uuid]["card_path"].set_property("margin-left", 4)
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["card_path"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Card Power Cap
-        devices[v.uuid]["power_cap"] = Gtk.Label()
-        devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+ "Range (" +
-                str(v.get_params_value("power_cap_min"))+" - "+str(v.get_params_value("power_cap_max"))+" W)")
-        devices[v.uuid]["power_cap"].set_property("margin-top", 1)
-        devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
-        devices[v.uuid]["power_cap"].set_property("margin-right", 2)
-        devices[v.uuid]["power_cap"].set_property("margin-left", 2)
-        devices[v.uuid]["power_cap"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["power_cap"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Card Power Cap Value and Entry
-        devices[v.uuid]["power_cap_cur"] = Gtk.Label()
-        devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
-        devices[v.uuid]["power_cap_cur"].set_property("margin-top", 1)
-        devices[v.uuid]["power_cap_cur"].set_property("margin-bottom", 1)
-        devices[v.uuid]["power_cap_cur"].set_property("margin-right", 2)
-        devices[v.uuid]["power_cap_cur"].set_property("margin-left", 2)
-
-        devices[v.uuid]["power_cap_ent"] = Gtk.Entry()
-        devices[v.uuid]["power_cap_ent"].set_width_chars(4)
-        devices[v.uuid]["power_cap_ent"].set_max_length(4)
-        devices[v.uuid]["power_cap_ent"].set_alignment(xalign=1)
-        devices[v.uuid]["power_cap_ent"].set_text(str(int(v.get_params_value("power_cap"))))
-        devices[v.uuid]["power_cap_ent"].set_property("margin-top", 1)
-        devices[v.uuid]["power_cap_ent"].set_property("margin-bottom", 1)
-        devices[v.uuid]["power_cap_ent"].set_property("margin-right", 0)
-        devices[v.uuid]["power_cap_ent"].set_property("margin-left", 2)
-
-        devices[v.uuid]["power_cap_ent_unit"] = Gtk.Label()
-        devices[v.uuid]["power_cap_ent_unit"].set_text("W")
-        devices[v.uuid]["power_cap_ent_unit"].set_property("margin-top", 1)
-        devices[v.uuid]["power_cap_ent_unit"].set_property("margin-bottom", 1)
-        devices[v.uuid]["power_cap_ent_unit"].set_property("margin-right", 0)
-        devices[v.uuid]["power_cap_ent_unit"].set_property("margin-left", 0)
-        devices[v.uuid]["power_cap_ent_unit"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
-        lbox.set_homogeneous(False)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["power_cap_cur"], False, False, 0)
-        lbox.pack_start(devices[v.uuid]["power_cap_ent"], False, False, 0)
-        lbox.pack_start(devices[v.uuid]["power_cap_ent_unit"], False, False, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Sclk P-States
-        devices[v.uuid]["sclk_range"] = Gtk.Label()
-        devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " +
-                "Ranges " + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) +
-                ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1])+"  ")
-        devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
-        devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
-        devices[v.uuid]["sclk_range"].set_property("margin-right", 2)
-        devices[v.uuid]["sclk_range"].set_property("margin-left", 2)
-        devices[v.uuid]["sclk_range"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbox.set_homogeneous(False)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["sclk_range"], False, False, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Sclk P-State Values and Entry
-        devices[v.uuid]["sclk_pstate"] = {}
-        for ps, psd in v.sclk_state.items():
-            devices[v.uuid]["sclk_pstate"][ps] = {}
-
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
-
-            item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-            item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-right", 0)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 0)
-
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"] = Gtk.Label()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_alignment(0, 0.5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-top", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-bottom", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-right", 4)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-left", 0)
-
-            item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
-            item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 0)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 0)
-
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"] = Gtk.Label()
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_alignment(0, 0.5)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-top", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-bottom", 1)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-right", 0)
-            devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-left", 0)
-
-            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-            lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-            lbox.set_property("margin-top", 1)
-            lbox.set_property("margin-bottom", 1)
-            lbox.set_property("margin-right", 1)
-            lbox.set_property("margin-left", 1)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
-            grid.attach(lbox, col, row, 1, 1)
-            row += 1
-
-        # Mclk P-States
-        devices[v.uuid]["mclk_range"] = Gtk.Label()
-        devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " +
-                "Ranges " + str(v.get_params_value("mclk_f_range")[0]) +"-"+ str(v.get_params_value("mclk_f_range")[1]) +
-                ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1]))
-        devices[v.uuid]["mclk_range"].set_property("margin-top", 1)
-        devices[v.uuid]["mclk_range"].set_property("margin-bottom", 1)
-        devices[v.uuid]["mclk_range"].set_property("margin-right", 2)
-        devices[v.uuid]["mclk_range"].set_property("margin-left", 2)
-        devices[v.uuid]["mclk_range"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbox.set_homogeneous(False)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["mclk_range"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Mclk P-State Values and Entry
-        devices[v.uuid]["mclk_pstate"] = {}
-        for ps, psd in v.mclk_state.items():
-            devices[v.uuid]["mclk_pstate"][ps] = {}
-
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"] = Gtk.Label()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_width_chars(20)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
-
-            item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-            item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_width_chars(5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_max_length(5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-right", 0)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_property("margin-left", 0)
-
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"] = Gtk.Label()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_alignment(0, 0.5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-top", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-bottom", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-right", 4)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_property("margin-left", 0)
-
-            item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
-            item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_width_chars(5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_max_length(5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(item_value)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-right", 0)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_property("margin-left", 0)
-
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"] = Gtk.Label()
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_alignment(0, 0.5)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-top", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-bottom", 1)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-right", 4)
-            devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_property("margin-left", 0)
-
-            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-            lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-            lbox.set_property("margin-top", 1)
-            lbox.set_property("margin-bottom", 1)
-            lbox.set_property("margin-right", 1)
-            lbox.set_property("margin-left", 1)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"], False, False, 0)
-            lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
-            grid.attach(lbox, col, row, 1, 1)
-            row += 1
-
-        # Power Performance Mode Selection
-        devices[v.uuid]["ppm"] = Gtk.Label()
-        devices[v.uuid]["ppm"].set_markup("<b>Power Performance Modes:</b>")
-        devices[v.uuid]["ppm"].set_property("margin-top", 1)
-        devices[v.uuid]["ppm"].set_property("margin-bottom", 1)
-        devices[v.uuid]["ppm"].set_property("margin-right", 2)
-        devices[v.uuid]["ppm"].set_property("margin-left", 2)
-        devices[v.uuid]["ppm"].set_alignment(0, 0.5)
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["ppm"], True, True, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        devices[v.uuid]["ppm_modes"] = Gtk.ListStore(int, str)
-        mode_item = {}
-        item_num = 0
-        for mode_num, mode in v.ppm_modes.items():
-            if mode_num == "NUM": continue
-            devices[v.uuid]["ppm_modes"].append([int(mode_num), mode[0]])
-            mode_item[int(mode_num)] = item_num
-            item_num += 1
-
-        lbox = Gtk.Box(spacing=6)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-
-        devices[v.uuid]["ppm_modes_combo"] = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]["ppm_modes"])
-        devices[v.uuid]["ppm_modes_combo"].connect("changed", ppm_select, devices[v.uuid])
-        devices[v.uuid]["ppm_modes_combo"].set_entry_text_column(1)
-        devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
-        lbox.pack_start(devices[v.uuid]["ppm_modes_combo"], False, False, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Save/Reset Card Buttons
-        devices[v.uuid]["save_button"] = Gtk.Button("")
-        for child in devices[v.uuid]["save_button"].get_children():
-            child.set_label("<big><b>Save</b></big>")
-            child.set_use_markup(True)
-        devices[v.uuid]["save_button"].connect("clicked", save_card, devices[v.uuid])
-        devices[v.uuid]["save_button"].set_property("width-request", 90)
-
-        devices[v.uuid]["reset_button"] = Gtk.Button("")
-        for child in devices[v.uuid]["reset_button"].get_children():
-            child.set_label("<big><b>Reset</b></big>")
-            child.set_use_markup(True)
-        devices[v.uuid]["reset_button"].connect("clicked", reset_card, devices[v.uuid])
-        devices[v.uuid]["reset_button"].set_property("width-request", 90)
-
-        lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbox.set_homogeneous(False)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-        lbox.set_property("margin-top", 1)
-        lbox.set_property("margin-bottom", 1)
-        lbox.set_property("margin-right", 1)
-        lbox.set_property("margin-left", 1)
-        lbox.pack_start(devices[v.uuid]["save_button"], True, False, 0)
-        lbox.pack_start(devices[v.uuid]["reset_button"], True, False, 0)
-        grid.attach(lbox, col, row, 1, 1)
-        row += 1
-
-        # Increment column before going to next Device
-        col += 1
-
-
+    gmonitor = PACWindow(gpu_list, devices)
     gmonitor.connect("delete-event", Gtk.main_quit)
     gmonitor.show_all()
 
-    # Start thread to update Monitor
-    #monthread = threading.Thread(target=refresh, daemon=True, args=[gut_const.SLEEP, updateData, gpu_list, devices]).start()
-
     Gtk.main()
-
 
 
 if __name__ == "__main__":
