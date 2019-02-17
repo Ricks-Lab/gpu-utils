@@ -54,11 +54,60 @@ from pathlib import Path
 gut_const = GPU.GUT_CONST()
 
 class MonitorWindow(Gtk.Window):
-    def __init__(self, gpu_list):
+    def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="GPU Monitor")
         self.set_border_width(1)
         if(os.path.isfile(gut_const.PATH + '/amdgpu-monitor.icon.png') == True):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-monitor.icon.png')
+        grid = Gtk.Grid()
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+        self.add(grid)
+
+        col = 0
+        row_labels = {"card_num": Gtk.Label()}
+        row_labels["card_num"].set_markup("<b>Card #</b>")
+        for k, v in gpu_list.table_param_labels.items():
+            row_labels[k] = Gtk.Label()
+            row_labels[k].set_markup("<b>"+str(v)+"</b>")
+        i=0
+        for k, v in row_labels.items():
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            v.set_property("margin-top", 1)
+            v.set_property("margin-bottom", 1)
+            v.set_property("margin-right", 4)
+            v.set_property("margin-left", 4)
+            lbox.pack_start(v, True, True, 0)
+            grid.attach(lbox, col, i, 1, 1)
+            v.set_alignment(0, 0.5)
+            i += 1
+
+        devices = {}
+        for k, v in gpu_list.list.items():
+            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
+            for cv in gpu_list.table_param_labels:
+                devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
+        for dk, dv in devices.items():
+            col += 1
+            i = 0
+            for lk, lv in dv.items():
+                lbox = Gtk.Box(spacing=6)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lv.set_property("margin-top", 1)
+                lv.set_property("margin-bottom", 1)
+                lv.set_property("margin-right", 3)
+                lv.set_property("margin-left", 3)
+                lbox.pack_start(lv, True, True, 0)
+                grid.attach(lbox, col, i, 1, 1)
+                i += 1
 
 
 def updateData(gpu_list, devices):
@@ -149,61 +198,8 @@ def main():
 
     if args.gui == True:
         # Display Gtk style Monitor
-        gmonitor = MonitorWindow(gpu_list)
-        grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
-        gmonitor.add(grid)
-
-        col = 0
-        #row_labels = {"card_num": Gtk.Label(label="Card #")}
-        row_labels = {"card_num": Gtk.Label()}
-        row_labels["card_num"].set_markup("<b>Card #</b>")
-        for k, v in gpu_list.table_param_labels.items():
-            row_labels[k] = Gtk.Label()
-            #row_labels[k] = Gtk.Label(label=str(v))
-            row_labels[k].set_markup("<b>"+str(v)+"</b>")
-        i=0
-        for k, v in row_labels.items():
-            lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-            lbox.set_property("margin-top", 1)
-            lbox.set_property("margin-bottom", 1)
-            lbox.set_property("margin-right", 1)
-            lbox.set_property("margin-left", 1)
-            v.set_property("margin-top", 1)
-            v.set_property("margin-bottom", 1)
-            v.set_property("margin-right", 4)
-            v.set_property("margin-left", 4)
-            lbox.pack_start(v, True, True, 0)
-            grid.attach(lbox, col, i, 1, 1)
-            v.set_alignment(0, 0.5)
-            #grid.attach(v, col, i, 1, 1)
-            i += 1
-
         devices = {}
-        for k, v in gpu_list.list.items():
-            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
-            for cv in gpu_list.table_param_labels:
-                devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
-        for dk, dv in devices.items():
-            col += 1
-            i = 0
-            for lk, lv in dv.items():
-                lbox = Gtk.Box(spacing=6)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-                lbox.set_property("margin-top", 1)
-                lbox.set_property("margin-bottom", 1)
-                lbox.set_property("margin-right", 1)
-                lbox.set_property("margin-left", 1)
-                lv.set_property("margin-top", 1)
-                lv.set_property("margin-bottom", 1)
-                lv.set_property("margin-right", 3)
-                lv.set_property("margin-left", 3)
-                lbox.pack_start(lv, True, True, 0)
-                grid.attach(lbox, col, i, 1, 1)
-                #grid.attach(lv, col, i, 1, 1)
-                i += 1
-
+        gmonitor = MonitorWindow(gpu_list, devices)
         gmonitor.connect("delete-event", Gtk.main_quit)
         gmonitor.show_all()
 
@@ -211,7 +207,6 @@ def main():
         monthread = threading.Thread(target=refresh, daemon=True, args=[gut_const.SLEEP, updateData, gpu_list, devices]).start()
 
         Gtk.main()
-
     else:
         # Display text style Monitor
         try:
