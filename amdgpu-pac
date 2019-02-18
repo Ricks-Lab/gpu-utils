@@ -51,7 +51,7 @@ gut_const = GPU.GUT_CONST()
 
 class PACWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
-        Gtk.Window.__init__(self, title="GPU OC")
+        Gtk.Window.__init__(self, title="amdgpu-pac")
         self.set_border_width(1)
         if(os.path.isfile(gut_const.PATH + '/amdgpu-pac.icon.png') == True):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-pac.icon.png')
@@ -73,7 +73,8 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["card_num"].set_alignment(0.5, 0.5)
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.0,.30,.40,0.4))
+            #lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.0,.30,.40,0.4))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60,.80,1.0,0.4))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -488,7 +489,7 @@ def save_card(self, gpu_list, devices, uuid):
     print("# ", file=fileptr)
 
     # Power Cap
-    device_file = v.hwmon_path + "power1_cap"
+    power_cap_file = v.hwmon_path + "power1_cap"
     old_power_cap = int(v.get_params_value("power_cap"))
     new_power_cap = int(devices[uuid]["power_cap_ent"].get_text())
     print("# Powercap Old: ", str(old_power_cap), end="", file=fileptr)
@@ -501,7 +502,7 @@ def save_card(self, gpu_list, devices, uuid):
         print("# No changes, skipped", file=fileptr)
     else:
         if v.is_valid_power_cap(new_power_cap):
-            print("sudo sh -c \"echo \'%s\' >  %s\"" % ((str(int(1000*new_power_cap))), device_file), file=fileptr)
+            print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
         else:
             print("# Invalid paramater values", file=fileptr)
 
@@ -548,6 +549,7 @@ def save_card(self, gpu_list, devices, uuid):
     # Close file and Set permissions
     fileptr.close()
     os.chmod(out_filename, 0o744)
+    #cmd = subprocess.Popen(out_filename, shell=True)
     return
 
 
@@ -584,13 +586,18 @@ def reset_card(self, gpu_list, devices, uuid):
 
     v = gpu_list.list[uuid]
     # Commit changes
+    power_cap_file = v.hwmon_path + "power1_cap"
     device_file = v.card_path + "pp_od_clk_voltage"
+    ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
+    print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+    print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
     print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
     print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
 
     # Close file and Set permissions
     fileptr.close()
     os.chmod(out_filename, 0o744)
+    #cmd = subprocess.Popen(out_filename, shell=True)
     return
 
 def ppm_select(self, device):
