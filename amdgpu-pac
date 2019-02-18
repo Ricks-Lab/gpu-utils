@@ -362,12 +362,12 @@ class PACWindow(Gtk.Window):
             row += 1
 
             devices[v.uuid]["ppm_modes"] = Gtk.ListStore(int, str)
-            mode_item = {}
+            devices[v.uuid]["ppm_mode_items"] = {}
             item_num = 0
             for mode_num, mode in v.ppm_modes.items():
                 if mode_num == "NUM": continue
                 devices[v.uuid]["ppm_modes"].append([int(mode_num), mode[0]])
-                mode_item[int(mode_num)] = item_num
+                devices[v.uuid]["ppm_mode_items"][int(mode_num)] = item_num
                 item_num += 1
 
             lbox = Gtk.Box(spacing=6)
@@ -380,7 +380,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["ppm_modes_combo"] = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]["ppm_modes"])
             devices[v.uuid]["ppm_modes_combo"].connect("changed", ppm_select, devices[v.uuid])
             devices[v.uuid]["ppm_modes_combo"].set_entry_text_column(1)
-            devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
+            #devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
             lbox.pack_start(devices[v.uuid]["ppm_modes_combo"], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
@@ -446,18 +446,12 @@ class PACWindow(Gtk.Window):
                 item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
-            mode_item = {}
-            item_num = 0
-            for mode_num, mode in v.ppm_modes.items():
-                if mode_num == "NUM": continue
-                devices[v.uuid]["ppm_modes"].append([int(mode_num), mode[0]])
-                mode_item[int(mode_num)] = item_num
-                item_num += 1
-            devices[v.uuid]["ppm_modes_combo"].set_active(mode_item[v.get_current_ppm_mode()[0]])
+            # refresh active mode item
+            devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
         return
 
 def save_card(self, gpu_list, devices, uuid):
-    # specify output bacth file name
+    # specify output batch file name
     out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
     fileptr = open(out_filename, 'x')
     # output header
@@ -486,22 +480,6 @@ def save_card(self, gpu_list, devices, uuid):
     print("#    You should have received a copy of the GNU General Public License", file=fileptr)
     print("#    along with this program.  If not, see <https://www.gnu.org/licenses/>.", file=fileptr)
     print("###########################################################################", file=fileptr)
-
-    #/sys/class/drm/card1/device/
-    #sudo sh -c "echo 's 6 1450 1150' > /sys/class/drm/card1/device/pp_od_clk_voltage"
-    #sudo sh -c "echo 's 7 1550 1200' > /sys/class/drm/card1/device/pp_od_clk_voltage"
-    #sudo sh -c "echo 'm 3 900 1100' > /sys/class/drm/card1/device/pp_od_clk_voltage"
-    # Commit changes
-    #sudo sh -c "echo 'c' > /sys/class/drm/card1/device/pp_od_clk_voltage"
-    # Reset to defaults
-    #sudo sh -c "echo 'r' > /sys/class/drm/card1/device/pp_od_clk_voltage"
-    
-    #sudo sh -c "echo 'manual' > /sys/class/drm/card0/device/power_dpm_force_performance_level"
-    #sudo sh -c "echo '4' > /sys/class/drm/card0/device/pp_power_profile_mode"
-    #sudo sh -c "echo '150000000' > /sys/class/drm/card0/device/hwmon/hwmon0/power1_cap"
-    #sudo sh -c "echo 'c' > /sys/class/drm/card0/device/pp_od_clk_voltage"
-    
-    #sudo sh -c "echo 'manual' > /sys/class/drm/card1/device/power_dpm_force_performance_level"
 
     v = gpu_list.list[uuid]
     print("# ", file=fileptr)
@@ -537,7 +515,6 @@ def save_card(self, gpu_list, devices, uuid):
         else:
             print("# Invalid sclk pstate values", file=fileptr)
 
-
     # Mclk P-states
     device_file = v.card_path + "pp_od_clk_voltage"
     for pk, pv in devices[uuid]["mclk_pstate"].items():
@@ -549,7 +526,7 @@ def save_card(self, gpu_list, devices, uuid):
             print("# Invalid mclk pstate values", file=fileptr)
 
     # PPM
-    ppm_mode_file = v.card_path + "power_dpm_force"
+    ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
     ppm_level_file = v.card_path + "pp_power_profile_mode"
 
     tree_iter = devices[uuid]["ppm_modes_combo"].get_active_iter()
@@ -557,7 +534,16 @@ def save_card(self, gpu_list, devices, uuid):
         model = devices[uuid]["ppm_modes_combo"].get_model()
         row_id, name = model[tree_iter][:2]
         selected_mode = devices[uuid]["new_ppm"][0]
-        print("Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
+        print("# Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
+        if (devices[uuid]["new_ppm"][1]).lower() == 'auto':
+            print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
+        else:
+            print("sudo sh -c \"echo \'manual\' >  %s\"" % ppm_mode_file, file=fileptr)
+            print("sudo sh -c \"echo \'%d\' >  %s\"" % (devices[uuid]["new_ppm"][0], ppm_level_file), file=fileptr)
+
+    # Commit changes
+    device_file = v.card_path + "pp_od_clk_voltage"
+    print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
 
     # Close file and Set permissions
     fileptr.close()
@@ -565,8 +551,47 @@ def save_card(self, gpu_list, devices, uuid):
     return
 
 
-def reset_card(self, device):
-    pass
+def reset_card(self, gpu_list, devices, uuid):
+    # specify output batch file name
+    out_filename = os.getcwd() + "/" + "pac_reseter_" + str(uuid4().hex) + ".sh"
+    fileptr = open(out_filename, 'x')
+    # output header
+    print("#!/bin/sh", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("## amdgpu-pac generated script to modify GPU configuration/settings", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("## WARNING - Do not execute this script without completely", file=fileptr)
+    print("## understanding appropriate value to write to your specific GPUs", file=fileptr)
+    print("###########################################################################", file=fileptr)
+    print("#", file=fileptr)
+    print("#    Copyright (C) 2019  RueiKe", file=fileptr)
+    print("#", file=fileptr)
+    print("#    This program is free software: you can redistribute it and/or modify", file=fileptr)
+    print("#    it under the terms of the GNU General Public License as published by", file=fileptr)
+    print("#    the Free Software Foundation, either version 3 of the License, or", file=fileptr)
+    print("#    (at your option) any later version.", file=fileptr)
+    print("#", file=fileptr)
+    print("#    This program is distributed in the hope that it will be useful,", file=fileptr)
+    print("#    but WITHOUT ANY WARRANTY; without even the implied warranty of", file=fileptr)
+    print("#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the", file=fileptr)
+    print("#    GNU General Public License for more details.", file=fileptr)
+    print("#", file=fileptr)
+    print("#    You should have received a copy of the GNU General Public License", file=fileptr)
+    print("#    along with this program.  If not, see <https://www.gnu.org/licenses/>.", file=fileptr)
+    print("###########################################################################", file=fileptr)
+
+    v = gpu_list.list[uuid]
+    # Commit changes
+    device_file = v.card_path + "pp_od_clk_voltage"
+    print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
+    print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+
+    # Close file and Set permissions
+    fileptr.close()
+    os.chmod(out_filename, 0o744)
+    return
 
 def ppm_select(self, device):
     tree_iter = device["ppm_modes_combo"].get_active_iter()
