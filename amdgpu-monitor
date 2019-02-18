@@ -55,7 +55,7 @@ gut_const = GPU.GUT_CONST()
 
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
-        Gtk.Window.__init__(self, title="GPU Monitor")
+        Gtk.Window.__init__(self, title="amdgpu-monitor")
         self.set_border_width(1)
         if(os.path.isfile(gut_const.PATH + '/amdgpu-monitor.icon.png') == True):
             self.set_icon_from_file(gut_const.PATH + '/amdgpu-monitor.icon.png')
@@ -86,11 +86,11 @@ class MonitorWindow(Gtk.Window):
             v.set_alignment(0, 0.5)
             i += 1
 
-        #devices = {}
         for k, v in gpu_list.list.items():
             devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
+                devices[v.uuid][cv].set_width_chars(10)
         for dk, dv in devices.items():
             col += 1
             i = 0
