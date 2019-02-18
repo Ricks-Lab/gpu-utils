@@ -521,7 +521,7 @@ def save_card(self, gpu_list, devices, uuid):
     for pk, pv in devices[uuid]["mclk_pstate"].items():
         pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
         print("#mck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
-        if v.is_valid_sclk_pstate(pstate):
+        if v.is_valid_mclk_pstate(pstate):
             print("sudo sh -c \"echo \'m %s %s %s\' >  %s\"" % (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
         else:
             print("# Invalid mclk pstate values", file=fileptr)
@@ -549,6 +549,9 @@ def save_card(self, gpu_list, devices, uuid):
     # Close file and Set permissions
     fileptr.close()
     os.chmod(out_filename, 0o744)
+    print("Batch file completed: %s" % out_filename)
+    print("Execute to write changes to GPU %s" % v.card_path)
+    print("")
     #cmd = subprocess.Popen(out_filename, shell=True)
     return
 
@@ -597,6 +600,9 @@ def reset_card(self, gpu_list, devices, uuid):
     # Close file and Set permissions
     fileptr.close()
     os.chmod(out_filename, 0o744)
+    print("Batch file completed: %s" % out_filename)
+    print("Execute to write changes to GPU %s" % v.card_path)
+    print("")
     #cmd = subprocess.Popen(out_filename, shell=True)
     return
 
@@ -676,7 +682,7 @@ def main():
         print("")
 
     print("WARNING: Under Deveopment")
-    print("WARNING: Doesn't really work yet!")
+    print("WARNING: Works but not fully tested!")
     print()
 
     # Display Gtk style Monitor
