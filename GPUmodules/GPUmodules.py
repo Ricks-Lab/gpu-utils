@@ -245,30 +245,28 @@ class GPU_ITEM:
             return(False)
 
     def is_valid_mclk_pstate(self, pstate):
-        # TODO write the code to do this!
-        return(True)
+        mclk_range = self.get_params_value("mclk_f_range")
+        mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
+        mclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[1])))
+        vddc_range = self.get_params_value("vddc_range")
+        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
+        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+        if pstate[1] >= mclk_min and pstate[1] <= mclk_max:
+            if pstate[2] >= vddc_min and pstate[2] <= vddc_max:
+                return(True)
+        return(False)
 
     def is_valid_sclk_pstate(self, pstate):
-        # TODO write the code to do this!
-        return(True)
-
-    def write_pstates(self):
-        # Sample commands to set p states.  Problem is that the file that needs to
-        # be written to, is only writeable by root.  Maybe the best approach is to 
-        # create a script for the user to execute with sudo.
-        #
-        # Write p-state details
-        # echo "m 0 155 900" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # echo "s 7 975 1180" > /sys/class/drm/card0/device/pp_od_clk_voltage
-        # Reset
-        # echo "r" > /sys/class/drm/card0/device/pp_od_clk_voltage 
-        # Commit Changes
-        # echo "c" > /sys/class/drm/card0/device/pp_od_clk_voltage
-
-        if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
-            print("Can not access card{self.card_num} file: ", self.card_path + "pp_od_clk_voltage", file=sys.stderr)
-        # TODO write the code to do this!
-        return
+        sclk_range = self.get_params_value("sclk_f_range")
+        sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[0])))
+        sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[1])))
+        vddc_range = self.get_params_value("vddc_range")
+        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
+        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+        if pstate[1] >= sclk_min and pstate[1] <= sclk_max:
+            if pstate[2] >= vddc_min and pstate[2] <= vddc_max:
+                return(True)
+        return(False)
 
     def get_current_ppm_mode(self):
         if self.get_params_value("power_dpm_force").lower() == "auto":
