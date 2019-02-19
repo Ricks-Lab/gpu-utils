@@ -419,7 +419,6 @@ class PACWindow(Gtk.Window):
 
         if num_com_amd_gpus > 1:
             # Save/Reset/Update ALL Card Buttons
-            # TODO figure out how to have this box of buttons span all columns
             devices[v.uuid]["save_all_button"] = Gtk.Button("")
             for child in devices[v.uuid]["save_all_button"].get_children():
                 child.set_label("<big><b>Save All</b></big>")
@@ -443,7 +442,7 @@ class PACWindow(Gtk.Window):
     
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
             #lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.7,.7,.7,1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -451,7 +450,7 @@ class PACWindow(Gtk.Window):
             lbox.pack_start(devices[v.uuid]["save_all_button"], True, False, 0)
             lbox.pack_start(devices[v.uuid]["reset_all_button"], True, False, 0)
             lbox.pack_start(devices[v.uuid]["refresh_all_button"], True, False, 0)
-            grid.attach(lbox, 0, row, 1, 1)
+            grid.attach(lbox, 0, row, col, 1)
             row += 1
 
         self.refresh_PAC(gpu_list, devices)
@@ -496,10 +495,11 @@ class PACWindow(Gtk.Window):
     def save_all_cards(self, parent, gpu_list, devices, uuid):
         print("Currently doesn't work")
         for dk in devices.keys():
-            self.save_card(parent, gpu_list, devices, dk)
+            self.save_card(parent, gpu_list, devices, dk, refresh=False)
+        self.refresh_all_cards(parent, gpu_list, devices, uuid)
         return
 
-    def save_card(self, parent, gpu_list, devices, uuid):
+    def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
         # specify output batch file name
         out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
@@ -604,7 +604,7 @@ class PACWindow(Gtk.Window):
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print("")
-            self.refresh_PAC(gpu_list, devices)
+            if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
