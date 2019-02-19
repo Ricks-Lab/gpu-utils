@@ -711,7 +711,8 @@ def main():
 
     gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     if args.debug == True :  gut_const.DEBUG = True
-    if args.execute_pac == True :  gut_const.execute_pac = True
+    #if args.execute_pac == True :  gut_const.execute_pac = True
+    gut_const.execute_pac = args.execute_pac
 
     if gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
