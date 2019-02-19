@@ -30,10 +30,10 @@ you have confidence, the *--execute_pac* option can be used to run and then dele
 file. Since the GPU device files are writable only by root, sudo is used to execute commands
 in the bash file, as a result, you will be prompted for credentials in the terminal where 
 you executed *amdgpu-pac*.  Still under development but ready for beta testing.  Outstanding
-issues include *Save All* button doesn't work and all GPUs will be listed even if not
-compatible.  I still having figured out how to make the bottom set of buttons span all rows.
+issues include all GPUs will be listed even if not compatible. 
 
 ## New in this Release  -  v2.0.0 - Development
+* First release of amdgpu-pac.
 * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
