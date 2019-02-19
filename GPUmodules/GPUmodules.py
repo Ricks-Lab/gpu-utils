@@ -46,6 +46,7 @@ class GUT_CONST:
         self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
         self.card_root = "/sys/class/drm/"
         self.hwmon_sub = "hwmon/hwmon"
+        self.execute_pac = False
         self.DEBUG = False
         self.SLEEP = 2
         self.PATH = "."
