@@ -493,7 +493,6 @@ class PACWindow(Gtk.Window):
         return
 
     def save_all_cards(self, parent, gpu_list, devices, uuid):
-        print("Currently doesn't work")
         for dk in devices.keys():
             self.save_card(parent, gpu_list, devices, dk, refresh=False)
         self.refresh_all_cards(parent, gpu_list, devices, uuid)
