@@ -203,6 +203,7 @@ class GPU_ITEM:
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
                 "model" : "Card Model",
+                "model_short" : "Short Card Model",
                 "card_num" : "Card Number",
                 "card_path" : "Card Path",
                 "pcie_id" : "PCIe ID",
@@ -468,7 +469,6 @@ class GPU_LIST:
             v.read_device_data()
 
     def get_gpu_details(self):
-        gut_const.DEBUG = True
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
@@ -476,9 +476,16 @@ class GPU_LIST:
         for pcie_id in pcie_ids:
             if gut_const.DEBUG: print("GPU: ", pcie_id)
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
+
+            #Get Long GPU Name
+            # TODO report both line 1 and line 2 versions of name instead
             gpu_name_items = lspci_items[1].split('[AMD/ATI]')
             if len(gpu_name_items) < 2:
-                gpu_name = "UNKNOWN"
+                gpu_name_items = lspci_items[0].split('[AMD/ATI]')
+                if len(gpu_name_items) < 2:
+                    gpu_name = "UNKNOWN"
+                else:
+                    gpu_name = gpu_name_items[1]
             else:
                 gpu_name = gpu_name_items[1]
             driver_module_items = lspci_items[2].split(':')
@@ -502,7 +509,11 @@ class GPU_LIST:
                             v.set_params_value("pcie_id", pcie_id)
                             v.set_params_value("driver",  driver_module)
                             v.set_params_value("model", gpu_name)
-                            v.set_params_value("model_short",  (re.sub(r'.*Radeon', '', gpu_name)).replace(']',''))
+                            #v.set_params_value("model_short",  (re.sub(r'.*Radeon', '', gpu_name)).replace(']',''))
+                            model_short = re.sub(r'^.*\[','', gpu_name)
+                            model_short = re.sub(r'\].*$','', model_short)
+                            model_short = re.sub(r'.*Radeon','', model_short)
+                            v.set_params_value("model_short",  model_short)
                             break
                     break
 
