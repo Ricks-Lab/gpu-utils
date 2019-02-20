@@ -73,7 +73,7 @@ def main():
         sys.exit(0)
 
     gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    if args.debug == True :  gut_const.DEBUG = True
+    gut_const.DEBUG = args.debug
 
     if gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
@@ -123,7 +123,7 @@ def main():
 
     gpu_list.get_pstates()
     gpu_list.get_ppm_table()
-    if args.pstates == True :
+    if args.pstates == True:
         gpu_list.print_pstates()
     if args.ppm == True:
         gpu_list.print_ppm_table()
