@@ -105,7 +105,7 @@ class GUT_CONST:
                 if(searchObj != None):
                    dpkg_items = dpkg_line.split()
                    print(f"amdgpu version: {dpkg_items[2]}")
-        except FileNotFoundError:
+        except:
             print("Warning: Cannot read determine amdgpu version.")
             return(-1)
         return(0)
