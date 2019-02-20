@@ -98,13 +98,18 @@ class GUT_CONST:
             print("can not determine amdgpu version")
             return(-1)
         try:
-            dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu-pro'), shell=False,
+            dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu'), shell=False,
                     stderr=subprocess.DEVNULL).decode().split("\n")
             for dpkg_line in dpkg_out:
-                searchObj = re.search('amdgpu-pro', dpkg_line)
+                searchObj = re.search('amdgpu', dpkg_line)
                 if(searchObj != None):
                    dpkg_items = dpkg_line.split()
                    print(f"amdgpu version: {dpkg_items[2]}")
+        except subprocess.CalledProcessError as e:
+            if re.search('exit status 1', str(e)) != None:
+                print(str(e))
+                print("Error: amdgpu drivers not installed, exiting...")
+                sys.exit(-1)
         except:
             print("Warning: Cannot read determine amdgpu version.")
             return(-1)
@@ -463,6 +468,7 @@ class GPU_LIST:
             v.read_device_data()
 
     def get_gpu_details(self):
+        gut_const.DEBUG = True
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
@@ -470,9 +476,17 @@ class GPU_LIST:
         for pcie_id in pcie_ids:
             if gut_const.DEBUG: print("GPU: ", pcie_id)
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
-            #gpu_name = lspci_items[1].split('[')[2].replace(']','')
-            gpu_name = lspci_items[1].split('[AMD/ATI]')[1]
-            driver_module = (lspci_items[2].split(':')[1]).strip()
+            gpu_name_items = lspci_items[1].split('[AMD/ATI]')
+            if len(gpu_name_items) < 2:
+                gpu_name = "UNKNOWN"
+            else:
+                gpu_name = gpu_name_items[1]
+            driver_module_items = lspci_items[2].split(':')
+            if len(driver_module_items) < 2:
+                driver_module = "UNKNOWN"
+            else:
+                driver_module = driver_module_items[1].strip()
+            #driver_module = (lspci_items[2].split(':')[1]).strip()
             if gut_const.DEBUG: print(lspci_items)
             # Find matching card
             device_dirs = glob.glob(gut_const.card_root + "card?/device")
