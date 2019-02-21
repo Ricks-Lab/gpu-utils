@@ -31,6 +31,15 @@ file. Since the GPU device files are writable only by root, sudo is used to exec
 in the bash file, as a result, you will be prompted for credentials in the terminal where 
 you executed *amdgpu-pac*.  
 
+## Release Plans  -  v2.1.0
+* Find/fix more bugs!
+* Add fan monitor and control features.
+* P-state masking, if I can figure it out.
+* Fix implementation of global variables that broke when I implemented module in library.
+* Get more complex GPU name as the one used in amdgpu-ls.
+* Add more error proofing.
+* Add more validation checks before writing parameters to cards.
+
 ## New in Previous Release  -  v2.0.0
 * Many bug fixes!
 * First release of amdgpu-pac.
