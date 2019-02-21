@@ -29,10 +29,9 @@ be written to the GPU are written to a bash file for the user to inspect and run
 you have confidence, the *--execute_pac* option can be used to run and then delete the bash
 file. Since the GPU device files are writable only by root, sudo is used to execute commands
 in the bash file, as a result, you will be prompted for credentials in the terminal where 
-you executed *amdgpu-pac*.  Still under development but ready for beta testing.  Outstanding
-issues include all GPUs will be listed even if not compatible. 
+you executed *amdgpu-pac*.  
 
-## New in this Release  -  v2.0.0 - Development
+## New in this Release  -  v2.0.0
 * First release of amdgpu-pac.
 * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
@@ -50,5 +49,8 @@ issues include all GPUs will be listed even if not compatible.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
-* Develop a tool to customize GPU settings including p-state details, power cap, and power/performance modes.
 * Develop a startup utility to initialize GPU settings at boot up.
+* Add fan parameters display and control.
+* Fix implementation of global configuration variables.
+* Investigate implementation of p-state masks.
+* Include most detailed GPU name in reading from lspci and amdgpu-ls output.

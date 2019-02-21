@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """amdgpu-pac  -  A utility program and control compatible AMD GPUs
 
-    A utility to modify the settings, including p-states and power-performance modes, of
-    compatible AMD GPUs.
+    Program and Control compatible AMD GPUs with this utility.  By default, the commands to
+    be written to the GPU are written to a bash file for the user to inspect and run.  If
+    you have confidence, the *--execute_pac* option can be used to run and then delete the bash
+    file. Since the GPU device files are writable only by root, sudo is used to execute commands
+    in the bash file, as a result, you will be prompted for credentials in the terminal where
+    you executed *amdgpu-pac*.
 
     Copyright (C) 2019  RueiKe
 
@@ -26,7 +30,7 @@ __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
 __version__ = "v2.0.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "amdgpu-pac"
 
 import gi
 gi.require_version("Gtk", "3.0")
