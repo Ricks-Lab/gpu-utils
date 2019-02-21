@@ -32,6 +32,7 @@ in the bash file, as a result, you will be prompted for credentials in the termi
 you executed *amdgpu-pac*.  
 
 ## New in this Release  -  v2.0.0
+* Many bug fixes!
 * First release of amdgpu-pac.
 * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
