@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.0.0"
+__version__ = "v2.1.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
@@ -39,83 +39,8 @@ from pathlib import Path
 from uuid import uuid4
 import glob 
 import shutil 
+from GPUmodules import env 
 
-
-class GUT_CONST:
-    def __init__(self):
-        self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
-        self.card_root = "/sys/class/drm/"
-        self.hwmon_sub = "hwmon/hwmon"
-        self.execute_pac = False
-        self.DEBUG = False
-        self.SLEEP = 2
-        self.PATH = "."
-        self.amdfeaturemask = ""
-
-    def read_amdfeaturemask(self):
-        with open(gut_const.featuremask) as fm_file:
-            self.amdfeaturemask = int(fm_file.readline())
-            return (self.amdfeaturemask)
-
-    def check_env(self):
-        # Check python version
-        (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        if python_major < "3":
-            print("Using python" + python_major + ", but benchMT requires python3.", file=sys.stderr)
-            return(-1)
-        if python_minor < "6":
-            print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
-                    " but, benchMT requires python 3.6 and up.", file=sys.stderr)
-            return(-1)
-
-        # Check Linux Kernel version
-        linux_version = platform.release()
-        if int(linux_version.split(".")[0]) < 4:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
-            return(-2)
-        if int(linux_version.split(".")[1]) < 8:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
-            return(-2)
-
-        # Check AMD GPU Driver Version
-        lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
-                stderr=subprocess.DEVNULL).decode().split("\n")
-        for lshw_line in lshw_out:
-            searchObj = re.search('configuration:', lshw_line)
-            if(searchObj != None):
-                lineitems = lshw_line.split(sep=':')
-                driver_str = lineitems[1].strip()
-                searchObj = re.search('driver=amdgpu', driver_str)
-                if(searchObj != None):
-                    return(0)
-                else:
-                    print(f"amdgpu-utils non-compatible driver: {driver_str}")
-                    return(-3)
-        return(0)
-
-    def get_amd_driver_version(self):
-        if shutil.which("/usr/bin/dpkg") == None:
-            print("can not determine amdgpu version")
-            return(-1)
-        try:
-            dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu'), shell=False,
-                    stderr=subprocess.DEVNULL).decode().split("\n")
-            for dpkg_line in dpkg_out:
-                searchObj = re.search('amdgpu', dpkg_line)
-                if(searchObj != None):
-                   dpkg_items = dpkg_line.split()
-                   print(f"amdgpu version: {dpkg_items[2]}")
-        except subprocess.CalledProcessError as e:
-            if re.search('exit status 1', str(e)) != None:
-                print(str(e))
-                print("Error: amdgpu drivers not installed, exiting...")
-                sys.exit(-1)
-        except:
-            print("Warning: Cannot read determine amdgpu version.")
-            return(-1)
-        return(0)
-
-gut_const = GUT_CONST()
 
 class GPU_ITEM:
     def __init__(self, item_id):
@@ -437,11 +362,11 @@ class GPU_LIST:
                 "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
-        for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):
+        for card_names in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_ITEM(uuid4().hex)
             gpu_item.set_params_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
-            gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
-            gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
+            gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(env.gut_const.card_root + "card", ''))
+            gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + env.gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
     def get_ppm_table(self):
@@ -472,9 +397,9 @@ class GPU_LIST:
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
-        if gut_const.DEBUG: print("Found %s GPUs" % len(pcie_ids))
+        if env.gut_const.DEBUG: print("Found %s GPUs" % len(pcie_ids))
         for pcie_id in pcie_ids:
-            if gut_const.DEBUG: print("GPU: ", pcie_id)
+            if env.gut_const.DEBUG: print("GPU: ", pcie_id)
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
 
             #Get Long GPU Name
@@ -494,15 +419,15 @@ class GPU_LIST:
             else:
                 driver_module = driver_module_items[1].strip()
             #driver_module = (lspci_items[2].split(':')[1]).strip()
-            if gut_const.DEBUG: print(lspci_items)
+            if env.gut_const.DEBUG: print(lspci_items)
             # Find matching card
-            device_dirs = glob.glob(gut_const.card_root + "card?/device")
+            device_dirs = glob.glob(env.gut_const.card_root + "card?/device")
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
-                if gut_const.DEBUG: print("device_dir: ", device_dir)
-                if gut_const.DEBUG: print("sysfspath: ", sysfspath)
-                if gut_const.DEBUG: print("pcie_id: ", pcie_id)
-                if gut_const.DEBUG: print("sysfspath-7: ", sysfspath[-7:])
+                if env.gut_const.DEBUG: print("device_dir: ", device_dir)
+                if env.gut_const.DEBUG: print("sysfspath: ", sysfspath)
+                if env.gut_const.DEBUG: print("pcie_id: ", pcie_id)
+                if env.gut_const.DEBUG: print("sysfspath-7: ", sysfspath[-7:])
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
@@ -682,10 +607,10 @@ class GPU_LIST:
 
         
 def test():
-    gut_const.DEBUG = True
+    env.gut_const.DEBUG = True
 
     try:
-        featuremask = gut_const.read_amdfeaturemask()
+        featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
         print("Cannot read ppfeaturemask. Exiting...")
         sys.exit(-1)

@@ -28,9 +28,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ""
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-ls"
-__version__ = "v2.0.0"
+__version__ = "v2.1.0"
 __maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__status__ = "Development"
 
 import argparse
 import re
@@ -40,14 +40,12 @@ import platform
 import sys
 import time
 from GPUmodules import GPUmodules as GPU
+from GPUmodules import env
 from datetime import datetime
 from uuid import uuid4
 import glob 
 import shutil 
 from pathlib import Path
-
-# Instantiate project constants
-gut_const = GPU.GUT_CONST()
 
 
 def main():
@@ -72,16 +70,16 @@ def main():
         print("Status: ", __status__)
         sys.exit(0)
 
-    gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    gut_const.DEBUG = args.debug
+    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    env.gut_const.DEBUG = args.debug
 
-    if gut_const.check_env() < 0:
+    if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
-        featuremask = gut_const.read_amdfeaturemask()
+        featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
         print("Cannot read ppfeaturemask. Exiting...")
         sys.exit(-1)
@@ -91,7 +89,7 @@ def main():
         print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
         sys.exit(-1)
 
-    gut_const.get_amd_driver_version()
+    env.gut_const.get_amd_driver_version()
 
     #Get list of AMD GPUs
     gpu_list = GPU.GPU_LIST()
