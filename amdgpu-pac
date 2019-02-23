@@ -164,7 +164,7 @@ class PACWindow(Gtk.Window):
             row += 1
 
             if env.gut_const.show_fans == True:
-            # Fan PWM Value
+                # Fan PWM Value
                 fan_pwm_range = v.get_params_value("fan_pwm_range")
                 devices[v.uuid]["fan_pwm_range"] = Gtk.Label()
                 devices[v.uuid]["fan_pwm_range"].set_markup("<b>Fan PWM: </b> "+ "Range (" +
@@ -509,8 +509,9 @@ class PACWindow(Gtk.Window):
         for k, v in gpu_list.list.items():
             devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
             devices[v.uuid]["power_cap_ent"].set_text(str(int(v.get_params_value("power_cap"))))
-            devices[v.uuid]["fan_pwm_cur"].set_text("    Current: "+str(v.get_params_value("fan_pwm"))+"%    Set: ")
-            devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
+            if env.gut_const.show_fans == True:
+                devices[v.uuid]["fan_pwm_cur"].set_text("    Current: "+str(v.get_params_value("fan_pwm"))+"%    Set: ")
+                devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
             for ps, psd in v.sclk_state.items():
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
                 item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
@@ -597,27 +598,28 @@ class PACWindow(Gtk.Window):
             else:
                 print("# Invalid paramater values", file=fileptr)
 
-        # Fan PWM
-        pwm_enable_file = v.hwmon_path + "pwm1_enable"
-        pwm_file = v.hwmon_path + "pwm"
-        old_pwm = int(v.get_params_value("fan_pwm"))
-        new_pwm = int(devices[uuid]["fan_pwm_ent"].get_text())
-        print("# Fan PWM Old: ", str(old_pwm), end="", file=fileptr)
-        print(" New: ", str(new_pwm), end="", file=fileptr)
-        pwm_range = v.get_params_value("fan_pwm_range")
-        print(" Min: ", pwm_range[0], end="", file=fileptr)
-        print(" Max: ", pwm_range[1], end="", file=fileptr)
-        print("", file=fileptr)
-    
-        if new_pwm == old_pwm :
-            print("# No changes, skipped", file=fileptr)
-        else:
-            if v.is_valid_fan_pwm(new_pwm):
-                new_pwm_value = int(new_pwm * 255 / 100)
-                print("sudo sh -c \"echo 1' >  %s\"" % (pwm_enable_file), file=fileptr)
-                print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
+        if env.gut_const.show_fans == True:
+            # Fan PWM
+            pwm_enable_file = v.hwmon_path + "pwm1_enable"
+            pwm_file = v.hwmon_path + "pwm"
+            old_pwm = int(v.get_params_value("fan_pwm"))
+            new_pwm = int(devices[uuid]["fan_pwm_ent"].get_text())
+            print("# Fan PWM Old: ", str(old_pwm), end="", file=fileptr)
+            print(" New: ", str(new_pwm), end="", file=fileptr)
+            pwm_range = v.get_params_value("fan_pwm_range")
+            print(" Min: ", pwm_range[0], end="", file=fileptr)
+            print(" Max: ", pwm_range[1], end="", file=fileptr)
+            print("", file=fileptr)
+        
+            if new_pwm == old_pwm :
+                print("# No changes, skipped", file=fileptr)
             else:
-                print("# Invalid paramater values", file=fileptr)
+                if v.is_valid_fan_pwm(new_pwm):
+                    new_pwm_value = int(new_pwm * 255 / 100)
+                    print("sudo sh -c \"echo 1' >  %s\"" % (pwm_enable_file), file=fileptr)
+                    print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
+                else:
+                    print("# Invalid paramater values", file=fileptr)
     
     
         # Sclk P-states
@@ -726,7 +728,8 @@ class PACWindow(Gtk.Window):
         device_file = v.card_path + "pp_od_clk_voltage"
         ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
         print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
-        print("sudo sh -c \"echo 2' >  %s\"" % (pwm_enable_file), file=fileptr)
+        if env.gut_const.show_fans == True:
+            print("sudo sh -c \"echo 2' >  %s\"" % (pwm_enable_file), file=fileptr)
         print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
         print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
@@ -762,6 +765,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--execute_pac", help="execute pac bash script without review", action="store_true", default=False)
+    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -777,8 +781,8 @@ def main():
         print("Status: ", __status__)
         sys.exit(0)
 
-    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    if args.debug == True :  env.gut_const.DEBUG = True
+    env.gut_const.DEBUG = args.debug 
+    if args.no_fan == True: env.gut_const.show_fans = False
     env.gut_const.execute_pac = args.execute_pac
 
     if env.gut_const.check_env() < 0:

@@ -132,6 +132,7 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
+    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -149,7 +150,8 @@ def main():
         sys.exit(0)
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    if args.debug == True :  env.gut_const.DEBUG = True
+    env.gut_const.DEBUG = args.debug
+    if args.no_fan == True: env.gut_const.show_fans = False
     if int(args.sleep) > 0 :
         env.gut_const.SLEEP = int(args.sleep)
     else:

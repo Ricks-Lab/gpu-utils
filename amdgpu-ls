@@ -54,6 +54,7 @@ def main():
     parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
     parser.add_argument("--ppm", help="Output power/performance mode tables instead of GPU details", action="store_true", default=False)
     parser.add_argument("--clinfo", help="Include openCL with card details", action="store_true", default=False)
+    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -72,6 +73,7 @@ def main():
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
+    if args.no_fan == True: env.gut_const.show_fans = False
 
     if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
