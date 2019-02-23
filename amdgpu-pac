@@ -163,6 +163,65 @@ class PACWindow(Gtk.Window):
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
+            if env.gut_const.show_fans == True:
+            # Fan PWM Value
+                fan_pwm_range = v.get_params_value("fan_pwm_range")
+                devices[v.uuid]["fan_pwm_range"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_range"].set_markup("<b>Fan PWM: </b> "+ "Range (" +
+                        str(fan_pwm_range[0])+" - "+str(fan_pwm_range[1])+" %)")
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-right", 2)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-left", 2)
+                devices[v.uuid]["fan_pwm_range"].set_alignment(0, 0.5)
+
+                lbox = Gtk.Box(spacing=6)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_range"], True, True, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
+                # Card Fan PWM Value and Entry
+                devices[v.uuid]["fan_pwm_cur"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-right", 2)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-left", 2)
+    
+                devices[v.uuid]["fan_pwm_ent"] = Gtk.Entry()
+                devices[v.uuid]["fan_pwm_ent"].set_width_chars(4)
+                devices[v.uuid]["fan_pwm_ent"].set_max_length(4)
+                devices[v.uuid]["fan_pwm_ent"].set_alignment(xalign=1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-right", 0)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-left", 2)
+        
+                devices[v.uuid]["fan_pwm_ent_unit"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_ent_unit"].set_text("%")
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-right", 0)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-left", 0)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_alignment(0, 0.5)
+    
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_cur"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_ent"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_ent_unit"], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
             # Sclk P-States
             devices[v.uuid]["sclk_range"] = Gtk.Label()
             devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " +
@@ -450,6 +509,8 @@ class PACWindow(Gtk.Window):
         for k, v in gpu_list.list.items():
             devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
             devices[v.uuid]["power_cap_ent"].set_text(str(int(v.get_params_value("power_cap"))))
+            devices[v.uuid]["fan_pwm_cur"].set_text("    Current: "+str(v.get_params_value("fan_pwm"))+"%    Set: ")
+            devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
             for ps, psd in v.sclk_state.items():
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
                 item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
@@ -535,6 +596,29 @@ class PACWindow(Gtk.Window):
                 print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
             else:
                 print("# Invalid paramater values", file=fileptr)
+
+        # Fan PWM
+        pwm_enable_file = v.hwmon_path + "pwm1_enable"
+        pwm_file = v.hwmon_path + "pwm"
+        old_pwm = int(v.get_params_value("fan_pwm"))
+        new_pwm = int(devices[uuid]["fan_pwm_ent"].get_text())
+        print("# Fan PWM Old: ", str(old_pwm), end="", file=fileptr)
+        print(" New: ", str(new_pwm), end="", file=fileptr)
+        pwm_range = v.get_params_value("fan_pwm_range")
+        print(" Min: ", pwm_range[0], end="", file=fileptr)
+        print(" Max: ", pwm_range[1], end="", file=fileptr)
+        print("", file=fileptr)
+    
+        if new_pwm == old_pwm :
+            print("# No changes, skipped", file=fileptr)
+        else:
+            if v.is_valid_fan_pwm(new_pwm):
+                new_pwm_value = int(new_pwm * 255 / 100)
+                print("sudo sh -c \"echo 1' >  %s\"" % (pwm_enable_file), file=fileptr)
+                print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
+            else:
+                print("# Invalid paramater values", file=fileptr)
+    
     
         # Sclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
@@ -638,9 +722,11 @@ class PACWindow(Gtk.Window):
     
         # Commit changes
         power_cap_file = v.hwmon_path + "power1_cap"
+        pwm_enable_file = v.hwmon_path + "pwm1_enable"
         device_file = v.card_path + "pp_od_clk_voltage"
         ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
         print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+        print("sudo sh -c \"echo 2' >  %s\"" % (pwm_enable_file), file=fileptr)
         print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
         print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)

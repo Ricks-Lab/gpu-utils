@@ -196,6 +196,13 @@ class GPU_ITEM:
         else:
             return(False)
 
+    def is_valid_fan_pwm(self, pwm_value):
+        pwm_range = self.get_params_value("fan_pwm_range")
+        if pwm_value >= pwm_range[0] and pwm_value <= pwm_range[1]:
+            return(True)
+        else:
+            return(False)
+
     def is_valid_mclk_pstate(self, pstate):
         mclk_range = self.get_params_value("mclk_f_range")
         mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
@@ -426,11 +433,11 @@ class GPU_LIST:
     def __init__(self):
         self.list = {}
         self.table_parameters = ["model_short", "loading", "power", "power_cap",
-                "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f",
-                "mclk_ps", "ppm"]
+                "temp", "vddgfx", "fan_pwm", "sclk_f", "sclk_ps",
+                "mclk_f", "mclk_ps", "ppm"]
         self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
-                "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)",
-                "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
+                "temp":"T (C)", "vddgfx":"VddGFX (mV)", "fan_pwm":"Fan Spd (%)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
+                "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
         for card_names in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
