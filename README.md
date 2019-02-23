@@ -33,9 +33,11 @@ you executed *amdgpu-pac*.
 
 ## Release Plans  -  v2.1.0
 * Find/fix more bugs!
-* Add fan monitor and control features.
-* P-state masking, if I can figure it out.
-* Fix implementation of global variables that broke when I implemented module in library.
+* Add fan monitor and control features - complete, needs testing
+* Implement --no_fan option across all tools - complete
+* Implement an option to write only changes in amdgpu-pac.
+* P-state masking, if I can figure it out - I have an idea...
+* Fix implementation of global variables that broke when I implemented module in library - complete
 * Get more complex GPU name as the one used in amdgpu-ls.
 * Add more error proofing.
 * Add more validation checks before writing parameters to cards.
