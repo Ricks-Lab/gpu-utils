@@ -579,30 +579,30 @@ class GPU_LIST:
         num_gpus = self.num_gpus()
         if num_gpus < 1: return(-1)
 
-        print("┌", "─".ljust(12,'─'), sep="", end="")
+        print("┌", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┬", "─".ljust(12,'─'), sep="", end="")
+                print("┬", "─".ljust(16,'─'), sep="", end="")
         print("┐")
 
-        print("│", '\x1b[1;36m'+"Card #".ljust(12,' ')+'\x1b[0m', sep="", end="")
+        print("│", '\x1b[1;36m'+"Card #".ljust(13,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-            print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(16,' ') + '\x1b[0m', sep="", end="")
         print("│")
 
-        print("├", "─".ljust(12,'─'), sep="", end="")
+        print("├", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┼", "─".ljust(12,'─'), sep="", end="")
+                print("┼", "─".ljust(16,'─'), sep="", end="")
         print("┤")
 
         for table_item in self.table_parameters:
-            print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(12,' ')[:12]+'\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(13,' ')[:13]+'\x1b[0m', sep="", end="")
             for k, v in self.list.items():
-                print("│", str(v.get_params_value(table_item)).ljust(12,' ')[:12], sep="", end="")
+                print("│", str(v.get_params_value(table_item)).ljust(16,' ')[:16], sep="", end="")
             print("│")
 
-        print("└", "─".ljust(12,'─'), sep="", end="")
+        print("└", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┴", "─".ljust(12,'─'), sep="", end="")
+                print("┴", "─".ljust(16,'─'), sep="", end="")
         print("┘")
 
         
