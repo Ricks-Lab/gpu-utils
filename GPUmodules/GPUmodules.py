@@ -62,6 +62,13 @@ class GPU_ITEM:
         "power_cap" : -1,
         "power_cap_min" : -1,
         "power_cap_max" : -1,
+        "fan_enable" : -1,
+        "pwm_enable" : -1,
+        "fan_pwm" : -1,
+        "fan_speed" : -1,
+        "fan_speed_range" : [-1,-1],
+        "fan_pwm_range" : [-1,-1],
+        "fan_target" : -1,
         "temp" : -1,
         "vddgfx" : -1,
         "vddc_range" : ["",""],
@@ -138,6 +145,13 @@ class GPU_ITEM:
                 "power_cap" : "Power Cap (W)",
                 "power_cap_min" : "Min Power Cap (W)",
                 "power_cap_max" : "Max Power Cap (W)",
+                "fan_enable" : "Fan Enable",
+                "pwm_enable" : "Fan PWM Enable",
+                "fan_pwm" : "Current Fan PWM (binary)",
+                "fan_speed" : "Current Fan Speed (rpm)",
+                "fan_target" : "Fan Target Speed (rpm)",
+                "fan_speed_range" : "Fan Speed Range (rpm)",
+                "fan_pwm_range" : "Fan PWM Range (binary)",
                 "temp" : "Current Temp (C)",
                 "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
@@ -259,23 +273,67 @@ class GPU_ITEM:
         if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
             with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
                 self.set_params_value("power_cap_max", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
             with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
                 self.set_params_value("power_cap_min", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
             with open(self.hwmon_path + "power1_cap") as hwmon_file:
                 self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
                 self.set_params_value("power", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
                 self.set_params_value("temp",  int(hwmon_file.readline())/1000)
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
+            with open(self.hwmon_path + "fan1_enable") as hwmon_file:
+                self.set_params_value("fan_enable",  hwmon_file.readline().strip())
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
+            with open(self.hwmon_path + "fan1_target") as hwmon_file:
+                self.set_params_value("fan_target",  int(hwmon_file.readline()))
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
+            with open(self.hwmon_path + "fan1_input") as hwmon_file:
+                self.set_params_value("fan_speed",  int(hwmon_file.readline()))
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
+            with open(self.hwmon_path + "fan1_max") as hwmon_file:
+                fan1_max_value =  int(hwmon_file.readline())
+            hwmon_file.close()
+            if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
+                with open(self.hwmon_path + "fan1_min") as hwmon_file:
+                    fan1_min_value =  int(hwmon_file.readline())
+                self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
+            with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
+                self.set_params_value("fan_pwm_enable",  hwmon_file.readline().strip())
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "pwm1") == True):
+            with open(self.hwmon_path + "pwm1") as hwmon_file:
+                self.set_params_value("fan_pwm",  int(hwmon_file.readline()))
+            hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
+            with open(self.hwmon_path + "pwm1_max") as hwmon_file:
+                pwm1_max_value =  int(hwmon_file.readline())
+            hwmon_file.close()
+            if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
+                with open(self.hwmon_path + "pwm1_min") as hwmon_file:
+                    pwm1_pmin_value =  int(hwmon_file.readline())
+                self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
+                hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
             with open(self.hwmon_path + "in0_label") as hwmon_file:
                 if hwmon_file.readline().rstrip() == "vddgfx":
                     with open(self.hwmon_path + "in0_input") as hwmon_file2:
                         self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
+                    hwmon_file.close()
 
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
