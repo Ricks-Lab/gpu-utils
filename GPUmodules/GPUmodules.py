@@ -63,13 +63,14 @@ class GPU_ITEM:
         "power_cap_min" : -1,
         "power_cap_max" : -1,
         "fan_enable" : -1,
-        "pwm_enable" : -1,
+        "pwm_mode" : [-1,"UNK"],
         "fan_pwm" : -1,
         "fan_speed" : -1,
         "fan_speed_range" : [-1,-1],
         "fan_pwm_range" : [-1,-1],
         "fan_target" : -1,
         "temp" : -1,
+        "temp_crit" : -1,
         "vddgfx" : -1,
         "vddc_range" : ["",""],
         "loading" : -1,
@@ -146,13 +147,14 @@ class GPU_ITEM:
                 "power_cap_min" : "Min Power Cap (W)",
                 "power_cap_max" : "Max Power Cap (W)",
                 "fan_enable" : "Fan Enable",
-                "pwm_enable" : "Fan PWM Enable",
-                "fan_pwm" : "Current Fan PWM (binary)",
+                "pwm_mode" : "Fan PWM Mode",
+                "fan_pwm" : "Current Fan PWM (%)",
                 "fan_speed" : "Current Fan Speed (rpm)",
                 "fan_target" : "Fan Target Speed (rpm)",
                 "fan_speed_range" : "Fan Speed Range (rpm)",
-                "fan_pwm_range" : "Fan PWM Range (binary)",
+                "fan_pwm_range" : "Fan PWM Range (%)",
                 "temp" : "Current Temp (C)",
+                "temp_crit" : "Critical Temp (C)",
                 "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
                 "loading" : "Current Loading (%)",
@@ -290,6 +292,10 @@ class GPU_ITEM:
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
                 self.set_params_value("temp",  int(hwmon_file.readline())/1000)
             hwmon_file.close()
+        if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
+            with open(self.hwmon_path + "temp1_crit") as hwmon_file:
+                self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
+            hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
             with open(self.hwmon_path + "fan1_enable") as hwmon_file:
                 self.set_params_value("fan_enable",  hwmon_file.readline().strip())
@@ -313,19 +319,26 @@ class GPU_ITEM:
             hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
             with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
-                self.set_params_value("fan_pwm_enable",  hwmon_file.readline().strip())
+                pwm_mode_value = int(hwmon_file.readline().strip())
+                if pwm_mode_value == 0:
+                    pwm_mode_name = "None"
+                elif pwm_mode_value == 1:
+                    pwm_mode_name = "Manual"
+                elif pwm_mode_value == 2:
+                    pwm_mode_name = "Dynamic"
+                self.set_params_value("pwm_mode", [pwm_mode_value, pwm_mode_name])
             hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "pwm1") == True):
             with open(self.hwmon_path + "pwm1") as hwmon_file:
-                self.set_params_value("fan_pwm",  int(hwmon_file.readline()))
+                self.set_params_value("fan_pwm",  100*int(hwmon_file.readline())/255)
             hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
             with open(self.hwmon_path + "pwm1_max") as hwmon_file:
-                pwm1_max_value =  int(hwmon_file.readline())
+                pwm1_max_value =  100*int(hwmon_file.readline())/255
             hwmon_file.close()
             if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
                 with open(self.hwmon_path + "pwm1_min") as hwmon_file:
-                    pwm1_pmin_value =  int(hwmon_file.readline())
+                    pwm1_pmin_value =  100*int(hwmon_file.readline())/255
                 self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
                 hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
