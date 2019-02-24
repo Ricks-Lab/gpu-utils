@@ -373,15 +373,15 @@ class GPU_ITEM:
                 hwmon_file.close()
             if(os.path.isfile(self.hwmon_path + "pwm1") == True):
                 with open(self.hwmon_path + "pwm1") as hwmon_file:
-                    self.set_params_value("fan_pwm",  100*int(int(hwmon_file.readline())/255))
+                    self.set_params_value("fan_pwm",  int(100*(int(hwmon_file.readline())/255)))
                 hwmon_file.close()
             if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
                 with open(self.hwmon_path + "pwm1_max") as hwmon_file:
-                    pwm1_max_value =  100*int(int(hwmon_file.readline())/255)
+                    pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
                 hwmon_file.close()
                 if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
                     with open(self.hwmon_path + "pwm1_min") as hwmon_file:
-                        pwm1_pmin_value =  100*int(int(hwmon_file.readline())/255)
+                        pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
                     self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
                     hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
