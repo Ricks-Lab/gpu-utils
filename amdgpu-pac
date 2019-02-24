@@ -590,11 +590,16 @@ class PACWindow(Gtk.Window):
         print(" Max: ", v.get_params_value("power_cap_max"), end="", file=fileptr)
         print("", file=fileptr)
     
-        if new_power_cap == old_power_cap :
+        if new_power_cap == old_power_cap and env.gut_const.write_delta_only == True:
             print("# No changes, skipped", file=fileptr)
         else:
             if v.is_valid_power_cap(new_power_cap):
-                print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
+                if new_power_cap < 0:
+                    #reset
+                    print("# Reseting Power Cap to default", file=fileptr)
+                    print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
             else:
                 print("# Invalid paramater values", file=fileptr)
 
@@ -611,16 +616,20 @@ class PACWindow(Gtk.Window):
             print(" Max: ", pwm_range[1], end="", file=fileptr)
             print("", file=fileptr)
         
-            if new_pwm == old_pwm :
+            if new_pwm == old_pwm and env.gut_const.write_delta_only == True:
                 print("# No changes, skipped", file=fileptr)
             else:
                 if v.is_valid_fan_pwm(new_pwm):
-                    new_pwm_value = int(new_pwm * 255 / 100)
-                    print("sudo sh -c \"echo \'1\' >  %s\"" % (pwm_enable_file), file=fileptr)
-                    print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
+                    if new_pwm < 0:
+                        #reset
+                        print("# Reseting fans to Dynamic mode", file=fileptr)
+                        print("sudo sh -c \"echo \'2\' >  %s\"" % (pwm_enable_file), file=fileptr)
+                    else:
+                        new_pwm_value = int(new_pwm * 255 / 100)
+                        print("sudo sh -c \"echo \'1\' >  %s\"" % (pwm_enable_file), file=fileptr)
+                        print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
                 else:
                     print("# Invalid paramater values", file=fileptr)
-    
     
         # Sclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
@@ -676,7 +685,6 @@ class PACWindow(Gtk.Window):
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
-    
         return
 
     def reset_all_cards(self, parent, gpu_list, devices, uuid):

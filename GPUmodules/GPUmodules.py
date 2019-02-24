@@ -198,12 +198,18 @@ class GPU_ITEM:
     def is_valid_power_cap(self, power_cap):
         if power_cap >= self.get_params_value("power_cap_min") and power_cap <= self.get_params_value("power_cap_max"):
             return(True)
+        elif power_cap < 0:
+            # negative values will be interpretted as reset request
+            return(True)
         else:
             return(False)
 
     def is_valid_fan_pwm(self, pwm_value):
         pwm_range = self.get_params_value("fan_pwm_range")
         if pwm_value >= pwm_range[0] and pwm_value <= pwm_range[1]:
+            return(True)
+        elif pwm_value < 0:
+            # negative values will be interpretted as reset request
             return(True)
         else:
             return(False)
@@ -343,15 +349,15 @@ class GPU_ITEM:
                 hwmon_file.close()
             if(os.path.isfile(self.hwmon_path + "pwm1") == True):
                 with open(self.hwmon_path + "pwm1") as hwmon_file:
-                    self.set_params_value("fan_pwm",  100*int(hwmon_file.readline())/255)
+                    self.set_params_value("fan_pwm",  100*int(int(hwmon_file.readline())/255))
                 hwmon_file.close()
             if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
                 with open(self.hwmon_path + "pwm1_max") as hwmon_file:
-                    pwm1_max_value =  100*int(hwmon_file.readline())/255
+                    pwm1_max_value =  100*int(int(hwmon_file.readline())/255)
                 hwmon_file.close()
                 if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
                     with open(self.hwmon_path + "pwm1_min") as hwmon_file:
-                        pwm1_pmin_value =  100*int(hwmon_file.readline())/255
+                        pwm1_pmin_value =  100*int(int(hwmon_file.readline())/255)
                     self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
                     hwmon_file.close()
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):

@@ -45,6 +45,7 @@ class GUT_CONST:
         self.execute_pac = False
         self.DEBUG = False
         self.show_fans = True
+        self.write_delta_only = False
         self.SLEEP = 2
         self.PATH = "."
         self.amdfeaturemask = ""
