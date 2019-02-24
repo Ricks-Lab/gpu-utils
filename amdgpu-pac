@@ -304,6 +304,34 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
+            # SCLK P-State Mask
+            devices[v.uuid]["sclk_pst_mask_cur"] = Gtk.Label()
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-top", 1)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-bottom", 1)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-right", 2)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-left", 2)
+
+            devices[v.uuid]["sclk_pst_mask_ent"] = Gtk.Entry()
+            devices[v.uuid]["sclk_pst_mask_ent"].set_width_chars(15)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_max_length(15)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_alignment(xalign=0)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-top", 1)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-bottom", 1)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-right", 0)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-left", 1)
+        
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["sclk_pst_mask_cur"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["sclk_pst_mask_ent"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
             # Mclk P-States
             devices[v.uuid]["mclk_range"] = Gtk.Label()
             devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " +
@@ -385,6 +413,34 @@ class PACWindow(Gtk.Window):
                 lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
+
+            # MCLK P-State Mask
+            devices[v.uuid]["mclk_pst_mask_cur"] = Gtk.Label()
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-top", 1)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-bottom", 1)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-right", 2)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-left", 2)
+
+            devices[v.uuid]["mclk_pst_mask_ent"] = Gtk.Entry()
+            devices[v.uuid]["mclk_pst_mask_ent"].set_width_chars(15)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_max_length(15)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_alignment(xalign=0)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-top", 1)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-bottom", 1)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-right", 0)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-left", 1)
+        
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["mclk_pst_mask_cur"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["mclk_pst_mask_ent"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
 
             # Power Performance Mode Selection
             devices[v.uuid]["ppm"] = Gtk.Label()
@@ -522,6 +578,8 @@ class PACWindow(Gtk.Window):
                 item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_text("    SCLK Default: "+v.get_pstate_list_str("SCLK")+"    Set Mask: ")
+            devices[v.uuid]["sclk_pst_mask_ent"].set_text(v.get_pstate_list_str("SCLK"))
             for ps, psd in v.mclk_state.items():
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
                 item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
@@ -532,6 +590,8 @@ class PACWindow(Gtk.Window):
                 item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_text("    MCLK Default: "+v.get_pstate_list_str("MCLK")+"    Set Mask: ")
+            devices[v.uuid]["mclk_pst_mask_ent"].set_text(v.get_pstate_list_str("MCLK"))
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
         return
@@ -670,6 +730,45 @@ class PACWindow(Gtk.Window):
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+
+        # Writes of pstate Masks must come after commit of pstate changes
+        # Sclk Mask
+        sclk_mask_file = v.card_path + "pp_dpm_sclk"
+        old_sclk_mask = v.get_pstate_list_str("SCLK").replace(',', ' ')
+        new_sclk_mask = devices[uuid]["sclk_pst_mask_ent"].get_text().replace(',', ' ')
+        print("# Sclk P-State Mask Default: ", old_sclk_mask, end="", file=fileptr)
+        print(" New: ", new_sclk_mask, file=fileptr)
+        if new_sclk_mask == old_sclk_mask and env.gut_const.write_delta_only == True:
+            print("# No changes, skipped", file=fileptr)
+        else:
+            if v.is_valid_pstate_list_str(new_sclk_mask):
+                if new_sclk_mask == "":
+                    #reset
+                    print("# Reseting SCLK Mask to default", file=fileptr)
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (old_sclk_mask, sclk_mask_file), file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (new_sclk_mask, sclk_mask_file), file=fileptr)
+            else:
+                print("# Invalid paramater values", file=fileptr)
+
+        # Mclk Mask
+        mclk_mask_file = v.card_path + "pp_dpm_mclk"
+        old_mclk_mask = v.get_pstate_list_str("MCLK").replace(',', ' ')
+        new_mclk_mask = devices[uuid]["mclk_pst_mask_ent"].get_text().replace(',', ' ')
+        print("# Sclk P-State Mask Default: ", old_mclk_mask, end="", file=fileptr)
+        print(" New: ", new_mclk_mask, file=fileptr)
+        if new_mclk_mask == old_mclk_mask and env.gut_const.write_delta_only == True:
+            print("# No changes, skipped", file=fileptr)
+        else:
+            if v.is_valid_pstate_list_str(new_mclk_mask):
+                if new_mclk_mask == "":
+                    #reset
+                    print("# Reseting SCLK Mask to default", file=fileptr)
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (old_mclk_mask, mclk_mask_file), file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (new_mclk_mask, mclk_mask_file), file=fileptr)
+            else:
+                print("# Invalid paramater values", file=fileptr)
     
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()
@@ -741,6 +840,7 @@ class PACWindow(Gtk.Window):
         print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
         print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+        # No need to reset clk pstate masks as commit to pp_od_clk_voltage will reset
     
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()

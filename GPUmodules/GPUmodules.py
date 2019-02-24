@@ -39,7 +39,10 @@ from pathlib import Path
 from uuid import uuid4
 import glob 
 import shutil 
-from GPUmodules import env 
+try:
+    from GPUmodules import env 
+except:
+    import env 
 
 
 class GPU_ITEM:
@@ -237,6 +240,27 @@ class GPU_ITEM:
             if pstate[2] >= vddc_min and pstate[2] <= vddc_max:
                 return(True)
         return(False)
+
+    def is_valid_pstate_list_str(self, clk_name):
+        # TODO check validity
+        return(True)
+
+    def get_pstate_list_str(self, clk_name):
+        """ Get list of pstate numbers.
+            return as a string.
+        """
+        ps_list = self.get_pstate_list(clk_name)
+        return(','.join(str(ps) for ps in ps_list))
+
+    def get_pstate_list(self, clk_name):
+        """ Get list of pstate numbers.
+            return as a list.
+        """
+        if clk_name == "SCLK":
+            return(list(self.sclk_state.keys()))
+        elif clk_name == "MCLK":
+            return(list(self.mclk_state.keys()))
+        return([])
 
     def get_current_ppm_mode(self):
         if self.get_params_value("power_dpm_force").lower() == "auto":
@@ -705,7 +729,7 @@ class GPU_LIST:
 
         
 def test():
-    env.gut_const.DEBUG = True
+    #env.gut_const.DEBUG = True
 
     try:
         featuremask = env.gut_const.read_amdfeaturemask()
@@ -725,9 +749,12 @@ def test():
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
     gpu_list.print_table()
-    gpu_list.print()
+    #gpu_list.print()
 
     gpu_list.get_pstates()
+
+    for k, v in gpu_list.list.items():
+        print(v.get_pstate_list("MCLK"))
 
 
 if __name__ == "__main__":
