@@ -51,6 +51,7 @@ class GPU_ITEM:
         self.card_num = -1
         self.card_path = ""
         self.hwmon_path = ""
+        self.compatible = True
 
         self.params = {
         "uuid" : item_id,
@@ -249,7 +250,7 @@ class GPU_ITEM:
             try:
                 ps_list.index(int(ps))
             except:
-                print("Error: invalid pstate %s for %s." % (ps, clk_name), file=sys.stderr)
+                print("Error: Invalid pstate %s for %s." % (ps, clk_name), file=sys.stderr)
                 return(False)
         return(True)
 
@@ -285,16 +286,29 @@ class GPU_ITEM:
                 linestr = line.strip()
                 linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                 lineItems = linestr.split()
+                if len(lineItems) < 2:
+                    print("Error: invalid ppm: %s"  % linestr, file=sys.stderr)
+                    continue
                 self.ppm_modes[lineItems[0]] = lineItems[1:]
             self.ppm_modes["-1"] = ["AUTO","Auto"]
+        card_file.close()
+
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
 
     def get_pstates(self):
         range_mode = False
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Error getting pstates: ", self.card_path, file=sys.stderr)
+            self.compatible = False
+            sys.exit(-1)
+        if(os.path.isfile(self.card_path + "power_dpm_state") == False):
+            print("Error: Looks like DPM is not enabled: %s doesn't exist" % (self.card_path + "power_dpm_state"), file=sys.stderr)
+            self.compatible = False
             sys.exit(-1)
         with open(self.card_path + "pp_od_clk_voltage") as card_file:
             for line in card_file:
@@ -305,6 +319,10 @@ class GPU_ITEM:
                         range_mode = True
                     continue
                 lineitems = line.split()
+                if len(lineitems) < 3:
+                    print("Error: Invalid pstate entry: %s" % (self.card_path + "pp_od_clk_voltage"), file=sys.stderr)
+                    self.compatible = False
+                    continue
                 if range_mode == False:
                     lineitems[0] = int(re.sub(':','', lineitems[0]))
                     if clk_name == "OD_SCLK:":
@@ -326,39 +344,66 @@ class GPU_ITEM:
             with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
                 self.set_params_value("power_cap_max", int(hwmon_file.readline())/1000000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
             with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
                 self.set_params_value("power_cap_min", int(hwmon_file.readline())/1000000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
             with open(self.hwmon_path + "power1_cap") as hwmon_file:
                 self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
                 self.set_params_value("power", int(hwmon_file.readline())/1000000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
                 self.set_params_value("temp",  int(hwmon_file.readline())/1000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
             with open(self.hwmon_path + "temp1_crit") as hwmon_file:
                 self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
             hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
+
         if env.gut_const.show_fans == True:
             if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
                 with open(self.hwmon_path + "fan1_enable") as hwmon_file:
                     self.set_params_value("fan_enable",  hwmon_file.readline().strip())
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_enable"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
                 with open(self.hwmon_path + "fan1_target") as hwmon_file:
                     self.set_params_value("fan_target",  int(hwmon_file.readline()))
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_target"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
                 with open(self.hwmon_path + "fan1_input") as hwmon_file:
                     self.set_params_value("fan_speed",  int(hwmon_file.readline()))
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
                 with open(self.hwmon_path + "fan1_max") as hwmon_file:
                     fan1_max_value =  int(hwmon_file.readline())
@@ -367,7 +412,12 @@ class GPU_ITEM:
                     with open(self.hwmon_path + "fan1_min") as hwmon_file:
                         fan1_min_value =  int(hwmon_file.readline())
                     self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
                 with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
                     pwm_mode_value = int(hwmon_file.readline().strip())
@@ -379,10 +429,16 @@ class GPU_ITEM:
                         pwm_mode_name = "Dynamic"
                     self.set_params_value("pwm_mode", [pwm_mode_value, pwm_mode_name])
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_enable"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "pwm1") == True):
                 with open(self.hwmon_path + "pwm1") as hwmon_file:
                     self.set_params_value("fan_pwm",  int(100*(int(hwmon_file.readline())/255)))
                 hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
+
             if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
                 with open(self.hwmon_path + "pwm1_max") as hwmon_file:
                     pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
@@ -392,26 +448,49 @@ class GPU_ITEM:
                         pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
                     self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
                     hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
             with open(self.hwmon_path + "in0_label") as hwmon_file:
                 if hwmon_file.readline().rstrip() == "vddgfx":
                     with open(self.hwmon_path + "in0_input") as hwmon_file2:
                         self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
                     hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
 
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
                 self.set_params_value("loading", int(card_file.readline()))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "gpu_busy_percent"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "current_link_speed") == True):
             with open(self.card_path + "current_link_speed") as card_file:
                 self.set_params_value("link_spd", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_speed"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "current_link_width") == True):
             with open(self.card_path + "current_link_width") as card_file:
                 self.set_params_value("link_wth", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_width"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "vbios_version") == True):
             with open(self.card_path + "vbios_version") as card_file:
                 self.set_params_value("vbios", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "vbios_version"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
             with open(self.card_path + "pp_dpm_sclk") as card_file:
                 for line in card_file:
@@ -419,6 +498,10 @@ class GPU_ITEM:
                         lineitems = line.split(sep=':')
                         self.set_params_value("sclk_ps", lineitems[0].strip())
                         self.set_params_value("sclk_f", lineitems[1].strip().strip('*'))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_sclk"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
             with open(self.card_path + "pp_dpm_mclk") as card_file:
                 for line in card_file:
@@ -426,6 +509,10 @@ class GPU_ITEM:
                         lineitems = line.split(sep=':')
                         self.set_params_value("mclk_ps", lineitems[0].strip())
                         self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_mclk"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_power_profile_mode") == True):
             with open(self.card_path + "pp_power_profile_mode") as card_file:
                 for line in card_file:
@@ -437,9 +524,17 @@ class GPU_ITEM:
                         mode_str = re.sub(r'[ ]+','-', mode_str)
                         self.set_params_value("ppm", mode_str)
                         break
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_power_profile_mode"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
+
 
     def print_ppm_table(self):
         # Formatting optimized for Nano, but I think Vega64 just has 1 item for description

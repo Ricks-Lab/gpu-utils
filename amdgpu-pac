@@ -643,7 +643,11 @@ class PACWindow(Gtk.Window):
         # Power Cap
         power_cap_file = v.hwmon_path + "power1_cap"
         old_power_cap = int(v.get_params_value("power_cap"))
-        new_power_cap = int(devices[uuid]["power_cap_ent"].get_text())
+        new_power_cap_str = devices[uuid]["power_cap_ent"].get_text()
+        if new_power_cap_str.isnumeric():
+            new_power_cap = int(new_power_cap_str)
+        else:
+            new_power_cap = old_power_cap
         print("# Powercap Old: ", str(old_power_cap), end="", file=fileptr)
         print(" New: ", str(new_power_cap), end="", file=fileptr)
         print(" Min: ", v.get_params_value("power_cap_min"), end="", file=fileptr)
@@ -668,7 +672,11 @@ class PACWindow(Gtk.Window):
             pwm_enable_file = v.hwmon_path + "pwm1_enable"
             pwm_file = v.hwmon_path + "pwm1"
             old_pwm = int(v.get_params_value("fan_pwm"))
-            new_pwm = int(devices[uuid]["fan_pwm_ent"].get_text())
+            new_pwm_str = devices[uuid]["fan_pwm_ent"].get_text()
+            if new_pwm_str.isnumeric():
+                new_pwm = int(new_pwm_str)
+            else:
+                new_pwm = old_pwm
             print("# Fan PWM Old: ", str(old_pwm), end="", file=fileptr)
             print(" New: ", str(new_pwm), end="", file=fileptr)
             pwm_range = v.get_params_value("fan_pwm_range")
@@ -694,6 +702,13 @@ class PACWindow(Gtk.Window):
         # Sclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
         for pk, pv in devices[uuid]["sclk_pstate"].items():
+            if pv["gtk_ent_f_obj"].get_text().isnumeric() == False:
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text(), file=fileptr)
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text())
+                continue
+            if pv["gtk_ent_v_obj"].get_text().isnumeric() == False:
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text(), file=fileptr)
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text())
             pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
             print("#sck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
             if v.is_valid_sclk_pstate(pstate):
@@ -704,6 +719,14 @@ class PACWindow(Gtk.Window):
         # Mclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
         for pk, pv in devices[uuid]["mclk_pstate"].items():
+            if pv["gtk_ent_f_obj"].get_text().isnumeric() == False:
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text(), file=fileptr)
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text())
+                continue
+            if pv["gtk_ent_v_obj"].get_text().isnumeric() == False:
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text(), file=fileptr)
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text())
+                continue
             pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
             print("#mck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
             if v.is_valid_mclk_pstate(pstate):
@@ -735,7 +758,7 @@ class PACWindow(Gtk.Window):
         # Sclk Mask
         sclk_mask_file = v.card_path + "pp_dpm_sclk"
         old_sclk_mask = v.get_pstate_list_str("SCLK").replace(',', ' ')
-        new_sclk_mask = devices[uuid]["sclk_pst_mask_ent"].get_text().replace(',', ' ')
+        new_sclk_mask = devices[uuid]["sclk_pst_mask_ent"].get_text().replace(',', ' ').strip()
         print("# Sclk P-State Mask Default: ", old_sclk_mask, end="", file=fileptr)
         print(" New: ", new_sclk_mask, file=fileptr)
         if new_sclk_mask == old_sclk_mask and env.gut_const.write_delta_only == True:
@@ -754,8 +777,8 @@ class PACWindow(Gtk.Window):
         # Mclk Mask
         mclk_mask_file = v.card_path + "pp_dpm_mclk"
         old_mclk_mask = v.get_pstate_list_str("MCLK").replace(',', ' ')
-        new_mclk_mask = devices[uuid]["mclk_pst_mask_ent"].get_text().replace(',', ' ')
-        print("# Sclk P-State Mask Default: ", old_mclk_mask, end="", file=fileptr)
+        new_mclk_mask = devices[uuid]["mclk_pst_mask_ent"].get_text().replace(',', ' ').strip()
+        print("# Mclk P-State Mask Default: ", old_mclk_mask, end="", file=fileptr)
         print(" New: ", new_mclk_mask, file=fileptr)
         if new_mclk_mask == old_mclk_mask and env.gut_const.write_delta_only == True:
             print("# No changes, skipped", file=fileptr)
@@ -763,7 +786,7 @@ class PACWindow(Gtk.Window):
             if v.is_valid_pstate_list_str(new_mclk_mask, "MCLK"):
                 if new_mclk_mask == "":
                     #reset
-                    print("# Reseting SCLK Mask to default", file=fileptr)
+                    print("# Reseting MCLK Mask to default", file=fileptr)
                     print("sudo sh -c \"echo \'%s\' >  %s\"" % (old_mclk_mask, mclk_mask_file), file=fileptr)
                 else:
                     print("sudo sh -c \"echo \'%s\' >  %s\"" % (new_mclk_mask, mclk_mask_file), file=fileptr)
