@@ -25,7 +25,7 @@
 """
 __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ""
+__credits__ = []
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
 __version__ = "v2.1.0"
@@ -107,9 +107,10 @@ class PACWindow(Gtk.Window):
             row += 1
 
             # Card Power Cap
+            power_cap_range = v.get_params_value("power_cap_range")
             devices[v.uuid]["power_cap"] = Gtk.Label()
-            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+ "Range (" +
-                    str(v.get_params_value("power_cap_min"))+" - "+str(v.get_params_value("power_cap_max"))+" W)")
+            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+
+                    "Range (" + str(power_cap_range[0])+" - "+str(power_cap_range[1])+" W)")
             devices[v.uuid]["power_cap"].set_property("margin-top", 1)
             devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
             devices[v.uuid]["power_cap"].set_property("margin-right", 2)
@@ -648,10 +649,11 @@ class PACWindow(Gtk.Window):
             new_power_cap = int(new_power_cap_str)
         else:
             new_power_cap = old_power_cap
+        power_cap_range = v.get_params_value("power_cap_range")
         print("# Powercap Old: ", str(old_power_cap), end="", file=fileptr)
         print(" New: ", str(new_power_cap), end="", file=fileptr)
-        print(" Min: ", v.get_params_value("power_cap_min"), end="", file=fileptr)
-        print(" Max: ", v.get_params_value("power_cap_max"), end="", file=fileptr)
+        print(" Min: %d"% power_cap_range[0], end="", file=fileptr)
+        print(" Max: %d"% power_cap_range[1], end="", file=fileptr)
         print("", file=fileptr)
     
         if new_power_cap == old_power_cap and env.gut_const.write_delta_only == True:

@@ -19,7 +19,7 @@
 """
 __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ""
+__credits__ = []
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
 __version__ = "v2.1.0"
@@ -51,6 +51,7 @@ class GPU_ITEM:
         self.card_num = -1
         self.card_path = ""
         self.hwmon_path = ""
+        # TODO fully implement compatible flag
         self.compatible = True
 
         self.params = {
@@ -64,8 +65,7 @@ class GPU_ITEM:
         "hwmon_path" : "",
         "power" : -1,
         "power_cap" : -1,
-        "power_cap_min" : -1,
-        "power_cap_max" : -1,
+        "power_cap_range" : [-1,-1],
         "fan_enable" : -1,
         "pwm_mode" : [-1,"UNK"],
         "fan_pwm" : -1,
@@ -113,6 +113,8 @@ class GPU_ITEM:
     def set_params_value(self, name, value):
         # update params dictionary
         self.params[name] = value
+        if name == "driver" and value != "amdgpu":
+            self.compatible = False
         if name == "card_num":
             self.card_num = value
         if name == "card_path":
@@ -148,8 +150,7 @@ class GPU_ITEM:
                 "hwmon_path" : "HWmon",
                 "power" : "Current Power (W)",
                 "power_cap" : "Power Cap (W)",
-                "power_cap_min" : "Min Power Cap (W)",
-                "power_cap_max" : "Max Power Cap (W)"
+                "power_cap_range" : "Power Cap Range (W)"
                 }
         if env.gut_const.show_fans == True:
             GPU_Param_Labels.update({
@@ -200,7 +201,8 @@ class GPU_ITEM:
         return(GPU_CLINFO_Labels)
 
     def is_valid_power_cap(self, power_cap):
-        if power_cap >= self.get_params_value("power_cap_min") and power_cap <= self.get_params_value("power_cap_max"):
+        power_cap_range = self.get_params_value("power_cap_range")
+        if power_cap >= power_cap_range[0] and power_cap <= power_cap_range[1]:
             return(True)
         elif power_cap < 0:
             # negative values will be interpretted as reset request
@@ -342,17 +344,17 @@ class GPU_ITEM:
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
             with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
-                self.set_params_value("power_cap_max", int(hwmon_file.readline())/1000000)
+                power1_cap_max_value =  int(int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
+            if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
+                with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
+                    power1_cap_min_value =  int(int(hwmon_file.readline())/1000000)
+                self.set_params_value("power_cap_range", [power1_cap_min_value, power1_cap_max_value])
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
             hwmon_file.close()
         else:
             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
-            with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
-                self.set_params_value("power_cap_min", int(hwmon_file.readline())/1000000)
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
 
         if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
             with open(self.hwmon_path + "power1_cap") as hwmon_file:
