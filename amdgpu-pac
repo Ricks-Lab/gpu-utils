@@ -741,7 +741,7 @@ class PACWindow(Gtk.Window):
         if new_sclk_mask == old_sclk_mask and env.gut_const.write_delta_only == True:
             print("# No changes, skipped", file=fileptr)
         else:
-            if v.is_valid_pstate_list_str(new_sclk_mask):
+            if v.is_valid_pstate_list_str(new_sclk_mask, "SCLK"):
                 if new_sclk_mask == "":
                     #reset
                     print("# Reseting SCLK Mask to default", file=fileptr)
@@ -760,7 +760,7 @@ class PACWindow(Gtk.Window):
         if new_mclk_mask == old_mclk_mask and env.gut_const.write_delta_only == True:
             print("# No changes, skipped", file=fileptr)
         else:
-            if v.is_valid_pstate_list_str(new_mclk_mask):
+            if v.is_valid_pstate_list_str(new_mclk_mask, "MCLK"):
                 if new_mclk_mask == "":
                     #reset
                     print("# Reseting SCLK Mask to default", file=fileptr)

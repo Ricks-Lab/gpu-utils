@@ -241,8 +241,16 @@ class GPU_ITEM:
                 return(True)
         return(False)
 
-    def is_valid_pstate_list_str(self, clk_name):
-        # TODO check validity
+    def is_valid_pstate_list_str(self, ps_str, clk_name):
+        if ps_str == "":
+            return(True)
+        for ps in ps_str.split():
+            ps_list = self.get_pstate_list(clk_name)
+            try:
+                ps_list.index(int(ps))
+            except:
+                print("Error: invalid pstate %s for %s." % (ps, clk_name), file=sys.stderr)
+                return(False)
         return(True)
 
     def get_pstate_list_str(self, clk_name):
