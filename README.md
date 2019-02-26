@@ -36,7 +36,7 @@ you executed *amdgpu-pac*.
 * Added fan monitor and control features.
 * Implemented --no_fan option across all tools.
 * Implemented P-state masking.
-* Fixed implementation of global variables that broke when I implemented module in library.
+* Fixed implementation of global variables that broke with implementation of modules in library.
 * Added more validation checks before writing parameters to cards.
 
 ## New in Previous Release  -  v2.0.0
@@ -61,7 +61,11 @@ you executed *amdgpu-pac*.
 * Develop a startup utility to initialize GPU settings at boot up.
 * Include most detailed GPU name in reading from lspci and amdgpu-ls output. Optimize both long and short names.
 * Implement an option to only write changes in amdgpu-pac.
-* Immplement logging option for amdgpu-monitor.
+* Implement logging option for amdgpu-monitor.
+* Implement energy meter.
+* Implement card level compaibility flagging and use in showing only compatible cards.
 
 ## References
-* Original inspiration for this project: [https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15]
+* Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
+* Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
+* Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
