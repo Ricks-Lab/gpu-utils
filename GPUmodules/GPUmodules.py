@@ -781,17 +781,17 @@ class GPU_LIST:
         return(cnt)
 
     def list_compatible_gpus(self):
-        # TODO return a list of only compaitble GPUs
-        cnt = 0
+        # TODO use this function through out utilities
+        compatible_list = {}
         for k, v in self.list.items():
-            if v.get_params_value("driver") == "amdgpu":
-                cnt += 1
-        return(cnt)
+            if v.compatible == True:
+                compatible_list[k]=v
+        return(compatible_list)
 
     def num_compatible_gpus(self):
         cnt = 0
         for k, v in self.list.items():
-            if v.get_params_value("driver") == "amdgpu":
+            if v.compatible == True:
                 cnt += 1
         return(cnt)
 
@@ -855,6 +855,10 @@ def test():
     gpu_list.get_gpu_details()
     gpu_list.print_table()
     #gpu_list.print()
+    com_list = gpu_list.list_compatible_gpus()
+    print(gpu_list.list)
+    print(com_list)
+    exit()
 
     gpu_list.get_pstates()
 
