@@ -8,28 +8,30 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing *sudo update-grub*
 
 ## amdgpu-ls
-This utility displays most relevant parameters for installed AMD GPUs.  The default
-behavior is to list relevant parameters by GPU.  OpenCL platform information is added
-when the *--clinfo* option is used.  The *--pstate* option can be used to output the
-p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
-is used to output the table of available power/performance modes instead of basic
-parameters.
+This utility displays most relevant parameters for installed and compatible AMD GPUs.
+The default behavior is to list relevant parameters by GPU.  OpenCL platform information
+is added when the *--clinfo* option is used.  The *--no_fan* can be used to ignore fan
+settings.  The *--pstate* option can be used to output the p-state table for each GPU
+instead of the list of basic parameters.  The *--ppm* option is used to output the table
+of available power/performance modes instead of basic parameters.
 
 ## amdgpu-monitor
 A utility to give the current state of all compatible AMD GPUs. The default behavior
 is to continuously update a text based table in the current window unitl Ctrl-C is
-pressed.  With the *--gui* option, a table of relevant parameters will be
-updated in a Gtk window.  You can specify the delay between updates with the
-*--sleep N* option where N is an integer > zero that specifies the number of seconds
-to sleep.
+pressed.  With the *--gui* option, a table of relevant parameters will be updated
+in a Gtk window.  You can specify the delay between updates with the *--sleep N*
+option where N is an integer > zero that specifies the number of seconds to sleep.
+The *--no_fan* option can be used to disable the reading and display of fan
+information.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
-be written to the GPU are written to a bash file for the user to inspect and run.  If
-you have confidence, the *--execute_pac* option can be used to run and then delete the bash
+be written to the GPU are written to a bash file for the user to inspect and run.  If you
+have confidence, the *--execute_pac* option can be used to run and then delete the bash
 file. Since the GPU device files are writable only by root, sudo is used to execute commands
-in the bash file, as a result, you will be prompted for credentials in the terminal where 
-you executed *amdgpu-pac*.  
+in the bash file, as a result, you will be prompted for credentials in the terminal where
+you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate fan details from
+the utility.
 
 ## New in this Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
