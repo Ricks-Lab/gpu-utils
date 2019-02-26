@@ -31,16 +31,13 @@ file. Since the GPU device files are writable only by root, sudo is used to exec
 in the bash file, as a result, you will be prompted for credentials in the terminal where 
 you executed *amdgpu-pac*.  
 
-## Release Plans  -  v2.1.0
-* Find/fix more bugs!
-* Add fan monitor and control features - complete, needs testing
-* Implement --no_fan option across all tools - complete
-* Implement an option to write only changes in amdgpu-pac.
-* P-state masking, if I can figure it out - I have an idea...
-* Fix implementation of global variables that broke when I implemented module in library - complete
-* Get more complex GPU name as the one used in amdgpu-ls.
-* Add more error proofing.
-* Add more validation checks before writing parameters to cards.
+## New in this Release  -  v2.1.0
+* Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
+* Added fan monitor and control features.
+* Implemented --no_fan option across all tools.
+* Implemented P-state masking.
+* Fixed implementation of global variables that broke when I implemented module in library.
+* Added more validation checks before writing parameters to cards.
 
 ## New in Previous Release  -  v2.0.0
 * Many bug fixes!
@@ -62,7 +59,9 @@ you executed *amdgpu-pac*.
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a startup utility to initialize GPU settings at boot up.
-* Add fan parameters display and control.
-* Fix implementation of global configuration variables.
-* Investigate implementation of p-state masks.
-* Include most detailed GPU name in reading from lspci and amdgpu-ls output.
+* Include most detailed GPU name in reading from lspci and amdgpu-ls output. Optimize both long and short names.
+* Implement an option to only write changes in amdgpu-pac.
+* Immplement logging option for amdgpu-monitor.
+
+## References
+* Original inspiration for this project: [https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15]
