@@ -65,7 +65,7 @@ the utility.
 * Implement an option to only write changes in amdgpu-pac.
 * Implement logging option for amdgpu-monitor.
 * Implement energy meter.
-* Implement card level compaibility flagging and use in showing only compatible cards.
+* Implement card level compatibility flagging and use in showing only compatible cards.
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
