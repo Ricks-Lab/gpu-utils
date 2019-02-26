@@ -2,11 +2,12 @@
 """amdgpu-pac  -  A utility program and control compatible AMD GPUs
 
     Program and Control compatible AMD GPUs with this utility.  By default, the commands to
-    be written to the GPU are written to a bash file for the user to inspect and run.  If
-    you have confidence, the *--execute_pac* option can be used to run and then delete the bash
+    be written to the GPU are written to a bash file for the user to inspect and run.  If you
+    have confidence, the *--execute_pac* option can be used to run and then delete the bash
     file. Since the GPU device files are writable only by root, sudo is used to execute commands
     in the bash file, as a result, you will be prompted for credentials in the terminal where
-    you executed *amdgpu-pac*.
+    you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate fan details from
+    the utility.
 
     Copyright (C) 2019  RueiKe
 
@@ -25,12 +26,12 @@
 """
 __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ""
+__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
-__version__ = "v2.0.0"
+__version__ = "v2.1.0"
 __maintainer__ = "RueiKe"
-__status__ = "amdgpu-pac"
+__status__ = "Stable Release"
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -44,21 +45,20 @@ import platform
 import sys
 import time
 from GPUmodules import GPUmodules as GPU
+from GPUmodules import env
 from datetime import datetime
 from uuid import uuid4
 import glob 
 import shutil 
 from pathlib import Path
 
-# Instantiate project constants
-gut_const = GPU.GUT_CONST()
 
 class PACWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="amdgpu-pac")
         self.set_border_width(1)
-        if(os.path.isfile(gut_const.PATH + '/amdgpu-pac.icon.png') == True):
-            self.set_icon_from_file(gut_const.PATH + '/amdgpu-pac.icon.png')
+        if(os.path.isfile(env.gut_const.PATH + '/amdgpu-pac.icon.png') == True):
+            self.set_icon_from_file(env.gut_const.PATH + '/amdgpu-pac.icon.png')
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
         self.add(grid)
@@ -108,9 +108,10 @@ class PACWindow(Gtk.Window):
             row += 1
 
             # Card Power Cap
+            power_cap_range = v.get_params_value("power_cap_range")
             devices[v.uuid]["power_cap"] = Gtk.Label()
-            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+ "Range (" +
-                    str(v.get_params_value("power_cap_min"))+" - "+str(v.get_params_value("power_cap_max"))+" W)")
+            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+
+                    "Range (" + str(power_cap_range[0])+" - "+str(power_cap_range[1])+" W)")
             devices[v.uuid]["power_cap"].set_property("margin-top", 1)
             devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
             devices[v.uuid]["power_cap"].set_property("margin-right", 2)
@@ -163,6 +164,65 @@ class PACWindow(Gtk.Window):
             lbox.pack_start(devices[v.uuid]["power_cap_ent_unit"], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
+
+            if env.gut_const.show_fans == True:
+                # Fan PWM Value
+                fan_pwm_range = v.get_params_value("fan_pwm_range")
+                devices[v.uuid]["fan_pwm_range"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_range"].set_markup("<b>Fan PWM: </b> "+ "Range (" +
+                        str(fan_pwm_range[0])+" - "+str(fan_pwm_range[1])+" %)")
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-right", 2)
+                devices[v.uuid]["fan_pwm_range"].set_property("margin-left", 2)
+                devices[v.uuid]["fan_pwm_range"].set_alignment(0, 0.5)
+
+                lbox = Gtk.Box(spacing=6)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_range"], True, True, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
+                # Card Fan PWM Value and Entry
+                devices[v.uuid]["fan_pwm_cur"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-right", 2)
+                devices[v.uuid]["fan_pwm_cur"].set_property("margin-left", 2)
+    
+                devices[v.uuid]["fan_pwm_ent"] = Gtk.Entry()
+                devices[v.uuid]["fan_pwm_ent"].set_width_chars(4)
+                devices[v.uuid]["fan_pwm_ent"].set_max_length(4)
+                devices[v.uuid]["fan_pwm_ent"].set_alignment(xalign=1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-right", 0)
+                devices[v.uuid]["fan_pwm_ent"].set_property("margin-left", 2)
+        
+                devices[v.uuid]["fan_pwm_ent_unit"] = Gtk.Label()
+                devices[v.uuid]["fan_pwm_ent_unit"].set_text("%")
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-top", 1)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-bottom", 1)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-right", 0)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-left", 0)
+                devices[v.uuid]["fan_pwm_ent_unit"].set_alignment(0, 0.5)
+    
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_cur"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_ent"], False, False, 0)
+                lbox.pack_start(devices[v.uuid]["fan_pwm_ent_unit"], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
             # Sclk P-States
             devices[v.uuid]["sclk_range"] = Gtk.Label()
@@ -246,6 +306,34 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
+            # SCLK P-State Mask
+            devices[v.uuid]["sclk_pst_mask_cur"] = Gtk.Label()
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-top", 1)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-bottom", 1)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-right", 2)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_property("margin-left", 2)
+
+            devices[v.uuid]["sclk_pst_mask_ent"] = Gtk.Entry()
+            devices[v.uuid]["sclk_pst_mask_ent"].set_width_chars(15)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_max_length(15)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_alignment(xalign=0)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-top", 1)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-bottom", 1)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-right", 0)
+            devices[v.uuid]["sclk_pst_mask_ent"].set_property("margin-left", 1)
+        
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["sclk_pst_mask_cur"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["sclk_pst_mask_ent"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
+
             # Mclk P-States
             devices[v.uuid]["mclk_range"] = Gtk.Label()
             devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " +
@@ -327,6 +415,34 @@ class PACWindow(Gtk.Window):
                 lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
+
+            # MCLK P-State Mask
+            devices[v.uuid]["mclk_pst_mask_cur"] = Gtk.Label()
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-top", 1)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-bottom", 1)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-right", 2)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_property("margin-left", 2)
+
+            devices[v.uuid]["mclk_pst_mask_ent"] = Gtk.Entry()
+            devices[v.uuid]["mclk_pst_mask_ent"].set_width_chars(15)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_max_length(15)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_alignment(xalign=0)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-top", 1)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-bottom", 1)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-right", 0)
+            devices[v.uuid]["mclk_pst_mask_ent"].set_property("margin-left", 1)
+        
+            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox.set_homogeneous(False)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(devices[v.uuid]["mclk_pst_mask_cur"], False, False, 0)
+            lbox.pack_start(devices[v.uuid]["mclk_pst_mask_ent"], False, False, 0)
+            grid.attach(lbox, col, row, 1, 1)
+            row += 1
 
             # Power Performance Mode Selection
             devices[v.uuid]["ppm"] = Gtk.Label()
@@ -451,6 +567,9 @@ class PACWindow(Gtk.Window):
         for k, v in gpu_list.list.items():
             devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
             devices[v.uuid]["power_cap_ent"].set_text(str(int(v.get_params_value("power_cap"))))
+            if env.gut_const.show_fans == True:
+                devices[v.uuid]["fan_pwm_cur"].set_text("    Current: "+str(v.get_params_value("fan_pwm"))+"%    Set: ")
+                devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
             for ps, psd in v.sclk_state.items():
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
                 item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
@@ -461,6 +580,8 @@ class PACWindow(Gtk.Window):
                 item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
                 devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+            devices[v.uuid]["sclk_pst_mask_cur"].set_text("    SCLK Default: "+v.get_pstate_list_str("SCLK")+"    Set Mask: ")
+            devices[v.uuid]["sclk_pst_mask_ent"].set_text(v.get_pstate_list_str("SCLK"))
             for ps, psd in v.mclk_state.items():
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
                 item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
@@ -471,6 +592,8 @@ class PACWindow(Gtk.Window):
                 item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
                 devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
+            devices[v.uuid]["mclk_pst_mask_cur"].set_text("    MCLK Default: "+v.get_pstate_list_str("MCLK")+"    Set Mask: ")
+            devices[v.uuid]["mclk_pst_mask_ent"].set_text(v.get_pstate_list_str("MCLK"))
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
         return
@@ -522,24 +645,73 @@ class PACWindow(Gtk.Window):
         # Power Cap
         power_cap_file = v.hwmon_path + "power1_cap"
         old_power_cap = int(v.get_params_value("power_cap"))
-        new_power_cap = int(devices[uuid]["power_cap_ent"].get_text())
+        new_power_cap_str = devices[uuid]["power_cap_ent"].get_text()
+        if new_power_cap_str.isnumeric():
+            new_power_cap = int(new_power_cap_str)
+        else:
+            new_power_cap = old_power_cap
+        power_cap_range = v.get_params_value("power_cap_range")
         print("# Powercap Old: ", str(old_power_cap), end="", file=fileptr)
         print(" New: ", str(new_power_cap), end="", file=fileptr)
-        print(" Min: ", v.get_params_value("power_cap_min"), end="", file=fileptr)
-        print(" Max: ", v.get_params_value("power_cap_max"), end="", file=fileptr)
+        print(" Min: %d"% power_cap_range[0], end="", file=fileptr)
+        print(" Max: %d"% power_cap_range[1], end="", file=fileptr)
         print("", file=fileptr)
     
-        if new_power_cap == old_power_cap :
+        if new_power_cap == old_power_cap and env.gut_const.write_delta_only == True:
             print("# No changes, skipped", file=fileptr)
         else:
             if v.is_valid_power_cap(new_power_cap):
-                print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
+                if new_power_cap < 0:
+                    #reset
+                    print("# Reseting Power Cap to default", file=fileptr)
+                    print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000*new_power_cap)), power_cap_file), file=fileptr)
             else:
                 print("# Invalid paramater values", file=fileptr)
+
+        if env.gut_const.show_fans == True:
+            # Fan PWM
+            pwm_enable_file = v.hwmon_path + "pwm1_enable"
+            pwm_file = v.hwmon_path + "pwm1"
+            old_pwm = int(v.get_params_value("fan_pwm"))
+            new_pwm_str = devices[uuid]["fan_pwm_ent"].get_text()
+            if new_pwm_str.isnumeric():
+                new_pwm = int(new_pwm_str)
+            else:
+                new_pwm = old_pwm
+            print("# Fan PWM Old: ", str(old_pwm), end="", file=fileptr)
+            print(" New: ", str(new_pwm), end="", file=fileptr)
+            pwm_range = v.get_params_value("fan_pwm_range")
+            print(" Min: ", pwm_range[0], end="", file=fileptr)
+            print(" Max: ", pwm_range[1], end="", file=fileptr)
+            print("", file=fileptr)
+        
+            if new_pwm == old_pwm and env.gut_const.write_delta_only == True:
+                print("# No changes, skipped", file=fileptr)
+            else:
+                if v.is_valid_fan_pwm(new_pwm):
+                    if new_pwm < 0:
+                        #reset
+                        print("# Reseting fans to Dynamic mode", file=fileptr)
+                        print("sudo sh -c \"echo \'2\' >  %s\"" % (pwm_enable_file), file=fileptr)
+                    else:
+                        new_pwm_value = int(new_pwm * 255 / 100)
+                        print("sudo sh -c \"echo \'1\' >  %s\"" % (pwm_enable_file), file=fileptr)
+                        print("sudo sh -c \"echo \'%d\' >  %s\"" % (new_pwm_value, pwm_file), file=fileptr)
+                else:
+                    print("# Invalid paramater values", file=fileptr)
     
         # Sclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
         for pk, pv in devices[uuid]["sclk_pstate"].items():
+            if pv["gtk_ent_f_obj"].get_text().isnumeric() == False:
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text(), file=fileptr)
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text())
+                continue
+            if pv["gtk_ent_v_obj"].get_text().isnumeric() == False:
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text(), file=fileptr)
+                print("# Invalid sclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text())
             pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
             print("#sck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
             if v.is_valid_sclk_pstate(pstate):
@@ -550,6 +722,14 @@ class PACWindow(Gtk.Window):
         # Mclk P-states
         device_file = v.card_path + "pp_od_clk_voltage"
         for pk, pv in devices[uuid]["mclk_pstate"].items():
+            if pv["gtk_ent_f_obj"].get_text().isnumeric() == False:
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text(), file=fileptr)
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_f_obj"].get_text())
+                continue
+            if pv["gtk_ent_v_obj"].get_text().isnumeric() == False:
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text(), file=fileptr)
+                print("# Invalid mclk pstate entry: %s" % pv["gtk_ent_v_obj"].get_text())
+                continue
             pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
             print("#mck p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
             if v.is_valid_mclk_pstate(pstate):
@@ -576,12 +756,51 @@ class PACWindow(Gtk.Window):
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+
+        # Writes of pstate Masks must come after commit of pstate changes
+        # Sclk Mask
+        sclk_mask_file = v.card_path + "pp_dpm_sclk"
+        old_sclk_mask = v.get_pstate_list_str("SCLK").replace(',', ' ')
+        new_sclk_mask = devices[uuid]["sclk_pst_mask_ent"].get_text().replace(',', ' ').strip()
+        print("# Sclk P-State Mask Default: ", old_sclk_mask, end="", file=fileptr)
+        print(" New: ", new_sclk_mask, file=fileptr)
+        if new_sclk_mask == old_sclk_mask and env.gut_const.write_delta_only == True:
+            print("# No changes, skipped", file=fileptr)
+        else:
+            if v.is_valid_pstate_list_str(new_sclk_mask, "SCLK"):
+                if new_sclk_mask == "":
+                    #reset
+                    print("# Reseting SCLK Mask to default", file=fileptr)
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (old_sclk_mask, sclk_mask_file), file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (new_sclk_mask, sclk_mask_file), file=fileptr)
+            else:
+                print("# Invalid paramater values", file=fileptr)
+
+        # Mclk Mask
+        mclk_mask_file = v.card_path + "pp_dpm_mclk"
+        old_mclk_mask = v.get_pstate_list_str("MCLK").replace(',', ' ')
+        new_mclk_mask = devices[uuid]["mclk_pst_mask_ent"].get_text().replace(',', ' ').strip()
+        print("# Mclk P-State Mask Default: ", old_mclk_mask, end="", file=fileptr)
+        print(" New: ", new_mclk_mask, file=fileptr)
+        if new_mclk_mask == old_mclk_mask and env.gut_const.write_delta_only == True:
+            print("# No changes, skipped", file=fileptr)
+        else:
+            if v.is_valid_pstate_list_str(new_mclk_mask, "MCLK"):
+                if new_mclk_mask == "":
+                    #reset
+                    print("# Reseting MCLK Mask to default", file=fileptr)
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (old_mclk_mask, mclk_mask_file), file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'%s\' >  %s\"" % (new_mclk_mask, mclk_mask_file), file=fileptr)
+            else:
+                print("# Invalid paramater values", file=fileptr)
     
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()
         os.chmod(out_filename, 0o744)
         print("Batch file completed: %s" % out_filename)
-        if gut_const.execute_pac == True:
+        if env.gut_const.execute_pac == True:
             print("Writing changes to GPU %s" % v.card_path)
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
@@ -591,7 +810,6 @@ class PACWindow(Gtk.Window):
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
-    
         return
 
     def reset_all_cards(self, parent, gpu_list, devices, uuid):
@@ -639,18 +857,22 @@ class PACWindow(Gtk.Window):
     
         # Commit changes
         power_cap_file = v.hwmon_path + "power1_cap"
+        pwm_enable_file = v.hwmon_path + "pwm1_enable"
         device_file = v.card_path + "pp_od_clk_voltage"
         ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
         print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+        if env.gut_const.show_fans == True:
+            print("sudo sh -c \"echo \'2\' >  %s\"" % (pwm_enable_file), file=fileptr)
         print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
         print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+        # No need to reset clk pstate masks as commit to pp_od_clk_voltage will reset
     
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()
         os.chmod(out_filename, 0o744)
         print("Batch file completed: %s" % out_filename)
-        if gut_const.execute_pac == True:
+        if env.gut_const.execute_pac == True:
             print("Writing changes to GPU %s" % v.card_path)
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
@@ -677,6 +899,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--execute_pac", help="execute pac bash script without review", action="store_true", default=False)
+    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -692,17 +915,17 @@ def main():
         print("Status: ", __status__)
         sys.exit(0)
 
-    gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    if args.debug == True :  gut_const.DEBUG = True
-    gut_const.execute_pac = args.execute_pac
+    env.gut_const.DEBUG = args.debug 
+    if args.no_fan == True: env.gut_const.show_fans = False
+    env.gut_const.execute_pac = args.execute_pac
 
-    if gut_const.check_env() < 0:
+    if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
-        featuremask = gut_const.read_amdfeaturemask()
+        featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
         print("Cannot read ppfeaturemask. Exiting...")
         sys.exit(-1)
@@ -712,7 +935,7 @@ def main():
         print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
         sys.exit(-1)
 
-    gut_const.get_amd_driver_version()
+    env.gut_const.get_amd_driver_version()
 
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
@@ -740,10 +963,10 @@ def main():
         print(f"{num_amd_gpus} are compatible")
         print("")
 
-    print("WARNING: Under Development")
-    print("WARNING: Works but not fully tested.")
-    print("Please report any bugs found.  Thanks!")
-    print()
+    #print("WARNING: Under Development")
+    #print("WARNING: Works but not fully tested.")
+    #print("Please report any bugs found.  Thanks!")
+    #print()
 
     # Display Gtk style Monitor
     devices = {}

@@ -19,12 +19,12 @@
 """
 __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ""
+__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.0.0"
+__version__ = "v2.1.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Stable Release"
 
 import re
 import subprocess
@@ -39,83 +39,11 @@ from pathlib import Path
 from uuid import uuid4
 import glob 
 import shutil 
+try:
+    from GPUmodules import env 
+except:
+    import env 
 
-
-class GUT_CONST:
-    def __init__(self):
-        self.featuremask = "/sys/module/amdgpu/parameters/ppfeaturemask"
-        self.card_root = "/sys/class/drm/"
-        self.hwmon_sub = "hwmon/hwmon"
-        self.execute_pac = False
-        self.DEBUG = False
-        self.SLEEP = 2
-        self.PATH = "."
-        self.amdfeaturemask = ""
-
-    def read_amdfeaturemask(self):
-        with open(gut_const.featuremask) as fm_file:
-            self.amdfeaturemask = int(fm_file.readline())
-            return (self.amdfeaturemask)
-
-    def check_env(self):
-        # Check python version
-        (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        if python_major < "3":
-            print("Using python" + python_major + ", but benchMT requires python3.", file=sys.stderr)
-            return(-1)
-        if python_minor < "6":
-            print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
-                    " but, benchMT requires python 3.6 and up.", file=sys.stderr)
-            return(-1)
-
-        # Check Linux Kernel version
-        linux_version = platform.release()
-        if int(linux_version.split(".")[0]) < 4:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
-            return(-2)
-        if int(linux_version.split(".")[1]) < 8:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
-            return(-2)
-
-        # Check AMD GPU Driver Version
-        lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
-                stderr=subprocess.DEVNULL).decode().split("\n")
-        for lshw_line in lshw_out:
-            searchObj = re.search('configuration:', lshw_line)
-            if(searchObj != None):
-                lineitems = lshw_line.split(sep=':')
-                driver_str = lineitems[1].strip()
-                searchObj = re.search('driver=amdgpu', driver_str)
-                if(searchObj != None):
-                    return(0)
-                else:
-                    print(f"amdgpu-utils non-compatible driver: {driver_str}")
-                    return(-3)
-        return(0)
-
-    def get_amd_driver_version(self):
-        if shutil.which("/usr/bin/dpkg") == None:
-            print("can not determine amdgpu version")
-            return(-1)
-        try:
-            dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu'), shell=False,
-                    stderr=subprocess.DEVNULL).decode().split("\n")
-            for dpkg_line in dpkg_out:
-                searchObj = re.search('amdgpu', dpkg_line)
-                if(searchObj != None):
-                   dpkg_items = dpkg_line.split()
-                   print(f"amdgpu version: {dpkg_items[2]}")
-        except subprocess.CalledProcessError as e:
-            if re.search('exit status 1', str(e)) != None:
-                print(str(e))
-                print("Error: amdgpu drivers not installed, exiting...")
-                sys.exit(-1)
-        except:
-            print("Warning: Cannot read determine amdgpu version.")
-            return(-1)
-        return(0)
-
-gut_const = GUT_CONST()
 
 class GPU_ITEM:
     def __init__(self, item_id):
@@ -123,6 +51,8 @@ class GPU_ITEM:
         self.card_num = -1
         self.card_path = ""
         self.hwmon_path = ""
+        # TODO fully implement compatible flag
+        self.compatible = True
 
         self.params = {
         "uuid" : item_id,
@@ -135,9 +65,16 @@ class GPU_ITEM:
         "hwmon_path" : "",
         "power" : -1,
         "power_cap" : -1,
-        "power_cap_min" : -1,
-        "power_cap_max" : -1,
+        "power_cap_range" : [-1,-1],
+        "fan_enable" : -1,
+        "pwm_mode" : [-1,"UNK"],
+        "fan_pwm" : -1,
+        "fan_speed" : -1,
+        "fan_speed_range" : [-1,-1],
+        "fan_pwm_range" : [-1,-1],
+        "fan_target" : -1,
         "temp" : -1,
+        "temp_crit" : -1,
         "vddgfx" : -1,
         "vddc_range" : ["",""],
         "loading" : -1,
@@ -176,6 +113,8 @@ class GPU_ITEM:
     def set_params_value(self, name, value):
         # update params dictionary
         self.params[name] = value
+        if name == "driver" and value != "amdgpu":
+            self.compatible = False
         if name == "card_num":
             self.card_num = value
         if name == "card_path":
@@ -211,9 +150,21 @@ class GPU_ITEM:
                 "hwmon_path" : "HWmon",
                 "power" : "Current Power (W)",
                 "power_cap" : "Power Cap (W)",
-                "power_cap_min" : "Min Power Cap (W)",
-                "power_cap_max" : "Max Power Cap (W)",
+                "power_cap_range" : "Power Cap Range (W)"
+                }
+        if env.gut_const.show_fans == True:
+            GPU_Param_Labels.update({
+                    "fan_enable" : "Fan Enable",
+                    "pwm_mode" : "Fan PWM Mode",
+                    "fan_pwm" : "Current Fan PWM (%)",
+                    "fan_speed" : "Current Fan Speed (rpm)",
+                    "fan_target" : "Fan Target Speed (rpm)",
+                    "fan_speed_range" : "Fan Speed Range (rpm)",
+                    "fan_pwm_range" : "Fan PWM Range (%)"
+                    })
+        GPU_Param_Labels.update({
                 "temp" : "Current Temp (C)",
+                "temp_crit" : "Critical Temp (C)",
                 "vddgfx" : "Current VddGFX (mV)",
                 "vddc_range" : "Vddc Range",
                 "loading" : "Current Loading (%)",
@@ -228,7 +179,7 @@ class GPU_ITEM:
                 "mclk_f_range" : "MCLK Range",
                 "ppm" : "Power Performance Mode",
                 "power_dpm_force" : "Power Force Performance Level"
-                }
+                })
         return(GPU_Param_Labels)
 
     def get_all_clinfo_labels(self):
@@ -250,7 +201,21 @@ class GPU_ITEM:
         return(GPU_CLINFO_Labels)
 
     def is_valid_power_cap(self, power_cap):
-        if power_cap >= self.get_params_value("power_cap_min") and power_cap <= self.get_params_value("power_cap_max"):
+        power_cap_range = self.get_params_value("power_cap_range")
+        if power_cap >= power_cap_range[0] and power_cap <= power_cap_range[1]:
+            return(True)
+        elif power_cap < 0:
+            # negative values will be interpretted as reset request
+            return(True)
+        else:
+            return(False)
+
+    def is_valid_fan_pwm(self, pwm_value):
+        pwm_range = self.get_params_value("fan_pwm_range")
+        if pwm_value >= pwm_range[0] and pwm_value <= pwm_range[1]:
+            return(True)
+        elif pwm_value < 0:
+            # negative values will be interpretted as reset request
             return(True)
         else:
             return(False)
@@ -279,6 +244,35 @@ class GPU_ITEM:
                 return(True)
         return(False)
 
+    def is_valid_pstate_list_str(self, ps_str, clk_name):
+        if ps_str == "":
+            return(True)
+        for ps in ps_str.split():
+            ps_list = self.get_pstate_list(clk_name)
+            try:
+                ps_list.index(int(ps))
+            except:
+                print("Error: Invalid pstate %s for %s." % (ps, clk_name), file=sys.stderr)
+                return(False)
+        return(True)
+
+    def get_pstate_list_str(self, clk_name):
+        """ Get list of pstate numbers.
+            return as a string.
+        """
+        ps_list = self.get_pstate_list(clk_name)
+        return(','.join(str(ps) for ps in ps_list))
+
+    def get_pstate_list(self, clk_name):
+        """ Get list of pstate numbers.
+            return as a list.
+        """
+        if clk_name == "SCLK":
+            return(list(self.sclk_state.keys()))
+        elif clk_name == "MCLK":
+            return(list(self.mclk_state.keys()))
+        return([])
+
     def get_current_ppm_mode(self):
         if self.get_params_value("power_dpm_force").lower() == "auto":
             return([-1,"AUTO"])
@@ -294,16 +288,29 @@ class GPU_ITEM:
                 linestr = line.strip()
                 linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                 lineItems = linestr.split()
+                if len(lineItems) < 2:
+                    print("Error: invalid ppm: %s"  % linestr, file=sys.stderr)
+                    continue
                 self.ppm_modes[lineItems[0]] = lineItems[1:]
             self.ppm_modes["-1"] = ["AUTO","Auto"]
+        card_file.close()
+
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
 
     def get_pstates(self):
         range_mode = False
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Error getting pstates: ", self.card_path, file=sys.stderr)
+            self.compatible = False
+            sys.exit(-1)
+        if(os.path.isfile(self.card_path + "power_dpm_state") == False):
+            print("Error: Looks like DPM is not enabled: %s doesn't exist" % (self.card_path + "power_dpm_state"), file=sys.stderr)
+            self.compatible = False
             sys.exit(-1)
         with open(self.card_path + "pp_od_clk_voltage") as card_file:
             for line in card_file:
@@ -314,6 +321,10 @@ class GPU_ITEM:
                         range_mode = True
                     continue
                 lineitems = line.split()
+                if len(lineitems) < 3:
+                    print("Error: Invalid pstate entry: %s" % (self.card_path + "pp_od_clk_voltage"), file=sys.stderr)
+                    self.compatible = False
+                    continue
                 if range_mode == False:
                     lineitems[0] = int(re.sub(':','', lineitems[0]))
                     if clk_name == "OD_SCLK:":
@@ -333,38 +344,155 @@ class GPU_ITEM:
     def read_hw_data(self):
         if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
             with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
-                self.set_params_value("power_cap_max", int(hwmon_file.readline())/1000000)
-        if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
-            with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
-                self.set_params_value("power_cap_min", int(hwmon_file.readline())/1000000)
+                power1_cap_max_value =  int(int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
+            if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
+                with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
+                    power1_cap_min_value =  int(int(hwmon_file.readline())/1000000)
+                self.set_params_value("power_cap_range", [power1_cap_min_value, power1_cap_max_value])
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
+            hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
             with open(self.hwmon_path + "power1_cap") as hwmon_file:
                 self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
                 self.set_params_value("power", int(hwmon_file.readline())/1000000)
+            hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
             with open(self.hwmon_path + "temp1_input") as hwmon_file:
                 self.set_params_value("temp",  int(hwmon_file.readline())/1000)
+            hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
+
+        if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
+            with open(self.hwmon_path + "temp1_crit") as hwmon_file:
+                self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
+            hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
+
+        if env.gut_const.show_fans == True:
+            if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
+                with open(self.hwmon_path + "fan1_enable") as hwmon_file:
+                    self.set_params_value("fan_enable",  hwmon_file.readline().strip())
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_enable"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
+                with open(self.hwmon_path + "fan1_target") as hwmon_file:
+                    self.set_params_value("fan_target",  int(hwmon_file.readline()))
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_target"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
+                with open(self.hwmon_path + "fan1_input") as hwmon_file:
+                    self.set_params_value("fan_speed",  int(hwmon_file.readline()))
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
+                with open(self.hwmon_path + "fan1_max") as hwmon_file:
+                    fan1_max_value =  int(hwmon_file.readline())
+                hwmon_file.close()
+                if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
+                    with open(self.hwmon_path + "fan1_min") as hwmon_file:
+                        fan1_min_value =  int(hwmon_file.readline())
+                    self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
+                with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
+                    pwm_mode_value = int(hwmon_file.readline().strip())
+                    if pwm_mode_value == 0:
+                        pwm_mode_name = "None"
+                    elif pwm_mode_value == 1:
+                        pwm_mode_name = "Manual"
+                    elif pwm_mode_value == 2:
+                        pwm_mode_name = "Dynamic"
+                    self.set_params_value("pwm_mode", [pwm_mode_value, pwm_mode_name])
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_enable"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "pwm1") == True):
+                with open(self.hwmon_path + "pwm1") as hwmon_file:
+                    self.set_params_value("fan_pwm",  int(100*(int(hwmon_file.readline())/255)))
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
+                with open(self.hwmon_path + "pwm1_max") as hwmon_file:
+                    pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
+                hwmon_file.close()
+                if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
+                    with open(self.hwmon_path + "pwm1_min") as hwmon_file:
+                        pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
+                    self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
+
         if(os.path.isfile(self.hwmon_path + "in0_label") == True):
             with open(self.hwmon_path + "in0_label") as hwmon_file:
                 if hwmon_file.readline().rstrip() == "vddgfx":
                     with open(self.hwmon_path + "in0_input") as hwmon_file2:
                         self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
+                    hwmon_file.close()
+        else:
+            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
 
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
                 self.set_params_value("loading", int(card_file.readline()))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "gpu_busy_percent"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "current_link_speed") == True):
             with open(self.card_path + "current_link_speed") as card_file:
                 self.set_params_value("link_spd", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_speed"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "current_link_width") == True):
             with open(self.card_path + "current_link_width") as card_file:
                 self.set_params_value("link_wth", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_width"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "vbios_version") == True):
             with open(self.card_path + "vbios_version") as card_file:
                 self.set_params_value("vbios", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "vbios_version"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
             with open(self.card_path + "pp_dpm_sclk") as card_file:
                 for line in card_file:
@@ -372,6 +500,10 @@ class GPU_ITEM:
                         lineitems = line.split(sep=':')
                         self.set_params_value("sclk_ps", lineitems[0].strip())
                         self.set_params_value("sclk_f", lineitems[1].strip().strip('*'))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_sclk"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
             with open(self.card_path + "pp_dpm_mclk") as card_file:
                 for line in card_file:
@@ -379,6 +511,10 @@ class GPU_ITEM:
                         lineitems = line.split(sep=':')
                         self.set_params_value("mclk_ps", lineitems[0].strip())
                         self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_mclk"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "pp_power_profile_mode") == True):
             with open(self.card_path + "pp_power_profile_mode") as card_file:
                 for line in card_file:
@@ -390,9 +526,17 @@ class GPU_ITEM:
                         mode_str = re.sub(r'[ ]+','-', mode_str)
                         self.set_params_value("ppm", mode_str)
                         break
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_power_profile_mode"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
             with open(self.card_path + "power_dpm_force_performance_level") as card_file:
                 self.set_params_value("power_dpm_force", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
+
 
     def print_ppm_table(self):
         # Formatting optimized for Nano, but I think Vega64 just has 1 item for description
@@ -429,19 +573,27 @@ class GPU_ITEM:
 class GPU_LIST:
     def __init__(self):
         self.list = {}
-        self.table_parameters = ["model_short", "loading", "power", "power_cap",
-                "temp", "vddgfx", "sclk_f", "sclk_ps", "mclk_f",
-                "mclk_ps", "ppm"]
-        self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
-                "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate", "mclk_f":"Mclk (MHz)",
-                "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
+        if env.gut_const.show_fans == True:
+            self.table_parameters = ["model_short", "loading", "power", "power_cap",
+                    "temp", "vddgfx", "fan_pwm", "sclk_f", "sclk_ps",
+                    "mclk_f", "mclk_ps", "ppm"]
+            self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+                    "temp":"T (C)", "vddgfx":"VddGFX (mV)", "fan_pwm":"Fan Spd (%)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
+                    "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
+        else:
+            self.table_parameters = ["model_short", "loading", "power", "power_cap",
+                    "temp", "vddgfx", "sclk_f", "sclk_ps",
+                    "mclk_f", "mclk_ps", "ppm"]
+            self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+                    "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
+                    "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
-        for card_names in glob.glob(gut_const.card_root + "card?/device/pp_od_clk_voltage"):
+        for card_names in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_ITEM(uuid4().hex)
             gpu_item.set_params_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
-            gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(gut_const.card_root + "card", ''))
-            gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
+            gpu_item.set_params_value("card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(env.gut_const.card_root + "card", ''))
+            gpu_item.set_params_value("hwmon_path",  gpu_item.get_params_value("card_path") + env.gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
     def get_ppm_table(self):
@@ -472,9 +624,9 @@ class GPU_LIST:
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
-        if gut_const.DEBUG: print("Found %s GPUs" % len(pcie_ids))
+        if env.gut_const.DEBUG: print("Found %s GPUs" % len(pcie_ids))
         for pcie_id in pcie_ids:
-            if gut_const.DEBUG: print("GPU: ", pcie_id)
+            if env.gut_const.DEBUG: print("GPU: ", pcie_id)
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
 
             #Get Long GPU Name
@@ -494,15 +646,15 @@ class GPU_LIST:
             else:
                 driver_module = driver_module_items[1].strip()
             #driver_module = (lspci_items[2].split(':')[1]).strip()
-            if gut_const.DEBUG: print(lspci_items)
+            if env.gut_const.DEBUG: print(lspci_items)
             # Find matching card
-            device_dirs = glob.glob(gut_const.card_root + "card?/device")
+            device_dirs = glob.glob(env.gut_const.card_root + "card?/device")
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
-                if gut_const.DEBUG: print("device_dir: ", device_dir)
-                if gut_const.DEBUG: print("sysfspath: ", sysfspath)
-                if gut_const.DEBUG: print("pcie_id: ", pcie_id)
-                if gut_const.DEBUG: print("sysfspath-7: ", sysfspath[-7:])
+                if env.gut_const.DEBUG: print("device_dir: ", device_dir)
+                if env.gut_const.DEBUG: print("sysfspath: ", sysfspath)
+                if env.gut_const.DEBUG: print("pcie_id: ", pcie_id)
+                if env.gut_const.DEBUG: print("sysfspath-7: ", sysfspath[-7:])
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
@@ -629,17 +781,17 @@ class GPU_LIST:
         return(cnt)
 
     def list_compatible_gpus(self):
-        # TODO return a list of only compaitble GPUs
-        cnt = 0
+        # TODO use this function through out utilities
+        compatible_list = {}
         for k, v in self.list.items():
-            if v.get_params_value("driver") == "amdgpu":
-                cnt += 1
-        return(cnt)
+            if v.compatible == True:
+                compatible_list[k]=v
+        return(compatible_list)
 
     def num_compatible_gpus(self):
         cnt = 0
         for k, v in self.list.items():
-            if v.get_params_value("driver") == "amdgpu":
+            if v.compatible == True:
                 cnt += 1
         return(cnt)
 
@@ -654,38 +806,38 @@ class GPU_LIST:
         num_gpus = self.num_gpus()
         if num_gpus < 1: return(-1)
 
-        print("┌", "─".ljust(12,'─'), sep="", end="")
+        print("┌", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┬", "─".ljust(12,'─'), sep="", end="")
+                print("┬", "─".ljust(16,'─'), sep="", end="")
         print("┐")
 
-        print("│", '\x1b[1;36m'+"Card #".ljust(12,' ')+'\x1b[0m', sep="", end="")
+        print("│", '\x1b[1;36m'+"Card #".ljust(13,' ')+'\x1b[0m', sep="", end="")
         for k, v in self.list.items():
-            print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(12,' ') + '\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+("card"+ v.get_params_value("card_num")).ljust(16,' ') + '\x1b[0m', sep="", end="")
         print("│")
 
-        print("├", "─".ljust(12,'─'), sep="", end="")
+        print("├", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┼", "─".ljust(12,'─'), sep="", end="")
+                print("┼", "─".ljust(16,'─'), sep="", end="")
         print("┤")
 
         for table_item in self.table_parameters:
-            print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(12,' ')[:12]+'\x1b[0m', sep="", end="")
+            print("│", '\x1b[1;36m'+self.table_param_labels[table_item].ljust(13,' ')[:13]+'\x1b[0m', sep="", end="")
             for k, v in self.list.items():
-                print("│", str(v.get_params_value(table_item)).ljust(12,' ')[:12], sep="", end="")
+                print("│", str(v.get_params_value(table_item)).ljust(16,' ')[:16], sep="", end="")
             print("│")
 
-        print("└", "─".ljust(12,'─'), sep="", end="")
+        print("└", "─".ljust(13,'─'), sep="", end="")
         for k, v in self.list.items():
-                print("┴", "─".ljust(12,'─'), sep="", end="")
+                print("┴", "─".ljust(16,'─'), sep="", end="")
         print("┘")
 
         
 def test():
-    gut_const.DEBUG = True
+    #env.gut_const.DEBUG = True
 
     try:
-        featuremask = gut_const.read_amdfeaturemask()
+        featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
         print("Cannot read ppfeaturemask. Exiting...")
         sys.exit(-1)
@@ -702,9 +854,16 @@ def test():
     gpu_list.read_device_data()
     gpu_list.get_gpu_details()
     gpu_list.print_table()
-    gpu_list.print()
+    #gpu_list.print()
+    com_list = gpu_list.list_compatible_gpus()
+    print(gpu_list.list)
+    print(com_list)
+    exit()
 
     gpu_list.get_pstates()
+
+    for k, v in gpu_list.list.items():
+        print(v.get_pstate_list("MCLK"))
 
 
 if __name__ == "__main__":

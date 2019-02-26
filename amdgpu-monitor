@@ -3,10 +3,11 @@
 
     A utility to give the current state of all compatible AMD GPUs. The default behavior
     is to continuously update a text based table in the current window unitl Ctrl-C is
-    pressed.  With the *--gui* option, a table of relevant parameters will be
-    updated in a Gtk window.  You can specify the delay between updates with the
-    *--sleep N* option where N is an integer > zero that specifies the number of seconds
-    to sleep.
+    pressed.  With the *--gui* option, a table of relevant parameters will be updated
+    in a Gtk window.  You can specify the delay between updates with the *--sleep N*
+    option where N is an integer > zero that specifies the number of seconds to sleep.
+    The *--no_fan* option can be used to disable the reading and display of fan
+    information.
 
     Copyright (C) 2019  RueiKe
 
@@ -25,10 +26,10 @@
 """
 __author__ = "RueiKe"
 __copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ""
+__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-monitor"
-__version__ = "v2.0.0"
+__version__ = "v2.1.0"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -44,21 +45,20 @@ import platform
 import sys
 import time
 from GPUmodules import GPUmodules as GPU
+from GPUmodules import env
 from datetime import datetime
 from uuid import uuid4
 import glob 
 import shutil 
 from pathlib import Path
 
-# Instantiate project constants
-gut_const = GPU.GUT_CONST()
 
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="amdgpu-monitor")
         self.set_border_width(1)
-        if(os.path.isfile(gut_const.PATH + '/amdgpu-monitor.icon.png') == True):
-            self.set_icon_from_file(gut_const.PATH + '/amdgpu-monitor.icon.png')
+        if(os.path.isfile(env.gut_const.PATH + '/amdgpu-monitor.icon.png') == True):
+            self.set_icon_from_file(env.gut_const.PATH + '/amdgpu-monitor.icon.png')
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
         self.add(grid)
@@ -85,12 +85,12 @@ class MonitorWindow(Gtk.Window):
             grid.attach(lbox, col, i, 1, 1)
             v.set_alignment(0, 0.5)
             i += 1
-
         for k, v in gpu_list.list.items():
             devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
+
         for dk, dv in devices.items():
             col += 1
             i = 0
@@ -120,7 +120,7 @@ def updateData(gpu_list, devices):
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))
             lv.set_text(data_value)
-            #lv.set_text(str(gpu_list.list[dk].get_params_value(lk)))
+            lv.set_width_chars(16)
 
 def refresh(refreshtime, updateData, gpu_list, devices):
     while True:
@@ -133,6 +133,7 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
+    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -149,21 +150,22 @@ def main():
         print("Status: ", __status__)
         sys.exit(0)
 
-    gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
-    if args.debug == True :  gut_const.DEBUG = True
+    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    env.gut_const.DEBUG = args.debug
+    if args.no_fan == True: env.gut_const.show_fans = False
     if int(args.sleep) > 0 :
-        gut_const.SLEEP = int(args.sleep)
+        env.gut_const.SLEEP = int(args.sleep)
     else:
         print("Invalid value for sleep specified.  Must be an integer great than zero")
         sys.exit(-1)
 
-    if gut_const.check_env() < 0:
+    if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
-        featuremask = gut_const.read_amdfeaturemask()
+        featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
         print("Cannot read ppfeaturemask. Exiting...")
         sys.exit(-1)
@@ -173,7 +175,7 @@ def main():
         print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
         sys.exit(-1)
 
-    gut_const.get_amd_driver_version()
+    env.gut_const.get_amd_driver_version()
 
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
@@ -204,7 +206,7 @@ def main():
         gmonitor.show_all()
 
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[gut_const.SLEEP, updateData, gpu_list, devices]).start()
+        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP, updateData, gpu_list, devices]).start()
 
         Gtk.main()
     else:
@@ -213,9 +215,9 @@ def main():
             while True:
                 gpu_list.read_hw_data()
                 gpu_list.read_device_data()
-                if gut_const.DEBUG == False: os.system('clear')
+                if env.gut_const.DEBUG == False: os.system('clear')
                 gpu_list.print_table()
-                time.sleep(gut_const.SLEEP)
+                time.sleep(env.gut_const.SLEEP)
         except KeyboardInterrupt:
             sys.exit(0)
 
