@@ -113,7 +113,10 @@ class MonitorWindow(Gtk.Window):
 def updateData(gpu_list, devices):
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
-    #gpu_list.print_log(log_file_ptr)
+    if env.gut_const.LOG == True:  
+        gpu_list.print_log(env.gut_const.log_file_ptr)
+
+    # update gui 
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == "card_num":
@@ -200,6 +203,12 @@ def main():
         print(f"{num_amd_gpus} are Compatible")
         print("")
 
+    if args.log == True:
+        env.gut_const.LOG = True
+        log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
+        env.gut_const.log_file_ptr = open(log_file,'w')
+        gpu_list.print_log_header(env.gut_const.log_file_ptr)
+
     if args.gui == True:
         # Display Gtk style Monitor
         devices = {}
@@ -212,11 +221,6 @@ def main():
 
         Gtk.main()
     else:
-        if args.log == True:  
-            env.gut_const.LOG = True
-            log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
-            env.gut_const.log_file_ptr = open(log_file,'w')
-            gpu_list.print_log_header(env.gut_const.log_file_ptr)
         # Display text style Monitor
         try:
             while True:
@@ -224,11 +228,11 @@ def main():
                 gpu_list.read_device_data()
                 if env.gut_const.DEBUG == False: os.system('clear')
                 gpu_list.print_table()
-                if args.log == True:  
+                if env.gut_const.LOG == True:  
                     gpu_list.print_log(env.gut_const.log_file_ptr)
                 time.sleep(env.gut_const.SLEEP)
         except KeyboardInterrupt:
-            if args.log == True:  
+            if env.gut_const.LOG == True:  
                 env.gut_const.log_file_ptr.close()
             sys.exit(0)
 
