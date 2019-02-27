@@ -1,5 +1,5 @@
 # amdgpu-utils
-A set of utilities for monitoring AMD GPU performances and modifying control settings.
+A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You also must first set your linux machine to boot with
@@ -72,3 +72,4 @@ fan details from the utility.
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
 * Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
 * Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
+* Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
