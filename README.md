@@ -1,7 +1,7 @@
 # amdgpu-utils
-A set of utilities for monitoring and customizing GPU performance
+A set of utilities for monitoring AMD GPU performances and modifying control settings.
 
-In order to use any of these utilities, you must have *amdgpu* open source driver
+In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You also must first set your linux machine to boot with
 amdgpu.ppfeaturemask=0xffff7fff.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
@@ -26,18 +26,18 @@ information.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
-be written to the GPU are written to a bash file for the user to inspect and run.  If you
-have confidence, the *--execute_pac* option can be used to run and then delete the bash
-file. Since the GPU device files are writable only by root, sudo is used to execute commands
-in the bash file, as a result, you will be prompted for credentials in the terminal where
-you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate fan details from
-the utility.
+be written to a GPU are written to a bash file for the user to inspect and run.  If you
+have confidence, the *--execute_pac* option can be used to execute the bash file when saved
+and then delete it. Since the GPU device files are writable only by root, sudo is used to
+execute commands in the bash file, as a result, you will be prompted for credentials in the
+terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
+fan details from the utility.
 
 ## New in this Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
 * Added fan monitor and control features.
-* Implemented --no_fan option across all tools.
-* Implemented P-state masking.
+* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
+* Implemented P-state masking, which limits available P-states to those specified. Useful for power management.
 * Fixed implementation of global variables that broke with implementation of modules in library.
 * Added more validation checks before writing parameters to cards.
 
@@ -59,6 +59,7 @@ the utility.
 * Completed implementation of the GPU Monitor tool.
 
 ## Development Plans
+* Write a users guide.
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a startup utility to initialize GPU settings at boot up.
 * Include most detailed GPU name in reading from lspci and amdgpu-ls output. Optimize both long and short names.

@@ -2,12 +2,12 @@
 """amdgpu-pac  -  A utility program and control compatible AMD GPUs
 
     Program and Control compatible AMD GPUs with this utility.  By default, the commands to
-    be written to the GPU are written to a bash file for the user to inspect and run.  If you
-    have confidence, the *--execute_pac* option can be used to run and then delete the bash
-    file. Since the GPU device files are writable only by root, sudo is used to execute commands
-    in the bash file, as a result, you will be prompted for credentials in the terminal where
-    you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate fan details from
-    the utility.
+    be written to a GPU are written to a bash file for the user to inspect and run.  If you
+    have confidence, the *--execute_pac* option can be used to execute the bash file when saved
+    and then delete it. Since the GPU device files are writable only by root, sudo is used to
+    execute commands in the bash file, as a result, you will be prompted for credentials in the
+    terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
+    fan details from the utility.
 
     Copyright (C) 2019  RueiKe
 
