@@ -44,6 +44,7 @@ try:
 except:
     import env 
 
+device_decode = {"0x687f":"RX Vega64"}
 
 class GPU_ITEM:
     def __init__(self, item_id):
@@ -53,16 +54,21 @@ class GPU_ITEM:
         self.hwmon_path = ""
         # TODO fully implement compatible flag
         self.compatible = True
+        time_0 = datetime.utcnow()
+        self.energy = {"t0": time_0, "tn": time_0, "cummulative": 0.0}
 
         self.params = {
         "uuid" : item_id,
         "card_num" : "",
         "pcie_id" : "",
         "driver" : "",
+        "device" : "",
+        "model_display" : "",
         "model" : "",
         "model_short" : "",
         "card_path" : "",
         "hwmon_path" : "",
+        "energy": 0.0,
         "power" : -1,
         "power_cap" : -1,
         "power_cap_range" : [-1,-1],
@@ -141,6 +147,7 @@ class GPU_ITEM:
     def get_all_params_labels(self):
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
+                "device" : "Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
                 "card_num" : "Card Number",
@@ -365,7 +372,13 @@ class GPU_ITEM:
 
         if(os.path.isfile(self.hwmon_path + "power1_average") == True):
             with open(self.hwmon_path + "power1_average") as hwmon_file:
-                self.set_params_value("power", int(hwmon_file.readline())/1000000)
+                power_uw = int(hwmon_file.readline())
+                time_n = datetime.utcnow()
+                self.set_params_value("power", int(power_uw)/1000000)
+                delta_hrs = ((time_n - self.energy["tn"]).total_seconds())/3600
+                self.energy["tn"] = time_n
+                self.energy["cummulative"] += delta_hrs * power_uw/1000000000
+                self.set_params_value("energy", round(self.energy["cummulative"], 6))
             hwmon_file.close()
         else:
             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
@@ -465,6 +478,13 @@ class GPU_ITEM:
             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
 
     def read_device_data(self):
+        if(os.path.isfile(self.card_path + "device") == True):
+            with open(self.card_path + "device") as card_file:
+                self.set_params_value("device", card_file.readline().strip())
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "device"), file=sys.stderr)
+
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
                 self.set_params_value("loading", int(card_file.readline()))
@@ -575,16 +595,20 @@ class GPU_LIST:
         self.list = {}
         if env.gut_const.show_fans == True:
             self.table_parameters = ["model_short", "loading", "power", "power_cap",
+                    "energy",
                     "temp", "vddgfx", "fan_pwm", "sclk_f", "sclk_ps",
                     "mclk_f", "mclk_ps", "ppm"]
             self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+                    "energy":"Energy (kWh)",
                     "temp":"T (C)", "vddgfx":"VddGFX (mV)", "fan_pwm":"Fan Spd (%)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
         else:
             self.table_parameters = ["model_short", "loading", "power", "power_cap",
+                    "energy",
                     "temp", "vddgfx", "sclk_f", "sclk_ps",
                     "mclk_f", "mclk_ps", "ppm"]
             self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+                    "energy":"Energy (kWh)",
                     "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
