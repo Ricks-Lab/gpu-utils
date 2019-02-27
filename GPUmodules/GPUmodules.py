@@ -63,7 +63,7 @@ class GPU_ITEM:
         "pcie_id" : "",
         "driver" : "",
         "device" : "",
-        "model_display" : "",
+        "model_device_decode" : "",
         "model" : "",
         "model_short" : "",
         "card_path" : "",
@@ -148,6 +148,7 @@ class GPU_ITEM:
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
                 "device" : "Device ID",
+                "model_device_decode" : "Decoded Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
                 "card_num" : "Card Number",
@@ -480,8 +481,11 @@ class GPU_ITEM:
     def read_device_data(self):
         if(os.path.isfile(self.card_path + "device") == True):
             with open(self.card_path + "device") as card_file:
-                self.set_params_value("device", card_file.readline().strip())
+                device_id = card_file.readline().strip()
+                self.set_params_value("device", device_id)
             card_file.close()
+            if device_id in device_decode:
+                self.set_params_value("model_device_decode", device_decode[device_id])
         else:
             print("Error: card file doesn't exist: %s" % (self.card_path + "device"), file=sys.stderr)
 
@@ -856,7 +860,27 @@ class GPU_LIST:
                 print("┴", "─".ljust(16,'─'), sep="", end="")
         print("┘")
 
-        
+    def print_log_header(self, log_file_ptr):
+        num_gpus = self.num_gpus()
+        if num_gpus < 1: return(-1)
+
+        #Print Header
+        print("Time|Card#", end="", file=log_file_ptr )
+        for table_item in self.table_parameters:
+            print("|" + table_item, end="", file=log_file_ptr)
+        print("", file=log_file_ptr)
+
+    def print_log(self, log_file_ptr):
+        num_gpus = self.num_gpus()
+        if num_gpus < 1: return(-1)
+
+        #Print Data
+        for k, v in self.list.items():
+            print(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num), end="", file=log_file_ptr)
+            for table_item in self.table_parameters:
+                print("|", str(v.get_params_value(table_item)), end="", file=log_file_ptr)
+            print("", file=log_file_ptr)
+
 def test():
     #env.gut_const.DEBUG = True
 

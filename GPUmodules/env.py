@@ -44,6 +44,8 @@ class GUT_CONST:
         self.hwmon_sub = "hwmon/hwmon"
         self.execute_pac = False
         self.DEBUG = False
+        self.LOG = False
+        self.log_file_ptr = ""
         self.show_fans = True
         self.write_delta_only = False
         self.SLEEP = 2
