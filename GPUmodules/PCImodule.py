@@ -89,6 +89,8 @@ def test():
 
     test_id = {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
     #test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1462', 'subsystem_device': '0x3416'}
+    test_id =  {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
+    test_id =  {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
     print(test_id)
     pci_id_file_name = "amd_pci_id.txt"
 
