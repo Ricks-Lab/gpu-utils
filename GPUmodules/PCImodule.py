@@ -79,27 +79,16 @@ class PCI_ID:
                     break
                 if re.fullmatch(r'^\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
                     if line[2:6] == dev_id["subsystem_vendor"].replace('0x',''):
-                        model_str = line[6:]
-                        level += 1
-                        continue
-            elif level == 3:
-                if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    break
-                if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    break
-                if re.fullmatch(r'^\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    break
-                if re.fullmatch(r'^\t\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    if line[3:7] == dev_id["subsystem_device"].replace('0x',''):
-                        model_str = line[7:]
-                        level += 1
-                        continue
+                        if line[7:11] == dev_id["subsystem_device"].replace('0x',''):
+                            model_str = line[11:]
+                            break
         return(model_str.strip())
 
 
 def test():
 
     test_id = {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
+    #test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1462', 'subsystem_device': '0x3416'}
     print(test_id)
     pci_id_file_name = "amd_pci_id.txt"
 
