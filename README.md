@@ -22,7 +22,9 @@ pressed.  With the *--gui* option, a table of relevant parameters will be update
 in a Gtk window.  You can specify the delay between updates with the *--sleep N*
 option where N is an integer > zero that specifies the number of seconds to sleep.
 The *--no_fan* option can be used to disable the reading and display of fan
-information.
+information.  The *--log* option is used to write all monitor data to a psv log file.
+When writing to a log file, the utility will indicate this in red at the top of the 
+window with a message that includes the log file name.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to

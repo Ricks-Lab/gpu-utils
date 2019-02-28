@@ -7,7 +7,9 @@
     in a Gtk window.  You can specify the delay between updates with the *--sleep N*
     option where N is an integer > zero that specifies the number of seconds to sleep.
     The *--no_fan* option can be used to disable the reading and display of fan
-    information.
+    information.  The *--log* option is used to write all monitor data to a psv log file.
+    When writing to a log file, the utility will indicate this in red at the top of the 
+    window with a message that includes the log file name.
 
     Copyright (C) 2019  RueiKe
 
@@ -29,9 +31,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-monitor"
-__version__ = "v2.1.0"
+__version__ = "v2.2.0"
 __maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__status__ = "Development"
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -64,12 +66,29 @@ class MonitorWindow(Gtk.Window):
         self.add(grid)
 
         col = 0
+        row=0
+        num_amd_gpus = gpu_list.num_gpus()
+        if env.gut_const.LOG == True:  
+            log_label = Gtk.Label()
+            log_label.set_markup("<big><b> Logging to:    </b>" + env.gut_const.log_file + "</big>")
+            log_label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60,.20,.20,1.0))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(log_label, True, True, 0)
+            grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
+        row += 1
+        row_start = row
+
+        row = row_start
         row_labels = {"card_num": Gtk.Label()}
         row_labels["card_num"].set_markup("<b>Card #</b>")
         for k, v in gpu_list.table_param_labels.items():
             row_labels[k] = Gtk.Label()
             row_labels[k].set_markup("<b>"+str(v)+"</b>")
-        i=0
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
@@ -82,9 +101,9 @@ class MonitorWindow(Gtk.Window):
             v.set_property("margin-right", 4)
             v.set_property("margin-left", 4)
             lbox.pack_start(v, True, True, 0)
-            grid.attach(lbox, col, i, 1, 1)
+            grid.attach(lbox, col, row, 1, 1)
             v.set_alignment(0, 0.5)
-            i += 1
+            row += 1
         for k, v in gpu_list.list.items():
             devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
@@ -93,7 +112,7 @@ class MonitorWindow(Gtk.Window):
 
         for dk, dv in devices.items():
             col += 1
-            i = 0
+            row = row_start
             for lk, lv in dv.items():
                 lbox = Gtk.Box(spacing=6)
                 lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
@@ -106,8 +125,8 @@ class MonitorWindow(Gtk.Window):
                 lv.set_property("margin-right", 3)
                 lv.set_property("margin-left", 3)
                 lbox.pack_start(lv, True, True, 0)
-                grid.attach(lbox, col, i, 1, 1)
-                i += 1
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
 
 def updateData(gpu_list, devices):
@@ -205,8 +224,8 @@ def main():
 
     if args.log == True:
         env.gut_const.LOG = True
-        log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
-        env.gut_const.log_file_ptr = open(log_file,'w')
+        env.gut_const.log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
+        env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w')
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 
     if args.gui == True:
