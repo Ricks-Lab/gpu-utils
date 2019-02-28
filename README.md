@@ -76,3 +76,4 @@ fan details from the utility.
 * Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
 * Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
 * Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
+* PCI ID Decode Table: <a href="https://pci-ids.ucw.cz/v2.2/pci.ids">PCI IDs</a>
