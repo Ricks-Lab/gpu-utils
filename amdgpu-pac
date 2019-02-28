@@ -70,7 +70,7 @@ class PACWindow(Gtk.Window):
             # Card Number in top center of box
             devices[v.uuid] = {"card_num":  Gtk.Label()}
             devices[v.uuid]["card_num"].set_markup("<big><b>Card "+ v.get_params_value(str("card_num")) +
-                    ":  </b>" + v.get_params_value("model") + "</big>")
+                    ":  </b>" + v.get_params_value("model_display") + "</big>")
             devices[v.uuid]["card_num"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             devices[v.uuid]["card_num"].set_property("margin-top", 1)
             devices[v.uuid]["card_num"].set_property("margin-bottom", 1)

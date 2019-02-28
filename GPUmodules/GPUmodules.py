@@ -63,9 +63,10 @@ class GPU_ITEM:
         "pcie_id" : "",
         "driver" : "",
         "device" : "",
-        "model_device_decode" : "",
+        "model_device_decode" : "UNDETERMINED",
         "model" : "",
         "model_short" : "",
+        "model_display" : "",
         "card_path" : "",
         "hwmon_path" : "",
         "energy": 0.0,
@@ -151,6 +152,7 @@ class GPU_ITEM:
                 "model_device_decode" : "Decoded Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
+                "model_display" : "Display Card Model",
                 "card_num" : "Card Number",
                 "card_path" : "Card Path",
                 "pcie_id" : "PCIe ID",
@@ -598,20 +600,20 @@ class GPU_LIST:
     def __init__(self):
         self.list = {}
         if env.gut_const.show_fans == True:
-            self.table_parameters = ["model_short", "loading", "power", "power_cap",
+            self.table_parameters = ["model_display", "loading", "power", "power_cap",
                     "energy",
                     "temp", "vddgfx", "fan_pwm", "sclk_f", "sclk_ps",
                     "mclk_f", "mclk_ps", "ppm"]
-            self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+            self.table_param_labels = {"model_display":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
                     "energy":"Energy (kWh)",
                     "temp":"T (C)", "vddgfx":"VddGFX (mV)", "fan_pwm":"Fan Spd (%)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
         else:
-            self.table_parameters = ["model_short", "loading", "power", "power_cap",
+            self.table_parameters = ["model_display", "loading", "power", "power_cap",
                     "energy",
                     "temp", "vddgfx", "sclk_f", "sclk_ps",
                     "mclk_f", "mclk_ps", "ppm"]
-            self.table_param_labels = {"model_short":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
+            self.table_param_labels = {"model_display":"Model", "loading":"Load %","power":"Power (W)", "power_cap":"Power Cap (W)",
                     "energy":"Energy (kWh)",
                     "temp":"T (C)", "vddgfx":"VddGFX (mV)", "sclk_f":"Sclk (MHz)", "sclk_ps":"Sclk Pstate",
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
@@ -658,16 +660,26 @@ class GPU_LIST:
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
 
             #Get Long GPU Name
-            # TODO report both line 1 and line 2 versions of name instead
+            #Line 0 name
+            gpu_name_0 = ""
+            gpu_name_items = lspci_items[0].split('[AMD/ATI]')
+            if len(gpu_name_items) < 2:
+                gpu_name_0 = "UNKNOWN"
+            else:
+                gpu_name_0 = gpu_name_items[1]
+            #Line 1 name
+            gpu_name_1 = ""
             gpu_name_items = lspci_items[1].split('[AMD/ATI]')
             if len(gpu_name_items) < 2:
-                gpu_name_items = lspci_items[0].split('[AMD/ATI]')
-                if len(gpu_name_items) < 2:
-                    gpu_name = "UNKNOWN"
-                else:
-                    gpu_name = gpu_name_items[1]
+                gpu_name_1 = "UNKNOWN"
             else:
-                gpu_name = gpu_name_items[1]
+                gpu_name_1 = gpu_name_items[1]
+            if len(gpu_name_0) > len(gpu_name_1):
+                gpu_name = gpu_name_0
+            else:
+                gpu_name = gpu_name_1
+
+            #Get Driver Name
             driver_module_items = lspci_items[2].split(':')
             if len(driver_module_items) < 2:
                 driver_module = "UNKNOWN"
@@ -694,6 +706,10 @@ class GPU_LIST:
                             model_short = re.sub(r'\].*$','', model_short)
                             model_short = re.sub(r'.*Radeon','', model_short)
                             v.set_params_value("model_short",  model_short)
+                            if v.get_params_value("model_device_decode") != "UNDETERMINED":
+                                v.set_params_value("model_display",  v.get_params_value("model_device_decode"))
+                            else:
+                                v.set_params_value("model_display",  model_short)
                             break
                     break
 
