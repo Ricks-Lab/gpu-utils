@@ -22,9 +22,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.1.0"
+__version__ = "v2.2.0"
 __maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__status__ = "Development"
 
 import re
 import subprocess
@@ -44,7 +44,6 @@ try:
 except:
     import env 
 
-device_decode = {"0x687f":"RX Vega64"}
 
 class GPU_ITEM:
     def __init__(self, item_id):
@@ -62,7 +61,7 @@ class GPU_ITEM:
         "card_num" : "",
         "pcie_id" : "",
         "driver" : "",
-        "device" : "",
+        "id" : {"vendor":"","device":"","subsystem_vendor":"","subsystem_device":""},
         "model_device_decode" : "UNDETERMINED",
         "model" : "",
         "model_short" : "",
@@ -148,7 +147,7 @@ class GPU_ITEM:
     def get_all_params_labels(self):
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
-                "device" : "Device ID",
+                "id" : "Device ID",
                 "model_device_decode" : "Decoded Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
@@ -481,15 +480,38 @@ class GPU_ITEM:
             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
 
     def read_device_data(self):
+        # get all device ID information
         if(os.path.isfile(self.card_path + "device") == True):
             with open(self.card_path + "device") as card_file:
                 device_id = card_file.readline().strip()
-                self.set_params_value("device", device_id)
             card_file.close()
-            if device_id in device_decode:
-                self.set_params_value("model_device_decode", device_decode[device_id])
         else:
             print("Error: card file doesn't exist: %s" % (self.card_path + "device"), file=sys.stderr)
+        if(os.path.isfile(self.card_path + "vendor") == True):
+            with open(self.card_path + "vendor") as card_file:
+                vendor_id = card_file.readline().strip()
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "vendor"), file=sys.stderr)
+        if(os.path.isfile(self.card_path + "subsystem_device") == True):
+            with open(self.card_path + "subsystem_device") as card_file:
+                subsystem_device_id = card_file.readline().strip()
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_device"), file=sys.stderr)
+        if(os.path.isfile(self.card_path + "subsystem_vendor") == True):
+            with open(self.card_path + "subsystem_vendor") as card_file:
+                subsystem_vendor_id = card_file.readline().strip()
+            card_file.close()
+        else:
+            print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_vendor"), file=sys.stderr)
+        #write device_id information
+        self.set_params_value("id", {"vendor":vendor_id,"device":device_id,
+            "subsystem_vendor":subsystem_vendor_id,"subsystem_device":subsystem_device_id})
+        # use device info to set model
+        # TODO need to write a parser of the PCI ID list
+        #if device_id in device_decode:
+            #self.set_params_value("model_device_decode", device_decode[device_id])
 
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
