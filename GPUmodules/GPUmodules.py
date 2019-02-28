@@ -43,6 +43,10 @@ try:
     from GPUmodules import env 
 except:
     import env 
+try:
+    from GPUmodules import PCImodule 
+except:
+    import PCImodule 
 
 
 class GPU_ITEM:
@@ -509,9 +513,9 @@ class GPU_ITEM:
         self.set_params_value("id", {"vendor":vendor_id,"device":device_id,
             "subsystem_vendor":subsystem_vendor_id,"subsystem_device":subsystem_device_id})
         # use device info to set model
-        # TODO need to write a parser of the PCI ID list
-        #if device_id in device_decode:
-            #self.set_params_value("model_device_decode", device_decode[device_id])
+        if self.get_params_value("model_device_decode") == "UNDETERMINED":
+            pcid = PCImodule.PCI_ID()
+            self.set_params_value("model_device_decode", pcid.get_model(self.get_params_value("id")))
 
         if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
             with open(self.card_path + "gpu_busy_percent") as card_file:
@@ -728,7 +732,7 @@ class GPU_LIST:
                             model_short = re.sub(r'\].*$','', model_short)
                             model_short = re.sub(r'.*Radeon','', model_short)
                             v.set_params_value("model_short",  model_short)
-                            if v.get_params_value("model_device_decode") != "UNDETERMINED":
+                            if v.get_params_value("model_device_decode") != "UNDETERMINED" and len(v.get_params_value("model_device_decode")) < len(v.get_params_value("model_short")):
                                 v.set_params_value("model_display",  v.get_params_value("model_device_decode"))
                             else:
                                 v.set_params_value("model_display",  model_short)
