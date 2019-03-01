@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""amdgpu-pciid  -  Manages the local pci id lookup table
+
+    WARNING: this utility is under development and should not be used
+
+    This utility can be used to download the latest pci.ids file from 
+    https://pci-ids.ucw.cz/ and parse the AMD specific data into a file 
+    that can be used by amdgpu-utils to decode device names from the
+    driver provided device id.  If your GPU model is missing from the 
+    pci.ids file, you can use the device id of your card found with 
+    amdgpu-ls and make a request to add your GPU name and make a request
+    for the addition on the pci.ids website.
+
+    Copyright (C) 2019  RueiKe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = "RueiKe"
+__copyright__ = "Copyright (C) 2019 RueiKe"
+__credits__ = [""]
+__license__ = "GNU General Public License"
+__program_name__ = "amdgpu-pciid"
+__version__ = "v2.2.0"
+__maintainer__ = "RueiKe"
+__status__ = "Development"
+
+import argparse
+import re
+import subprocess
+import os
+import platform
+import sys
+import time
+from GPUmodules import PCImodule as PCI
+from GPUmodules import env
+from datetime import datetime
+from uuid import uuid4
+import glob 
+import shutil 
+from pathlib import Path
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("--download", help="download pci decode table from https://pci-ids.ucw.cz/v2.2/pci.ids",
+            action="store_true", default=False)
+    parser.add_argument("--install", help="download, parse amd entries, and install a new decode file",
+            action="store_true", default=False)
+    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    args = parser.parse_args()
+
+    print("WARNING: this utility is under development and should not be used")
+
+    # About me
+    if args.about == True :  
+        print(__doc__ )
+        print("Author: ", __author__ )
+        print("Copyright: ", __copyright__)
+        print("Credits: ", __credits__)
+        print("License: ", __license__)
+        print("Version: ", __version__)
+        print("Maintainer: ", __maintainer__)
+        print("Status: ", __status__)
+        sys.exit(0)
+
+    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    env.gut_const.DEBUG = args.debug
+
+    if env.gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
+
+    pciid = PCI.PCI_ID()
+    #pciid_filename_new = pciid.download_pciid()
+
+    if args.install == True:
+        print(os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file))
+
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

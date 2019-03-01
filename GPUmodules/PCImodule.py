@@ -36,16 +36,32 @@ from pathlib import Path
 from uuid import uuid4
 import glob 
 import shutil 
+import urllib.request
 
 
 class PCI_ID:
     def __init__(self, file_name="amd_pci_id.txt"):
         self.master_pci_id_filename = "pci.ids"
+        self.pciid_url = "https://pci-ids.ucw.cz/v2.2/pci.ids"
+        self.pciid_file = "pci.ids"
+        self.amdgpu_utils_file = "amd_pci_id.txt"
         try:
             self.pci_id_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name), 'r')
         except:
             print("Can not open [%s] to read. Exiting..." % os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
 
+
+    def download_pciid(self):
+        """ download from https://pci-ids.ucw.cz/v2.2/pci.ids
+
+            return the new downloaded data's filename as a string
+        """
+        file_name = self.pciid_file + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
+        #response = urllib.request.urlretrieve(self.pciid_url, self.pciid_file)
+        with urllib.request.urlopen(self.pciid_url) as response, open(file_name, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+
+        return(file_name)
 
     def extract_vendor_from_pci_id(self, vendor):
         """ For a given vendor id, extract all relevant entries.
@@ -130,9 +146,10 @@ def test():
     vendor = "0x1002"
 
     pciid = PCI_ID(pci_id_file_name)
+    pciid.download_pciid()
     #model_name = pciid.get_model(test_id)
     #print("Model name: %s" % model_name)
-    pciid.extract_vendor_from_pci_id(vendor)
+    #pciid.extract_vendor_from_pci_id(vendor)
 
 
 if __name__ == "__main__":
