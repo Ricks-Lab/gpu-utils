@@ -40,11 +40,45 @@ import shutil
 
 class PCI_ID:
     def __init__(self, file_name="amd_pci_id.txt"):
+        self.master_pci_id_filename = "pci.ids"
         try:
             self.pci_id_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name), 'r')
         except:
             print("Can not open [%s] to read. Exiting..." % os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
 
+
+    def extract_vendor_from_pci_id(self, vendor):
+        """ For a given vendor id, extract all relevant entries.
+        """
+        try:
+            master_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), self.master_pci_id_filename), 'r')
+        except:
+            print("Can not open [%s] to read. Exiting..." %
+                    os.path.join(os.path.dirname(str(Path(__file__).resolve())), self.master_pci_id_filename))
+
+        level = -1
+        vendor_match = False
+        for line_item in self.pci_id_file_ptr:
+            line = line_item.rstrip()
+            if level == -1:
+                if len(line)<4:
+                    print(line)
+                    continue
+                if line[0] == '#':
+                    print(line)
+                    continue
+            if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                level = 0
+                if vendor_match == True:
+                    break
+            if vendor_match == True:
+                print(line)
+                continue
+            if line[:4] == vendor.replace('0x',''):
+                vendor_match = True
+                print(line)
+                continue
+        return
 
     def get_model(self, dev_id):
         """ For a device id dict of the format:
@@ -91,12 +125,14 @@ def test():
     #test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1462', 'subsystem_device': '0x3416'}
     test_id =  {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
     test_id =  {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
-    print(test_id)
+    #print(test_id)
     pci_id_file_name = "amd_pci_id.txt"
+    vendor = "0x1002"
 
-    pcid = PCI_ID(pci_id_file_name)
-    model_name = pcid.get_model(test_id)
-    print("Model name: %s" % model_name)
+    pciid = PCI_ID(pci_id_file_name)
+    #model_name = pciid.get_model(test_id)
+    #print("Model name: %s" % model_name)
+    pciid.extract_vendor_from_pci_id(vendor)
 
 
 if __name__ == "__main__":
