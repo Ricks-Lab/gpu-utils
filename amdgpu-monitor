@@ -46,7 +46,7 @@ import os
 import platform
 import sys
 import time
-from GPUmodules import GPUmodules as GPU
+from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
 from datetime import datetime
 from uuid import uuid4
@@ -249,6 +249,7 @@ def main():
                 gpu_list.print_table()
                 if env.gut_const.LOG == True:  
                     gpu_list.print_log(env.gut_const.log_file_ptr)
+                    print("%sLogging to:  %s%s" % ("\033[31m \033[01m", env.gut_const.log_file, "\033[0m"))
                 time.sleep(env.gut_const.SLEEP)
         except KeyboardInterrupt:
             if env.gut_const.LOG == True:  

@@ -44,7 +44,7 @@ import os
 import platform
 import sys
 import time
-from GPUmodules import GPUmodules as GPU
+from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
 from datetime import datetime
 from uuid import uuid4
