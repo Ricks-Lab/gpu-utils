@@ -35,7 +35,13 @@ execute commands in the bash file, as a result, you will be prompted for credent
 terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
 fan details from the utility.
 
-## New in this Release  -  v2.1.0
+## New in this Release  -  v2.2.0
+* Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the traget filename.
+* Implemented energy meter in amdgpu-monitor.
+* Implemented the ability to check the extracted ID in a pci.ids for correct model name.  Implemented a function to extract only amd information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
+* Optimized long, short, and decoded GPU model names.
+
+## New in Previous Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
 * Added fan monitor and control features.
 * Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
@@ -64,12 +70,8 @@ fan details from the utility.
 * Write a users guide.
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a startup utility to initialize GPU settings at boot up.
-* Include most detailed GPU name in reading from lspci and amdgpu-ls output. Optimize both long and short names.
 * Implement an option to only write changes in amdgpu-pac.
-* Implement logging option for amdgpu-monitor.
-* Implement energy meter.
 * Implement card level compatibility flagging and use in showing only compatible cards.
-* Potentially add a dictionary of device ID and GPU name.  Anyone know where I can find this information?
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>

@@ -86,12 +86,15 @@ class MonitorWindow(Gtk.Window):
         row = row_start
         row_labels = {"card_num": Gtk.Label()}
         row_labels["card_num"].set_markup("<b>Card #</b>")
+        row_labels["card_num"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in gpu_list.table_param_labels.items():
             row_labels[k] = Gtk.Label()
             row_labels[k].set_markup("<b>"+str(v)+"</b>")
+            row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            #lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
