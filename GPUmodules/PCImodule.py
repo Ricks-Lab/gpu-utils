@@ -71,12 +71,12 @@ class PCI_ID:
                 break
             searchObj = re.search('Version:', line.strip())
             if(searchObj != None):
-                lineItem = line.split(':')
+                lineItem = line.split(':', 1)
                 if len(lineItem) > 1:
                     file_version = lineItem[1].strip()
             searchObj = re.search('Date:', line.strip())
             if(searchObj != None):
-                lineItem = line.split(':')
+                lineItem = line.split(':', 1)
                 if len(lineItem) > 1:
                     file_date = lineItem[1].strip()
                 break
