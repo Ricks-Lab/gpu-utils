@@ -35,11 +35,23 @@ execute commands in the bash file, as a result, you will be prompted for credent
 terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
 fan details from the utility.
 
+## amdgpu-pciid
+This utility will display the version of the current pci.ids data extract
+in use.  With the *--download* option, the latest pci.ids file from 
+https://pci-ids.ucw.cz/ will be downloaded. With the *--install* option,
+the latest pci.ids will be downloaded and filtered for AMD specific data
+and written to the file used by amdgpu-utils to decode device names from the
+driver provided device id.  The *--force* option can be used to update this 
+file even if there is no change in version.  If your GPU model is missing
+from the pci.ids file, you can use the device id of your card found with 
+amdgpu-ls and make a request for the addition on the pci.ids website.
+
 ## New in this Release  -  v2.2.0
 * Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the traget filename.
 * Implemented energy meter in amdgpu-monitor.
 * Implemented the ability to check the extracted ID in a pci.ids for correct model name.  Implemented a function to extract only amd information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
 * Optimized long, short, and decoded GPU model names.
+* Alpha release of a utility to update device decode data from the pci.ids website.
 
 ## New in Previous Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.

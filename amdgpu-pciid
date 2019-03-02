@@ -3,13 +3,15 @@
 
     WARNING: this utility is under development and should not be used
 
-    This utility can be used to download the latest pci.ids file from 
-    https://pci-ids.ucw.cz/ and parse the AMD specific data into a file 
-    that can be used by amdgpu-utils to decode device names from the
-    driver provided device id.  If your GPU model is missing from the 
-    pci.ids file, you can use the device id of your card found with 
-    amdgpu-ls and make a request to add your GPU name and make a request
-    for the addition on the pci.ids website.
+    This utility will display the version of the current pci.ids data extract
+    in use.  With the *--download* option, the latest pci.ids file from 
+    https://pci-ids.ucw.cz/ will be downloaded. With the *--install* option,
+    the latest pci.ids will be downloaded and filtered for AMD specific data
+    and written to the file used by amdgpu-utils to decode device names from the
+    driver provided device id.  The *--force* option can be used to update this 
+    file even if there is no change in version.  If your GPU model is missing
+    from the pci.ids file, you can use the device id of your card found with 
+    amdgpu-ls and make a request for the addition on the pci.ids website.
 
     Copyright (C) 2019  RueiKe
 
@@ -58,6 +60,8 @@ def main():
             action="store_true", default=False)
     parser.add_argument("--install", help="download, parse amd entries, and install a new decode file",
             action="store_true", default=False)
+    parser.add_argument("--force", help="force install of new pci.ids data even if revision is unchanged",
+            action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -83,10 +87,29 @@ def main():
         sys.exit(-1)
 
     pciid = PCI.PCI_ID()
-    #pciid_filename_new = pciid.download_pciid()
+
+    # display info about pci.ids
+    if args.download == False and args.install == False:
+        original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
+        original_file_version = pciid.get_pciid_version()
+        print("Current pci.ids version %s : %s" % (original_file_version, original_amd_file))
+        sys.exit(0)
+
+    if args.download == True or args.install == True:
+        pciid_filename_new = pciid.download_pciid()
+        print("Download complete: %s" % pciid_filename_new)
+        new_file_version = pciid.get_pciid_version(pciid_filename_new)
+        print("    Download %s : %s" % (new_file_version, pciid_filename_new))
 
     if args.install == True:
-        print(os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file))
+        original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
+        original_file_version = pciid.get_pciid_version()
+        print("    Original %s : %s" % (original_file_version, original_amd_file))
+        if original_file_version == new_file_version and args.force != True:
+            print("No updates, skipping install")
+        else:
+            pciid.update_pci_id(pciid_filename_new)
+            print("Completed update to %s" % new_file_version)
 
     sys.exit(0)
 

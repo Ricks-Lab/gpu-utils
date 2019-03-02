@@ -41,15 +41,46 @@ import urllib.request
 
 class PCI_ID:
     def __init__(self, file_name="amd_pci_id.txt"):
-        self.master_pci_id_filename = "pci.ids"
         self.pciid_url = "https://pci-ids.ucw.cz/v2.2/pci.ids"
         self.pciid_file = "pci.ids"
-        self.amdgpu_utils_file = "amd_pci_id.txt"
+        self.amdgpu_utils_file = os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name)
         try:
-            self.pci_id_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name), 'r')
+            #self.pci_id_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name), 'r')
+            self.pci_id_file_ptr = open(self.amdgpu_utils_file, 'r')
         except:
             print("Can not open [%s] to read. Exiting..." % os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
 
+
+    def get_pciid_version(self, filename=""):
+        """ Get version information of specified pci.ids file. 
+            Look for these lines:
+                #       Version: 2019.02.23
+                #       Date:    2019-02-23 03:15:02
+
+            return version details as a string
+        """
+        if filename == "":
+            get_file_ptr = self.pci_id_file_ptr
+        else:
+            get_file_ptr = open(filename, 'r')
+
+        file_version = "Unknown"
+        file_date = "Unknown"
+        for line in get_file_ptr:
+            if line[0] != '#':
+                break
+            searchObj = re.search('Version:', line.strip())
+            if(searchObj != None):
+                lineItem = line.split(':')
+                if len(lineItem) > 1:
+                    file_version = lineItem[1].strip()
+            searchObj = re.search('Date:', line.strip())
+            if(searchObj != None):
+                lineItem = line.split(':')
+                if len(lineItem) > 1:
+                    file_date = lineItem[1].strip()
+                break
+        return("Version: "+ file_version + ", Date: " + file_date)
 
     def download_pciid(self):
         """ download from https://pci-ids.ucw.cz/v2.2/pci.ids
@@ -63,37 +94,55 @@ class PCI_ID:
 
         return(file_name)
 
-    def extract_vendor_from_pci_id(self, vendor):
+    def update_pci_id(self, in_file_name):
+        self.pci_id_file_ptr.close()
+        self.extract_vendor_from_pci_id("0x1002", in_file_name, self.amdgpu_utils_file)
+        #self.pci_id_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name), 'r')
+        return(0)
+
+    def extract_vendor_from_pci_id(self, vendor, in_file_name, out_file_name=""):
         """ For a given vendor id, extract all relevant entries.
         """
         try:
-            master_file_ptr = open(os.path.join(os.path.dirname(str(Path(__file__).resolve())), self.master_pci_id_filename), 'r')
+            in_file_ptr = open(in_file_name, 'r')
         except:
-            print("Can not open [%s] to read. Exiting..." %
-                    os.path.join(os.path.dirname(str(Path(__file__).resolve())), self.master_pci_id_filename))
+            print("Can not open [%s] to read. Exiting..." % in_file_name)
+            sys.exit(-1)
+
+        if out_file_name == "":
+            file_ptr=sys.stdout
+        else:
+            shutil.copy2(out_file_name, out_file_name + datetime.utcnow().strftime('%m%d_%H%M%S'))
+            try:
+                file_ptr = open(out_file_name, 'w')
+            except:
+                print("Can not open [%s] to write. Exiting..." % out_file_name)
+                sys.exit(-1)
+
 
         level = -1
         vendor_match = False
-        for line_item in self.pci_id_file_ptr:
+        for line_item in in_file_ptr:
             line = line_item.rstrip()
             if level == -1:
                 if len(line)<4:
-                    print(line)
+                    print(line, file=file_ptr)
                     continue
                 if line[0] == '#':
-                    print(line)
+                    print(line, file=file_ptr)
                     continue
             if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
                 level = 0
                 if vendor_match == True:
                     break
             if vendor_match == True:
-                print(line)
+                print(line, file=file_ptr)
                 continue
             if line[:4] == vendor.replace('0x',''):
                 vendor_match = True
-                print(line)
+                print(line, file=file_ptr)
                 continue
+        in_file_ptr.close()
         return
 
     def get_model(self, dev_id):
@@ -146,7 +195,8 @@ def test():
     vendor = "0x1002"
 
     pciid = PCI_ID(pci_id_file_name)
-    pciid.download_pciid()
+    pciid.update_pci_id("pci.ids0302_084015.txt")
+    #pciid.download_pciid()
     #model_name = pciid.get_model(test_id)
     #print("Model name: %s" % model_name)
     #pciid.extract_vendor_from_pci_id(vendor)

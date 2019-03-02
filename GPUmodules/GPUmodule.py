@@ -645,18 +645,19 @@ class GPU_LIST:
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
-        for card_names in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
+        for card_name in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_ITEM(uuid4().hex)
-            gpu_item.set_params_value("card_path",  card_names.replace("pp_od_clk_voltage",''))
-            gpu_item.set_params_value(
-                    "card_num",  card_names.replace("/device/pp_od_clk_voltage",'').replace(env.gut_const.card_root + "card", ''))
+            gpu_item.set_params_value("card_path",  card_name.replace("pp_od_clk_voltage",''))
+            gpu_item.set_params_value("card_num", 
+                    card_name.replace("/device/pp_od_clk_voltage",'').replace(env.gut_const.card_root + "card", ''))
             hw_file_srch = glob.glob(os.path.join(gpu_item.card_path, env.gut_const.hwmon_sub) +"?")
             if len(hw_file_srch) > 1:
                 print("More than one hwmon file found: ", hw_file_srch)
 
             gpu_item.set_params_value("hwmon_path",  hw_file_srch[0] + "/")
-            #gpu_item.set_params_value(
-                #"hwmon_path",  gpu_item.card_path + env.gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
+            # Can not assume hwmon# is the same # as card#
+            #gpu_item.set_params_value("hwmon_path",  
+                #gpu_item.card_path + env.gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
     def get_ppm_table(self):
