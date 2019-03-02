@@ -53,31 +53,31 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implemented the ability to check the extracted ID in a pci.ids for correct model name.  Implemented a function to extract only amd information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
 * Optimized long, short, and decoded GPU model names.
 * Alpha release of a utility to update device decode data from the pci.ids website.
+> 
+> #### New in Previous Release  -  v2.1.0
+> * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
+> * Added fan monitor and control features.
+> * Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
+> * Implemented P-state masking, which limits available P-states to those specified. Useful for power management.
+> * Fixed implementation of global variables that broke with implementation of modules in library.
+> * Added more validation checks before writing parameters to cards.
+> 
+> #### New in Previous Release  -  v2.0.0
+> * Many bug fixes!
+> * First release of amdgpu-pac.
+> * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
+> * Split list functions of the original amdgpu-monitor into amdgpu-ls.
+> * Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
+> * Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
+> * Error messages are now output to stderr instead stdout.
+> * Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
 
-#### New in Previous Release  -  v2.1.0
-* Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
-* Added fan monitor and control features.
-* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
-* Implemented P-state masking, which limits available P-states to those specified. Useful for power management.
-* Fixed implementation of global variables that broke with implementation of modules in library.
-* Added more validation checks before writing parameters to cards.
-
-#### New in Previous Release  -  v2.0.0
-* Many bug fixes!
-* First release of amdgpu-pac.
-* Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
-* Split list functions of the original amdgpu-monitor into amdgpu-ls.
-* Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
-* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
-* Error messages are now output to stderr instead stdout.
-* Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
-
-#### New in Previous Release  -  v1.1.0
-* Added --pstates feature to display table of p-states instead of GPU details.
-* Added more error checking and exit if no compatible AMD GPUs are found.
-
-#### New in Previous Release  -  v1.0.0
-* Completed implementation of the GPU Monitor tool.
+> #### New in Previous Release  -  v1.1.0
+> * Added --pstates feature to display table of p-states instead of GPU details.
+> * Added more error checking and exit if no compatible AMD GPUs are found.
+> 
+> #### New in Previous Release  -  v1.0.0
+> * Completed implementation of the GPU Monitor tool.
 
 ## Development Plans
 * Write a users guide.
