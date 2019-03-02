@@ -24,7 +24,7 @@ __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
 __version__ = "v2.2.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Stable Release"
 
 import re
 import subprocess

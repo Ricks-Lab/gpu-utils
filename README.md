@@ -47,13 +47,14 @@ from the pci.ids file, you can use the device id of your card found with
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
 ## New in this Release  -  v2.2.0
+* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor file correctly when a some other card is resident in a PCIe slot.
 * Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the traget filename.
 * Implemented energy meter in amdgpu-monitor.
 * Implemented the ability to check the extracted ID in a pci.ids for correct model name.  Implemented a function to extract only amd information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
 * Optimized long, short, and decoded GPU model names.
 * Alpha release of a utility to update device decode data from the pci.ids website.
 
-## New in Previous Release  -  v2.1.0
+### New in Previous Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
 * Added fan monitor and control features.
 * Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
@@ -61,7 +62,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Fixed implementation of global variables that broke with implementation of modules in library.
 * Added more validation checks before writing parameters to cards.
 
-## New in Previous Release  -  v2.0.0
+### New in Previous Release  -  v2.0.0
 * Many bug fixes!
 * First release of amdgpu-pac.
 * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
@@ -71,11 +72,11 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Error messages are now output to stderr instead stdout.
 * Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
 
-## New in Previous Release  -  v1.1.0
+### New in Previous Release  -  v1.1.0
 * Added --pstates feature to display table of p-states instead of GPU details.
 * Added more error checking and exit if no compatible AMD GPUs are found.
 
-## New in Previous Release  -  v1.0.0
+### New in Previous Release  -  v1.0.0
 * Completed implementation of the GPU Monitor tool.
 
 ## Development Plans
@@ -84,6 +85,11 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Develop a startup utility to initialize GPU settings at boot up.
 * Implement an option to only write changes in amdgpu-pac.
 * Implement card level compatibility flagging and use in showing only compatible cards.
+
+## Known Issues
+* Doesn't work with Fiji ProDuo cards.
+* Error reading p-states and Vddc range for Radeon VII
+* P-state mask get reset for GPU used as display output.
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
