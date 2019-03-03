@@ -963,11 +963,6 @@ def main():
         print(f"{num_amd_gpus} are compatible")
         print("")
 
-    #print("WARNING: Under Development")
-    #print("WARNING: Works but not fully tested.")
-    #print("Please report any bugs found.  Thanks!")
-    #print()
-
     # Display Gtk style Monitor
     devices = {}
     gmonitor = PACWindow(gpu_list, devices)

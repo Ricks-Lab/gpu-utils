@@ -740,7 +740,8 @@ class GPU_LIST:
                             model_short = re.sub(r'\].*$','', model_short)
                             model_short = re.sub(r'.*Radeon','', model_short)
                             v.set_params_value("model_short",  model_short)
-                            if v.get_params_value("model_device_decode") != "UNDETERMINED" and len(v.get_params_value("model_device_decode")) < len(v.get_params_value("model_short")):
+                            if (v.get_params_value("model_device_decode") != "UNDETERMINED" and
+                                    len(v.get_params_value("model_device_decode")) < len(v.get_params_value("model_short"))):
                                 v.set_params_value("model_display",  v.get_params_value("model_device_decode"))
                             else:
                                 v.set_params_value("model_display",  model_short)

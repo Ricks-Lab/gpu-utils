@@ -47,10 +47,10 @@ from the pci.ids file, you can use the device id of your card found with
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
 ## New in this Release  -  v2.2.0
-* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor file correctly when a some other card is resident in a PCIe slot.
+* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
 * Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the traget filename.
 * Implemented energy meter in amdgpu-monitor.
-* Implemented the ability to check the extracted ID in a pci.ids for correct model name.  Implemented a function to extract only amd information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
+* Implemented the ability to check the GPU extracted ID in a pci.ids file for correct model name.  Implemented a function to extract only AMD information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
 * Optimized long, short, and decoded GPU model names.
 * Alpha release of a utility to update device decode data from the pci.ids website.
 
@@ -89,7 +89,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 ## Known Issues
 * Doesn't work with Fiji ProDuo cards.
 * Error reading p-states and Vddc range for Radeon VII
-* P-state mask get reset for GPU used as display output.
+* P-state mask gets intermittently reset for GPU used as display output.
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
