@@ -35,7 +35,7 @@ __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pciid"
 __version__ = "v2.2.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Stable Release"
 
 import argparse
 import re
@@ -64,8 +64,6 @@ def main():
             action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
-
-    print("WARNING: this utility is under development and should not be used")
 
     # About me
     if args.about == True :  
@@ -110,6 +108,8 @@ def main():
         else:
             pciid.update_pci_id(pciid_filename_new)
             print("Completed update to %s" % new_file_version)
+        # remove downloaded file
+        os.remove(pciid_filename_new)
 
     sys.exit(0)
 

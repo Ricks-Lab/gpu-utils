@@ -152,6 +152,7 @@ class PCI_ID:
             resultant Model Name as a string.
         """
 
+        self.pci_id_file_ptr = open(self.amdgpu_utils_file, 'r')
         model_str = ""
         level = 0
         for line_item in self.pci_id_file_ptr:
@@ -186,16 +187,29 @@ class PCI_ID:
 
 def test():
 
-    test_id = {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
-    #test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1462', 'subsystem_device': '0x3416'}
-    test_id =  {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
-    test_id =  {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
-    #print(test_id)
-    pci_id_file_name = "amd_pci_id.txt"
-    vendor = "0x1002"
+    pciid = PCI_ID()
 
-    pciid = PCI_ID(pci_id_file_name)
-    pciid.update_pci_id("pci.ids0302_084015.txt")
+    test_id = {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
+    model_name = pciid.get_model(test_id)
+    print("Device: %s Model name: %s" % (test_id, model_name))
+
+    test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1462', 'subsystem_device': '0x3416'}
+    model_name = pciid.get_model(test_id)
+    print("Device: %s Model name: %s" % (test_id, model_name))
+
+    test_id =  {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
+    model_name = pciid.get_model(test_id)
+    print("Device: %s Model name: %s" % (test_id, model_name))
+
+    test_id =  {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
+    model_name = pciid.get_model(test_id)
+    print("Device: %s Model name: %s" % (test_id, model_name))
+
+    #print(test_id)
+    #pci_id_file_name = "amd_pci_id.txt"
+    #vendor = "0x1002"
+
+    #pciid.update_pci_id("pci.ids0302_084015.txt")
     #pciid.download_pciid()
     #model_name = pciid.get_model(test_id)
     #print("Model name: %s" % model_name)

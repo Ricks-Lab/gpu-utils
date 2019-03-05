@@ -1,8 +1,8 @@
 #
 #	List of PCI ID's
 #
-#	Version: 2019.02.23
-#	Date:    2019-02-23 03:15:02
+#	Version: 2019.03.05
+#	Date:    2019-03-05 03:15:01
 #
 #	Maintained by Albert Pool, Martin Mares, and other volunteers from
 #	the PCI ID Project at https://pci-ids.ucw.cz/.
@@ -21,7 +21,6 @@
 #	device  device_name				<-- single tab
 #		subvendor subdevice  subsystem_name	<-- two tabs
 
-# nee ATI Technologies, Inc.
 1002  Advanced Micro Devices, Inc. [AMD/ATI]
 	1304  Kaveri
 	1305  Kaveri
@@ -1693,12 +1692,13 @@
 		1462 3413  Radeon RX 480 Gaming X 8GB
 		1462 3416  Radeon RX 570
 		1462 3418  Radeon RX 580 Armor 4G OC
+		1462 8a92  Radeon RX 580
 		148c 2372  Radeon RX 480
 		148c 2373  Radeon RX 470
 		1682 9470  Radeon RX 470
 		1682 9480  Radeon RX 480
 		1682 9588  Radeon RX 580 XTR
-		1682 c570  Radeon RX 570
+		1682 c570  RX 570
 		174b e347  Radeon RX 470/480
 		174b e349  Radeon RX 470
 		1787 a470  Radeon RX 470
@@ -1723,7 +1723,7 @@
 	67e9  Baffin [Polaris11]
 	67eb  Baffin [Radeon Pro V5300X]
 	67ef  Baffin [Radeon RX 460/560D / Pro 450/455/460/555/555X/560/560X]
-		103c 3421  Radeon RX 460
+		103c 3421  RX460
 		106b 0160  Radeon Pro 460
 		106b 0166  Radeon Pro 455
 		106b 0167  Radeon Pro 450
@@ -1962,6 +1962,8 @@
 	6868  Vega 10 [Radeon PRO WX 8100/8200]
 	686c  Vega 10 [Radeon Instinct MI25 MxGPU]
 	687f  Vega 10 XL/XT [Radeon RX Vega 56/64]
+		1002 0b36  RX Vega64
+		1002 6b76  RX Vega56
 	6880  Lexington [Radeon HD 6550M]
 		103c 163c  Pavilion dv6 Radeon HD 6550M
 	6888  Cypress XT [FirePro V8800]
