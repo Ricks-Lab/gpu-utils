@@ -51,7 +51,33 @@ from uuid import uuid4
 import glob 
 import shutil 
 from pathlib import Path
+import multiprocessing
 
+
+def run_dialog(dialogWindow):
+    dialogWindow.run()
+    time.sleep(10)
+    sys.exit(0)
+    return
+
+
+class PACDialog(Gtk.Dialog):
+    def __init__(self, threadInfo):
+        Gtk.Window.__init__(self, title="Execute PAC")
+        message = "Executing bash script.  You may need to enter credentials in original window"
+        dialogWindow = Gtk.MessageDialog(self,
+                #Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.INFO,
+                Gtk.ButtonsType.NONE,
+                message)
+        dialogWindow.set_title("Execute PAC")
+        dialogWindow.show_all()
+        #dialogWindow.run()
+        threadInfo["p"] = multiprocessing.Process(target=run_dialog, args=(dialogWindow,))
+        threadInfo["queue"] = multiprocessing.Queue()
+        threadInfo["p"].start()
+        return
 
 class PACWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
@@ -606,6 +632,13 @@ class PACWindow(Gtk.Window):
 
     def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
         # specify output batch file name
+        if env.gut_const.execute_pac == True:
+            threadInfo = {}
+            dialogWin = PACDialog(threadInfo)
+            #dialogWin.connect("destroy", Gtk.main_quit)
+            #dialogWin.show_all()
+            #dialogWin.run()
+            #Gtk.main()
         out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
         # output header
@@ -807,6 +840,15 @@ class PACWindow(Gtk.Window):
             print("")
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
+
+            dialogWin.close()
+            dialogWin.destroy()
+            #dialogWin.hide()
+            
+            threadInfo["queue"].close()
+            threadInfo["queue"].join_thread()
+            threadInfo["p"].join()
+            #threadInfo["p"].terminate()
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
