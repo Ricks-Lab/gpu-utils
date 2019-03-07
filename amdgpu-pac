@@ -54,17 +54,26 @@ from pathlib import Path
 import multiprocessing
 
 
-def run_dialog(dialogWindow):
+#def run_dialog(dialogWindow):
+def run_dialog():
+    print("execute run: ", dialogWindow)
     dialogWindow.run()
-    time.sleep(10)
-    sys.exit(0)
+    #time.sleep(10)
+    #sys.exit(0)
+    threadInfo["queue"].close()
+    threadInfo["queue"].join_thread()
+    threadInfo["p"].join()
     return
 
 
 class PACDialog(Gtk.Dialog):
-    def __init__(self, threadInfo):
+    #def __init__(self, threadInfo):
+    def __init__(self):
         Gtk.Window.__init__(self, title="Execute PAC")
         message = "Executing bash script.  You may need to enter credentials in original window"
+        global threadInfo
+        global dialogWindow
+        threadInfo = {}
         dialogWindow = Gtk.MessageDialog(self,
                 #Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                 Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -72,9 +81,11 @@ class PACDialog(Gtk.Dialog):
                 Gtk.ButtonsType.NONE,
                 message)
         dialogWindow.set_title("Execute PAC")
-        dialogWindow.show_all()
+        dialogWindow.show()
+        print("execute show_all: ", dialogWindow)
         #dialogWindow.run()
-        threadInfo["p"] = multiprocessing.Process(target=run_dialog, args=(dialogWindow,))
+        #threadInfo["p"] = multiprocessing.Process(target=run_dialog, args=(dialogWindow,))
+        threadInfo["p"] = multiprocessing.Process(target=run_dialog)
         threadInfo["queue"] = multiprocessing.Queue()
         threadInfo["p"].start()
         return
@@ -633,8 +644,9 @@ class PACWindow(Gtk.Window):
     def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
         # specify output batch file name
         if env.gut_const.execute_pac == True:
-            threadInfo = {}
-            dialogWin = PACDialog(threadInfo)
+            #threadInfo = {}
+            #dialogWin = PACDialog(threadInfo)
+            PACDialog()
             #dialogWin.connect("destroy", Gtk.main_quit)
             #dialogWin.show_all()
             #dialogWin.run()
@@ -841,9 +853,11 @@ class PACWindow(Gtk.Window):
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
 
-            dialogWin.close()
-            dialogWin.destroy()
-            #dialogWin.hide()
+            dialogWindow.hide()
+            #dialogWindow.destroy()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            print("execute destroy: ", dialogWindow)
             
             threadInfo["queue"].close()
             threadInfo["queue"].join_thread()
@@ -1006,6 +1020,9 @@ def main():
         print("")
 
     # Display Gtk style Monitor
+    #global threadInfo
+    #global dialogWindow
+    #threadInfo = {}
     devices = {}
     gmonitor = PACWindow(gpu_list, devices)
     gmonitor.connect("delete-event", Gtk.main_quit)
