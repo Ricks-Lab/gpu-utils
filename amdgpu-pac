@@ -60,9 +60,9 @@ def run_dialog():
     dialogWindow.run()
     #time.sleep(10)
     #sys.exit(0)
-    threadInfo["queue"].close()
-    threadInfo["queue"].join_thread()
-    threadInfo["p"].join()
+    #threadInfo["queue"].close()
+    #threadInfo["queue"].join_thread()
+    #threadInfo["p"].join()
     return
 
 
@@ -85,9 +85,10 @@ class PACDialog(Gtk.Dialog):
         print("execute show_all: ", dialogWindow)
         #dialogWindow.run()
         #threadInfo["p"] = multiprocessing.Process(target=run_dialog, args=(dialogWindow,))
+        #threadInfo["queue"] = multiprocessing.Queue()
         threadInfo["p"] = multiprocessing.Process(target=run_dialog)
-        threadInfo["queue"] = multiprocessing.Queue()
         threadInfo["p"].start()
+        print("Ignore child thread error")
         return
 
 class PACWindow(Gtk.Window):
@@ -644,13 +645,7 @@ class PACWindow(Gtk.Window):
     def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
         # specify output batch file name
         if env.gut_const.execute_pac == True:
-            #threadInfo = {}
-            #dialogWin = PACDialog(threadInfo)
             PACDialog()
-            #dialogWin.connect("destroy", Gtk.main_quit)
-            #dialogWin.show_all()
-            #dialogWin.run()
-            #Gtk.main()
         out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
         # output header
@@ -853,16 +848,19 @@ class PACWindow(Gtk.Window):
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
 
-            dialogWindow.hide()
-            #dialogWindow.destroy()
+            #dialogWindow.hide()
+            dialogWindow.destroy()
             while Gtk.events_pending():
                 Gtk.main_iteration()
             print("execute destroy: ", dialogWindow)
             
-            threadInfo["queue"].close()
-            threadInfo["queue"].join_thread()
-            threadInfo["p"].join()
-            #threadInfo["p"].terminate()
+            try:
+                #threadInfo["queue"].close()
+                #threadInfo["queue"].join_thread()
+                threadInfo["p"].join()
+                ##threadInfo["p"].terminate()
+            except:
+                print("Ignore main thread close error")
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
