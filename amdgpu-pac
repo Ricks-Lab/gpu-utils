@@ -54,43 +54,6 @@ from pathlib import Path
 import multiprocessing
 
 
-#def run_dialog(dialogWindow):
-def run_dialog():
-    print("execute run: ", dialogWindow)
-    dialogWindow.run()
-    #time.sleep(10)
-    #sys.exit(0)
-    #threadInfo["queue"].close()
-    #threadInfo["queue"].join_thread()
-    #threadInfo["p"].join()
-    return
-
-
-class PACDialog(Gtk.Dialog):
-    #def __init__(self, threadInfo):
-    def __init__(self):
-        Gtk.Window.__init__(self, title="Execute PAC")
-        message = "Executing bash script.  You may need to enter credentials in original window"
-        global threadInfo
-        global dialogWindow
-        threadInfo = {}
-        dialogWindow = Gtk.MessageDialog(self,
-                #Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                Gtk.MessageType.INFO,
-                Gtk.ButtonsType.NONE,
-                message)
-        dialogWindow.set_title("Execute PAC")
-        dialogWindow.show()
-        print("execute show_all: ", dialogWindow)
-        #dialogWindow.run()
-        #threadInfo["p"] = multiprocessing.Process(target=run_dialog, args=(dialogWindow,))
-        #threadInfo["queue"] = multiprocessing.Queue()
-        threadInfo["p"] = multiprocessing.Process(target=run_dialog)
-        threadInfo["p"].start()
-        print("Ignore child thread error")
-        return
-
 class PACWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="amdgpu-pac")
@@ -590,7 +553,39 @@ class PACWindow(Gtk.Window):
             grid.attach(lbox, 0, row, col, 1)
             row += 1
 
+        # Initialize message box
+        devices["message_label"] = Gtk.Label()
+        devices["message_box"] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+
+        message = "Starting amdgpu-pac\n"
+        devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        devices["message_box"].set_homogeneous(False)
+        devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.0, 0.0, 0.0, 0.5))
+        devices["message_box"].set_property("margin-top", 1)
+        devices["message_box"].set_property("margin-bottom", 1)
+        devices["message_box"].set_property("margin-right", 1)
+        devices["message_box"].set_property("margin-left", 1)
+        devices["message_box"].pack_start(devices["message_label"], True, False, 0)
+        grid.attach(devices["message_box"], 0, row, col, 1)
+        row += 1
+
+
+        self.update_message(devices, message, "white")
         self.refresh_PAC(gpu_list, devices)
+
+    def update_message(self, devices, message, color="white"):
+        if color == "red":
+            print("RED: %s" % message)
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60,.20,.20,1.0))
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        else:
+            #white
+            print("WHITE: %s" % message)
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.0, 0.0, 0.0, 0.5))
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        devices["message_label"].set_text(message)
+        #devices["message_label"].set_markup("<big><b>" + message + "</b></big>")
+        return
 
     def refresh_all_cards(self, parent, gpu_list, devices, uuid):
         self.refresh_PAC(gpu_list, devices)
@@ -637,15 +632,24 @@ class PACWindow(Gtk.Window):
         return
 
     def save_all_cards(self, parent, gpu_list, devices, uuid):
-        for dk in devices.keys():
-            self.save_card(parent, gpu_list, devices, dk, refresh=False)
+        for gk in gpu_list.list.keys():
+        #for dk in devices.keys():
+            self.save_card(parent, gpu_list, devices, gk, refresh=False)
         self.refresh_all_cards(parent, gpu_list, devices, uuid)
         return
 
     def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
-        # specify output batch file name
+        # Write message
         if env.gut_const.execute_pac == True:
-            PACDialog()
+            message = "Using the --execute_pac option\nChanges will be written to the GPU without confirmation"
+            self.update_message(devices, message, "red")
+            #time.sleep(2)
+        else:
+            message = "Writing batch file\n"
+            self.update_message(devices, message, "red")
+            #time.sleep(2)
+
+        # specify output batch file name
         out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
         # output header
@@ -845,30 +849,24 @@ class PACWindow(Gtk.Window):
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print("")
+
+            # dismiss execute_pac message
+            message = "write to card complete\nConfirm changes with amdgpu-monitor"
+            self.update_message(devices, message, "white")
+
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
 
-            #dialogWindow.hide()
-            dialogWindow.destroy()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            print("execute destroy: ", dialogWindow)
             
-            try:
-                #threadInfo["queue"].close()
-                #threadInfo["queue"].join_thread()
-                threadInfo["p"].join()
-                ##threadInfo["p"].terminate()
-            except:
-                print("Ignore main thread close error")
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
         return
 
     def reset_all_cards(self, parent, gpu_list, devices, uuid):
-        for dk in devices.keys():
-            self.reset_card(parent, gpu_list, devices, dk)
+        for gk in gpu_list.list.keys():
+        #for dk in devices.keys():
+            self.reset_card(parent, gpu_list, devices, gk)
         return
 
     def reset_card(self, parent, gpu_list, devices, uuid):
@@ -1018,10 +1016,8 @@ def main():
         print("")
 
     # Display Gtk style Monitor
-    #global threadInfo
-    #global dialogWindow
-    #threadInfo = {}
     devices = {}
+    global gmonitor
     gmonitor = PACWindow(gpu_list, devices)
     gmonitor.connect("delete-event", Gtk.main_quit)
     gmonitor.show_all()
