@@ -629,6 +629,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["mclk_pst_mask_ent"].set_text(v.get_pstate_list_str("MCLK"))
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
+        while Gtk.events_pending(): Gtk.main_iteration_do(True)
         return
 
     def save_all_cards(self, parent, gpu_list, devices, uuid):
@@ -643,10 +644,12 @@ class PACWindow(Gtk.Window):
         if env.gut_const.execute_pac == True:
             message = "Using the --execute_pac option\nChanges will be written to the GPU without confirmation"
             self.update_message(devices, message, "red")
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
             #time.sleep(2)
         else:
             message = "Writing batch file\n"
             self.update_message(devices, message, "red")
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
             #time.sleep(2)
 
         # specify output batch file name
@@ -853,6 +856,7 @@ class PACWindow(Gtk.Window):
             # dismiss execute_pac message
             message = "write to card complete\nConfirm changes with amdgpu-monitor"
             self.update_message(devices, message, "white")
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
