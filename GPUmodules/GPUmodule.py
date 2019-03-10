@@ -660,6 +660,14 @@ class GPU_LIST:
                 #gpu_item.card_path + env.gut_const.hwmon_sub + gpu_item.get_params_value("card_num") + "/")
             self.list[gpu_item.uuid] = gpu_item
 
+    def list_compatible_gpus(self):
+        # TODO use this function through out utilities
+        compatible_list = GPU_LIST()
+        for k, v in self.list.items():
+            if v.compatible == True:
+                compatible_list.list[k]=v
+        return(compatible_list)
+
     def get_ppm_table(self):
         for k, v in self.list.items():
             v.get_ppm_table()
@@ -694,6 +702,7 @@ class GPU_LIST:
             lspci_items = subprocess.check_output("lspci -k -s " + pcie_id, shell=True).decode().split("\n")
 
             #Get Long GPU Name
+            gpu_name = ""
             #Line 0 name
             gpu_name_0 = ""
             gpu_name_items = lspci_items[0].split('[AMD/ATI]')
@@ -708,10 +717,18 @@ class GPU_LIST:
                 gpu_name_1 = "UNKNOWN"
             else:
                 gpu_name_1 = gpu_name_items[1]
-            if len(gpu_name_0) > len(gpu_name_1):
-                gpu_name = gpu_name_0
-            else:
-                gpu_name = gpu_name_1
+            #Check for Fiji ProDuo
+            searchObj = re.search('Fiji', gpu_name_0)
+            if(searchObj != None):
+                searchObj = re.search('Radeon Pro Duo', gpu_name_1)
+                if(searchObj != None):
+                    gpu_name = "Radeon Fiji Pro Duo"
+
+            if len(gpu_name) > 0:
+                if len(gpu_name_0) > len(gpu_name_1):
+                    gpu_name = gpu_name_0
+                else:
+                    gpu_name = gpu_name_1
 
             #Get Driver Name
             driver_module_items = lspci_items[2].split(':')
@@ -732,6 +749,8 @@ class GPU_LIST:
                 if pcie_id == sysfspath[-7:]:
                     for k, v in self.list.items():
                         if v.card_path == device_dir + '/':
+                            if gpu_name == "Radeon Fiji Pro Duo":
+                                v.compatible = False
                             v.set_params_value("pcie_id", pcie_id)
                             v.set_params_value("driver",  driver_module)
                             v.set_params_value("model", gpu_name)
@@ -858,14 +877,6 @@ class GPU_LIST:
         for k, v in self.list.items():
             cnt += 1
         return(cnt)
-
-    def list_compatible_gpus(self):
-        # TODO use this function through out utilities
-        compatible_list = {}
-        for k, v in self.list.items():
-            if v.compatible == True:
-                compatible_list[k]=v
-        return(compatible_list)
 
     def num_compatible_gpus(self):
         cnt = 0
