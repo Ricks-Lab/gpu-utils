@@ -21,9 +21,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = [""]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.2.0"
+__version__ = "v2.3.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Release Candidate"
 
 import re
 import socket

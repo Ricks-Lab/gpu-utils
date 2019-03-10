@@ -29,9 +29,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
-__version__ = "v2.2.0"
+__version__ = "v2.3.0"
 __maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__status__ = "Release Candidate"
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -51,6 +51,7 @@ from uuid import uuid4
 import glob 
 import shutil 
 from pathlib import Path
+import multiprocessing
 
 
 class PACWindow(Gtk.Window):
@@ -536,7 +537,8 @@ class PACWindow(Gtk.Window):
             for child in devices[v.uuid]["refresh_all_button"].get_children():
                 child.set_label("<big><b>Refresh All</b></big>")
                 child.set_use_markup(True)
-            devices[v.uuid]["refresh_all_button"].connect("clicked", self.refresh_all_cards, gpu_list, devices, v.uuid)
+            devices[v.uuid]["refresh_all_button"].connect("clicked",
+                    self.refresh_all_cards, gpu_list, devices, v.uuid, True)
             devices[v.uuid]["refresh_all_button"].set_property("width-request", 100)
     
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -552,13 +554,57 @@ class PACWindow(Gtk.Window):
             grid.attach(lbox, 0, row, col, 1)
             row += 1
 
+        # Initialize message box
+        devices["message_label"] = Gtk.Label()
+        devices["message_box"] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+
+        devices["message_label"].set_alignment(0, 0.5)
+        devices["message_label"].set_max_width_chars(num_com_amd_gpus * 52)
+        devices["message_label"].set_line_wrap(True)
+        devices["message_box"].set_homogeneous(False)
+        devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6,.6,.6,1.0))
+        devices["message_box"].set_property("margin-top", 1)
+        devices["message_box"].set_property("margin-bottom", 1)
+        devices["message_box"].set_property("margin-right", 1)
+        devices["message_box"].set_property("margin-left", 1)
+        devices["message_box"].pack_start(devices["message_label"], True, True, 10)
+        grid.attach(devices["message_box"], 0, row, col, 1)
+        row += 1
+
+        self.update_message(devices, "", "gray")
         self.refresh_PAC(gpu_list, devices)
 
-    def refresh_all_cards(self, parent, gpu_list, devices, uuid):
-        self.refresh_PAC(gpu_list, devices)
+    def update_message(self, devices, message, color="gray"):
+        #set default message if no message specified
+        if message == "":
+            if env.gut_const.execute_pac == True:
+                message = "Using the --execute_pac option.  Changes will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
+            else:
+                message = "Using amdgpu-pac without --execute_pac option.\nYou must manually run bash file with sudo to execute changes."
+
+        if color == "red":
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60,.20,.20,1.0)) #red background
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0)) #white font
+        elif color == "yellow":
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.50,.50,.00,1.0)) #Yellow background
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0)) #white font
+        elif color == "white":
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0)) #white background
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0.0, 0.0, 0.0, 1.0)) #black font
+        else:
+            devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6,.6,.6,1.0)) #gray background
+            devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0)) #white font
+        devices["message_label"].set_text(message)
+        #devices["message_label"].set_markup("<big><b>" + message + "</b></big>")
+        while Gtk.events_pending(): Gtk.main_iteration_do(True)
         return
 
-    def refresh_PAC(self, gpu_list, devices):
+    def refresh_all_cards(self, parent, gpu_list, devices, uuid, reset_message=False):
+        self.refresh_PAC(gpu_list, devices, reset_message)
+        return
+
+    def refresh_PAC(self, gpu_list, devices, reset_message=False):
         gpu_list.read_hw_data()
         gpu_list.read_device_data()
         gpu_list.get_ppm_table()
@@ -596,15 +642,44 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["mclk_pst_mask_ent"].set_text(v.get_pstate_list_str("MCLK"))
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
+
+        if reset_message == True:
+            self.update_message(devices, "", "gray")
+        while Gtk.events_pending(): Gtk.main_iteration_do(True)
         return
 
     def save_all_cards(self, parent, gpu_list, devices, uuid):
-        for dk in devices.keys():
-            self.save_card(parent, gpu_list, devices, dk, refresh=False)
+        # Write start message
+        if env.gut_const.execute_pac == True:
+            message = "Using the --execute_pac option.  Changes will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
+        else:
+            message = "Writing PAC command bash file.\n"
+        self.update_message(devices, message, "red")
+
+        # save each card
+        for gk in gpu_list.list.keys():
+        #for dk in devices.keys():
+            self.save_card(parent, gpu_list, devices, gk, refresh=False)
+
+        # Write finish message
+        if env.gut_const.execute_pac == True:
+            message = "Write PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+        else:
+            message = "Writing PAC commands to bash file complete.\nRun bash file with sudo to execute changes."
+        self.update_message(devices, message, "yellow")
+
         self.refresh_all_cards(parent, gpu_list, devices, uuid)
         return
 
     def save_card(self, parent, gpu_list, devices, uuid, refresh=True):
+        if refresh == True:
+            # Write message
+            if env.gut_const.execute_pac == True:
+                message = "Using the --execute_pac option.  Changes will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
+            else:
+                message = "Writing PAC commands to bash file.\n"
+            self.update_message(devices, message, "red")
+
         # specify output batch file name
         out_filename = os.getcwd() + "/" + "pac_writer_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
@@ -801,23 +876,59 @@ class PACWindow(Gtk.Window):
         os.chmod(out_filename, 0o744)
         print("Batch file completed: %s" % out_filename)
         if env.gut_const.execute_pac == True:
+            # Execute bash file
             print("Writing changes to GPU %s" % v.card_path)
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print("")
+
+            if refresh == True:
+                # dismiss execute_pac message
+                message = "Write of PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+                self.update_message(devices, message, "yellow")
+
             if refresh == True: self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
         else:
+            if refresh == True:
+                # dismiss execute_pac message
+                message = "Write of PAC commands to bash file complete.\nManually run bash file with sudo to execute changes."
+                self.update_message(devices, message, "yellow")
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
         return
 
     def reset_all_cards(self, parent, gpu_list, devices, uuid):
-        for dk in devices.keys():
-            self.reset_card(parent, gpu_list, devices, dk)
+        # Write start message
+        if env.gut_const.execute_pac == True:
+            message = "Using the --execute_pac option  Reset commands will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
+        else:
+            message = "Writing reset commands to bash file.\n"
+        self.update_message(devices, message, "red")
+
+        # reset each card
+        for gk in gpu_list.list.keys():
+        #for dk in devices.keys():
+            self.reset_card(parent, gpu_list, devices, gk, refresh=False)
+
+        # Write finish message
+        if env.gut_const.execute_pac == True:
+            message = "Write reset commands to card complete.\nConfirm changes with amdgpu-monitor."
+        else:
+            message = "Write reset commands to bash file complete.\nRun bash file with sudo to execute changes."
+        self.update_message(devices, message, "yellow")
+
+        self.refresh_all_cards(parent, gpu_list, devices, uuid)
         return
 
-    def reset_card(self, parent, gpu_list, devices, uuid):
+    def reset_card(self, parent, gpu_list, devices, uuid, refresh=True):
+        if refresh == True:
+            # Write message
+            if env.gut_const.execute_pac == True:
+                message = "Using the --execute_pac option  Reset commands will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
+            else:
+                message = "Writing reset commands to bash file.\n"
+            self.update_message(devices, message, "red")
         # specify output batch file name
         out_filename = os.getcwd() + "/" + "pac_reseter_" + str(uuid4().hex) + ".sh"
         fileptr = open(out_filename, 'x')
@@ -877,11 +988,19 @@ class PACWindow(Gtk.Window):
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print("")
+            if refresh == True:
+                # dismiss execute_pac message
+                message = "Write reset commands to card complete.\nConfirm changes with amdgpu-monitor."
+                self.update_message(devices, message, "yellow")
             self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
         else:
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
+            if refresh == True:
+                # dismiss execute_pac message
+                message = "Write reset commands to bash file complete.\nRun bash file with sudo to execute changes."
+                self.update_message(devices, message, "yellow")
 
         return
 
@@ -965,6 +1084,7 @@ def main():
 
     # Display Gtk style Monitor
     devices = {}
+    global gmonitor
     gmonitor = PACWindow(gpu_list, devices)
     gmonitor.connect("delete-event", Gtk.main_quit)
     gmonitor.show_all()
