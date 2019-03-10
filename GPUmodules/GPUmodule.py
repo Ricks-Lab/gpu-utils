@@ -615,8 +615,15 @@ class GPU_ITEM:
 
     def print(self, clflag=False):
         #for k, v in GPU_Param_Labels.items():
+        i = 0
         for k, v in self.get_all_params_labels().items():
+            if i==1:
+                if self.compatible:
+                    print("amdgpu-util Compatibility: Yes")
+                else:
+                    print("amdgpu-util Compatibility: NO")
             print(v +": "+ str(self.get_params_value(k)))
+            i += 1
         if clflag:
             for k, v in self.get_all_clinfo_labels().items():
                 print(v +": "+ str(self.get_clinfo_value(k)))
@@ -670,7 +677,8 @@ class GPU_LIST:
 
     def get_ppm_table(self):
         for k, v in self.list.items():
-            v.get_ppm_table()
+            if v.compatible:
+                v.get_ppm_table()
 
     def print_ppm_table(self):
         for k, v in self.list.items():
@@ -678,21 +686,31 @@ class GPU_LIST:
 
     def get_pstates(self):
         for k, v in self.list.items():
-            v.get_pstates()
+            if v.compatible:
+                v.get_pstates()
 
     def print_pstates(self):
         for k, v in self.list.items():
             v.print_pstates()
 
     def read_hw_data(self):
+        # get hwmon data
         for k, v in self.list.items():
-            v.read_hw_data()
+            if v.compatible:
+                v.read_hw_data()
 
     def read_device_data(self):
+        # get card path data
         for k, v in self.list.items():
-            v.read_device_data()
+            if v.compatible:
+                v.read_device_data()
 
     def get_gpu_details(self):
+        ''' This function uses lspci to get details for GPUs in the current list.
+            It gets GPU name varients and gets the pcie slot ID for each card ID.
+            Special incompatible cases are determined here, like the Fiji Pro Duo.
+            This is the first function that should be called after the intial list is created.
+        '''
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
@@ -717,6 +735,7 @@ class GPU_LIST:
                 gpu_name_1 = "UNKNOWN"
             else:
                 gpu_name_1 = gpu_name_items[1]
+
             #Check for Fiji ProDuo
             searchObj = re.search('Fiji', gpu_name_0)
             if(searchObj != None):
@@ -725,7 +744,7 @@ class GPU_LIST:
                     gpu_name = "Radeon Fiji Pro Duo"
                     print(gpu_name, "found!")
 
-            if len(gpu_name) > 0:
+            if len(gpu_name) == 0:
                 if len(gpu_name_0) > len(gpu_name_1):
                     gpu_name = gpu_name_0
                 else:

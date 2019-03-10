@@ -94,35 +94,32 @@ def main():
     env.gut_const.get_amd_driver_version()
 
     #Get list of AMD GPUs
-    all_gpu_list = GPU.GPU_LIST()
-    all_gpu_list.get_gpu_list()
+    gpu_list = GPU.GPU_LIST()
+    gpu_list.get_gpu_list()
+    gpu_list.get_gpu_details()
 
-    # Operate on only compatible GPUs
-    gpu_list = all_gpu_list.list_compatible_gpus()
+    # Operate on only compatible GPUs, not needed since we will utilize compatibility flag instead of a new list
+    #com_gpu_list = gpu_list.list_compatible_gpus()
 
     #Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
+    num_com_gpus = gpu_list.num_compatible_gpus()
     if num_amd_gpus == 0:
         print("No AMD GPUs detected, exiting...")
         sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} AMD GPUs detected")
+        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} are compatible.")
+        if num_com_gpus == 0:
+            print("None are Compatible, will still try...")
+    print("")
 
-    #Get all GPU details
+    # Read data from compatible GPUs
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
-    gpu_list.get_gpu_details()
+    #all_gpu_list.get_gpu_details()
     if args.clinfo:
         if gpu_list.read_opencl_data() < 0:
             args.clinfo = False
-
-    #Check list of AMD GPUs for driver compatibility
-    num_com_amd_gpus = gpu_list.num_compatible_gpus()
-    if num_com_amd_gpus == 0:
-        print("None are Compatible, will still try...")
-    else:
-        print(f"{num_amd_gpus} are Compatible")
-    print("")
 
     gpu_list.get_pstates()
     gpu_list.get_ppm_table()
