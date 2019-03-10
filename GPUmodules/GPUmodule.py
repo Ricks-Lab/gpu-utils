@@ -355,133 +355,137 @@ class GPU_ITEM:
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
 
     def read_hw_data(self):
-        if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
-            with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
-                power1_cap_max_value =  int(int(hwmon_file.readline())/1000000)
-            hwmon_file.close()
-            if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
-                with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
-                    power1_cap_min_value =  int(int(hwmon_file.readline())/1000000)
-                self.set_params_value("power_cap_range", [power1_cap_min_value, power1_cap_max_value])
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
-            with open(self.hwmon_path + "power1_cap") as hwmon_file:
-                self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "power1_average") == True):
-            with open(self.hwmon_path + "power1_average") as hwmon_file:
-                power_uw = int(hwmon_file.readline())
-                time_n = datetime.utcnow()
-                self.set_params_value("power", int(power_uw)/1000000)
-                delta_hrs = ((time_n - self.energy["tn"]).total_seconds())/3600
-                self.energy["tn"] = time_n
-                self.energy["cummulative"] += delta_hrs * power_uw/1000000000
-                self.set_params_value("energy", round(self.energy["cummulative"], 6))
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
-            with open(self.hwmon_path + "temp1_input") as hwmon_file:
-                self.set_params_value("temp",  int(hwmon_file.readline())/1000)
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
-            with open(self.hwmon_path + "temp1_crit") as hwmon_file:
-                self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
-            hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
-
-        if env.gut_const.show_fans == True:
-            if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
-                with open(self.hwmon_path + "fan1_enable") as hwmon_file:
-                    self.set_params_value("fan_enable",  hwmon_file.readline().strip())
+        try:
+            if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
+                with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
+                    power1_cap_max_value =  int(int(hwmon_file.readline())/1000000)
                 hwmon_file.close()
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_enable"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
-                with open(self.hwmon_path + "fan1_target") as hwmon_file:
-                    self.set_params_value("fan_target",  int(hwmon_file.readline()))
-                hwmon_file.close()
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_target"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
-                with open(self.hwmon_path + "fan1_input") as hwmon_file:
-                    self.set_params_value("fan_speed",  int(hwmon_file.readline()))
-                hwmon_file.close()
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
-                with open(self.hwmon_path + "fan1_max") as hwmon_file:
-                    fan1_max_value =  int(hwmon_file.readline())
-                hwmon_file.close()
-                if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
-                    with open(self.hwmon_path + "fan1_min") as hwmon_file:
-                        fan1_min_value =  int(hwmon_file.readline())
-                    self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+                if(os.path.isfile(self.hwmon_path + "power1_cap_min") == True):
+                    with open(self.hwmon_path + "power1_cap_min") as hwmon_file:
+                        power1_cap_min_value =  int(int(hwmon_file.readline())/1000000)
+                    self.set_params_value("power_cap_range", [power1_cap_min_value, power1_cap_max_value])
                 else:
-                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_min"), file=sys.stderr)
                 hwmon_file.close()
             else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
-                with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
-                    pwm_mode_value = int(hwmon_file.readline().strip())
-                    if pwm_mode_value == 0:
-                        pwm_mode_name = "None"
-                    elif pwm_mode_value == 1:
-                        pwm_mode_name = "Manual"
-                    elif pwm_mode_value == 2:
-                        pwm_mode_name = "Dynamic"
-                    self.set_params_value("pwm_mode", [pwm_mode_value, pwm_mode_name])
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
+    
+            if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
+                with open(self.hwmon_path + "power1_cap") as hwmon_file:
+                    self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
                 hwmon_file.close()
             else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_enable"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "pwm1") == True):
-                with open(self.hwmon_path + "pwm1") as hwmon_file:
-                    self.set_params_value("fan_pwm",  int(100*(int(hwmon_file.readline())/255)))
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap"), file=sys.stderr)
+    
+            if(os.path.isfile(self.hwmon_path + "power1_average") == True):
+                with open(self.hwmon_path + "power1_average") as hwmon_file:
+                    power_uw = int(hwmon_file.readline())
+                    time_n = datetime.utcnow()
+                    self.set_params_value("power", int(power_uw)/1000000)
+                    delta_hrs = ((time_n - self.energy["tn"]).total_seconds())/3600
+                    self.energy["tn"] = time_n
+                    self.energy["cummulative"] += delta_hrs * power_uw/1000000000
+                    self.set_params_value("energy", round(self.energy["cummulative"], 6))
                 hwmon_file.close()
             else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
-
-            if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
-                with open(self.hwmon_path + "pwm1_max") as hwmon_file:
-                    pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
+    
+            if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
+                with open(self.hwmon_path + "temp1_input") as hwmon_file:
+                    self.set_params_value("temp",  int(hwmon_file.readline())/1000)
                 hwmon_file.close()
-                if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
-                    with open(self.hwmon_path + "pwm1_min") as hwmon_file:
-                        pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
-                    self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
+                with open(self.hwmon_path + "temp1_crit") as hwmon_file:
+                    self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
+    
+            if env.gut_const.show_fans == True:
+                if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
+                    with open(self.hwmon_path + "fan1_enable") as hwmon_file:
+                        self.set_params_value("fan_enable",  hwmon_file.readline().strip())
                     hwmon_file.close()
                 else:
-                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
-
-        if(os.path.isfile(self.hwmon_path + "in0_label") == True):
-            with open(self.hwmon_path + "in0_label") as hwmon_file:
-                if hwmon_file.readline().rstrip() == "vddgfx":
-                    with open(self.hwmon_path + "in0_input") as hwmon_file2:
-                        self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_enable"), file=sys.stderr)
+    
+                if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
+                    with open(self.hwmon_path + "fan1_target") as hwmon_file:
+                        self.set_params_value("fan_target",  int(hwmon_file.readline()))
                     hwmon_file.close()
-        else:
-            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_target"), file=sys.stderr)
+    
+                if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
+                    with open(self.hwmon_path + "fan1_input") as hwmon_file:
+                        self.set_params_value("fan_speed",  int(hwmon_file.readline()))
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
+    
+                if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
+                    with open(self.hwmon_path + "fan1_max") as hwmon_file:
+                        fan1_max_value =  int(hwmon_file.readline())
+                    hwmon_file.close()
+                    if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
+                        with open(self.hwmon_path + "fan1_min") as hwmon_file:
+                            fan1_min_value =  int(hwmon_file.readline())
+                        self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+                    else:
+                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
+
+                if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
+                    with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
+                        pwm_mode_value = int(hwmon_file.readline().strip())
+                        if pwm_mode_value == 0:
+                            pwm_mode_name = "None"
+                        elif pwm_mode_value == 1:
+                            pwm_mode_name = "Manual"
+                        elif pwm_mode_value == 2:
+                            pwm_mode_name = "Dynamic"
+                        self.set_params_value("pwm_mode", [pwm_mode_value, pwm_mode_name])
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_enable"), file=sys.stderr)
+
+                if(os.path.isfile(self.hwmon_path + "pwm1") == True):
+                    with open(self.hwmon_path + "pwm1") as hwmon_file:
+                        self.set_params_value("fan_pwm",  int(100*(int(hwmon_file.readline())/255)))
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
+
+                if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
+                    with open(self.hwmon_path + "pwm1_max") as hwmon_file:
+                        pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
+                    hwmon_file.close()
+                    if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
+                        with open(self.hwmon_path + "pwm1_min") as hwmon_file:
+                            pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
+                        self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
+                        hwmon_file.close()
+                    else:
+                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
+
+            if(os.path.isfile(self.hwmon_path + "in0_label") == True):
+                with open(self.hwmon_path + "in0_label") as hwmon_file:
+                    if hwmon_file.readline().rstrip() == "vddgfx":
+                        with open(self.hwmon_path + "in0_input") as hwmon_file2:
+                            self.set_params_value("vddgfx",  int(hwmon_file2.readline()))
+                        hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
+        except:
+            print("Error: getting data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            self.compatibility = False
 
     def read_device_data(self):
         # get all device ID information
@@ -707,7 +711,7 @@ class GPU_LIST:
 
     def get_gpu_details(self):
         ''' This function uses lspci to get details for GPUs in the current list.
-            It gets GPU name varients and gets the pcie slot ID for each card ID.
+            It gets GPU name variants and gets the pcie slot ID for each card ID.
             Special incompatible cases are determined here, like the Fiji Pro Duo.
             This is the first function that should be called after the intial list is created.
         '''
