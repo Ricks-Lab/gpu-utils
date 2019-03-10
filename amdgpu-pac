@@ -1056,36 +1056,48 @@ def main():
 
     env.gut_const.get_amd_driver_version()
 
+    # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
+    gpu_list.get_gpu_details()
+
+    # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
+    num_com_gpus = gpu_list.num_compatible_gpus()
 
     if num_amd_gpus == 0:
         print("No AMD GPUs detected, exiting...")
         sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} AMD GPUs detected")
+        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} may be compatible.")
+        if num_com_gpus == 0:
+            print("None are compatible, exiting...")
+            sys.exit(-1)
+    print("")
 
-    # Get GPU info
+
+    # Read data from potentially compatible GPUs
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
-    gpu_list.get_gpu_details()
     gpu_list.get_pstates()
     gpu_list.get_ppm_table()
 
-
-    num_com_amd_gpus = gpu_list.num_compatible_gpus()
-    if num_com_amd_gpus == 0:
+    # Check number of compatible GPUs again
+    num_com_gpus = gpu_list.num_compatible_gpus()
+    if num_com_gpus == 0:
         print("None are compatible, exiting...")
-        #sys.exit(-1)
+        sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} are compatible")
+        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} are compatible.")
         print("")
+
+    # Generate a new list of only compatible GPUs
+    com_gpu_list = gpu_list.list_compatible_gpus()
 
     # Display Gtk style Monitor
     devices = {}
     global gmonitor
-    gmonitor = PACWindow(gpu_list, devices)
+    gmonitor = PACWindow(com_gpu_list, devices)
     gmonitor.connect("delete-event", Gtk.main_quit)
     gmonitor.show_all()
 

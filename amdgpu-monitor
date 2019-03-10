@@ -204,26 +204,41 @@ def main():
 
     env.gut_const.get_amd_driver_version()
 
+    # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
+    gpu_list.get_gpu_details()
+
+    # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
+    num_com_gpus = gpu_list.num_compatible_gpus()
 
     if num_amd_gpus == 0:
         print("No AMD GPUs detected, exiting...")
         sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} AMD GPUs detected")
+        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} may be compatible.")
+        if num_com_gpus == 0:
+            print("None are compatible, exiting...")
+            sys.exit(-1)
+    print("")
+
+
+    # Read data from potentially compatible GPUs
     gpu_list.read_hw_data()
     gpu_list.read_device_data()
-    gpu_list.get_gpu_details()
 
-    num_com_amd_gpus = gpu_list.num_compatible_gpus()
-    if num_com_amd_gpus == 0:
-        print("None are Compatible, exiting...")
-        #sys.exit(-1)
+    # Check number of compatible GPUs again
+    num_com_gpus = gpu_list.num_compatible_gpus()
+    if num_com_gpus == 0:
+        print("None are compatible, exiting...")
+        sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} are Compatible")
+        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} are compatible.")
         print("")
+
+    # Generate a new list of only compatible GPUs
+    com_gpu_list = gpu_list.list_compatible_gpus()
 
     if args.log == True:
         env.gut_const.LOG = True
@@ -234,7 +249,7 @@ def main():
     if args.gui == True:
         # Display Gtk style Monitor
         devices = {}
-        gmonitor = MonitorWindow(gpu_list, devices)
+        gmonitor = MonitorWindow(com_gpu_list, devices)
         gmonitor.connect("delete-event", Gtk.main_quit)
         gmonitor.show_all()
 
@@ -246,13 +261,13 @@ def main():
         # Display text style Monitor
         try:
             while True:
-                gpu_list.read_hw_data()
-                gpu_list.read_device_data()
+                com_gpu_list.read_hw_data()
+                com_gpu_list.read_device_data()
                 if env.gut_const.DEBUG == False: os.system('clear')
                 if env.gut_const.LOG == True:  
                     print("%sLogging to:  %s%s" % ("\033[31m \033[01m", env.gut_const.log_file, "\033[0m"))
-                    gpu_list.print_log(env.gut_const.log_file_ptr)
-                gpu_list.print_table()
+                    com_gpu_list.print_log(env.gut_const.log_file_ptr)
+                com_gpu_list.print_table()
                 time.sleep(env.gut_const.SLEEP)
         except KeyboardInterrupt:
             if env.gut_const.LOG == True:  

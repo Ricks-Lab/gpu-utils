@@ -369,6 +369,7 @@ class GPU_ITEM:
                 hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
+                self.compatibility = False
     
             if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
                 with open(self.hwmon_path + "power1_cap") as hwmon_file:
@@ -376,6 +377,7 @@ class GPU_ITEM:
                 hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap"), file=sys.stderr)
+                self.compatibility = False
     
             if(os.path.isfile(self.hwmon_path + "power1_average") == True):
                 with open(self.hwmon_path + "power1_average") as hwmon_file:
@@ -389,6 +391,7 @@ class GPU_ITEM:
                 hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_average"), file=sys.stderr)
+                self.compatibility = False
     
             if(os.path.isfile(self.hwmon_path + "temp1_input") == True):
                 with open(self.hwmon_path + "temp1_input") as hwmon_file:
@@ -396,6 +399,7 @@ class GPU_ITEM:
                 hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
+                self.compatibility = False
 
             if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
                 with open(self.hwmon_path + "temp1_crit") as hwmon_file:
@@ -403,6 +407,7 @@ class GPU_ITEM:
                 hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
+                self.compatibility = False
     
             if env.gut_const.show_fans == True:
                 if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
@@ -411,6 +416,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_enable"), file=sys.stderr)
+                    self.compatibility = False
     
                 if(os.path.isfile(self.hwmon_path + "fan1_target") == True):
                     with open(self.hwmon_path + "fan1_target") as hwmon_file:
@@ -418,6 +424,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_target"), file=sys.stderr)
+                    self.compatibility = False
     
                 if(os.path.isfile(self.hwmon_path + "fan1_input") == True):
                     with open(self.hwmon_path + "fan1_input") as hwmon_file:
@@ -425,6 +432,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
+                    self.compatibility = False
     
                 if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
                     with open(self.hwmon_path + "fan1_max") as hwmon_file:
@@ -439,6 +447,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
+                    self.compatibility = False
 
                 if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
                     with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
@@ -453,6 +462,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_enable"), file=sys.stderr)
+                    self.compatibility = False
 
                 if(os.path.isfile(self.hwmon_path + "pwm1") == True):
                     with open(self.hwmon_path + "pwm1") as hwmon_file:
@@ -460,6 +470,7 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
+                    self.compatibility = False
 
                 if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
                     with open(self.hwmon_path + "pwm1_max") as hwmon_file:
@@ -474,6 +485,7 @@ class GPU_ITEM:
                         print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
+                    self.compatibility = False
 
             if(os.path.isfile(self.hwmon_path + "in0_label") == True):
                 with open(self.hwmon_path + "in0_label") as hwmon_file:
@@ -483,115 +495,133 @@ class GPU_ITEM:
                         hwmon_file.close()
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
+                self.compatibility = False
         except:
             print("Error: getting data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
             self.compatibility = False
 
     def read_device_data(self):
-        # get all device ID information
-        if(os.path.isfile(self.card_path + "device") == True):
-            with open(self.card_path + "device") as card_file:
-                device_id = card_file.readline().strip()
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "device"), file=sys.stderr)
-        if(os.path.isfile(self.card_path + "vendor") == True):
-            with open(self.card_path + "vendor") as card_file:
-                vendor_id = card_file.readline().strip()
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "vendor"), file=sys.stderr)
-        if(os.path.isfile(self.card_path + "subsystem_device") == True):
-            with open(self.card_path + "subsystem_device") as card_file:
-                subsystem_device_id = card_file.readline().strip()
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_device"), file=sys.stderr)
-        if(os.path.isfile(self.card_path + "subsystem_vendor") == True):
-            with open(self.card_path + "subsystem_vendor") as card_file:
-                subsystem_vendor_id = card_file.readline().strip()
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_vendor"), file=sys.stderr)
-        #write device_id information
-        self.set_params_value("id", {"vendor":vendor_id,"device":device_id,
-            "subsystem_vendor":subsystem_vendor_id,"subsystem_device":subsystem_device_id})
-        # use device info to set model
-        if self.get_params_value("model_device_decode") == "UNDETERMINED":
-            pcid = PCImodule.PCI_ID()
-            self.set_params_value("model_device_decode", pcid.get_model(self.get_params_value("id")))
-
-        if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
-            with open(self.card_path + "gpu_busy_percent") as card_file:
-                self.set_params_value("loading", int(card_file.readline()))
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "gpu_busy_percent"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "current_link_speed") == True):
-            with open(self.card_path + "current_link_speed") as card_file:
-                self.set_params_value("link_spd", card_file.readline().strip())
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_speed"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "current_link_width") == True):
-            with open(self.card_path + "current_link_width") as card_file:
-                self.set_params_value("link_wth", card_file.readline().strip())
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_width"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "vbios_version") == True):
-            with open(self.card_path + "vbios_version") as card_file:
-                self.set_params_value("vbios", card_file.readline().strip())
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "vbios_version"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
-            with open(self.card_path + "pp_dpm_sclk") as card_file:
-                for line in card_file:
-                    if line[len(line)-2] == "*":
-                        lineitems = line.split(sep=':')
-                        self.set_params_value("sclk_ps", lineitems[0].strip())
-                        self.set_params_value("sclk_f", lineitems[1].strip().strip('*'))
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_sclk"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
-            with open(self.card_path + "pp_dpm_mclk") as card_file:
-                for line in card_file:
-                    if line[len(line)-2] == "*":
-                        lineitems = line.split(sep=':')
-                        self.set_params_value("mclk_ps", lineitems[0].strip())
-                        self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_mclk"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "pp_power_profile_mode") == True):
-            with open(self.card_path + "pp_power_profile_mode") as card_file:
-                for line in card_file:
-                    linestr = line.strip()
-                    searchObj = re.search('\*:', linestr)
-                    if(searchObj != None):
-                        lineitems = linestr.split(sep='*:')
-                        mode_str = lineitems[0].strip()
-                        mode_str = re.sub(r'[ ]+','-', mode_str)
-                        self.set_params_value("ppm", mode_str)
-                        break
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "pp_power_profile_mode"), file=sys.stderr)
-
-        if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
-            with open(self.card_path + "power_dpm_force_performance_level") as card_file:
-                self.set_params_value("power_dpm_force", card_file.readline().strip())
-            card_file.close()
-        else:
-            print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
+        try:
+            # get all device ID information
+            if(os.path.isfile(self.card_path + "device") == True):
+                with open(self.card_path + "device") as card_file:
+                    device_id = card_file.readline().strip()
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "device"), file=sys.stderr)
+                self.compatibility = False
+            if(os.path.isfile(self.card_path + "vendor") == True):
+                with open(self.card_path + "vendor") as card_file:
+                    vendor_id = card_file.readline().strip()
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "vendor"), file=sys.stderr)
+                self.compatibility = False
+            if(os.path.isfile(self.card_path + "subsystem_device") == True):
+                with open(self.card_path + "subsystem_device") as card_file:
+                    subsystem_device_id = card_file.readline().strip()
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_device"), file=sys.stderr)
+                self.compatibility = False
+            if(os.path.isfile(self.card_path + "subsystem_vendor") == True):
+                with open(self.card_path + "subsystem_vendor") as card_file:
+                    subsystem_vendor_id = card_file.readline().strip()
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "subsystem_vendor"), file=sys.stderr)
+                self.compatibility = False
+            #write device_id information
+            self.set_params_value("id", {"vendor":vendor_id,"device":device_id,
+                "subsystem_vendor":subsystem_vendor_id,"subsystem_device":subsystem_device_id})
+            # use device info to set model
+            if self.get_params_value("model_device_decode") == "UNDETERMINED":
+                pcid = PCImodule.PCI_ID()
+                self.set_params_value("model_device_decode", pcid.get_model(self.get_params_value("id")))
+    
+            if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
+                with open(self.card_path + "gpu_busy_percent") as card_file:
+                    self.set_params_value("loading", int(card_file.readline()))
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "gpu_busy_percent"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "current_link_speed") == True):
+                with open(self.card_path + "current_link_speed") as card_file:
+                    self.set_params_value("link_spd", card_file.readline().strip())
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_speed"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "current_link_width") == True):
+                with open(self.card_path + "current_link_width") as card_file:
+                    self.set_params_value("link_wth", card_file.readline().strip())
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "current_link_width"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "vbios_version") == True):
+                with open(self.card_path + "vbios_version") as card_file:
+                    self.set_params_value("vbios", card_file.readline().strip())
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "vbios_version"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "pp_dpm_sclk") == True):
+                with open(self.card_path + "pp_dpm_sclk") as card_file:
+                    for line in card_file:
+                        if line[len(line)-2] == "*":
+                            lineitems = line.split(sep=':')
+                            self.set_params_value("sclk_ps", lineitems[0].strip())
+                            self.set_params_value("sclk_f", lineitems[1].strip().strip('*'))
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_sclk"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "pp_dpm_mclk") == True):
+                with open(self.card_path + "pp_dpm_mclk") as card_file:
+                    for line in card_file:
+                        if line[len(line)-2] == "*":
+                            lineitems = line.split(sep=':')
+                            self.set_params_value("mclk_ps", lineitems[0].strip())
+                            self.set_params_value("mclk_f", lineitems[1].strip().strip('*'))
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "pp_dpm_mclk"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "pp_power_profile_mode") == True):
+                with open(self.card_path + "pp_power_profile_mode") as card_file:
+                    for line in card_file:
+                        linestr = line.strip()
+                        searchObj = re.search('\*:', linestr)
+                        if(searchObj != None):
+                            lineitems = linestr.split(sep='*:')
+                            mode_str = lineitems[0].strip()
+                            mode_str = re.sub(r'[ ]+','-', mode_str)
+                            self.set_params_value("ppm", mode_str)
+                            break
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "pp_power_profile_mode"), file=sys.stderr)
+                self.compatibility = False
+    
+            if(os.path.isfile(self.card_path + "power_dpm_force_performance_level") == True):
+                with open(self.card_path + "power_dpm_force_performance_level") as card_file:
+                    self.set_params_value("power_dpm_force", card_file.readline().strip())
+                card_file.close()
+            else:
+                print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"),
+                        file=sys.stderr)
+                self.compatibility = False
+        except:
+            print("Error: getting data from GPU Card Path: %s" % self.card_path, file=sys.stderr)
+            self.compatibility = False
 
 
     def print_ppm_table(self):
@@ -746,7 +776,6 @@ class GPU_LIST:
                 searchObj = re.search('Radeon Pro Duo', gpu_name_1)
                 if(searchObj != None):
                     gpu_name = "Radeon Fiji Pro Duo"
-                    print(gpu_name, "found!")
 
             if len(gpu_name) == 0:
                 if len(gpu_name_0) > len(gpu_name_1):
@@ -775,7 +804,6 @@ class GPU_LIST:
                         if v.card_path == device_dir + '/':
                             if gpu_name == "Radeon Fiji Pro Duo":
                                 v.compatible = False
-                                print(gpu_name, "not compatible")
                             v.set_params_value("pcie_id", pcie_id)
                             v.set_params_value("driver",  driver_module)
                             v.set_params_value("model", gpu_name)
