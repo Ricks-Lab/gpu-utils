@@ -723,6 +723,7 @@ class GPU_LIST:
                 searchObj = re.search('Radeon Pro Duo', gpu_name_1)
                 if(searchObj != None):
                     gpu_name = "Radeon Fiji Pro Duo"
+                    print(gpu_name, "found!")
 
             if len(gpu_name) > 0:
                 if len(gpu_name_0) > len(gpu_name_1):
@@ -751,6 +752,7 @@ class GPU_LIST:
                         if v.card_path == device_dir + '/':
                             if gpu_name == "Radeon Fiji Pro Duo":
                                 v.compatible = False
+                                print(gpu_name, "not compatible")
                             v.set_params_value("pcie_id", pcie_id)
                             v.set_params_value("driver",  driver_module)
                             v.set_params_value("model", gpu_name)
