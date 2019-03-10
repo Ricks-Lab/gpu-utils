@@ -1064,17 +1064,14 @@ def main():
     # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
     num_com_gpus = gpu_list.num_compatible_gpus()
-
     if num_amd_gpus == 0:
         print("No AMD GPUs detected, exiting...")
         sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} may be compatible.")
         if num_com_gpus == 0:
             print("None are compatible, exiting...")
             sys.exit(-1)
-    print("")
-
+        print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
 
     # Read data from potentially compatible GPUs
     gpu_list.read_hw_data()
@@ -1088,7 +1085,7 @@ def main():
         print("None are compatible, exiting...")
         sys.exit(-1)
     else:
-        print(f"{num_amd_gpus} AMD GPUs detected. {num_com_gpus} are compatible.")
+        print(f"{num_com_gpus} are confirmed compatible.")
         print("")
 
     # Generate a new list of only compatible GPUs
