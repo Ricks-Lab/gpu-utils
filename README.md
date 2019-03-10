@@ -46,7 +46,12 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  v2.2.0
+## New in this Release  -  v2.3.0
+* Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
+* Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
+* Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
+
+### New in Previous Release  -  v2.2.0
 * Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
 * Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the target filename.
 * Implemented energy meter in amdgpu-monitor.
