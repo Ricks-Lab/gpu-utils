@@ -354,8 +354,8 @@ class GPU_ITEM:
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
         card_file.close()
 
-    def read_gpu_sensor_data(self):
-        ''' Read GPU sensor data from HWMON path
+    def read_gpu_sensor_static_data(self):
+        ''' Read GPU static data from HWMON path
         '''
         try:
             if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
@@ -372,7 +372,54 @@ class GPU_ITEM:
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "power1_cap_max"), file=sys.stderr)
                 self.compatibility = False
-    
+
+            if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
+                with open(self.hwmon_path + "temp1_crit") as hwmon_file:
+                    self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
+                hwmon_file.close()
+            else:
+                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
+                self.compatibility = False
+
+            # Get fan data if --no_fan flag is not set
+            if env.gut_const.show_fans == True:
+                if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
+                    with open(self.hwmon_path + "fan1_max") as hwmon_file:
+                        fan1_max_value =  int(hwmon_file.readline())
+                    hwmon_file.close()
+                    if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
+                        with open(self.hwmon_path + "fan1_min") as hwmon_file:
+                            fan1_min_value =  int(hwmon_file.readline())
+                        self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
+                    else:
+                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
+                    hwmon_file.close()
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
+                    self.compatibility = False
+
+                if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
+                    with open(self.hwmon_path + "pwm1_max") as hwmon_file:
+                        pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
+                    hwmon_file.close()
+                    if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
+                        with open(self.hwmon_path + "pwm1_min") as hwmon_file:
+                            pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
+                        self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
+                        hwmon_file.close()
+                    else:
+                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
+                else:
+                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
+                    self.compatibility = False
+        except:
+            print("Error: problem reading static data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            self.compatibility = False
+
+    def read_gpu_sensor_data(self):
+        ''' Read GPU sensor data from HWMON path
+        '''
+        try:
             if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
                 with open(self.hwmon_path + "power1_cap") as hwmon_file:
                     self.set_params_value("power_cap", int(hwmon_file.readline())/1000000)
@@ -402,15 +449,8 @@ class GPU_ITEM:
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
                 self.compatibility = False
-
-            if(os.path.isfile(self.hwmon_path + "temp1_crit") == True):
-                with open(self.hwmon_path + "temp1_crit") as hwmon_file:
-                    self.set_params_value("temp_crit",  int(hwmon_file.readline())/1000)
-                hwmon_file.close()
-            else:
-                print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_crit"), file=sys.stderr)
-                self.compatibility = False
     
+            # Get fan data if --no_fan flag is not set
             if env.gut_const.show_fans == True:
                 if(os.path.isfile(self.hwmon_path + "fan1_enable") == True):
                     with open(self.hwmon_path + "fan1_enable") as hwmon_file:
@@ -434,21 +474,6 @@ class GPU_ITEM:
                     hwmon_file.close()
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_input"), file=sys.stderr)
-                    self.compatibility = False
-    
-                if(os.path.isfile(self.hwmon_path + "fan1_max") == True):
-                    with open(self.hwmon_path + "fan1_max") as hwmon_file:
-                        fan1_max_value =  int(hwmon_file.readline())
-                    hwmon_file.close()
-                    if(os.path.isfile(self.hwmon_path + "fan1_min") == True):
-                        with open(self.hwmon_path + "fan1_min") as hwmon_file:
-                            fan1_min_value =  int(hwmon_file.readline())
-                        self.set_params_value("fan_speed_range", [fan1_min_value, fan1_max_value])
-                    else:
-                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_min"), file=sys.stderr)
-                    hwmon_file.close()
-                else:
-                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "fan1_max"), file=sys.stderr)
                     self.compatibility = False
 
                 if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
@@ -474,21 +499,6 @@ class GPU_ITEM:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
                     self.compatibility = False
 
-                if(os.path.isfile(self.hwmon_path + "pwm1_max") == True):
-                    with open(self.hwmon_path + "pwm1_max") as hwmon_file:
-                        pwm1_max_value =  int(100*(int(hwmon_file.readline())/255))
-                    hwmon_file.close()
-                    if(os.path.isfile(self.hwmon_path + "pwm1_min") == True):
-                        with open(self.hwmon_path + "pwm1_min") as hwmon_file:
-                            pwm1_pmin_value =  int(100*(int(hwmon_file.readline())/255))
-                        self.set_params_value("fan_pwm_range", [pwm1_pmin_value, pwm1_max_value])
-                        hwmon_file.close()
-                    else:
-                        print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_min"), file=sys.stderr)
-                else:
-                    print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1_max"), file=sys.stderr)
-                    self.compatibility = False
-
             if(os.path.isfile(self.hwmon_path + "in0_label") == True):
                 with open(self.hwmon_path + "in0_label") as hwmon_file:
                     if hwmon_file.readline().rstrip() == "vddgfx":
@@ -499,7 +509,7 @@ class GPU_ITEM:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
                 self.compatibility = False
         except:
-            print("Error: getting data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            print("Error: problem reading sensor data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
             self.compatibility = False
 
     def read_gpu_driver_info(self):
@@ -747,6 +757,12 @@ class GPU_LIST:
         for k, v in self.list.items():
             if v.compatible:
                 v.read_gpu_state_data()
+
+    def read_gpu_sensor_static_data(self):
+        # Read dynamic sensor data from GPUs
+        for k, v in self.list.items():
+            if v.compatible:
+                v.read_gpu_sensor_static_data()
 
     def read_gpu_sensor_data(self):
         # Read dynamic sensor data from GPUs

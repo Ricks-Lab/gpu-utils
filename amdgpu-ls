@@ -112,6 +112,7 @@ def main():
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
+    gpu_list.read_gpu_sensor_static_data()
     # Read dynamic sensor and state data from GPUs
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()

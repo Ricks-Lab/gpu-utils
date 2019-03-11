@@ -146,7 +146,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["power_cap_ent"].set_property("margin-left", 2)
 
             devices[v.uuid]["power_cap_ent_unit"] = Gtk.Label()
-            devices[v.uuid]["power_cap_ent_unit"].set_text("W")
+            devices[v.uuid]["power_cap_ent_unit"].set_text("W   (-1 to reset)")
             devices[v.uuid]["power_cap_ent_unit"].set_property("margin-top", 1)
             devices[v.uuid]["power_cap_ent_unit"].set_property("margin-bottom", 1)
             devices[v.uuid]["power_cap_ent_unit"].set_property("margin-right", 0)
@@ -205,7 +205,7 @@ class PACWindow(Gtk.Window):
                 devices[v.uuid]["fan_pwm_ent"].set_property("margin-left", 2)
         
                 devices[v.uuid]["fan_pwm_ent_unit"] = Gtk.Label()
-                devices[v.uuid]["fan_pwm_ent_unit"].set_text("%")
+                devices[v.uuid]["fan_pwm_ent_unit"].set_text("%   (-1 to reset)")
                 devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-top", 1)
                 devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-bottom", 1)
                 devices[v.uuid]["fan_pwm_ent_unit"].set_property("margin-right", 0)
@@ -1077,6 +1077,7 @@ def main():
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
+    gpu_list.read_gpu_sensor_static_data()
     # Read dynamic sensor and state data from GPUs
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
