@@ -50,6 +50,7 @@ except:
 
 
 class GPU_ITEM:
+    """An object to store GPU details."""
     def __init__(self, item_id):
         self.uuid = item_id
         self.card_num = -1
@@ -269,16 +270,12 @@ class GPU_ITEM:
         return(True)
 
     def get_pstate_list_str(self, clk_name):
-        """ Get list of pstate numbers.
-            return as a string.
-        """
+        """Get list of pstate numbers and return as a string."""
         ps_list = self.get_pstate_list(clk_name)
         return(','.join(str(ps) for ps in ps_list))
 
     def get_pstate_list(self, clk_name):
-        """ Get list of pstate numbers.
-            return as a list.
-        """
+        """Get list of pstate numbers and return as a list."""
         if clk_name == "SCLK":
             return(list(self.sclk_state.keys()))
         elif clk_name == "MCLK":
@@ -286,6 +283,7 @@ class GPU_ITEM:
         return([])
 
     def get_current_ppm_mode(self):
+        """Read GPU ppm definitions and current settings from driver files."""
         if self.get_params_value("power_dpm_force").lower() == "auto":
             return([-1,"AUTO"])
         ppm_item = self.get_params_value("ppm").split('-')
@@ -315,6 +313,7 @@ class GPU_ITEM:
             print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
 
     def read_gpu_pstates(self):
+        """Read GPU pstate definitions and parameter ranges from driver files."""
         range_mode = False
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Error getting pstates: ", self.card_path, file=sys.stderr)
@@ -355,8 +354,7 @@ class GPU_ITEM:
         card_file.close()
 
     def read_gpu_sensor_static_data(self):
-        ''' Read GPU static data from HWMON path
-        '''
+        """Read GPU static data from HWMON path."""
         try:
             if(os.path.isfile(self.hwmon_path + "power1_cap_max") == True):
                 with open(self.hwmon_path + "power1_cap_max") as hwmon_file:
@@ -417,8 +415,7 @@ class GPU_ITEM:
             self.compatibility = False
 
     def read_gpu_sensor_data(self):
-        ''' Read GPU sensor data from HWMON path
-        '''
+        """Read GPU sensor data from HWMON path."""
         try:
             if(os.path.isfile(self.hwmon_path + "power1_cap") == True):
                 with open(self.hwmon_path + "power1_cap") as hwmon_file:
@@ -513,8 +510,7 @@ class GPU_ITEM:
             self.compatibility = False
 
     def read_gpu_driver_info(self):
-        ''' Read GPU current driver information from card path directory
-        '''
+        """Read GPU current driver information from card path directory."""
         try:
             # get all device ID information
             if(os.path.isfile(self.card_path + "device") == True):
@@ -571,8 +567,7 @@ class GPU_ITEM:
             self.compatibility = False
 
     def read_gpu_state_data(self):
-        ''' Read GPU current state information from card path directory
-        '''
+        """Read GPU current state information from card path directory."""
         try:
             if(os.path.isfile(self.card_path + "gpu_busy_percent") == True):
                 with open(self.card_path + "gpu_busy_percent") as card_file:
@@ -652,11 +647,10 @@ class GPU_ITEM:
 
 
     def print_ppm_table(self):
-        # Formatting optimized for Nano, but I think Vega64 just has 1 item for description
+        """print human friendly table of ppm parameters."""
         print(f"Card: {self.card_path}")
         print("Power Performance Mode: %s" % self.get_params_value("power_dpm_force"))
         for k, v in self.ppm_modes.items():
-            #print(f"{str(k)}:  {v}")
             print(str(k).rjust(3,' ') +": "+v[0].rjust(15,' ') , end='')
             for v_item in v[1:]:
                 print(str(v_item).rjust(18,' '), end='')
@@ -664,6 +658,7 @@ class GPU_ITEM:
         print("")
 
     def print_pstates(self):
+        """print human friendly table of pstates."""
         print(f"Card: {self.card_path}")
         print("SCLK:" + " ".ljust(19,' ') + "MCLK:")
         for k, v in self.sclk_state.items():
@@ -675,7 +670,7 @@ class GPU_ITEM:
         print("")
 
     def print(self, clflag=False):
-        #for k, v in GPU_Param_Labels.items():
+        """ls like listing function for GPU parameters."""
         i = 0
         for k, v in self.get_all_params_labels().items():
             if i==1:
@@ -691,6 +686,7 @@ class GPU_ITEM:
         print("")
 
 class GPU_LIST:
+    """A list of GPU_ITEMS indexed with uuid.  It also contains a table of parameters used for tabular printouts"""
     def __init__(self):
         self.list = {}
         if env.gut_const.show_fans == True:
@@ -713,9 +709,9 @@ class GPU_LIST:
                     "mclk_f":"Mclk (MHz)", "mclk_ps":"Mclk Pstate", "ppm":"Perf Mode"}
 
     def get_gpu_list(self):
-        ''' This method should be the first called to popultate the list with potentially compatible GPUs
+        """ This method should be the first called to popultate the list with potentially compatible GPUs
             It doesn't read any driver files, just checks their existence and sets them in the GPU_ITEM object.
-        '''
+        """
         for card_name in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_ITEM(uuid4().hex)
             gpu_item.set_params_value("card_path",  card_name.replace("pp_od_clk_voltage",''))
@@ -753,35 +749,37 @@ class GPU_LIST:
             v.print_pstates()
 
     def read_gpu_state_data(self):
-        # Read dynamic state data from GPUs
+        """Read dynamic state data from GPUs"""
         for k, v in self.list.items():
             if v.compatible:
                 v.read_gpu_state_data()
 
     def read_gpu_sensor_static_data(self):
-        # Read dynamic sensor data from GPUs
+        """Read dynamic sensor data from GPUs"""
         for k, v in self.list.items():
             if v.compatible:
                 v.read_gpu_sensor_static_data()
 
     def read_gpu_sensor_data(self):
-        # Read dynamic sensor data from GPUs
+        """Read dynamic sensor data from GPUs"""
         for k, v in self.list.items():
             if v.compatible:
                 v.read_gpu_sensor_data()
 
     def read_gpu_driver_info(self):
-        # Read data static driver information for GPUs
+        """Read data static driver information for GPUs"""
         for k, v in self.list.items():
             if v.compatible:
                 v.read_gpu_driver_info()
 
     def read_allgpu_pci_info(self):
-        ''' This function uses lspci to get details for GPUs in the current list.
+        """ This function uses lspci to get details for GPUs in the current list and 
+            populates the data structure of each GPU_ITEM in the list.
+
             It gets GPU name variants and gets the pcie slot ID for each card ID.
             Special incompatible cases are determined here, like the Fiji Pro Duo.
             This is the first function that should be called after the intial list is populated.
-        '''
+        """
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \"^.*(VGA|Display).*\[AMD\/ATI\].*$\" | grep -Eo \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"',
             shell=True).decode().split()
