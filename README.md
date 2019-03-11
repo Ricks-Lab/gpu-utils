@@ -51,7 +51,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
 
-### New in Previous Release  -  v2.2.0
+#### New in Previous Release  -  v2.2.0
 * Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
 * Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the target filename.
 * Implemented energy meter in amdgpu-monitor.
