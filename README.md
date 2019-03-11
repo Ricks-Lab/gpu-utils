@@ -50,6 +50,8 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
+* Optimized refresh of data by moving static items to a different function and only read those that are dynamic.
+* Power Cap and Fan paramaters can be reset by setting to -1 in the *amdgpu-pac* interface.
 
 #### New in Previous Release  -  v2.2.0
 * Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
@@ -92,9 +94,10 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implement card level compatibility flagging and use in showing only compatible cards.
 
 ## Known Issues
-* Doesn't work with Fiji ProDuo cards.
+* Doesn't work well with Fiji ProDuo cards.
 * Error reading p-states and Vddc range for Radeon VII
 * P-state mask gets intermittently reset for GPU used as display output.
+* *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
