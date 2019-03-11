@@ -352,6 +352,7 @@ class GPU_ITEM:
                         self.set_params_value("mclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "VDDC:":
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
+        card_file.close()
 
     def read_gpu_sensor_data(self):
         ''' Read GPU sensor data from HWMON path
@@ -703,6 +704,7 @@ class GPU_LIST:
 
     def get_gpu_list(self):
         ''' This method should be the first called to popultate the list with potentially compatible GPUs
+            It doesn't read any driver files, just checks their existence and sets them in the GPU_ITEM object.
         '''
         for card_name in glob.glob(env.gut_const.card_root + "card?/device/pp_od_clk_voltage"):
             gpu_item = GPU_ITEM(uuid4().hex)
