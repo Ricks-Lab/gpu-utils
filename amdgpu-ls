@@ -96,7 +96,7 @@ def main():
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
-    gpu_list.get_gpu_details()
+    gpu_list.read_allgpu_pci_info()
 
     # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
@@ -110,9 +110,11 @@ def main():
             sys.exit(-1)
         print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
 
-    # Read data from compatible GPUs
-    gpu_list.read_hw_data()
-    gpu_list.read_device_data()
+    # Read data static driver information for GPUs
+    gpu_list.read_gpu_driver_info()
+    # Read dynamic sensor and state data from GPUs
+    gpu_list.read_gpu_sensor_data()
+    gpu_list.read_gpu_state_data()
 
     # Check number of compatible GPUs again
     num_com_gpus = gpu_list.num_compatible_gpus()
@@ -125,10 +127,10 @@ def main():
 
     # Read report specific details
     if args.clinfo:
-        if gpu_list.read_opencl_data() < 0:
+        if gpu_list.read_gpu_opencl_data() < 0:
             args.clinfo = False
-    gpu_list.get_pstates()
-    gpu_list.get_ppm_table()
+    gpu_list.read_gpu_pstates()
+    gpu_list.read_gpu_ppm_table()
 
     # Print out user requested details
     if args.pstates == True:

@@ -605,10 +605,12 @@ class PACWindow(Gtk.Window):
         return
 
     def refresh_PAC(self, gpu_list, devices, reset_message=False):
-        gpu_list.read_hw_data()
-        gpu_list.read_device_data()
-        gpu_list.get_ppm_table()
-        gpu_list.get_pstates()
+        # Read dynamic sensor and state data from GPUs
+        gpu_list.read_gpu_sensor_data()
+        gpu_list.read_gpu_state_data()
+        # Read pstate and ppm table data
+        gpu_list.read_gpu_pstates()
+        gpu_list.read_gpu_ppm_table()
 
         for k, v in gpu_list.list.items():
             devices[v.uuid]["power_cap_cur"].set_text("    Current: "+str(v.get_params_value("power_cap"))+"W    Set: ")
@@ -1059,7 +1061,7 @@ def main():
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()
     gpu_list.get_gpu_list()
-    gpu_list.get_gpu_details()
+    gpu_list.read_allgpu_pci_info()
 
     # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
@@ -1073,11 +1075,14 @@ def main():
             sys.exit(-1)
         print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
 
-    # Read data from potentially compatible GPUs
-    gpu_list.read_hw_data()
-    gpu_list.read_device_data()
-    gpu_list.get_pstates()
-    gpu_list.get_ppm_table()
+    # Read data static driver information for GPUs
+    gpu_list.read_gpu_driver_info()
+    # Read dynamic sensor and state data from GPUs
+    gpu_list.read_gpu_sensor_data()
+    gpu_list.read_gpu_state_data()
+    # Read pstate and ppm table data
+    gpu_list.read_gpu_pstates()
+    gpu_list.read_gpu_ppm_table()
 
     # Check number of compatible GPUs again
     num_com_gpus = gpu_list.num_compatible_gpus()
