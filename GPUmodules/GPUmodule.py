@@ -65,6 +65,7 @@ class GPU_ITEM:
         "card_num" : "",
         "pcie_id" : "",
         "driver" : "",
+        "gpu_type" : 1,
         "id" : {"vendor":"","device":"","subsystem_vendor":"","subsystem_device":""},
         "model_device_decode" : "UNDETERMINED",
         "model" : "",
@@ -118,6 +119,7 @@ class GPU_ITEM:
         }
         self.sclk_state = {} #{"1":["Mhz","mV]}
         self.mclk_state = {} #{"1":["Mhz","mV]}
+        self.vddc_curve = {} #{"1":["Mhz","mV]}
         self.ppm_modes = {}  #{"1":["Name","Description"]}
 
     def set_params_value(self, name, value):
@@ -152,6 +154,7 @@ class GPU_ITEM:
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
                 "id" : "Device ID",
+                "gpu_type" : "GPU P-State Type",
                 "model_device_decode" : "Decoded Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
@@ -313,8 +316,10 @@ class GPU_ITEM:
             print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
 
     def read_gpu_pstates(self):
-        """Read GPU pstate definitions and parameter ranges from driver files."""
+        """Read GPU pstate definitions and parameter ranges from driver files.
+           Set card type based on pstate configuration"""
         range_mode = False
+        type_unknown = True
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Error getting pstates: ", self.card_path, file=sys.stderr)
             self.compatible = False
@@ -332,18 +337,32 @@ class GPU_ITEM:
                         range_mode = True
                     continue
                 lineitems = line.split()
-                if len(lineitems) < 3:
+                lineitems_len = len(lineitems)
+                if type_unknown:
+                    if len(lineitems) == 3:
+                        # type 1 GPU
+                        self.set_params_value("gpu_type", 1)
+                    elif len(lineitems) == 2:
+                        self.set_params_value("gpu_type", 2)
+                    type_unknown = False
+                if lineitems_len <2 or lineitems_len >3:
                     print("Error: Invalid pstate entry: %s" % (self.card_path + "pp_od_clk_voltage"), file=sys.stderr)
-                    self.compatible = False
+                    #self.compatible = False
                     continue
                 if range_mode == False:
                     lineitems[0] = int(re.sub(':','', lineitems[0]))
-                    if clk_name == "OD_SCLK:":
-                        self.sclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
-                        #print(self.sclk_state)
-                    elif clk_name == "OD_MCLK:":
-                        self.mclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
-                        #print(self.mclk_state)
+                    if self.get_params_value("gpu_type") == 1:
+                        if clk_name == "OD_SCLK:":
+                            self.sclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
+                        elif clk_name == "OD_MCLK:":
+                            self.mclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
+                    else: #Type 2
+                        if clk_name == "OD_SCLK:":
+                            self.sclk_state[lineitems[0]] = [lineitems[1],'-']
+                        elif clk_name == "OD_MCLK:":
+                            self.mclk_state[lineitems[0]] = [lineitems[1],'-']
+                        elif clk_name == "OD_VDDC_CURVE:":
+                            self.vddc_curve[lineitems[0]] = [lineitems[1],lineitems[2]]
                 else:
                     if lineitems[0] == "SCLK:":
                         self.set_params_value("sclk_f_range", [lineitems[1],lineitems[2]])
@@ -351,6 +370,7 @@ class GPU_ITEM:
                         self.set_params_value("mclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "VDDC:":
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
+                    # TODO Read curve data
         card_file.close()
 
     def read_gpu_sensor_static_data(self):
