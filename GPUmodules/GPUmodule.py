@@ -299,12 +299,14 @@ class GPU_ITEM:
         with open(self.card_path + "pp_power_profile_mode") as card_file:
             for line in card_file:
                 linestr = line.strip()
-                linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
-                lineItems = linestr.split()
-                if len(lineItems) < 2:
-                    print("Error: invalid ppm: %s"  % linestr, file=sys.stderr)
-                    continue
-                self.ppm_modes[lineItems[0]] = lineItems[1:]
+                # Check for mode name: begins with '  N'
+                if re.fullmatch(r'  [0-9]', line[0:3]):
+                    linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
+                    lineItems = linestr.split()
+                    if len(lineItems) < 2:
+                        print("Error: invalid ppm: %s"  % linestr, file=sys.stderr)
+                        continue
+                    self.ppm_modes[lineItems[0]] = lineItems[1:]
             self.ppm_modes["-1"] = ["AUTO","Auto"]
         card_file.close()
 
