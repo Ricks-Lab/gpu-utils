@@ -550,10 +550,10 @@ class GPU_ITEM:
                 self.set_params_value("model_device_decode", pcid.get_model(self.get_params_value("id")))
             # set display model to model_device_decode if shorter than model short
             if (self.get_params_value("model_device_decode") != "UNDETERMINED" and
-                        len(self.get_params_value("model_device_decode")) < len(self.get_params_value("model_short"))):
+                        len(self.get_params_value("model_device_decode")) < 1.2*len(self.get_params_value("model_short"))):
                 self.set_params_value("model_display",  self.get_params_value("model_device_decode"))
             else:
-                self.set_params_value("model_display",  model_short)
+                self.set_params_value("model_display",  self.get_params_value("model_short"))
 
             if(os.path.isfile(self.card_path + "vbios_version") == True):
                 with open(self.card_path + "vbios_version") as card_file:
