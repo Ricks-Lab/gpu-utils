@@ -117,9 +117,9 @@ class GPU_ITEM:
         "max_wg_size" : "",
         "prf_wg_multiple" : ""
         }
-        self.sclk_state = {} #{"1":["Mhz","mV]}
-        self.mclk_state = {} #{"1":["Mhz","mV]}
-        self.vddc_curve = {} #{"1":["Mhz","mV]}
+        self.sclk_state = {} #{"1":["Mhz","mV"]}
+        self.mclk_state = {} #{"1":["Mhz","mV"]}
+        self.vddc_curve = {} #{"1":{SCLK:["val1","val2"], VOLT:["val1","val2"]}
         self.ppm_modes = {}  #{"1":["Name","Description"]}
 
     def set_params_value(self, name, value):
@@ -299,7 +299,7 @@ class GPU_ITEM:
         with open(self.card_path + "pp_power_profile_mode") as card_file:
             for line in card_file:
                 linestr = line.strip()
-                # Check for mode name: begins with '  N'
+                # Check for mode name: begins with '[ ]+[0-9].*'
                 if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
                     linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                     lineItems = linestr.split()
@@ -334,10 +334,11 @@ class GPU_ITEM:
             sys.exit(-1)
         with open(self.card_path + "pp_od_clk_voltage") as card_file:
             for line in card_file:
-                if re.fullmatch('OD_.*:$', line.strip()):
-                    if re.fullmatch('OD_.CLK:$', line.strip()):
+                line = line.strip()
+                if re.fullmatch('OD_.*:$', line):
+                    if re.fullmatch('OD_.CLK:$', line):
                         clk_name = line.strip()
-                    elif re.fullmatch('OD_RANGE:$', line.strip()):
+                    elif re.fullmatch('OD_RANGE:$', line):
                         range_mode = True
                     continue
                 lineitems = line.split()
@@ -374,7 +375,22 @@ class GPU_ITEM:
                         self.set_params_value("mclk_f_range", [lineitems[1],lineitems[2]])
                     elif lineitems[0] == "VDDC:":
                         self.set_params_value("vddc_range", [lineitems[1],lineitems[2]])
-                    # TODO Read curve data
+                    elif re.fullmatch('VDDC_CURVE_.*', line):
+                        if len(lineitems) == 3:
+                            index = re.sub(r'VDDC_CURVE_.*\[','', lineitems[0])
+                            index = re.sub(r'\].*','', index)
+                            param = re.sub(r'VDDC_CURVE_','', lineitems[0])
+                            param = re.sub(r'\[[0-9]\]:','', param)
+                            if env.gut_const.DEBUG:
+                                print("Curve: index: %s param: %s, val1 %s, val2: %s" % (index, param, lineitems[1], lineitems[2]))
+                            #self.vddc_curve = {} #{"1":{SCLK:["val1","val2"], VOLT:["val1","val2"]}
+                            if index in self.vddc_curve.keys():
+                                self.vddc_curve[index].update({param:[lineitems[1], lineitems[2]]})
+                            else:
+                                self.vddc_curve[index] = {}
+                                self.vddc_curve[index].update({param:[lineitems[1], lineitems[2]]})
+                        else:
+                            print("Error: Invalid CURVE entry: %s" % (self.card_path + "pp_od_clk_voltage"), file=sys.stderr)
         card_file.close()
 
     def read_gpu_sensor_static_data(self):
@@ -691,6 +707,8 @@ class GPU_ITEM:
                 print(f"  {str(k)}:  {self.mclk_state[k][0].ljust(8,' ')}  {self.mclk_state[k][1].ljust(8,' ')}")
             else:
                 print("")
+        for k, v in self.vddc_curve.items():
+            print(f"{str(k)}: {v}")
         print("")
 
     def print(self, clflag=False):
