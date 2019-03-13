@@ -51,7 +51,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
 * Optimized refresh of data by moving static items to a different function and only read those that are dynamic.
-* Power Cap and Fan paramaters can be reset by setting to -1 in the *amdgpu-pac* interface.
+* Power Cap and Fan parameters can be reset by setting to -1 in the *amdgpu-pac* interface.
 * Initial basic functionality for Radeon VII GPU!
 
 #### New in Previous Release  -  v2.2.0
@@ -99,6 +99,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs.
 * P-state mask gets intermittently reset for GPU used as display output.
 * *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
+* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
 
 ## References
 * Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
