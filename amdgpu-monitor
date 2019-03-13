@@ -145,6 +145,7 @@ def updateData(gpu_list, devices):
                 data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))
+                if data_value == "-1": data_value = ""
             lv.set_text(data_value)
             lv.set_width_chars(16)
 

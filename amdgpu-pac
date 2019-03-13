@@ -672,6 +672,7 @@ class PACWindow(Gtk.Window):
             self.save_card(parent, gpu_list, devices, gk, refresh=False)
 
         # Write finish message
+        time.sleep(0.5)
         if env.gut_const.execute_pac == True:
             message = "Write PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
         else:
@@ -899,11 +900,11 @@ class PACWindow(Gtk.Window):
             print("Writing changes to GPU %s" % v.card_path)
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
-            time.sleep(0.5)
             print("")
 
             if refresh == True:
                 # dismiss execute_pac message
+                time.sleep(0.5)
                 message = "Write of PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
                 self.update_message(devices, message, "yellow")
 

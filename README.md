@@ -52,7 +52,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
 * Optimized refresh of data by moving static items to a different function and only read those that are dynamic.
 * Power Cap and Fan paramaters can be reset by setting to -1 in the *amdgpu-pac* interface.
-* Intial basic functionality for Radeon VII GPU!
+* Initial basic functionality for Radeon VII GPU!
 
 #### New in Previous Release  -  v2.2.0
 * Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
