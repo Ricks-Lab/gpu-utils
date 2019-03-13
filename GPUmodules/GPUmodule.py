@@ -300,12 +300,14 @@ class GPU_ITEM:
             for line in card_file:
                 linestr = line.strip()
                 # Check for mode name: begins with '  N'
-                if re.fullmatch(r'  [0-9]', line[0:3]):
+                if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
                     linestr = re.sub(r'[ ]*[*]*:',' ', linestr)
                     lineItems = linestr.split()
+                    if env.gut_const.DEBUG: print("Debug: ppm line: %s"  % linestr, file=sys.stderr)
                     if len(lineItems) < 2:
                         print("Error: invalid ppm: %s"  % linestr, file=sys.stderr)
                         continue
+                    if env.gut_const.DEBUG: print("Debug: valid ppm: %s"  % linestr, file=sys.stderr)
                     self.ppm_modes[lineItems[0]] = lineItems[1:]
             self.ppm_modes["-1"] = ["AUTO","Auto"]
         card_file.close()
