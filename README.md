@@ -95,6 +95,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
 
 ## Known Issues
+* I/O error when selecting CUSTOM ppm.  I should temprarily remove from interface.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs.
 * P-state mask gets intermittently reset for GPU used as display output.
