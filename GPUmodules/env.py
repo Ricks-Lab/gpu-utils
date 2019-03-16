@@ -60,21 +60,22 @@ class GUT_CONST:
     def check_env(self):
         # Check python version
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
+        if self.DEBUG: print("Using python " + python_major +"."+ python_minor +"."+ python_patch)
         if python_major < "3":
-            print("Using python" + python_major + ", but benchMT requires python3.", file=sys.stderr)
+            print("Using python" + python_major + ", but " + __program_name__ + " requires python3.", file=sys.stderr)
             return(-1)
         if python_minor < "6":
             print("Using python " + python_major +"."+ python_minor +"."+ python_patch +
-                    " but, benchMT requires python 3.6 and up.", file=sys.stderr)
+                    ", but " + __program_name__ + " requires python 3.6 or higher.", file=sys.stderr)
             return(-1)
 
         # Check Linux Kernel version
         linux_version = platform.release()
         if int(linux_version.split(".")[0]) < 4:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
+            print("Using Linux Kernel " +  linux_version + ", but " + __program_name__ + " requires > 4.17.", file=sys.stderr)
             return(-2)
         if int(linux_version.split(".")[1]) < 8:
-            print(f"Using Linux Kernel {linux_version} but benchMT requires > 4.17.", file=sys.stderr)
+            print("Using Linux Kernel " + linux_version + ", but " + __program_name__ + " requires > 4.17.", file=sys.stderr)
             return(-2)
 
         # Check AMD GPU Driver Version
