@@ -832,8 +832,8 @@ class PACWindow(Gtk.Window):
                     print("# Invalid mclk pstate values", file=fileptr)
     
         # PPM
-        ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
-        ppm_level_file = v.card_path + "pp_power_profile_mode"
+        ppm_level_file = v.card_path + "power_dpm_force_performance_level"
+        ppm_mode_file = v.card_path + "pp_power_profile_mode"
 
         tree_iter = devices[uuid]["ppm_modes_combo"].get_active_iter()
         if tree_iter is not None:
@@ -842,10 +842,10 @@ class PACWindow(Gtk.Window):
             selected_mode = devices[uuid]["new_ppm"][0]
             print("# Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
             if (devices[uuid]["new_ppm"][1]).lower() == 'auto':
-                print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
+                print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_level_file, file=fileptr)
             else:
-                print("sudo sh -c \"echo \'manual\' >  %s\"" % ppm_mode_file, file=fileptr)
-                print("sudo sh -c \"echo \'%d\' >  %s\"" % (devices[uuid]["new_ppm"][0], ppm_level_file), file=fileptr)
+                print("sudo sh -c \"echo \'manual\' >  %s\"" % ppm_level_file, file=fileptr)
+                print("sudo sh -c \"echo \'%d\' >  %s\"" % (devices[uuid]["new_ppm"][0], ppm_mode_file), file=fileptr)
     
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
@@ -991,11 +991,11 @@ class PACWindow(Gtk.Window):
         power_cap_file = v.hwmon_path + "power1_cap"
         pwm_enable_file = v.hwmon_path + "pwm1_enable"
         device_file = v.card_path + "pp_od_clk_voltage"
-        ppm_mode_file = v.card_path + "power_dpm_force_performance_level"
+        ppm_level_file = v.card_path + "power_dpm_force_performance_level"
         print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
         if env.gut_const.show_fans == True:
             print("sudo sh -c \"echo \'2\' >  %s\"" % (pwm_enable_file), file=fileptr)
-        print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_mode_file, file=fileptr)
+        print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_level_file, file=fileptr)
         print("sudo sh -c \"echo \'r\' >  %s\"" % (device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
         # No need to reset clk pstate masks as commit to pp_od_clk_voltage will reset
