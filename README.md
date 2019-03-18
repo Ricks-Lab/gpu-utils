@@ -46,7 +46,14 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  v2.3.0
+## New in this Release  -  v2.3.1
+* Fixed and improved Python/Kernel compatibility checks.
+* Added Python2 compatible utility to check compatibility.
+* Fixed confusing mode/level fileptr names.
+* Removed CUSTOM PPM mode until I figure out syntax.
+* Initial User Guide template started - Need help!
+
+#### New in Previous Release  -  v2.3.0
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
