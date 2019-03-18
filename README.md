@@ -51,6 +51,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Added Python2 compatible utility to check compatibility.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
+* Changed dpkg error to a warning to handle custome driver installs.
 * Initial User Guide template started - Need help!
 
 #### New in Previous Release  -  v2.3.0
