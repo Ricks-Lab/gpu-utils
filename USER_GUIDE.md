@@ -10,7 +10,7 @@ syntax error, so if you have issues, just execute:
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
 also notice that there as a minumum version of the Kernel that supports these features, but be
-warned, I have only tested it with 4.17.
+warned, I have only tested it with 4.15.
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You can check with the following command:
@@ -36,3 +36,4 @@ sudo update-grub
 and then reboot.
 
 
+## Using amdgpu-ls
