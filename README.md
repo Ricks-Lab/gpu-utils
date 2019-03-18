@@ -48,11 +48,11 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 
 ## New in this Release  -  v2.3.1
 * Fixed and improved Python/Kernel compatibility checks.
-* Added Python2 compatible utility to check compatibility.
+* Added Python2 compatible utility to check *amdgpu-utils* compatibility.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
-* Changed dpkg error to a warning to handle custome driver installs.
-* Initial User Guide template started - Need help!
+* Changed dpkg error to a warning to handle custom driver installs.
+* Initial [User Guide](https://github.com/Ricks-Lab/amdgpu-utils/blob/master/USER_GUIDE.md) template started - [Need help!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
 #### New in Previous Release  -  v2.3.0
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
