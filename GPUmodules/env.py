@@ -111,13 +111,15 @@ class GUT_CONST:
             for dpkg_line in dpkg_out:
                 searchObj = re.search('amdgpu', dpkg_line)
                 if(searchObj != None):
-                   dpkg_items = dpkg_line.split()
-                   print(f"amdgpu version: {dpkg_items[2]}")
+                    dpkg_items = dpkg_line.split()
+                    print(f"amdgpu version: {dpkg_items[2]}")
         except subprocess.CalledProcessError as e:
             if re.search('exit status 1', str(e)) != None:
                 print(str(e))
-                print("Error: amdgpu drivers not installed, exiting...")
-                sys.exit(-1)
+                print("Warning: amdgpu drivers not may not be installed.")
+                return(-1)
+                #print("Error: amdgpu drivers not installed, exiting...")
+                #sys.exit(-1)
         except:
             print("Warning: Cannot read determine amdgpu version.")
             return(-1)
