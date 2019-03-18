@@ -63,7 +63,9 @@ class GUT_CONST:
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
         if self.DEBUG: print("Using python " + python_major +"."+ python_minor +"."+ python_patch)
         if int(python_major) < required_pversion[0]:
-            print("Using python" + python_major + ", but " + __program_name__ + " requires python3.", file=sys.stderr)
+            print("Using python" + python_major + ", but " + __program_name__ + 
+                    " requires python " + str(required_pversion[0]) +"."+ str(required_pversion[1]) + " or higher.",
+                    file=sys.stderr)
             return(-1)
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
             print("Using python " + python_major +"."+ python_minor +"."+ python_patch + ", but " + __program_name__ +
