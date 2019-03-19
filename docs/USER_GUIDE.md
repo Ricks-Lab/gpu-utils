@@ -194,7 +194,7 @@ parameter when managing compute performance.
 By default, *amdgpu-pac* will open a Gtk based GUI to allow the user to modify GPU performance parameters.
 I strongly suggest that you completely understand the implications of changing any of the performance 
 settings before you use this utility.  As per the terms of the GNU General Public License that covers this
-project, there is no warranty on the usability of these tools.  Any  use of this tool is at your own risk.
+project, there is no warranty on the usability of these tools.  Any use of this tool is at your own risk.
 
 To help you manage the risk in using this tool, there are 2 modes in which GPUs are written to.  By default,
 a bash file is created that you can review and execute to implement the desired changes.  Here is an example
@@ -266,7 +266,23 @@ sudo sh -c "echo '4 5 6' >  /sys/class/drm/card1/device/pp_dpm_sclk"
 sudo sh -c "echo '3' >  /sys/class/drm/card1/device/pp_dpm_mclk"
 ```
 
+When you execute *amdgpu-pac*, you will notice a message bar at the bottom of the interface.  
+By default, it informs you of the mode you are running in.  By default, the operation mode is
+to create a bash file, but with the *--execute_pac* command line option, the bash file will 
+be automatically executed and then deleted.  The message bar will indicate this status.  Since
+the driver files are only writable by root, the commands to write configuration settings are executed
+with sudo.  The message bar will have a red indicator that credentials are pending if that is the case.
+Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.
+I suggest to use the monitor routine will you run pac in order to see the changes in realtime.
 ![](amdgpu-pac_scrshot.png)
+
+In the interface, you will notice entry fields for indicating new values for specific parameters.  In
+most cases, the values in these fields will be the current values, but in the case of P-state masks,
+it will show the default value instead of the current value.  If you know how to obtain the current 
+value, please let me know!
+
+There is some very basic error checking done before writing, but I suggest you be very certain of
+all entries before you save to the GPU.
 
 ## Using amdgpu-pciid
 
