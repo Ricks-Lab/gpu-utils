@@ -149,12 +149,13 @@ Power Performance Mode: manual
 
 ## Using amdgpu-monitor
 By default, *amdgpu-monitor* will display a text based table in the current terminal window
-that updates every sleep duration as defined by *--sleep N* or 2s by default.
+that updates every sleep duration as defined by *--sleep N* or 2s by default. If you using
+water cooling, you can us the *--no_fans* to remove fan functionality.
 ```
 ┌─────────────┬────────────────┬────────────────┐
 │Card #       │card1           │card0           │
 ├─────────────┼────────────────┼────────────────┤
-│Model        │RX Vega64       │Vega 20 [Radeon │
+│Model        │RX Vega64       │Vega 20  Radeon │
 │Load %       │99              │93              │
 │Power (W)    │60.0            │138.0           │
 │Power Cap (W)│140.0           │140.0           │
@@ -171,6 +172,7 @@ that updates every sleep duration as defined by *--sleep N* or 2s by default.
 ```
 The fields are as the same as the gui version of the display available with the *--gui* option.
 ![](amdgpu-monitor_scrshot.png)
+
 The first row gives the card number for each GPU.  This number is the integer used by the driver
 for each GPU.  Most fields are self discribing.  The Power Cap field is especially useful in managing
 compute power efficiency and lowering the cap can result in more level loading and overall lower power
@@ -189,6 +191,81 @@ These modes affect the how frequency and voltage are managed versus loading.  Al
 parameter when managing compute performance.
 
 ## Using amdgpu-pac
+By default, *amdgpu-pac* will open a Gtk based GUI to allow the user to modify GPU performance parameters.
+I strongly suggest that you completely understand the implications of changing any of the performance 
+settings before you use this utility.  As per the terms of the GNU General Public License that covers this
+project, there is no warranty on the usability of these tools.  Any  use of this tool is at your own risk.
+
+To help you manage the risk in using this tool, there are 2 modes in which GPUs are written to.  By default,
+a bash file is created that you can review and execute to implement the desired changes.  Here is an example
+of that file:
+```
+#!/bin/sh
+###########################################################################
+## amdgpu-pac generated script to modify GPU configuration/settings
+###########################################################################
+
+###########################################################################
+## WARNING - Do not execute this script without completely
+## understanding appropriate value to write to your specific GPUs
+###########################################################################
+#
+#    Copyright (C) 2019  RueiKe
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+###########################################################################
+# 
+# Card1   Vega 10 XT [Radeon RX Vega 64] (rev c1)
+# /sys/class/drm/card1/device/
+# 
+set -x
+# Powercap Old:  140 New:  140 Min: 0 Max: 220
+sudo sh -c "echo '140000000' >  /sys/class/drm/card1/device/hwmon/hwmon6/power1_cap"
+#sck p-state: 0 : 852 MHz, 800 mV
+sudo sh -c "echo 's 0 852 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 1 : 991 MHz, 900 mV
+sudo sh -c "echo 's 1 991 900' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 2 : 1084 MHz, 950 mV
+sudo sh -c "echo 's 2 1084 950' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 3 : 1138 MHz, 1000 mV
+sudo sh -c "echo 's 3 1138 1000' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 4 : 1200 MHz, 1050 mV
+sudo sh -c "echo 's 4 1200 1050' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 5 : 1401 MHz, 1100 mV
+sudo sh -c "echo 's 5 1401 1100' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 6 : 1530 MHz, 1150 mV
+sudo sh -c "echo 's 6 1530 1150' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#sck p-state: 7 : 1630 MHz, 1200 mV
+sudo sh -c "echo 's 7 1630 1200' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#mck p-state: 0 : 167 MHz, 800 mV
+sudo sh -c "echo 'm 0 167 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#mck p-state: 1 : 500 MHz, 800 mV
+sudo sh -c "echo 'm 1 500 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#mck p-state: 2 : 800 MHz, 950 mV
+sudo sh -c "echo 'm 2 800 950' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+#mck p-state: 3 : 945 MHz, 1100 mV
+sudo sh -c "echo 'm 3 945 1100' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# Selected: ID=4, name=COMPUTE
+sudo sh -c "echo 'manual' >  /sys/class/drm/card1/device/power_dpm_force_performance_level"
+sudo sh -c "echo '4' >  /sys/class/drm/card1/device/pp_power_profile_mode"
+sudo sh -c "echo 'c' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# Sclk P-State Mask Default:  0 1 2 3 4 5 6 7 New:  4 5 6
+sudo sh -c "echo '4 5 6' >  /sys/class/drm/card1/device/pp_dpm_sclk"
+# Mclk P-State Mask Default:  0 1 2 3 New:  3
+sudo sh -c "echo '3' >  /sys/class/drm/card1/device/pp_dpm_mclk"
+```
+
 ![](amdgpu-pac_scrshot.png)
 
 ## Using amdgpu-pciid
