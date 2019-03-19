@@ -52,7 +52,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
 * Changed dpkg error to a warning to handle custom driver installs.
-* Initial [User Guide](https://github.com/Ricks-Lab/amdgpu-utils/blob/master/USER_GUIDE.md) template started - [Need help!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
+* Initial [User Guide](docs/USER_GUIDE.md) template started - [Need help!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
 #### New in Previous Release  -  v2.3.0
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
