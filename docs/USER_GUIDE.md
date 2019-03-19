@@ -273,7 +273,8 @@ be automatically executed and then deleted.  The message bar will indicate this 
 the driver files are only writable by root, the commands to write configuration settings are executed
 with sudo.  The message bar will have a red indicator that credentials are pending if that is the case.
 Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.
-I suggest to use the monitor routine will you run pac in order to see the changes in realtime.
+I suggest to use the monitor routine while you run pac in order to see the changes in realtime.
+
 ![](amdgpu-pac_scrshot.png)
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In
