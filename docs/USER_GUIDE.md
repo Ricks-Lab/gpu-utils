@@ -37,3 +37,54 @@ and then reboot.
 
 
 ## Using amdgpu-ls
+```AMD Wattman features enabled: 0xffff7fff
+amdgpu version: 18.50-725072
+2 AMD GPUs detected, 2 may be compatible, checking...
+2 are confirmed compatible.
+
+UUID: 309abc9c97ea451396334b11199d0680
+amdgpu-util Compatibility: Yes
+Device ID: {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
+GPU P-State Type: 1
+Decoded Device ID: RX Vega64
+Card Model:  Vega 10 XT [Radeon RX Vega 64] (rev c1)
+Short Card Model:  RX Vega 64
+Display Card Model: RX Vega64
+Card Number: 1
+Card Path: /sys/class/drm/card1/device/
+PCIe ID: 44:00.0
+Driver: amdgpu
+vBIOS Version: 113-D0500100-105
+HWmon: /sys/class/drm/card1/device/hwmon/hwmon6/
+Current Power (W): 118.0
+Power Cap (W): 140.0
+Power Cap Range (W): [0, 220]
+Fan Enable: 1
+Fan PWM Mode: [1, 'Manual']
+Current Fan PWM (%): 0
+Current Fan Speed (rpm): 0
+Fan Target Speed (rpm): 0
+Fan Speed Range (rpm): [400, 4900]
+Fan PWM Range (%): [0, 100]
+Current Temp (C): 35.0
+Critical Temp (C): 91.0
+Current VddGFX (mV): 1037
+Vddc Range: ['800mV', '1200mV']
+Current Loading (%): 99
+Link Speed: 8 GT/s
+Link Width: 16
+Current SCLK P-State: 6
+Current SCLK: 1536Mhz 
+SCLK Range: ['852MHz', '2400MHz']
+Current MCLK P-State: 3
+Current MCLK: 945Mhz 
+MCLK Range: ['167MHz', '1500MHz']
+Power Performance Mode: 4-COMPUTE
+Power Force Performance Level: manual
+```
+
+## Using amdgpu-monitor
+![](docs/amdgpu-monitor_scrshot.png)
+
+## Using amdgpu-pac
+![](docs/amdgpu-pac_scrshot.png)
