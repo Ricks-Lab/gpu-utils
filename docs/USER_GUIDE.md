@@ -84,7 +84,7 @@ Power Force Performance Level: manual
 ```
 
 ## Using amdgpu-monitor
-![](docs/amdgpu-monitor_scrshot.png)
+![](amdgpu-monitor_scrshot.png)
 
 ## Using amdgpu-pac
-![](docs/amdgpu-pac_scrshot.png)
+![](amdgpu-pac_scrshot.png)
