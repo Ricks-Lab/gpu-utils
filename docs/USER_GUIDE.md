@@ -118,7 +118,14 @@ uses the PCIe slot id to associate clinfo results with the appropriate GPU in th
 
 The *--pstates* and *--ppm* options will display the P-State definition table and the power
 performance mode table.
-```Card: /sys/class/drm/card1/device/
+```
+./amdgpu-ls --pstate --ppm
+AMD Wattman features enabled: 0xffff7fff
+amdgpu version: 18.50-725072
+2 AMD GPUs detected, 2 may be compatible, checking...
+2 are confirmed compatible.
+
+Card: /sys/class/drm/card1/device/
 SCLK:                   MCLK:
 0:  852Mhz    800mV     0:  167Mhz    800mV   
 1:  991Mhz    900mV     1:  500Mhz    800mV   
@@ -141,7 +148,45 @@ Power Performance Mode: manual
 ```
 
 ## Using amdgpu-monitor
+By default, *amdgpu-monitor* will display a text based table in the current terminal window
+that updates every sleep duration as defined by *--sleep N* or 2s by default.
+```
+┌─────────────┬────────────────┬────────────────┐
+│Card #       │card1           │card0           │
+├─────────────┼────────────────┼────────────────┤
+│Model        │RX Vega64       │Vega 20 [Radeon │
+│Load %       │99              │93              │
+│Power (W)    │60.0            │138.0           │
+│Power Cap (W)│140.0           │140.0           │
+│Energy (kWh) │1e-06           │3e-06           │
+│T (C)        │30.0            │47.0            │
+│VddGFX (mV)  │1037            │1062            │
+│Fan Spd (%)  │0               │93              │
+│Sclk (MHz)   │1536Mhz         │                │
+│Sclk Pstate  │6               │-1              │
+│Mclk (MHz)   │945Mhz          │                │
+│Mclk Pstate  │3               │-1              │
+│Perf Mode    │4-COMPUTE       │4-COMPUTE       │
+└─────────────┴────────────────┴────────────────┘
+```
+The fields are as the same as the gui version of the display available with the *--gui* option.
 ![](amdgpu-monitor_scrshot.png)
+The first row gives the card number for each GPU.  This number is the integer used by the driver
+for each GPU.  Most fields are self discribing.  The Power Cap field is especially useful in managing
+compute power efficiency and lowering the cap can result in more level loading and overall lower power
+usage for little compromise in performance.  The Energy field is a derived metrics that accumulate 
+energy usage in kWh consumed since the monitor started.  It is calculated by the product of the latest
+power reading and the elapsed time since the last power reading and accumulated. 
+
+You will notice that there are no clock frequencies or valid p-states for the Vega20 card.  This is
+due to a change in Frequency vs Voltage in this generation of GPUs.  The P-state table for Vega 20
+is a definition of Frequency vs. Voltage curves.  I am not certain how to read current frequencies or 
+modify curves, so these features are disabled in the utilities for Vega20 and other GPU's that use this
+approach.
+
+The Perf Mode field gives the current power performance mode, which can be modified in with amdgpu-pac.
+These modes affect the how frequency and voltage are managed versus loading.  Also a very important 
+parameter when managing compute performance.
 
 ## Using amdgpu-pac
 ![](amdgpu-pac_scrshot.png)
