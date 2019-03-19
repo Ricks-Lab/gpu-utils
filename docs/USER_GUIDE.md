@@ -50,7 +50,7 @@ and then reboot.
 ## Using amdgpu-ls
 After getting your system setup to support amdgpu-utils, it is best to verify functionality by 
 listing your GPU details with the *amdgpu-ls* command.  It first attempts for detect the version 
-of amdgpu drivers you have installed and then check compaibility of installed AMD GPUs.  Its
+of amdgpu drivers you have installed and then check compatibility of installed AMD GPUs.  Its
 default behavior is to list basic GPU details for all compatible cards:
 ```AMD Wattman features enabled: 0xffff7fff
 amdgpu version: 18.50-725072
@@ -96,6 +96,48 @@ Current MCLK: 945Mhz
 MCLK Range: ['167MHz', '1500MHz']
 Power Performance Mode: 4-COMPUTE
 Power Force Performance Level: manual
+```
+
+If everything is working fine, you should see no warning or errors.  The listing utility
+also has other command line options:
+```usage: amdgpu-ls [-h] [--about] [--pstates] [--ppm] [--clinfo] [--no_fan] [-d]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --about      README
+  --pstates    Output pstate tables instead of GPU details
+  --ppm        Output power/performance mode tables instead of GPU details
+  --clinfo     Include openCL with card details
+  --no_fan     don't include fan setting options
+  -d, --debug  Debug output
+```
+
+The *--clinfo* option will make a call to clinfo, if it is installed, and list these parameters
+along with the basic parameters.  The benifit of running this in *amdgpu-ls* is that the tool
+uses the PCIe slot id to associate clinfo results with the appropriate GPU in the listing.
+
+The *--pstates* and *--ppm* options will display the P-State definition table and the power
+performance mode table.
+```Card: /sys/class/drm/card1/device/
+SCLK:                   MCLK:
+0:  852Mhz    800mV     0:  167Mhz    800mV   
+1:  991Mhz    900mV     1:  500Mhz    800mV   
+2:  1084Mhz   950mV     2:  800Mhz    950mV   
+3:  1138Mhz   1000mV    3:  945Mhz    1100mV  
+4:  1200Mhz   1050mV  
+5:  1401Mhz   1100mV  
+6:  1536Mhz   1150mV  
+7:  1630Mhz   1200mV  
+
+Card: /sys/class/drm/card1/device/
+Power Performance Mode: manual
+  0:  3D_FULL_SCREEN                70                60                 1                 3
+  1:    POWER_SAVING                90                60                 0                 0
+  2:           VIDEO                70                60                 0                 0
+  3:              VR                70                90                 0                 0
+  4:         COMPUTE                30                60                 0                 6
+  5:          CUSTOM                 0                 0                 0                 0
+ -1:            AUTO              Auto
 ```
 
 ## Using amdgpu-monitor
