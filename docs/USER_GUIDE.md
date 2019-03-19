@@ -1,6 +1,14 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
+## Current amdgpu-utils Version: 2.3.1
+ - [Getting Started](#getting-started)
+ - [Using amdgpu-ls](#using-amdgpu-ls)
+ - [Using amdgpu-monitor](#using-amdgpu-monitor)
+ - [Using amdgpu-pac](#using-amdgpu-pac)
+ - [Using amdgpu-pciid](#using-amdgpu-pciid)
+ - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
+
 ## Getting Started
 First, this set of utils is written and tested with Python3.6.  If you are using and older
 version, you will likely see syntax errors.  Unfortuntately, I don't know how to catch a
@@ -9,8 +17,10 @@ syntax error, so if you have issues, just execute:
 ./amdgpu-chk
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
-also notice that there as a minumum version of the Kernel that supports these features, but be
-warned, I have only tested it with 4.15.
+also notice that there is a minumum version of the Kernel that supports these features, but be
+warned, I have only tested it with 4.15. There have been amdgpu features implemented over time
+that spans many releases of the kernel, so your experience in using these utilities with older 
+kernels may not be ideal.
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You can check with the following command:
@@ -18,7 +28,8 @@ package installed. You can check with the following command:
 dpkg -l amdgpu
 ```
 
-You also must first set your linux machine to boot with amdgpu.ppfeaturemask=0xffff7fff.  This
+You also must set your linux machine to boot with the feature mask set to support the functionality
+that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xffff7fff.  This
 can be accomplished by adding amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT
 value in /etc/default/grub and executing *sudo update-grub* as in the following example:
 ```
@@ -27,7 +38,7 @@ sudo vi grub
 ```
 Modify to include the featuremask as follows:
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash pcie_aspm=off amdgpu.ppfeaturemask=0xffff7fff"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xffff7fff"
 ```
 After saving, update grub:
 ```
@@ -37,6 +48,10 @@ and then reboot.
 
 
 ## Using amdgpu-ls
+After getting your system setup to support amdgpu-utils, it is best to verify functionality by 
+listing your GPU details with the *amdgpu-ls* command.  It first attempts for detect the version 
+of amdgpu drivers you have installed and then check compaibility of installed AMD GPUs.  Its
+default behavior is to list basic GPU details for all compatible cards:
 ```AMD Wattman features enabled: 0xffff7fff
 amdgpu version: 18.50-725072
 2 AMD GPUs detected, 2 may be compatible, checking...
@@ -88,3 +103,7 @@ Power Force Performance Level: manual
 
 ## Using amdgpu-pac
 ![](amdgpu-pac_scrshot.png)
+
+## Using amdgpu-pciid
+
+## Optimizing Compute Performance-Power
