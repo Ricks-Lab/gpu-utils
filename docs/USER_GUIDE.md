@@ -294,4 +294,5 @@ DOE to measure the effect of GPU settings on the performance in executing specif
 of SETI@Home performance, the Energy feature has also been built into [bencMT](https://github.com/Ricks-Lab/benchMT)
 to benchmark power and execution times for various work units.  This combined with the log file produced with
 *amdgpu-monitor --gui --log* can be useful in the optimization of performance.
-[](https://i.imgur.com/YPuDez2l.png)
+
+![](https://i.imgur.com/YPuDez2l.png)
