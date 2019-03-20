@@ -294,8 +294,7 @@ all entries before you save to the GPU.
 The *amdgpu-util* tools can be used to optimize performance vs. power for compute workloads by leveraging
 its ability to measure power and control relevant GPU settings.  This flexibility allows one to execute a
 DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In the case 
-of SETI@Home performance, the Energy feature has also been built into [bencMT](https://github.com/Ricks-Lab/benchMT) ##into [benchMT]?##
-to benchmark power and execution times for various work units.  This combined with the log file produced with
+of SETI@Home performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to benchmark power and execution times for various work units.  This combined with the log file produced with
 *amdgpu-monitor --gui --log* can be useful in the optimization of performance.
 
 ![](https://i.imgur.com/YPuDez2l.png)
