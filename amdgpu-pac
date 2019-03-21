@@ -575,7 +575,7 @@ class PACWindow(Gtk.Window):
         devices["message_box"].set_property("margin-bottom", 1)
         devices["message_box"].set_property("margin-right", 1)
         devices["message_box"].set_property("margin-left", 1)
-        devices["message_box"].pack_start(devices["message_label"], True, True, 10)
+        devices["message_box"].pack_start(devices["message_label"], True, True, 1)
         grid.attach(devices["message_box"], 0, max_rows, col, 1)
         row += 1
 
