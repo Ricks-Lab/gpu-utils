@@ -149,7 +149,7 @@ Power Performance Mode: manual
 
 ## Using amdgpu-monitor
 By default, *amdgpu-monitor* will display a text based table in the current terminal window
-that updates every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by default. If you using
+that updates every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by default. If you are using
 water cooling, you can us the *--no_fans* to remove fan functionality.
 ```
 ┌─────────────┬────────────────┬────────────────┐
@@ -267,7 +267,7 @@ sudo sh -c "echo '3' >  /sys/class/drm/card1/device/pp_dpm_mclk"
 
 When you execute *amdgpu-pac*, you will notice a message bar at the bottom of the interface.  
 By default, it informs you of the mode you are running in.  By default, the operation mode is
-to create a bash file, but with the *--execute_pac* command line option, the bash file will            ##*--execute* option also works##
+to create a bash file, but with the *--execute_pac* (or *--execute*) command line option, the bash file will
 be automatically executed and then deleted.  The message bar will indicate this status.  Since
 the driver files are only writable by root, the commands to write configuration settings are executed
 with sudo.  The message bar will have a red indicator that credentials are pending if that is the case.
@@ -281,9 +281,9 @@ most cases, the values in these fields will be the current values, but in the ca
 it will show the default value instead of the current value.  If you know how to obtain the current 
 value, please let me know!
 
-Note that when the bash file is executed or when Save is clicked in the Gtk window with the *--execute* option enabled, the fan PWM (speed) will be reset and run ~3% less than what is shown in the Fan PWM entry field.  Be aware that any decrease in fan speed is likely to result in an increase of GPU temperature.  This decrementing of fan PWM does not occur at these stable PWM values: 0%, 20%, 40%, 60%, 80%, 100%. (The reasons for this are ????.) Currently the only solution to obtain a particular exact fan speed is enter a Fan PWM 3% greater than what is desired or enter one of the stable PWM values. 
+Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  Such changes to fan PWM may occur even though you did not specifically change Fan PWM and even if Fan PWM was previously set to dynamic (automatic, default) mode.  The direction and magnitude of differences between expected and realized fan speeds may depend on card model, so you will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  The cause of the differences between entered, or shown, and final fan PWM values is being investigated. 
 
-Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-entered them using *amdgpu-pac*, *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to work.
+Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
 
 There is some very basic error checking done before writing, but I suggest you be very certain of
 all entries before you save to the GPU.
