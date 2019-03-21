@@ -11,13 +11,13 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
 
 ## Getting Started
 First, this set of utils is written and tested with Python3.6.  If you are using and older
-version, you will likely see syntax errors.  Unfortuntately, I don't know how to catch a
+version, you will likely see syntax errors.  Unfortunately, I don't know how to catch a
 syntax error, so if you have issues, just execute:
 ```
 ./amdgpu-chk
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
-also notice that there is a minumum version of the Kernel that supports these features, but be
+also notice that there is a minimum version of the Kernel that supports these features, but be
 warned, I have only tested it with 4.15. There have been amdgpu features implemented over time
 that spans many releases of the kernel, so your experience in using these utilities with older 
 kernels may not be ideal.
@@ -58,7 +58,7 @@ amdgpu version: 18.50-725072
 2 are confirmed compatible.
 
 UUID: 309abc9c97ea451396334b11199d0680
-amdgpu-util Compatibility: Yes
+amdgpu-utils Compatibility: Yes
 Device ID: {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
 GPU P-State Type: 1
 Decoded Device ID: RX Vega64
@@ -113,7 +113,7 @@ optional arguments:
 ```
 
 The *--clinfo* option will make a call to clinfo, if it is installed, and list these parameters
-along with the basic parameters.  The benifit of running this in *amdgpu-ls* is that the tool
+along with the basic parameters.  The benefit of running this in *amdgpu-ls* is that the tool
 uses the PCIe slot id to associate clinfo results with the appropriate GPU in the listing.
 
 The *--pstates* and *--ppm* options will display the P-State definition table and the power
@@ -174,7 +174,7 @@ The fields are the same as the gui version of the display, available with the *-
 ![](amdgpu-monitor_scrshot.png)
 
 The first row gives the card number for each GPU.  This number is the integer used by the driver
-for each GPU.  Most fields are self discribing.  The Power Cap field is especially useful in managing
+for each GPU.  Most fields are self describing.  The Power Cap field is especially useful in managing
 compute power efficiency and lowering the cap, which can result in more level loading and overall lower power
 usage for little compromise in performance.  The Energy field is a derived metric that accumulates GPU 
 energy usage, in kWh, consumed since the monitor started. Note that total card power usage may be more than reported GPU usage.  Energy is calculated as the product of the latest power reading and the elapsed time since the last power reading. 
@@ -272,7 +272,7 @@ be automatically executed and then deleted.  The message bar will indicate this 
 the driver files are only writable by root, the commands to write configuration settings are executed
 with sudo.  The message bar will have a red indicator that credentials are pending if that is the case.
 Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.
-I suggest to use the monitor routine while you run pac in order to see the changes in realtime.
+I suggest to use the monitor routine while you run pac in order to see the changes in real-time.
 
 ![](amdgpu-pac_scrshot.png)
 
@@ -289,9 +289,30 @@ There is some very basic error checking done before writing, but I suggest you b
 all entries before you save to the GPU.
 
 ## Using amdgpu-pciid
+In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lscpi -k -s nn:nn.n* 
+is used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver 
+files, a set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID
+are read and used to extract a GPU model name from a file retrieved from  [https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/)
+where a comprehensive list is maintained.  An AMD only extract from that source is included in this distribution.
+The *amdgpu-pciid* tool can be used to manage the local extract.  Execute *amdgpu-pciid* to check if a newer version
+is available and use *amdgpu-pciid --install* to replaced the existing extract used by the utilities with an updated version.
+If your GPU is not listed in the extract, the pci.id website has an interface to allow the user to request an addition
+to the master list.  
+```
+usage: amdgpu-pciid [-h] [--about] [--download] [--install] [--force] [-d]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --about      README
+  --download   download pci decode table from https://pci-
+               ids.ucw.cz/v2.2/pci.ids
+  --install    download, parse amd entries, and install a new decode file
+  --force      force install of new pci.ids data even if revision is unchanged
+  -d, --debug  Debug output
+```
 
 ## Optimizing Compute Performance-Power
-The *amdgpu-util* tools can be used to optimize performance vs. power for compute workloads by leveraging
+The *amdgpu-utils* tools can be used to optimize performance vs. power for compute workloads by leveraging
 its ability to measure power and control relevant GPU settings.  This flexibility allows one to execute a
 DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In the case 
 of SETI@Home performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to benchmark power and execution times for various work units.  This combined with the log file produced with
