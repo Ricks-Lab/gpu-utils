@@ -717,9 +717,9 @@ class GPU_ITEM:
         for k, v in self.get_all_params_labels().items():
             if i==1:
                 if self.compatible:
-                    print("amdgpu-util Compatibility: Yes")
+                    print(f"{__program_name__} Compatibility: Yes")
                 else:
-                    print("amdgpu-util Compatibility: NO")
+                    print(f"{__program_name__} Compatibility: NO")
             print(v +": "+ str(self.get_params_value(k)))
             i += 1
         if clflag:
