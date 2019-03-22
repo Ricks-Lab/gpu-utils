@@ -295,7 +295,7 @@ files, a set of files (vendor, device, subsystem_vendor, subsystem_device) conta
 are read and used to extract a GPU model name from a file retrieved from  [https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/)
 where a comprehensive list is maintained.  An AMD only extract from that source is included in this distribution.
 The *amdgpu-pciid* tool can be used to manage the local extract.  Execute *amdgpu-pciid* to check if a newer version
-is available and use *amdgpu-pciid --install* to replaced the existing extract used by the utilities with an updated version.
+is available and use *amdgpu-pciid --install* to replace the existing extract used by the utilities with an updated version.
 If your GPU is not listed in the extract, the pci.id website has an interface to allow the user to request an addition
 to the master list.  
 ```
