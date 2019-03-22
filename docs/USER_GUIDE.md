@@ -4,6 +4,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
 ## Current amdgpu-utils Version: 2.3.1
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
+ - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
  - [Using amdgpu-monitor](#using-amdgpu-monitor)
  - [Using amdgpu-pac](#using-amdgpu-pac)
  - [Using amdgpu-pciid](#using-amdgpu-pciid)
@@ -146,6 +147,14 @@ Power Performance Mode: manual
   5:          CUSTOM                 0                 0                 0                 0
  -1:            AUTO              Auto
 ```
+
+## GPU Type Dependent Behavior
+AMD GPU's compatible with the amdgpu open source drivers are of 2 different types in terms of how frequency/voltage
+is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
+the clock frequency and voltage.  The GPU will operate at only the specific Frequency/Voltage states that are defined, 
+and move between states based on power, temperature, and loading.  For GPUs of Vega20 architecture or newer, it appears
+that Voltage/Frequency curves are defined with 3 points on a Voltage vs. Frequency curve.  The tools in *amdgpu-utils*
+classify these in to 2 categories: type 1 and type 2.
 
 ## Using amdgpu-monitor
 By default, *amdgpu-monitor* will display a text based table in the current terminal window
