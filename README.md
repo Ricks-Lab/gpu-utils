@@ -7,6 +7,8 @@ amdgpu.ppfeaturemask=0xffff7fff.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
 /etc/default/grub and executing *sudo update-grub*
 
+Check out the [User Guide](docs/USER_GUIDE.md)!
+
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
 The default behavior is to list relevant parameters by GPU.  OpenCL platform information
