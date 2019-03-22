@@ -156,6 +156,26 @@ and move between states based on power, temperature, and loading.  For GPUs of V
 that Voltage/Frequency curves are defined with 3 points on a Voltage vs. Frequency curve.  The tools in *amdgpu-utils*
 classify these in to 2 categories: type 1 and type 2.
 
+With the *amdgpu-ls* tool, you can determine if your card is of type 1 or 2. Here are the relevant lines from the 
+output for and RX Vega64 GPU and the Radeon VII:
+```
+Decoded Device ID: RX Vega64
+GPU Frequency/Voltage Control Type: 1
+
+Decoded Device ID: Radeon VII
+GPU Frequency/Voltage Control Type: 2
+```
+
+Monitor and Control utilities will differ between the 2 types.  For type 1, you can monitor the p-state details with
+monitor utilities, and you can define p-states and set p-state masks.  For Type 2, I have not found the capability 
+to monitor current Clocks or Voltages, but maybe it exists for me to figure out.  It Looks like the capability of
+setting the values of the 3 points that define the Frquency vs Voltage curve, but I have not developed this capability 
+yet.  The setting of p-state masks doesn't apply to type 2, though you can have the same effect in the way you define the
+curve.  I don't see a curve defined for memory clock on the Radeon VII.  Below is a plot of what I extracted for the 
+Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
+
+![](Type1vsType2.png)
+
 ## Using amdgpu-monitor
 By default, *amdgpu-monitor* will display a text based table in the current terminal window
 that updates every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by default. If you are using
