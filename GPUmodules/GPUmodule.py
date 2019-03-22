@@ -154,7 +154,7 @@ class GPU_ITEM:
         # Human friendly labels for params keys
         GPU_Param_Labels = {"uuid": "UUID",
                 "id" : "Device ID",
-                "gpu_type" : "GPU P-State Type",
+                "gpu_type" : "GPU Frequency/Voltage Control Type",
                 "model_device_decode" : "Decoded Device ID",
                 "model" : "Card Model",
                 "model_short" : "Short Card Model",
