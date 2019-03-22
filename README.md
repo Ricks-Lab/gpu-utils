@@ -54,6 +54,30 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Changed dpkg error to a warning to handle custom driver installs.
 * Initial [User Guide](docs/USER_GUIDE.md) template started - [Need help!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
+
+## Development Plans
+* Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
+* Develop a startup utility to initialize GPU settings at boot up.
+* Implement an option to only write changes in amdgpu-pac.
+* Implement an option to write a startup script to effect changes on boot up.
+* Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
+
+## Known Issues
+* I/O error when selecting CUSTOM ppm.  I should temprarily remove from interface.  Maybe it requires arguments to specify the custom configuration.
+* Doesn't work well with Fiji ProDuo cards.
+* Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs.
+* P-state mask gets intermittently reset for GPU used as display output.
+* *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
+* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
+
+## References
+* Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
+* Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
+* Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
+* Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
+* PCI ID Decode Table: <a href="https://pci-ids.ucw.cz/v2.2/pci.ids">PCI IDs</a>
+
+## History
 #### New in Previous Release  -  v2.3.0
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
@@ -94,25 +118,3 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 
 #### New in Previous Release  -  v1.0.0
 * Completed implementation of the GPU Monitor tool.
-
-## Development Plans
-* Write a users guide.
-* Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
-* Develop a startup utility to initialize GPU settings at boot up.
-* Implement an option to only write changes in amdgpu-pac.
-* Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
-
-## Known Issues
-* I/O error when selecting CUSTOM ppm.  I should temprarily remove from interface.  Maybe it requires arguments to specify the custom configuration.
-* Doesn't work well with Fiji ProDuo cards.
-* Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs.
-* P-state mask gets intermittently reset for GPU used as display output.
-* *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
-* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
-
-## References
-* Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
-* Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
-* Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
-* Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
-* PCI ID Decode Table: <a href="https://pci-ids.ucw.cz/v2.2/pci.ids">PCI IDs</a>
