@@ -61,7 +61,7 @@ amdgpu version: 18.50-725072
 UUID: 309abc9c97ea451396334b11199d0680
 amdgpu-utils Compatibility: Yes
 Device ID: {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
-GPU P-State Type: 1
+GPU Frequency/Voltage Control Type: 1
 Decoded Device ID: RX Vega64
 Card Model:  Vega 10 XT [Radeon RX Vega 64] (rev c1)
 Short Card Model:  RX Vega 64
