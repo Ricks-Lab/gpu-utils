@@ -54,7 +54,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
 * Changed dpkg error to a warning to handle custom driver installs.
-* Initial [User Guide](docs/USER_GUIDE.md) template started - [Need help!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
+* Initial [User Guide](docs/USER_GUIDE.md) - [Need contributors!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
 
 ## Development Plans
@@ -65,9 +65,9 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
 
 ## Known Issues
-* I/O error when selecting CUSTOM ppm.  I should temprarily remove from interface.  Maybe it requires arguments to specify the custom configuration.
+* I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
-* Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs.
+* Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs. I odered one so I will spend some time on this when it arrives.
 * P-state mask gets intermittently reset for GPU used as display output.
 * *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
 * *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
