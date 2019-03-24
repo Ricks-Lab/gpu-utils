@@ -569,7 +569,8 @@ class PACWindow(Gtk.Window):
         devices["message_box"] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
 
         devices["message_label"].set_alignment(0, 0.5)
-        devices["message_label"].set_max_width_chars(num_com_amd_gpus * 52)
+        #devices["message_label"].set_max_width_chars(num_com_amd_gpus * 52)
+        devices["message_label"].set_property("width-request", num_com_amd_gpus *54*8)
         devices["message_label"].set_line_wrap(True)
         devices["message_box"].set_homogeneous(False)
         devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
