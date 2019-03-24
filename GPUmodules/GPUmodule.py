@@ -51,6 +51,7 @@ except:
 
 class GPU_ITEM:
     """An object to store GPU details."""
+    # GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     def __init__(self, item_id):
         self.uuid = item_id
         self.card_num = -1
@@ -65,7 +66,7 @@ class GPU_ITEM:
         "card_num" : "",
         "pcie_id" : "",
         "driver" : "",
-        "gpu_type" : 1,
+        "gpu_type" : 0,
         "id" : {"vendor":"","device":"","subsystem_vendor":"","subsystem_device":""},
         "model_device_decode" : "UNDETERMINED",
         "model" : "",
