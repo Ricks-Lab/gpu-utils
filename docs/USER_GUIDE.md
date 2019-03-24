@@ -149,16 +149,19 @@ Power Performance Mode: manual
 ```
 
 ## GPU Type Dependent Behavior
-AMD GPU's compatible with the amdgpu open source drivers are of 2 different types in terms of how frequency/voltage
+AMD GPU's compatible with the amdgpu open source drivers are of 3 different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
 the clock frequency and voltage.  The GPU will operate at only the specific Frequency/Voltage states that are defined, 
-and move between states based on power, temperature, and loading.  For GPUs of Vega20 architecture or newer, it appears
-that Voltage/Frequency curves are defined with 3 points on a Voltage vs. Frequency curve.  The tools in *amdgpu-utils*
-classify these in to 2 categories: type 1 and type 2.
+and move between states based on power, temperature, and loading.  These GPU's are of type 1, if the p-state table
+is readble and type 0 if it is not. For GPUs of Vega20 architecture or newer, it appears that Voltage/Frequency curves
+are defined with 3 points on a Voltage vs. Frequency curve.  These GPU's are classified as type 2.
 
 With the *amdgpu-ls* tool, you can determine if your card is of type 1 or 2. Here are the relevant lines from the 
 output for and RX Vega64 GPU and the Radeon VII:
 ```
+Decoded Device ID: R9 290X DirectCU II
+GPU Frequency/Voltage Control Type: 0
+
 Decoded Device ID: RX Vega64
 GPU Frequency/Voltage Control Type: 1
 
@@ -166,13 +169,12 @@ Decoded Device ID: Radeon VII
 GPU Frequency/Voltage Control Type: 2
 ```
 
-Monitor and Control utilities will differ between the 2 types.  For type 1, you can monitor the p-state details with
-monitor utilities, and you can define p-states and set p-state masks.  For Type 2, I have not found the capability 
-to monitor current Clocks or Voltages, but maybe it exists for me to figure out.  It Looks like the capability of
-setting the values of the 3 points that define the Frquency vs Voltage curve exists, but I have not developed this
-capability yet.  The setting of p-state masks doesn't apply to type 2, though you can achieve the same effect in the
-way you define the curve.  I don't see a curve defined for memory clock on the Radeon VII.  Below is a plot of what
-I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
+Monitor and Control utilities will differ between the 3 types.
+* For type 0, you can monitor the p-state details with monitor utilities, but you can NOT define p-states or set p-state masks.
+* For type 1, you can monitor the p-state details with monitor utilities, and you can define p-states and set p-state masks.
+* For Type 2, I have not found the capability to monitor current Clocks or Voltages, but maybe it exists for me to figure out.  It Looks like the capability of setting the values of the 3 points that define the Frquency vs Voltage curve exists, but I have not developed this capability yet.  The setting of p-state masks doesn't apply to type 2, though you can achieve the same effect in the way you define the curve.  I don't see a curve defined for memory clock on the Radeon VII.
+
+Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
 ![](Type1vsType2.png)
 
