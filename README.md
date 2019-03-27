@@ -21,7 +21,7 @@ of available power/performance modes instead of basic parameters.
 
 ## amdgpu-monitor
 A utility to give the current state of all compatible AMD GPUs. The default behavior
-is to continuously update a text based table in the current window unitl Ctrl-C is
+is to continuously update a text based table in the current window until Ctrl-C is
 pressed.  With the *--gui* option, a table of relevant parameters will be updated
 in a Gtk window.  You can specify the delay between updates with the *--sleep N*
 option where N is an integer > zero that specifies the number of seconds to sleep.
