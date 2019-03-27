@@ -8,6 +8,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing *sudo update-grub*
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
+
 Download latest release: [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
 
 ## amdgpu-ls
