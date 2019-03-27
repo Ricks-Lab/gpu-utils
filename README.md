@@ -8,7 +8,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing *sudo update-grub*
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
-Download latest release: [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases)
+Download latest release: [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
 
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
@@ -49,7 +49,7 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  v2.3.1
+## New in this Release  -  [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
 * Fixed and improved Python/Kernel compatibility checks.
 * Added Python2 compatible utility to check *amdgpu-utils* compatibility.
 * Fixed confusing mode/level fileptr names.
