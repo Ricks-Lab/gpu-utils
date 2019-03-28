@@ -80,6 +80,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
 * Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
 * PCI ID Decode Table: <a href="https://pci-ids.ucw.cz/v2.2/pci.ids">PCI IDs</a>
+* Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
 #### New in Previous Release  -  v2.3.0
