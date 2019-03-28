@@ -120,7 +120,8 @@ class GPU_ITEM:
         }
         self.sclk_state = {} #{"1":["Mhz","mV"]}
         self.mclk_state = {} #{"1":["Mhz","mV"]}
-        self.vddc_curve = {} #{"1":{SCLK:["val1","val2"], VOLT:["val1","val2"]}
+        self.vddc_curve = {} #{"1":["Mhz","mV"]}
+        self.vddc_curve_range = {} #{"1":{SCLK:["val1","val2"], VOLT:["val1","val2"]}
         self.ppm_modes = {}  #{"1":["Name","Description"]}
 
     def set_params_value(self, name, value):
@@ -339,7 +340,10 @@ class GPU_ITEM:
                 if re.fullmatch('OD_.*:$', line):
                     if re.fullmatch('OD_.CLK:$', line):
                         clk_name = line.strip()
+                    elif re.fullmatch('OD_VDDC_CURVE:$', line):
+                        clk_name = line.strip()
                     elif re.fullmatch('OD_RANGE:$', line):
+                        clk_name = ""
                         range_mode = True
                     continue
                 lineitems = line.split()
@@ -357,7 +361,7 @@ class GPU_ITEM:
                     continue
                 if range_mode == False:
                     lineitems[0] = int(re.sub(':','', lineitems[0]))
-                    if self.get_params_value("gpu_type") == 1:
+                    if self.get_params_value("gpu_type") == 0 or self.get_params_value("gpu_type") == 1:
                         if clk_name == "OD_SCLK:":
                             self.sclk_state[lineitems[0]] = [lineitems[1],lineitems[2]]
                         elif clk_name == "OD_MCLK:":
@@ -385,11 +389,11 @@ class GPU_ITEM:
                             if env.gut_const.DEBUG:
                                 print("Curve: index: %s param: %s, val1 %s, val2: %s" % (index, param, lineitems[1], lineitems[2]))
                             #self.vddc_curve = {} #{"1":{SCLK:["val1","val2"], VOLT:["val1","val2"]}
-                            if index in self.vddc_curve.keys():
-                                self.vddc_curve[index].update({param:[lineitems[1], lineitems[2]]})
+                            if index in self.vddc_curve_range.keys():
+                                self.vddc_curve_range[index].update({param:[lineitems[1], lineitems[2]]})
                             else:
-                                self.vddc_curve[index] = {}
-                                self.vddc_curve[index].update({param:[lineitems[1], lineitems[2]]})
+                                self.vddc_curve_range[index] = {}
+                                self.vddc_curve_range[index].update({param:[lineitems[1], lineitems[2]]})
                         else:
                             print("Error: Invalid CURVE entry: %s" % (self.card_path + "pp_od_clk_voltage"), file=sys.stderr)
         card_file.close()
@@ -708,6 +712,7 @@ class GPU_ITEM:
                 print(f"  {str(k)}:  {self.mclk_state[k][0].ljust(8,' ')}  {self.mclk_state[k][1].ljust(8,' ')}")
             else:
                 print("")
+        print("VDDC_CURVE")
         for k, v in self.vddc_curve.items():
             print(f"{str(k)}: {v}")
         print("")
