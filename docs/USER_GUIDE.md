@@ -316,6 +316,8 @@ Note that when a PAC bash file is executed either manually or automatically, the
 
 Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
 
+For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, othe changes may require that the GPU not be under load (be in 0 sclk and mclk P-state) for *amdgpu-pac* to work properly. Possible issues with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot is needed to restore settings. Note that when you change a P-pstate mask, default mask values will reappear in the field after Save, but will be implement on the card and show up in *amdgpu-monitor*. Some change may not be possible when a card has a display connected. 
+
 There is some very basic error checking done before writing, but I suggest you be very certain of
 all entries before you save to the GPU.
 
