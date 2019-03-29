@@ -343,10 +343,11 @@ class PACWindow(Gtk.Window):
                 lbox.pack_start(devices[v.uuid]["sclk_pst_mask_ent"], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
+
             elif v.get_params_value("gpu_type") == 2:
-                # Sclk P-States
+                # Sclk Curve End Points
                 devices[v.uuid]["sclk_range"] = Gtk.Label()
-                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " + "Ranges "
+                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk Curve End Points: </b> " + "Ranges "
                         + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) + "  ")
                 devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
@@ -518,9 +519,9 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
             elif v.get_params_value("gpu_type") == 2:
-                # Mclk P-States
+                # Mclk Curve End points
                 devices[v.uuid]["mclk_range"] = Gtk.Label()
-                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " + "Ranges "
+                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk Curve End Points: </b> " + "Ranges "
                         + str(v.get_params_value("mclk_f_range")[0]) +"-"+ str(v.get_params_value("mclk_f_range")[1]))
                 devices[v.uuid]["mclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["mclk_range"].set_property("margin-bottom", 1)
@@ -761,7 +762,8 @@ class PACWindow(Gtk.Window):
                 devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
             if v.get_params_value("gpu_type") == 1:
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
+                    devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "
+                        + str(psd[1])))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
@@ -772,6 +774,14 @@ class PACWindow(Gtk.Window):
                     devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
                 devices[v.uuid]["sclk_pst_mask_cur"].set_text("    SCLK Default: "+v.get_pstate_list_str("SCLK")+"    Set Mask: ")
                 devices[v.uuid]["sclk_pst_mask_ent"].set_text(v.get_pstate_list_str("SCLK"))
+            elif v.get_params_value("gpu_type") == 2:
+                for ps, psd in v.sclk_state.items():
+                    devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0])))
+                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
+                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
+                    devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+
             if v.get_params_value("gpu_type") == 1:
                 for ps, psd in v.mclk_state.items():
                     devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -785,6 +795,14 @@ class PACWindow(Gtk.Window):
                     devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
                 devices[v.uuid]["mclk_pst_mask_cur"].set_text("    MCLK Default: "+v.get_pstate_list_str("MCLK")+"    Set Mask: ")
                 devices[v.uuid]["mclk_pst_mask_ent"].set_text(v.get_pstate_list_str("MCLK"))
+            elif v.get_params_value("gpu_type") == 2:
+                for ps, psd in v.mclk_state.items():
+                    devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0])))
+                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
+                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
+                    devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
 
