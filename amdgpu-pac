@@ -366,7 +366,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
     
-                # Sclk P-State Values and Entry
+                # Sclk Curve End Points Values and Entry
                 devices[v.uuid]["sclk_pstate"] = {}
                 for ps, psd in v.sclk_state.items():
                     devices[v.uuid]["sclk_pstate"][ps] = {}
@@ -540,7 +540,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
     
-                # Mclk P-State Values and Entry
+                # Mclk Curve End Points Values and Entry
                 devices[v.uuid]["mclk_pstate"] = {}
                 for ps, psd in v.mclk_state.items():
                     devices[v.uuid]["mclk_pstate"][ps] = {}
@@ -579,6 +579,91 @@ class PACWindow(Gtk.Window):
                     lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"], False, False, 0)
                     lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"], False, False, 0)
                     lbox.pack_start(devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
+                    grid.attach(lbox, col, row, 1, 1)
+                    row += 1
+
+            if v.get_params_value("gpu_type") == 2:
+                # VDDC Curve Points
+                devices[v.uuid]["vddc_curve_range"] = Gtk.Label()
+                devices[v.uuid]["vddc_curve_range"].set_markup("<b>VDDC Curve Points: </b> " + "Ranges " +
+                        str(v.vddc_curve_range["0"]["SCLK"][0]) +"-"+
+                        str(v.vddc_curve_range["0"]["SCLK"][1]) +", "+
+                        str(v.vddc_curve_range["0"]["VOLT"][0]) +"-"+
+                        str(v.vddc_curve_range["0"]["VOLT"][1]) +"  ")
+                devices[v.uuid]["vddc_curve_range"].set_property("margin-top", 1)
+                devices[v.uuid]["vddc_curve_range"].set_property("margin-bottom", 1)
+                devices[v.uuid]["vddc_curve_range"].set_property("margin-right", 2)
+                devices[v.uuid]["vddc_curve_range"].set_property("margin-left", 2)
+                devices[v.uuid]["vddc_curve_range"].set_alignment(0, 0.5)
+    
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.set_property("margin-top", 1)
+                lbox.set_property("margin-bottom", 1)
+                lbox.set_property("margin-right", 1)
+                lbox.set_property("margin-left", 1)
+                lbox.pack_start(devices[v.uuid]["vddc_curve_range"], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
+
+                # VDDC CURVE Points Values and Entry
+                devices[v.uuid]["vddc_curve_pt"] = {}
+                for ps, psd in v.vddc_curve.items():
+                    devices[v.uuid]["vddc_curve_pt"][ps] = {}
+    
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"] = Gtk.Label()
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_width_chars(20)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_alignment(0, 0.5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_property("margin-top", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_property("margin-bottom", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_property("margin-right", 2)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_property("margin-left", 2)
+    
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"] = Gtk.Entry()
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_width_chars(5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_max_length(5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_alignment(xalign=1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_property("margin-top", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_property("margin-bottom", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_property("margin-right", 0)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_property("margin-left", 0)
+    
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"] = Gtk.Label()
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_alignment(0, 0.5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_property("margin-top", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_property("margin-bottom", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_property("margin-right", 4)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_property("margin-left", 0)
+    
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"] = Gtk.Entry()
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_width_chars(5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_max_length(5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_alignment(xalign=1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_property("margin-top", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_property("margin-bottom", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_property("margin-right", 0)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_property("margin-left", 0)
+    
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"] = Gtk.Label()
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_alignment(0, 0.5)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_property("margin-top", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_property("margin-bottom", 1)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_property("margin-right", 0)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_property("margin-left", 0)
+
+                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox.set_homogeneous(False)
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.set_property("margin-top", 1)
+                    lbox.set_property("margin-bottom", 1)
+                    lbox.set_property("margin-right", 1)
+                    lbox.set_property("margin-left", 1)
+                    lbox.pack_start(devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"], False, False, 0)
+                    lbox.pack_start(devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"], False, False, 0)
+                    lbox.pack_start(devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"], False, False, 0)
+                    lbox.pack_start(devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"], False, False, 0)
+                    lbox.pack_start(devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
@@ -760,6 +845,7 @@ class PACWindow(Gtk.Window):
             if env.gut_const.show_fans == True:
                 devices[v.uuid]["fan_pwm_cur"].set_text("    Current: "+str(v.get_params_value("fan_pwm"))+"%    Set: ")
                 devices[v.uuid]["fan_pwm_ent"].set_text(str(int(v.get_params_value("fan_pwm"))))
+            #SCLK
             if v.get_params_value("gpu_type") == 1:
                 for ps, psd in v.sclk_state.items():
                     devices[v.uuid]["sclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "
@@ -781,7 +867,7 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
                     devices[v.uuid]["sclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
-
+            #MCLK
             if v.get_params_value("gpu_type") == 1:
                 for ps, psd in v.mclk_state.items():
                     devices[v.uuid]["mclk_pstate"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "+ str(psd[1])))
@@ -802,6 +888,19 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj"].set_text(item_value)
                     devices[v.uuid]["mclk_pstate"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+            #VDDC CURVE
+            if v.get_params_value("gpu_type") == 2:
+                for ps, psd in v.vddc_curve.items():
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_cur_obj"].set_text("    "+(str(ps)+":  " + str(psd[0]) +", "
+                        + str(psd[1])))
+                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
+                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj"].set_text(item_value)
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_f_obj_unit"].set_text(item_unit + "     ")
+                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
+                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj"].set_text(str(item_value))
+                    devices[v.uuid]["vddc_curve_pt"][ps]["gtk_ent_v_obj_unit"].set_text(item_unit)
 
             # refresh active mode item
             devices[v.uuid]["ppm_modes_combo"].set_active(devices[v.uuid]["ppm_mode_items"][v.get_current_ppm_mode()[0]])
@@ -1229,6 +1328,9 @@ def main():
         sys.exit(-1)
 
     env.gut_const.get_amd_driver_version()
+
+    print("Non working Development version. Exiting...")
+    sys.exit(-1)
 
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()
