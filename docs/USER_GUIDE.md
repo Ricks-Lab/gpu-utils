@@ -307,7 +307,11 @@ I suggest to use the monitor routine while you run pac in order to see the chang
 
 The command line option *--force_write* will result in all configuration parameters to be written to the bash file.  The default behavior since v2.4.0 is to only write changes.  The *--force_write* is useful for creating a bash file which can be execute to set your cards to a known state. As an example, you could use such a file to configure your GPUs on boot up.
 
-![](amdgpu-pac_scrshot.png)
+### The amdgpu-pac interface for Type 1 cards
+![](amdgpu-pac_type1.png)
+
+### The amdgpu-pac interface for Type 2 cards
+![](amdgpu-pac_type2.png)
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In
 most cases, the values in these fields will be the current values, but in the case of P-state masks,
