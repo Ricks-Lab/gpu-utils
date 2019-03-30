@@ -1155,18 +1155,21 @@ class PACWindow(Gtk.Window):
             row_id, name = model[tree_iter][:2]
             selected_mode = devices[uuid]["new_ppm"][0]
             print("# Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
-            if (devices[uuid]["new_ppm"][1]).lower() == 'auto':
-                print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_level_file, file=fileptr)
+            if v.get_current_ppm_mode()[0] != devices[uuid]["new_ppm"][0] or env.gut_const.write_delta_only == False:
+                if (devices[uuid]["new_ppm"][1]).lower() == 'auto':
+                    print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_level_file, file=fileptr)
+                else:
+                    print("sudo sh -c \"echo \'manual\' >  %s\"" % ppm_level_file, file=fileptr)
+                    print("sudo sh -c \"echo \'%d\' >  %s\"" % (devices[uuid]["new_ppm"][0], ppm_mode_file), file=fileptr)
             else:
-                print("sudo sh -c \"echo \'manual\' >  %s\"" % ppm_level_file, file=fileptr)
-                print("sudo sh -c \"echo \'%d\' >  %s\"" % (devices[uuid]["new_ppm"][0], ppm_mode_file), file=fileptr)
+                print("# PPM mode %s unchanged, skipping" % devices[uuid]["new_ppm"][1], file=fileptr)
     
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
         if commit_needed:
             print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
         else:
-            print("No clock changes made, commit skipped", file=fileptr)
+            print("# No clock changes made, commit skipped", file=fileptr)
 
         if v.get_params_value("gpu_type") == 1:
             # Writes of pstate Masks must come after commit of pstate changes
