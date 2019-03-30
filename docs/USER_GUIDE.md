@@ -305,6 +305,8 @@ with sudo.  The message bar will have a red indicator that credentials are pendi
 Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.
 I suggest to use the monitor routine while you run pac in order to see the changes in real-time.
 
+The command line option *--force_write* will result in all configuration parameters to be written to the bash file.  The default behavior since v2.4.0 is to only write changes.  The *--force_write* is useful for creating a bash file which can be execute to set your cards to a known state. As an example, you could use such a file to configure your GPUs on boot up.
+
 ![](amdgpu-pac_scrshot.png)
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In
@@ -316,7 +318,7 @@ Note that when a PAC bash file is executed either manually or automatically, the
 
 Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
 
-For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, othe changes may require that the GPU not be under load (be in 0 sclk and mclk P-state) for *amdgpu-pac* to work properly. Possible issues with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot is needed to restore settings. Note that when you change a P-pstate mask, default mask values will reappear in the field after Save, but will be implement on the card and show up in *amdgpu-monitor*. Some change may not be possible when a card has a display connected. 
+For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, other changes may require that the GPU not be under load (be in 0 sclk and mclk P-state) for *amdgpu-pac* to work properly. Possible issues with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot is needed to restore settings. Note that when you change a P-pstate mask, default mask values will reappear in the field after Save, but will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not be permanent when a card has a display connected. 
 
 There is some very basic error checking done before writing, but I suggest you be very certain of
 all entries before you save to the GPU.
