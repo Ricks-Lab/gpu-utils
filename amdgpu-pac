@@ -1047,6 +1047,7 @@ class PACWindow(Gtk.Window):
                     print("# Invalid paramater values", file=fileptr)
     
         device_file = v.card_path + "pp_od_clk_voltage"
+        commit_needed = False
         if v.get_params_value("gpu_type") == 1:
             # Sclk P-states
             for pk, pv in devices[uuid]["sclk_pstate"].items():
@@ -1060,7 +1061,12 @@ class PACWindow(Gtk.Window):
                 pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
                 print("#sclk p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
-                    print("sudo sh -c \"echo \'s %s %s %s\' >  %s\"" % (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+                    if v.is_changed_sclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        commit_needed = True
+                        print("sudo sh -c \"echo \'s %s %s %s\' >  %s\"" %
+                                (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+                    else:
+                        print("# Sclk pstate %d unchanged, skipping" % pk, file=fileptr)
                 else:
                     print("# Invalid sclk pstate values", file=fileptr)
             # Mclk P-states
@@ -1076,7 +1082,12 @@ class PACWindow(Gtk.Window):
                 pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
                 print("#mclk p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
-                    print("sudo sh -c \"echo \'m %s %s %s\' >  %s\"" % (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+                    if v.is_changed_mclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        commit_needed = True
+                        print("sudo sh -c \"echo \'m %s %s %s\' >  %s\"" %
+                                (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
+                    else:
+                        print("# Mclk pstate %d unchanged, skipping" % pk, file=fileptr)
                 else:
                     print("# Invalid mclk pstate values", file=fileptr)
         elif v.get_params_value("gpu_type") == 2:
@@ -1089,7 +1100,11 @@ class PACWindow(Gtk.Window):
                 pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), "-"]
                 print("#sclk curve end point: %s : %s MHz" % (pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
-                    print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
+                    if v.is_changed_sclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        commit_needed = True
+                        print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
+                    else:
+                        print("# Sclk curve point %d unchanged, skipping" % pk, file=fileptr)
                 else:
                     print("# Invalid sclk curve end point values", file=fileptr)
             # Mclk Curve End Points
@@ -1101,7 +1116,11 @@ class PACWindow(Gtk.Window):
                 pstate = [pk, int(pv["gtk_ent_f_obj"].get_text()), "-"]
                 print("#mclk curve end point: %s : %s MHz" % (pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
-                    print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
+                    if v.is_changed_mclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        commit_needed = True
+                        print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
+                    else:
+                        print("# Mclk curve point %d unchanged, skipping" % pk, file=fileptr)
                 else:
                     print("# Invalid mclk curve end point values", file=fileptr)
             # VDDC Curve Points
@@ -1117,8 +1136,12 @@ class PACWindow(Gtk.Window):
                 curve_pts = [pk, int(pv["gtk_ent_f_obj"].get_text()), int(pv["gtk_ent_v_obj"].get_text())]
                 print("#vddc curve point: %s : %s MHz, %s mV" % (curve_pts[0], curve_pts[1], curve_pts[2]), file=fileptr)
                 if v.is_valid_vddc_curve_pts(curve_pts):
-                    print("sudo sh -c \"echo \'vc %s %s %s\' >  %s\"" % (curve_pts[0], curve_pts[1], curve_pts[2], device_file),
-                            file=fileptr)
+                    if v.is_changed_vddc_curve_pt(curve_pts) or env.gut_const.write_delta_only == False:
+                        commit_needed = True
+                        print("sudo sh -c \"echo \'vc %s %s %s\' >  %s\"" %
+                                (curve_pts[0], curve_pts[1], curve_pts[2], device_file), file=fileptr)
+                    else:
+                        print("# Vddc curve point %d unchanged, skipping" % pk, file=fileptr)
                 else:
                     print("# Invalid vddc curve point values", file=fileptr)
     
@@ -1140,7 +1163,10 @@ class PACWindow(Gtk.Window):
     
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
-        print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+        if commit_needed:
+            print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
+        else:
+            print("No clock changes made, commit skipped", file=fileptr)
 
         if v.get_params_value("gpu_type") == 1:
             # Writes of pstate Masks must come after commit of pstate changes
@@ -1331,6 +1357,7 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--execute_pac", help="execute pac bash script without review", action="store_true", default=False)
     parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
+    parser.add_argument("--force_write", help="write all parameters, even if unchanged", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -1348,6 +1375,10 @@ def main():
 
     env.gut_const.DEBUG = args.debug 
     if args.no_fan == True: env.gut_const.show_fans = False
+    if args.force_write == True:
+        env.gut_const.write_delta_only = False
+    else:
+        env.gut_const.write_delta_only = True
     env.gut_const.execute_pac = args.execute_pac
 
     if env.gut_const.check_env() < 0:

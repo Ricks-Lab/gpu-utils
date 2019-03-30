@@ -266,6 +266,30 @@ class GPU_ITEM:
                 return(False)
         return(True)
 
+    def is_changed_sclk_pstate(self, pstate):
+        if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][0])) != pstate[1]:
+            return(True)
+        if self.get_params_value("gpu_type") != 2:
+            if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][1])) != pstate[2]:
+                return(True)
+        return(False)
+
+    def is_changed_mclk_pstate(self, pstate):
+        if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][0])) != pstate[1]:
+            return(True)
+        if self.get_params_value("gpu_type") != 2:
+            if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][1])) != pstate[2]:
+                return(True)
+        return(False)
+
+    def is_changed_vddc_curve_pt(self, pstate):
+        #self.vddc_curve = {} #{"1":["Mhz","mV"]}
+        if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
+            return(True)
+        if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][1])) != pstate[2]:
+            return(True)
+        return(False)
+
     def is_valid_vddc_curve_pts(self, curve_pts):
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["SCLK"][0])))
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["SCLK"][1])))
