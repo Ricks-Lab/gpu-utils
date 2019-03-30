@@ -1348,7 +1348,6 @@ def ppm_select(self, device):
         model = device["ppm_modes_combo"].get_model()
         row_id, name = model[tree_iter][:2]
         device["new_ppm"] = [row_id, name]
-        #print("Selected: ID=%d, name=%s" % (device["new_ppm"][0], device["new_ppm"][1]))
     return
 
 
