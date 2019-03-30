@@ -242,25 +242,40 @@ class GPU_ITEM:
         mclk_range = self.get_params_value("mclk_f_range")
         mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
         mclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[1])))
-        vddc_range = self.get_params_value("vddc_range")
-        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
-        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
-        if pstate[1] >= mclk_min and pstate[1] <= mclk_max:
-            if pstate[2] >= vddc_min and pstate[2] <= vddc_max:
-                return(True)
-        return(False)
+        if pstate[1] < mclk_min or pstate[1] > mclk_max:
+            return(False)
+        if self.get_params_value("gpu_type") != 2:
+            vddc_range = self.get_params_value("vddc_range")
+            vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
+            vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+            if pstate[2] < vddc_min or pstate[2] > vddc_max:
+                return(False)
+        return(True)
 
     def is_valid_sclk_pstate(self, pstate):
         sclk_range = self.get_params_value("sclk_f_range")
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[0])))
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[1])))
-        vddc_range = self.get_params_value("vddc_range")
-        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
-        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
-        if pstate[1] >= sclk_min and pstate[1] <= sclk_max:
-            if pstate[2] >= vddc_min and pstate[2] <= vddc_max:
-                return(True)
-        return(False)
+        if pstate[1] < sclk_min or pstate[1] > sclk_max:
+            return(False)
+        if self.get_params_value("gpu_type") != 2:
+            vddc_range = self.get_params_value("vddc_range")
+            vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
+            vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+            if pstate[2] < vddc_min or pstate[2] > vddc_max:
+                return(False)
+        return(True)
+
+    def is_valid_vddc_curve_pts(self, curve_pts):
+        sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["SCLK"][0])))
+        sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["SCLK"][1])))
+        if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
+            return(False)
+        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["VOLT"][0])))
+        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range["0"]["VOLT"][1])))
+        if curve_pts[2] < vddc_min or curve_pts[2] > vddc_max:
+            return(False)
+        return(True)
 
     def is_valid_pstate_list_str(self, ps_str, clk_name):
         if ps_str == "":
