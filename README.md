@@ -50,14 +50,11 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
-* Fixed and improved Python/Kernel compatibility checks.
-* Added Python2 compatible utility to check *amdgpu-utils* compatibility.
-* Fixed confusing mode/level fileptr names.
-* Removed CUSTOM PPM mode until I figure out syntax.
-* Implemented classification of card type based on how it implements frequency/voltage control.  This is reported by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
-* Changed dpkg error to a warning to handle custom driver installs.
-* Initial [User Guide](docs/USER_GUIDE.md) - [Need contributors!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
+## New in this Release  -  v2.4.0 (Release Candidate)
+* Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
+* Implemented the *amdgpu-pac --force_write* which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Implemented a new GPU type 0, which represent some older cards whose p-stated can not be changed
+* Tuned *amdgpu-pac* window format.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -83,6 +80,15 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
+#### New in Previous Release  -  [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
+* Fixed and improved Python/Kernel compatibility checks.
+* Added Python2 compatible utility to check *amdgpu-utils* compatibility.
+* Fixed confusing mode/level fileptr names.
+* Removed CUSTOM PPM mode until I figure out syntax.
+* Implemented classification of card type based on how it implements frequency/voltage control.  This is reported by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
+* Changed dpkg error to a warning to handle custom driver installs.
+* Initial [User Guide](docs/USER_GUIDE.md) - [Need contributors!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
+
 #### New in Previous Release  -  v2.3.0
 * Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
