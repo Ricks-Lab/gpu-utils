@@ -37,7 +37,8 @@ have confidence, the *--execute_pac* option can be used to execute the bash file
 and then delete it. Since the GPU device files are writable only by root, sudo is used to
 execute commands in the bash file, as a result, you will be prompted for credentials in the
 terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
-fan details from the utility.
+fan details from the utility. The *--force_write* option can be used to force all configuration
+parameters to be written to the GPU.  The default behavior is to only write changes.
 
 ## amdgpu-pciid
 This utility will display the version of the current pci.ids data extract
@@ -52,21 +53,19 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 
 ## New in this Release  -  v2.4.0 (Release Candidate)
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
-* Implemented the *amdgpu-pac --force_write* which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
-* Implemented a new GPU type 0, which represent some older cards whose p-stated can not be changed
+* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
 * Tuned *amdgpu-pac* window format.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a startup utility to initialize GPU settings at boot up.
-* Implement an option to only write changes in amdgpu-pac.
 * Implement an option to write a startup script to effect changes on boot up.
 * Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
 
 ## Known Issues
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
-* Not sure how to control Freq vs. Voltage for Radeon VII and newer GPUs. I odered one so I will spend some time on this when it arrives.
 * P-state mask gets intermittently reset for GPU used as display output.
 * *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
 * *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
