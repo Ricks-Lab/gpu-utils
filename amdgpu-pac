@@ -30,7 +30,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
-__version__ = "v2.3.1"
+__version__ = "v2.4.0"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -912,6 +912,7 @@ class PACWindow(Gtk.Window):
         return
 
     def save_all_cards(self, parent, gpu_list, devices, uuid):
+        changed = 0
         # Write start message
         if env.gut_const.execute_pac == True:
             message = "Using the --execute_pac option.  Changes will be written to the GPU without confirmation.\nSudo will be used, so you may be prompted for credentials in the window where amdgpu-pac was executed from."
@@ -922,14 +923,21 @@ class PACWindow(Gtk.Window):
         # save each card
         for gk in gpu_list.list.keys():
         #for dk in devices.keys():
-            self.save_card(parent, gpu_list, devices, gk, refresh=False)
+            changed += self.save_card(parent, gpu_list, devices, gk, refresh=False)
 
         # Write finish message
-        time.sleep(0.5)
+        time.sleep(1.0)
         if env.gut_const.execute_pac == True:
-            message = "Write PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+            if changed:
+                message = "Write " + str(changed) + " PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+            else:
+                message = "No PAC commands to write to card.\nNo changes specified."
         else:
-            message = "Writing PAC commands to bash file complete.\nRun bash file with sudo to execute changes."
+            if changed:
+                message = ("Writing " + str(changed) +
+                        " PAC commands to bash file complete.\nRun bash file with sudo to execute changes.")
+            else:
+                message = "No PAC commands to write to bash file.\nNo changes specified."
         self.update_message(devices, message, "yellow")
 
         self.refresh_all_cards(parent, gpu_list, devices, uuid)
@@ -974,6 +982,7 @@ class PACWindow(Gtk.Window):
         print("#    along with this program.  If not, see <https://www.gnu.org/licenses/>.", file=fileptr)
         print("###########################################################################", file=fileptr)
     
+        changed = 0
         v = gpu_list.list[uuid]
         print("# ", file=fileptr)
         print("# Card" + v.card_num + "  " + v.get_params_value("model"), file=fileptr)
@@ -1003,6 +1012,7 @@ class PACWindow(Gtk.Window):
             print("# No changes, skipped", file=fileptr)
         else:
             if v.is_valid_power_cap(new_power_cap):
+                changed += 1
                 if new_power_cap < 0:
                     #reset
                     print("# Reseting Power Cap to default", file=fileptr)
@@ -1036,6 +1046,7 @@ class PACWindow(Gtk.Window):
                 print("# No changes, skipped", file=fileptr)
             else:
                 if v.is_valid_fan_pwm(new_pwm):
+                    changed += 1
                     if new_pwm < 0:
                         #reset
                         print("# Reseting fans to Dynamic mode", file=fileptr)
@@ -1063,6 +1074,7 @@ class PACWindow(Gtk.Window):
                 print("#sclk p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
                     if v.is_changed_sclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'s %s %s %s\' >  %s\"" %
                                 (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
@@ -1084,6 +1096,7 @@ class PACWindow(Gtk.Window):
                 print("#mclk p-state: %s : %s MHz, %s mV" % (pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
                     if v.is_changed_mclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'m %s %s %s\' >  %s\"" %
                                 (pstate[0], pstate[1], pstate[2], device_file), file=fileptr)
@@ -1102,6 +1115,7 @@ class PACWindow(Gtk.Window):
                 print("#sclk curve end point: %s : %s MHz" % (pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
                     if v.is_changed_sclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
                     else:
@@ -1118,6 +1132,7 @@ class PACWindow(Gtk.Window):
                 print("#mclk curve end point: %s : %s MHz" % (pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
                     if v.is_changed_mclk_pstate(pstate) or env.gut_const.write_delta_only == False:
+                        changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
                     else:
@@ -1138,6 +1153,7 @@ class PACWindow(Gtk.Window):
                 print("#vddc curve point: %s : %s MHz, %s mV" % (curve_pts[0], curve_pts[1], curve_pts[2]), file=fileptr)
                 if v.is_valid_vddc_curve_pts(curve_pts):
                     if v.is_changed_vddc_curve_pt(curve_pts) or env.gut_const.write_delta_only == False:
+                        changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'vc %s %s %s\' >  %s\"" %
                                 (curve_pts[0], curve_pts[1], curve_pts[2], device_file), file=fileptr)
@@ -1157,6 +1173,7 @@ class PACWindow(Gtk.Window):
             selected_mode = devices[uuid]["new_ppm"][0]
             print("# Selected: ID=%d, name=%s" % (devices[uuid]["new_ppm"][0], devices[uuid]["new_ppm"][1]), file=fileptr)
             if v.get_current_ppm_mode()[0] != devices[uuid]["new_ppm"][0] or env.gut_const.write_delta_only == False:
+                changed += 1
                 if (devices[uuid]["new_ppm"][1]).lower() == 'auto':
                     print("sudo sh -c \"echo \'auto\' >  %s\"" % ppm_level_file, file=fileptr)
                 else:
@@ -1168,6 +1185,7 @@ class PACWindow(Gtk.Window):
         # Commit changes
         device_file = v.card_path + "pp_od_clk_voltage"
         if commit_needed:
+            changed += 1
             print("sudo sh -c \"echo \'c\' >  %s\"" % (device_file), file=fileptr)
         else:
             print("# No clock changes made, commit skipped", file=fileptr)
@@ -1184,6 +1202,7 @@ class PACWindow(Gtk.Window):
                 print("# No changes, skipped", file=fileptr)
             else:
                 if v.is_valid_pstate_list_str(new_sclk_mask, "SCLK"):
+                    changed += 1
                     if new_sclk_mask == "":
                         #reset
                         print("# Reseting SCLK Mask to default", file=fileptr)
@@ -1203,6 +1222,7 @@ class PACWindow(Gtk.Window):
                 print("# No changes, skipped", file=fileptr)
             else:
                 if v.is_valid_pstate_list_str(new_mclk_mask, "MCLK"):
+                    changed += 1
                     if new_mclk_mask == "":
                         #reset
                         print("# Reseting MCLK Mask to default", file=fileptr)
@@ -1218,15 +1238,18 @@ class PACWindow(Gtk.Window):
         print("Batch file completed: %s" % out_filename)
         if env.gut_const.execute_pac == True:
             # Execute bash file
-            print("Writing changes to GPU %s" % v.card_path)
+            print("Writing %d changes to GPU %s" % (changed, v.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
-            print("")
+            print("PAC execution complete.")
 
             if refresh == True:
                 # dismiss execute_pac message
                 time.sleep(0.5)
-                message = "Write of PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+                if changed:
+                    message = "Write of " + str(changed) + " PAC commands to card complete.\nConfirm changes with amdgpu-monitor."
+                else:
+                    message = "No PAC commands to write to card.\nNo changes specified."
                 self.update_message(devices, message, "yellow")
 
             if refresh == True: self.refresh_PAC(gpu_list, devices)
@@ -1234,11 +1257,15 @@ class PACWindow(Gtk.Window):
         else:
             if refresh == True:
                 # dismiss execute_pac message
-                message = "Write of PAC commands to bash file complete.\nManually run bash file with sudo to execute changes."
+                if changed:
+                    message = ("Write of " + str(changed) +
+                            " PAC commands to bash file complete.\nManually run bash file with sudo to execute changes.")
+                else:
+                    message = "No PAC commands to write bash file.\nNo changes specified."
                 self.update_message(devices, message, "yellow")
             print("Execute to write changes to GPU %s" % v.card_path)
             print("")
-        return
+        return(changed)
 
     def reset_all_cards(self, parent, gpu_list, devices, uuid):
         # Write start message
