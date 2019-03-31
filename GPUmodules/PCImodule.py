@@ -21,7 +21,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = [""]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.3.1"
+__version__ = "v2.4.0"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
