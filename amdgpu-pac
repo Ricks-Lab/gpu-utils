@@ -1132,7 +1132,7 @@ class PACWindow(Gtk.Window):
                     if v.is_changed_mclk_pstate(pstate) or env.gut_const.write_delta_only == False:
                         changed += 1
                         commit_needed = True
-                        print("sudo sh -c \"echo \'s %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
+                        print("sudo sh -c \"echo \'m %s %s\' >  %s\"" % (pstate[0], pstate[1], device_file), file=fileptr)
                     else:
                         print("# Mclk curve point %d unchanged, skipping" % pk, file=fileptr)
                 else:
