@@ -59,8 +59,6 @@ class PACWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="amdgpu-pac")
         self.set_border_width(1)
-        #if(os.path.isfile(env.gut_const.PATH + '/amdgpu-pac.icon.png') == True):
-            #self.set_icon_from_file(env.gut_const.PATH + '/amdgpu-pac.icon.png')
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-pac.icon.png")
         if(os.path.isfile(icon_file) == True):
             self.set_icon_from_file(icon_file)
@@ -1429,7 +1427,7 @@ def main():
 
     env.gut_const.get_amd_driver_version()
 
-    print("Non working Development version. Exiting...")
+    #print("Non working Development version. Exiting...")
     #sys.exit(-1)
 
     # Get list of AMD GPUs and get basic non-driver details
