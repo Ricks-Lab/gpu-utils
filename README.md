@@ -54,6 +54,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 ## New in this Release  -  v2.4.0 (Release Candidate)
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
 * Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
 * Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
 * Tuned *amdgpu-pac* window format.
 
