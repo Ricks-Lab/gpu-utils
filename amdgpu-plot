@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""amdgpu-plot  -  Plot GPU parameter curves
+
+    A utility to plot GPU curves
+
+    Copyright (C) 2019  RueiKe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = "RueiKe"
+__copyright__ = "Copyright (C) 2019 RueiKe"
+__credits__ = []
+__license__ = "GNU General Public License"
+__program_name__ = "amdgpu-plot"
+__version__ = "v2.4.1"
+__maintainer__ = "RueiKe"
+__status__ = "Development"
+
+from matplotlib.ticker import AutoLocator
+from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+from matplotlib.figure import Figure
+import numpy as np
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk, Gdk
+import argparse
+import re
+import subprocess
+import os
+import platform
+import sys
+import csv
+import time
+from GPUmodules import env
+from datetime import datetime
+import glob 
+import shutil 
+from pathlib import Path
+
+
+class PlotData:
+    def __init__(self):
+        self.plot_data = {}
+
+    def get_num_gpus(self):
+        gpus = {}
+        for k, v in self.plot_data.items():
+            gpus.update({v["Card#"]: 1})
+        print(len(gpus))
+        return(len(gpus))
+
+
+class GPUPlotWindow(Gtk.Window):
+    def __init__(self, plot_list):
+        Gtk.Window.__init__(self, title="amdgpu-plot")
+        self.set_border_width(1)
+        icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
+        if(os.path.isfile(icon_file) == True):
+            self.set_icon_from_file(icon_file)
+        self.set_default_size(1000, 500)
+        grid = Gtk.Grid()
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+        self.add(grid)
+
+        row = 0
+        for plots in plot_list.list:
+            f = Figure(figsize=(5, 4), dpi=100)
+            a = f.add_subplot(111)
+            t = np.arange(0.0, 3.0, 0.01)
+            s = np.sin(2*np.pi*t)
+            a.plot(t, s)
+
+            canvas = FigureCanvas(f)  # a Gtk.DrawingArea
+            canvas.set_size_request(600, 200)
+            grid.attach(canvas, 1, row, 1, 1)
+            row += 1
+
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("--logfile", help="Specify logfile as source data", type=str, default="")
+    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    args = parser.parse_args()
+
+
+    # About me
+    if args.about == True :  
+        print(__doc__ )
+        print("Author: ", __author__ )
+        print("Copyright: ", __copyright__)
+        print("Credits: ", __credits__)
+        print("License: ", __license__)
+        print("Version: ", __version__)
+        print("Maintainer: ", __maintainer__)
+        print("Status: ", __status__)
+        sys.exit(0)
+
+    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
+    env.gut_const.DEBUG = args.debug
+
+    if env.gut_const.check_env() < 0:
+        print("Error in environment. Exiting...")
+        sys.exit(-1)
+
+    print("WARNING: This is non-functional code, currently under development")
+
+    pd = PlotData()
+    if args.logfile != "":
+        if(os.path.isfile(args.logfile) == True):
+            index = 0
+            noheader = True
+            with open(args.logfile, newline='') as log_file:
+                logreader = csv.reader(log_file, delimiter='|')
+                for line in logreader:
+                    if noheader:
+                        header = line
+                        print("header: ", header)
+                        noheader = False
+                        continue
+                    print("line: ", line)
+                    pd.plot_data[index] = dict(zip(header, line))
+                    index += 1
+    print(pd.plot_data)
+    pd.get_num_gpus()
+    card_list = pd.get_card_list()
+
+    # Define graph components
+    gui_components = {}
+
+    sys.exit(0)
+
+    # Display Gtk style Monitor
+    gplot = GPUPlotWindow(plot_list, gui_components)
+    gplot.connect("delete-event", Gtk.main_quit)
+    gplot.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()
