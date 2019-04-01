@@ -247,7 +247,7 @@ def main():
     if args.log == True:
         env.gut_const.LOG = True
         env.gut_const.log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
-        env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w')
+        env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w',1)
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 
     if args.gui == True:
