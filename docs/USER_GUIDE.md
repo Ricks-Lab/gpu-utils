@@ -1,7 +1,7 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-## Current amdgpu-utils Version: 2.3.1
+## Current amdgpu-utils Version: 2.4.x
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
@@ -172,7 +172,7 @@ GPU Frequency/Voltage Control Type: 2
 Monitor and Control utilities will differ between the 3 types.
 * For type 0, you can monitor the p-state details with monitor utilities, but you can NOT define p-states or set p-state masks.
 * For type 1, you can monitor the p-state details with monitor utilities, and you can define p-states and set p-state masks.
-* For Type 2, I have not found the capability to monitor current Clocks, but maybe it exists for me to figure out.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as p-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd pointwould be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
+* For Type 2, you can monitor current Clocks frequency and p-states, with latest amdgpu drivers.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as p-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd pointwould be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 

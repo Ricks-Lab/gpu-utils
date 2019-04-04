@@ -295,7 +295,8 @@ class GPU_ITEM:
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]["SCLK"][1])))
         if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
             return(False)
-        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]["VOLT"][0])))
+        #vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]["VOLT"][0])))
+        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str("650mV")))
         vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]["VOLT"][1])))
         if curve_pts[2] < vddc_min or curve_pts[2] > vddc_max:
             return(False)
