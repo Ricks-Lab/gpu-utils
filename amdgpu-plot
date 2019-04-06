@@ -52,39 +52,90 @@ from pathlib import Path
 class PlotData:
     def __init__(self):
         self.plot_data = {}
+        self.gpu_list = {}
 
     def get_num_gpus(self):
-        gpus = {}
         for k, v in self.plot_data.items():
-            gpus.update({v["Card#"]: 1})
-        print(len(gpus))
-        return(len(gpus))
+            self.gpu_list.update({v["Card#"]: 1})
+        #print(len(self.gpu_list))
+        return(int(len(self.gpu_list)))
+
+    def get_gpu_list(self):
+        for k, v in self.plot_data.items():
+            self.gpu_list.update({v["Card#"]: 1})
+        #print(self.gpu_list)
+        return(self.gpu_list)
+
+class GuiComponents:
+    def __init__(self, gpu_list):
+        self.gui_components = {}
+
+        self.gui_components["energy_bar"] = {}
+        self.gui_components["sclk_pstate_status"] = {}
+        self.gui_components["mclk_pstate_status"] = {}
+        self.gui_components["temp_status"] = {}
+        self.gui_components["card_plots"] = {}
+        for k,v in gpu_list.items():
+            self.gui_components["card_plots"][k] = {}
+        return
 
 
 class GPUPlotWindow(Gtk.Window):
-    def __init__(self, plot_list):
+    def __init__(self, gc, num_gpus):
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
         if(os.path.isfile(icon_file) == True):
             self.set_icon_from_file(icon_file)
-        self.set_default_size(1000, 500)
+        self.set_default_size(1000, 100*num_gpus)
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
         self.add(grid)
 
         row = 0
-        for plots in plot_list.list:
-            f = Figure(figsize=(5, 4), dpi=100)
-            a = f.add_subplot(111)
+        # Top Bar - Energy
+        gc.gui_components["energy_bar"]["gtk_obj"] = Gtk.Label()
+        gc.gui_components["energy_bar"]["gtk_obj"].set_markup("<big><b>Card " + "Energy" + "</b>" + "</big>")
+        gc.gui_components["energy_bar"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-top", 1)
+        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-bottom", 1)
+        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-right", 4)
+        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-left", 4)
+        gc.gui_components["energy_bar"]["gtk_obj"].set_alignment(0.5, 0.5)
+        lbox = Gtk.Box(spacing=6)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        lbox.pack_start(gc.gui_components["energy_bar"]["gtk_obj"], True, True, 0)
+        grid.attach(lbox, 1, row, 4, 1)
+        row += 1
+
+        for k,v in gc.gui_components["card_plots"].items():
+            v["figure"] = Figure(figsize=(5, 4), dpi=100)
+            v["plot_obj"] = v["figure"].add_subplot(111)
             t = np.arange(0.0, 3.0, 0.01)
             s = np.sin(2*np.pi*t)
-            a.plot(t, s)
+            v["plot_obj"].plot(t, s)
 
-            canvas = FigureCanvas(f)  # a Gtk.DrawingArea
-            canvas.set_size_request(600, 200)
-            grid.attach(canvas, 1, row, 1, 1)
+            v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
+            v["canvas"].set_size_request(600, 200)
+            grid.attach(v["canvas"], 2, row, 3, 1)
             row += 1
+
+
+
+        #for plots in plot_list.list:
+            #f = Figure(figsize=(5, 4), dpi=100)
+            #a = f.add_subplot(111)
+            #t = np.arange(0.0, 3.0, 0.01)
+            #s = np.sin(2*np.pi*t)
+            #a.plot(t, s)
+            #canvas = FigureCanvas(f)  # a Gtk.DrawingArea
+            #canvas.set_size_request(600, 200)
+            #grid.attach(canvas, 1, row, 1, 1)
+            #row += 1
 
 
 
@@ -134,16 +185,17 @@ def main():
                     pd.plot_data[index] = dict(zip(header, line))
                     index += 1
     print(pd.plot_data)
-    pd.get_num_gpus()
-    card_list = pd.get_card_list()
-
+    num_gpus = pd.get_num_gpus()
+    gpu_list = pd.get_gpu_list()
+    print(gpu_list)
     # Define graph components
-    gui_components = {}
+    gc = GuiComponents(gpu_list)
 
-    sys.exit(0)
+    #sys.exit(0)
 
     # Display Gtk style Monitor
-    gplot = GPUPlotWindow(plot_list, gui_components)
+    gplot = GPUPlotWindow(gc, num_gpus)
+    #print(gc.gui_components)
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
     Gtk.main()
