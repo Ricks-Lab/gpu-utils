@@ -30,7 +30,9 @@ __status__ = "Development"
 from matplotlib.ticker import AutoLocator
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Gdk
@@ -66,6 +68,27 @@ class PlotData:
         #print(self.gpu_list)
         return(self.gpu_list)
 
+    def get_gpu_plot_data(self):
+        for k,v in pd.plot_data.items():
+            pass
+
+    def csv_read(self, logfile):
+        if logfile != "":
+            if(os.path.isfile(logfile) == True):
+                index = 0
+                noheader = True
+                with open(logfile, newline='') as log_file:
+                    logreader = csv.reader(log_file, delimiter='|')
+                    for line in logreader:
+                        if noheader:
+                            header = line
+                            print("header: ", header)
+                            noheader = False
+                            continue
+                        #print("line: ", line)
+                        self.plot_data[index] = dict(zip(header, line))
+                        index += 1
+
 class GuiComponents:
     def __init__(self, gpu_list):
         self.gui_components = {}
@@ -81,15 +104,15 @@ class GuiComponents:
 
 
 class GPUPlotWindow(Gtk.Window):
-    def __init__(self, gc, num_gpus):
+    def __init__(self, gc, num_gpus, df):
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
         if(os.path.isfile(icon_file) == True):
             self.set_icon_from_file(icon_file)
-        self.set_default_size(1000, 100*num_gpus)
+        #self.set_default_size(1000, 100*num_gpus)
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.4,0.4,0.4,1))
         self.add(grid)
 
         row = 0
@@ -112,30 +135,79 @@ class GPUPlotWindow(Gtk.Window):
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
 
+        plot_top_row = row
+        for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
+            v["figure"], v["ax1"] = plt.subplots()
+            v["ax1"].set_ylabel('MHz', color='b')
+            v["ax1"].tick_params('y', colors='b')
+            v["ax2"] = v["ax1"].twinx()
+            v["ax2"].set_ylabel('MHz', color='r')
+            v["ax2"].tick_params('y', colors='r')
+
+            N = 5
+            exa_means = (20, 35, 30, 35, 27)
+            exa_std = (2, 3, 4, 1, 2)
+            
+            ind = np.arange(N)  # the x locations for the groups
+            width = 0.35       # the width of the bars
+
+            v["figure"], v["ax1"]  = plt.subplots()
+            rects1 = v["ax1"].bar(ind, exa_means, width, color='r', yerr=exa_std)
+
+            v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
+            v["canvas"].set_size_request(200, 200)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
+            lbox.set_property("margin-top", 3)
+            lbox.set_property("margin-bottom", 3)
+            lbox.set_property("margin-right", 3)
+            lbox.set_property("margin-left", 3)
+            lbox.pack_start(v["canvas"], True, True, 0)
+
+            grid.attach(lbox, 1, row, 1, 1)
+            row += 1
+
+        row = plot_top_row
         for k,v in gc.gui_components["card_plots"].items():
-            v["figure"] = Figure(figsize=(5, 4), dpi=100)
-            v["plot_obj"] = v["figure"].add_subplot(111)
-            t = np.arange(0.0, 3.0, 0.01)
-            s = np.sin(2*np.pi*t)
-            v["plot_obj"].plot(t, s)
+            df[df["Card#"].isin([0])]
+
+            v["figure"], v["ax1"] = plt.subplots()
+            v["ax1"].set_ylabel('Loading/Power/Temp', color='b')
+            v["ax1"].tick_params('y', colors='b')
+            v["ax2"] = v["ax1"].twinx()
+            v["ax2"].set_ylabel('MHz', color='g')
+            v["ax2"].tick_params('y', colors='g')
+
+            #t = np.arange(0.0, 3.0, 0.01)
+            #s = np.sin(2*np.pi*t)
+            #v["ax1"].plot(t, s)
+            #s = np.sin(3*np.pi*t)
+            #v["ax2"].plot(t, s)
+
+            #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
+            #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power']], color='b', linewidth=1, label='pow')
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['loading']], color='k', linewidth=1)
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['temp']], color='#808080', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['vddgfx']], color='#606060', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['sclk_f']], color='g', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['mclk_f']], color='y', linewidth=1)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(600, 200)
-            grid.attach(v["canvas"], 2, row, 3, 1)
+
+            lbox = Gtk.Box(spacing=6)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
+            lbox.set_property("margin-top", 3)
+            lbox.set_property("margin-bottom", 3)
+            lbox.set_property("margin-right", 3)
+            lbox.set_property("margin-left", 3)
+            lbox.pack_start(v["canvas"], True, True, 0)
+
+            grid.attach(lbox, 2, row, 3, 1)
             row += 1
 
-
-
-        #for plots in plot_list.list:
-            #f = Figure(figsize=(5, 4), dpi=100)
-            #a = f.add_subplot(111)
-            #t = np.arange(0.0, 3.0, 0.01)
-            #s = np.sin(2*np.pi*t)
-            #a.plot(t, s)
-            #canvas = FigureCanvas(f)  # a Gtk.DrawingArea
-            #canvas.set_size_request(600, 200)
-            #grid.attach(canvas, 1, row, 1, 1)
-            #row += 1
 
 
 
@@ -168,33 +240,28 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
-    pd = PlotData()
-    if args.logfile != "":
-        if(os.path.isfile(args.logfile) == True):
-            index = 0
-            noheader = True
-            with open(args.logfile, newline='') as log_file:
-                logreader = csv.reader(log_file, delimiter='|')
-                for line in logreader:
-                    if noheader:
-                        header = line
-                        print("header: ", header)
-                        noheader = False
-                        continue
-                    print("line: ", line)
-                    pd.plot_data[index] = dict(zip(header, line))
-                    index += 1
-    print(pd.plot_data)
-    num_gpus = pd.get_num_gpus()
-    gpu_list = pd.get_gpu_list()
+    plot_data = PlotData()
+    plot_data.csv_read(args.logfile)
+    #print(plot_data.plot_data)
+    num_gpus = plot_data.get_num_gpus()
+    gpu_list = plot_data.get_gpu_list()
     print(gpu_list)
+
+    df = pd.read_csv(args.logfile, delimiter='|')
+    print(df.dtypes)
+    #sys.exit(0)
+    #print(df.columns)
+    #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx', 'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+    #print(df.describe)
+    #print(df[df["Card#"].isin([0])].loc[:,['Time']] )
+
     # Define graph components
     gc = GuiComponents(gpu_list)
 
     #sys.exit(0)
 
     # Display Gtk style Monitor
-    gplot = GPUPlotWindow(gc, num_gpus)
+    gplot = GPUPlotWindow(gc, num_gpus, df)
     #print(gc.gui_components)
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
