@@ -51,15 +51,29 @@ import shutil
 from pathlib import Path
 
 
+def hex_to_rgba(value):
+    value = value.lstrip('#')
+    if len(value) == 3:
+        value = ''.join([v*2 for v in list(value)])
+    (r1,g1,b1,a1)=tuple(int(value[i:i+2], 16) for i in range(0, 6, 2))+(1,) 
+    (r1,g1,b1,a1)=(r1/255.00000,g1/255.00000,b1/255.00000,a1)
+
+    return (r1,g1,b1,a1)
 
 class GuiComponents:
     def __init__(self, gpu_list):
         self.gui_components = {}
+        self.gpu_color = {}
+        self.colors = {'plotface':'#404040', 'figface':'#909090', 'sclk_f':'#BED661', 'mclk_f':'#89E894',
+                'loading':'#1E90FF', 'power':'#E12B06', 'power_cap':'#800000', 'vddgfx':'#778899', 'temp':'#E0E0E0'}
+        #gpu_color_list = ['#DD1E2F', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
+        gpu_color_list = ['#B52735', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
 
         #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
         #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
 
         self.gui_components["energy_bar"] = {}
+        self.gui_components["legend"] = {}
         self.gui_components["sclk_pstate_status"] = {}
         self.gui_components["sclk_pstate_status"]["df_name"] = 'sclk_ps'
         self.gui_components["mclk_pstate_status"] = {}
@@ -69,13 +83,19 @@ class GuiComponents:
         self.gui_components["card_plots"] = {}
         #for k,v in gpu_list.items():
             #self.gui_components["card_plots"][k] = {}
+        i=0
         for gpu in gpu_list:
             self.gui_components["card_plots"][gpu] = {}
+            self.gui_components["card_plots"][gpu]['color'] = gpu_color_list[i]
+            self.gpu_color[gpu] = gpu_color_list[i]
+            i += 1
         return
 
 
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, num_gpus, df):
+        box_sapcing_val = 5
+
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
@@ -83,20 +103,20 @@ class GPUPlotWindow(Gtk.Window):
             self.set_icon_from_file(icon_file)
         #self.set_default_size(1000, 100*num_gpus)
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.4,0.4,0.4,1))
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
         self.add(grid)
 
         row = 0
         # Top Bar - Energy
         gc.gui_components["energy_bar"]["gtk_obj"] = Gtk.Label()
-        gc.gui_components["energy_bar"]["gtk_obj"].set_markup("<big><b>Card " + "Energy" + "</b>" + "</big>")
+        gc.gui_components["energy_bar"]["gtk_obj"].set_markup("<big><b>" + "Energy" + "</b>" + "</big>")
         gc.gui_components["energy_bar"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-top", 1)
         gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-bottom", 1)
         gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-right", 4)
         gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-left", 4)
         gc.gui_components["energy_bar"]["gtk_obj"].set_alignment(0.5, 0.5)
-        lbox = Gtk.Box(spacing=6)
+        lbox = Gtk.Box(spacing=box_sapcing_val)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
@@ -106,35 +126,75 @@ class GPUPlotWindow(Gtk.Window):
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
 
+        # Legend
+        gc.gui_components["legend"]["gtk_obj"] = Gtk.Label()
+        gc.gui_components["legend"]["gtk_obj"].set_markup("<big><b>" + "Plot Items" + "</b>" + "</big>")
+        gc.gui_components["legend"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        gc.gui_components["legend"]["gtk_obj"].set_property("margin-top", 1)
+        gc.gui_components["legend"]["gtk_obj"].set_property("margin-bottom", 1)
+        gc.gui_components["legend"]["gtk_obj"].set_property("margin-right", 4)
+        gc.gui_components["legend"]["gtk_obj"].set_property("margin-left", 4)
+        gc.gui_components["legend"]["gtk_obj"].set_alignment(0.5, 0.5)
+        lbox = Gtk.Box(spacing=box_sapcing_val)
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.40,.40,.40,1.0))
+        lbox.set_property("margin-top", 1)
+        lbox.set_property("margin-bottom", 1)
+        lbox.set_property("margin-right", 1)
+        lbox.set_property("margin-left", 1)
+        lbox.pack_start(gc.gui_components["legend"]["gtk_obj"], True, True, 0)
+        grid.attach(lbox, 1, row, 4, 1)
+        row += 1
+
         plot_top_row = row
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
-            v["figure"], v["ax1"] = plt.subplots()
-            v["ax1"].set_ylabel('MHz', color='b')
-            v["ax1"].tick_params('y', colors='b')
-            v["ax2"] = v["ax1"].twinx()
-            v["ax2"].set_ylabel('MHz', color='r')
-            v["ax2"].tick_params('y', colors='r')
 
+            # Add Bar Plots Titles
+            v["title_obj"] = Gtk.Label()
+            v["title_obj"].set_markup("<big><b>Card " + v["df_name"] + "</b>" + "</big>")
+            v["title_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+            v["title_obj"].set_property("margin-top", 1)
+            v["title_obj"].set_property("margin-bottom", 1)
+            v["title_obj"].set_property("margin-right", 4)
+            v["title_obj"].set_property("margin-left", 4)
+            v["title_obj"].set_alignment(0.5, 0.5)
+            lbox = Gtk.Box(spacing=box_sapcing_val)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(v["title_obj"], True, True, 0)
+
+            grid.attach(lbox, 1, row, 1, 1)
+            row += 1
+
+            # Add Bar Plots
             latest = df['Time'].iloc[-1]
             last_val_df = df[df['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
             data_val = last_val_df[v['df_name']].values
             label_val = last_val_df['Card#'].values
+
+            bar_col = []
+            for l in label_val:
+                bar_col.append(gc.gpu_color[l])
             
             ind = np.arange(num_gpus)  # the x locations for the groups
-            width = 0.35       # the width of the bars
+            width = 0.55       # the width of the bars
 
             v["figure"], v["ax1"]  = plt.subplots()
-            rects1 = v["ax1"].bar(ind, data_val, width, color='#808080', tick_label=label_val)
+            v["ax1"].set_facecolor(gc.colors["plotface"])
+            v["figure"].set_facecolor(gc.colors["figface"])
+            rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(200, 200)
 
-            lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
-            lbox.set_property("margin-top", 3)
-            lbox.set_property("margin-bottom", 3)
-            lbox.set_property("margin-right", 3)
-            lbox.set_property("margin-left", 3)
+            lbox = Gtk.Box(spacing=box_sapcing_val)
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.5,0.5,0.5,1.0))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
             lbox.pack_start(v["canvas"], True, True, 0)
 
             grid.attach(lbox, 1, row, 1, 1)
@@ -142,39 +202,68 @@ class GPUPlotWindow(Gtk.Window):
 
         row = plot_top_row
         for k,v in gc.gui_components["card_plots"].items():
-            df[df["Card#"].isin([0])]
+            # Add GPU Plots Titles
+            v["title_obj"] = Gtk.Label()
+            v["title_obj"].set_markup("<big><b>Card " + str(k) + "</b>" + "</big>")
+            v["title_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+            v["title_obj"].set_property("margin-top", 1)
+            v["title_obj"].set_property("margin-bottom", 1)
+            v["title_obj"].set_property("margin-right", 4)
+            v["title_obj"].set_property("margin-left", 4)
+            v["title_obj"].set_alignment(0.5, 0.5)
+            lbox = Gtk.Box(spacing=box_sapcing_val)
+            rgba_col = hex_to_rgba(v["color"])
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2],rgba_col[3]))
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
+            lbox.pack_start(v["title_obj"], True, True, 0)
+
+            grid.attach(lbox, 2, row, 3, 1)
+            row += 1
 
             v["figure"], v["ax1"] = plt.subplots()
-            v["ax1"].set_ylabel('Loading/Power/Temp', color='b')
-            v["ax1"].tick_params('y', colors='b')
+            v["ax1"].set_facecolor(gc.colors["plotface"])
+            v["figure"].set_facecolor(gc.colors["figface"])
+            plt.yticks(np.arange(0,250,20))
+            v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
+            v["ax1"].tick_params('y', colors='k', labelsize=8)
+            v["ax1"].set_xticks([])
+
             v["ax2"] = v["ax1"].twinx()
-            v["ax2"].set_ylabel('MHz', color='g')
-            v["ax2"].tick_params('y', colors='g')
+            plt.yticks(np.arange(100,2500,100))
+            v["ax2"].set_ylabel('MHz', color='k')
+            v["ax2"].set_xticks([])
+            #v["ax2"].set_yticks(step=100)
+            v["ax2"].tick_params('y', colors='k', labelsize=10)
 
             #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
             #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power_cap']],
+                    color=gc.colors["power_cap"], linewidth=1, linestyle = '--', label='pow_cap')
             v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power']],
-                    color='b', linewidth=1, label='pow')
+                    color=gc.colors["power"], linewidth=1, label='pow')
             v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['loading']],
-                    color='k', linewidth=1)
+                    color=gc.colors["loading"], linewidth=1)
             v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['temp']],
-                    color='#808080', linewidth=1)
+                    color=gc.colors["temp"], linewidth=1)
             v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['vddgfx']],
-                    color='#606060', linewidth=1)
+                    color=gc.colors["vddgfx"], linewidth=1)
             v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['sclk_f']],
-                    color='g', linewidth=1)
+                    color=gc.colors["sclk_f"], linewidth=1)
             v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['mclk_f']],
-                    color='y', linewidth=1)
+                    color=gc.colors["mclk_f"], linewidth=1)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(600, 200)
 
-            lbox = Gtk.Box(spacing=6)
+            lbox = Gtk.Box(spacing=box_sapcing_val)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
-            lbox.set_property("margin-top", 3)
-            lbox.set_property("margin-bottom", 3)
-            lbox.set_property("margin-right", 3)
-            lbox.set_property("margin-left", 3)
+            lbox.set_property("margin-top", 1)
+            lbox.set_property("margin-bottom", 1)
+            lbox.set_property("margin-right", 1)
+            lbox.set_property("margin-left", 1)
             lbox.pack_start(v["canvas"], True, True, 0)
 
             grid.attach(lbox, 2, row, 3, 1)
