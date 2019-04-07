@@ -45,6 +45,7 @@ import threading
 import os
 import platform
 import sys
+import shlex
 import time
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
@@ -135,11 +136,13 @@ class MonitorWindow(Gtk.Window):
                 row += 1
 
 
-def updateData(gpu_list, devices):
+def updateData(gpu_list, devices, cmd):
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
     if env.gut_const.LOG == True:  
         gpu_list.print_log(env.gut_const.log_file_ptr)
+    if env.gut_const.PLOT == True:  
+        gpu_list.print_plot(cmd.stdin)
 
     # update gui 
     for dk, dv in devices.items():
@@ -152,9 +155,9 @@ def updateData(gpu_list, devices):
             lv.set_text(data_value)
             lv.set_width_chars(16)
 
-def refresh(refreshtime, updateData, gpu_list, devices):
+def refresh(refreshtime, updateData, gpu_list, devices, cmd):
     while True:
-        GLib.idle_add(updateData, gpu_list, devices)
+        GLib.idle_add(updateData, gpu_list, devices, cmd)
         time.sleep(refreshtime)
 
 
@@ -163,6 +166,7 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--log", help="Write all monitor data to logfile", action="store_true", default=False)
+    parser.add_argument("--plot", help="Open and write to amdgpu-plot", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
     parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
@@ -257,8 +261,24 @@ def main():
         gmonitor.connect("delete-event", Gtk.main_quit)
         gmonitor.show_all()
 
+        cmd = None
+        if args.plot == True:
+            env.gut_const.PLOT = True
+            plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
+            if(os.path.isfile(plot_util) == True):
+                gpu_str = ""
+                for gitem in com_gpu_list.get_gpu_card_list():
+                    if gpu_str == "":
+                        gpu_str += gitem
+                    else:
+                        gpu_str += (',' + gitem)
+                cmd_str = plot_util + " --gpu_list " + gpu_str
+                print(cmd_str)
+                cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=1, shell=False, stdin=subprocess.PIPE)
+                gpu_list.print_plot_header(cmd.stdin)
+
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP, updateData, gpu_list, devices]).start()
+        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP, updateData, gpu_list, devices, cmd]).start()
 
         Gtk.main()
     else:

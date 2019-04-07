@@ -818,6 +818,13 @@ class GPU_LIST:
                 compatible_list.list[k]=v
         return(compatible_list)
 
+    def get_gpu_card_list(self):
+        com_list = []
+        for k, v in self.list.items():
+            if v.compatible == True:
+                com_list.append(v.card_num)
+        return(com_list)
+
     def read_gpu_ppm_table(self):
         for k, v in self.list.items():
             if v.compatible:
@@ -1108,8 +1115,38 @@ class GPU_LIST:
         for k, v in self.list.items():
             print(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num), end="", file=log_file_ptr)
             for table_item in self.table_parameters:
-                print("|", str(v.get_params_value(table_item)), end="", file=log_file_ptr)
+                #print("|", str(v.get_params_value(table_item)), end="", file=log_file_ptr)
+                print("|", re.sub('M[Hh]z','',str(v.get_params_value(table_item))), end="", file=log_file_ptr)
             print("", file=log_file_ptr)
+
+    def print_plot_header(self, log_file_ptr):
+        num_gpus = self.num_gpus()
+        if num_gpus < 1: return(-1)
+
+        #Print Header
+        line_str_item = []
+        line_str_item.append("Time|Card#")
+        for table_item in self.table_parameters:
+            line_str_item.append("|" + table_item)
+        line_str_item.append("\n")
+        line_str = ''.join(line_str_item)
+        print(line_str)
+        log_file_ptr.write(line_str.encode())
+
+    def print_plot(self, log_file_ptr):
+        num_gpus = self.num_gpus()
+        if num_gpus < 1: return(-1)
+
+        #Print Data
+        line_str_item = []
+        for k, v in self.list.items():
+            line_str_item.append(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num))
+            for table_item in self.table_parameters:
+                line_str_item.append("|"+ str(re.sub('M[Hh]z','',str(v.get_params_value(table_item)))))
+            line_str_item.append("\n")
+            line_str = ''.join(line_str_item)
+            print(line_str)
+            log_file_ptr.write(line_str.encode())
 
 def test():
     #env.gut_const.DEBUG = True

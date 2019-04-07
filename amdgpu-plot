@@ -335,6 +335,7 @@ def read_from_stdin(passed_data):
         ndf = pd.DataFrame.from_records([line_item], columns=header_item)
         passed_data["df"] = pd.concat([passed_data["df"], ndf], ignore_index = True)
         passed_data["df"] = passed_data["df"].tail(500)
+        print(passed_data["df"])
 
 
 def updateData(gc, passed_data):
@@ -445,7 +446,7 @@ def main():
         # Start thread to update Monitor
         readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[passed_data]).start()
 
-    time.sleep(10)
+    time.sleep(20)
 
     # Define graph components
     gc = GuiComponents(gpu_list)

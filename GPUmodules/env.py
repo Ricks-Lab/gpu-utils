@@ -45,6 +45,7 @@ class GUT_CONST:
         self.execute_pac = False
         self.DEBUG = False
         self.LOG = False
+        self.PLOT = False
         self.log_file_ptr = ""
         self.show_fans = True
         self.write_delta_only = False
