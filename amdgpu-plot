@@ -39,6 +39,7 @@ from gi.repository import GLib, Gtk, Gdk
 import argparse
 import re
 import subprocess
+import threading
 import os
 import platform
 import sys
@@ -66,14 +67,21 @@ class GuiComponents:
         self.gpu_color = {}
         self.colors = {'plotface':'#404040', 'figface':'#909090', 'sclk_f':'#BED661', 'mclk_f':'#89E894',
                 'loading':'#1E90FF', 'power':'#E12B06', 'power_cap':'#800000', 'vddgfx':'#778899', 'temp':'#E0E0E0'}
+        self.font_colors = {'plotface':'#000000', 'figface':'#000000', 'sclk_f':'#000000', 'mclk_f':'#000000',
+                'loading':'#FFFFFF', 'power':'#FFFFFF', 'power_cap':'#FFFFFF', 'vddgfx':'#000000', 'temp':'#000000'}
         #gpu_color_list = ['#DD1E2F', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
         gpu_color_list = ['#B52735', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
+        plot_item_list = ['loading', 'power', 'power_cap', 'temp', 'vddgfx', 'sclk_f', 'mclk_f']
 
         #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
         #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
 
         self.gui_components["energy_bar"] = {}
         self.gui_components["legend"] = {}
+        self.gui_components["legend"]["buttons"] = {}
+        self.gui_components["legend"]["plot_items"] = {}
+        for plotitem in plot_item_list:
+            self.gui_components["legend"]["plot_items"][plotitem] = True
         self.gui_components["sclk_pstate_status"] = {}
         self.gui_components["sclk_pstate_status"]["df_name"] = 'sclk_ps'
         self.gui_components["mclk_pstate_status"] = {}
@@ -81,8 +89,6 @@ class GuiComponents:
         self.gui_components["temp_status"] = {}
         self.gui_components["temp_status"]["df_name"] = 'temp'
         self.gui_components["card_plots"] = {}
-        #for k,v in gpu_list.items():
-            #self.gui_components["card_plots"][k] = {}
         i=0
         for gpu in gpu_list:
             self.gui_components["card_plots"][gpu] = {}
@@ -93,7 +99,7 @@ class GuiComponents:
 
 
 class GPUPlotWindow(Gtk.Window):
-    def __init__(self, gc, num_gpus, df):
+    def __init__(self, gc, num_gpus, passed_data):
         box_sapcing_val = 5
 
         Gtk.Window.__init__(self, title="amdgpu-plot")
@@ -142,6 +148,22 @@ class GPUPlotWindow(Gtk.Window):
         lbox.set_property("margin-right", 1)
         lbox.set_property("margin-left", 1)
         lbox.pack_start(gc.gui_components["legend"]["gtk_obj"], True, True, 0)
+        for k,v in gc.gui_components["legend"]["plot_items"].items():
+            but_color = hex_to_rgba(gc.colors[k])
+            but_font_color = hex_to_rgba(gc.font_colors[k])
+            gc.gui_components["legend"]["buttons"][k] = Gtk.Button("")
+            for child in gc.gui_components["legend"]["buttons"][k].get_children():
+                child.set_label("<big><b>" + k + "</b></big>")
+                child.set_use_markup(True)
+                child.override_background_color(Gtk.StateFlags.NORMAL,
+                    Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+                gc.gui_components["legend"]["buttons"][k].override_color(Gtk.StateFlags.NORMAL,
+                    Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
+                gc.gui_components["legend"]["buttons"][k].override_background_color(Gtk.StateFlags.NORMAL,
+                    Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+            gc.gui_components["legend"]["buttons"][k].connect("clicked", self.toggle_plot_item, gc, k)
+            gc.gui_components["legend"]["buttons"][k].set_property("width-request", 90)
+            lbox.pack_start(gc.gui_components["legend"]["buttons"][k], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
 
@@ -169,8 +191,8 @@ class GPUPlotWindow(Gtk.Window):
             row += 1
 
             # Add Bar Plots
-            latest = df['Time'].iloc[-1]
-            last_val_df = df[df['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
+            latest = passed_data["df"]['Time'].iloc[-1]
+            last_val_df = passed_data["df"][passed_data["df"]['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
             data_val = last_val_df[v['df_name']].values
             label_val = last_val_df['Card#'].values
 
@@ -202,9 +224,13 @@ class GPUPlotWindow(Gtk.Window):
 
         row = plot_top_row
         for k,v in gc.gui_components["card_plots"].items():
+            latest = passed_data["df"]['Time'].iloc[-1]
+            last_val_df = passed_data["df"][passed_data["df"]['Time'].isin([latest])].loc[:,['Card#', 'energy']]
+            last_card_val_df = last_val_df[last_val_df["Card#"].isin([k])]
+            data_val = last_card_val_df['energy'].values
             # Add GPU Plots Titles
             v["title_obj"] = Gtk.Label()
-            v["title_obj"].set_markup("<big><b>Card " + str(k) + "</b>" + "</big>")
+            v["title_obj"].set_markup("<big><b>Card " + str(k) + "  Energy: " + str(data_val) + "</b>" + "</big>")
             v["title_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             v["title_obj"].set_property("margin-top", 1)
             v["title_obj"].set_property("margin-bottom", 1)
@@ -240,19 +266,26 @@ class GPUPlotWindow(Gtk.Window):
 
             #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
             #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power_cap']],
+            v["ax1"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['power_cap']],
                     color=gc.colors["power_cap"], linewidth=1, linestyle = '--', label='pow_cap')
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power']],
+            v["ax1"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['power']],
                     color=gc.colors["power"], linewidth=1, label='pow')
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['loading']],
+            v["ax1"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['loading']],
                     color=gc.colors["loading"], linewidth=1)
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['temp']],
+            v["ax1"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['temp']],
                     color=gc.colors["temp"], linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['vddgfx']],
+            v["ax2"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['vddgfx']],
                     color=gc.colors["vddgfx"], linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['sclk_f']],
+            v["ax2"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['sclk_f']],
                     color=gc.colors["sclk_f"], linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['mclk_f']],
+            v["ax2"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
+                    passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['mclk_f']],
                     color=gc.colors["mclk_f"], linewidth=1)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
@@ -269,12 +302,46 @@ class GPUPlotWindow(Gtk.Window):
             grid.attach(lbox, 2, row, 3, 1)
             row += 1
 
+    def toggle_plot_item(self, parent, gc, k):
+        pass
 
+def read_from_stdin(passed_data):
+    #this should continuously from from stdin and populate df
+    #read with pandas
+    header = True
+    first = True
+    for line in sys.stdin:
+        if header:
+            header_item = list(line.strip().split('|'))
+            header = False
+            continue
+        line_item = list(line.strip().split('|'))
+        new_line_item = []
+        for ll in line_item:
+            if ll.isdigit():
+                new_line_item.append(int(ll))
+            else:
+                new_line_item.append(ll)
+        line_item = tuple(new_line_item)
+        ndf = pd.DataFrame.from_records([line_item], columns=header_item)
+        passed_data["df"] = pd.concat([passed_data["df"], ndf], ignore_index = True)
+
+
+def updateData(gpu_list, gc, passed_data):
+    #this should just get the latest from df for plot updates
+    pass
+
+def refresh(refreshtime, updateData, gpu_list, gc, passed_data):
+    while True:
+        GLib.idle_add(updateData, gpu_list, gc, passed_data)
+        time.sleep(refreshtime)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
+    parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
+    parser.add_argument("--gpu_list", help="List of GPUs", type=str, default="")
     parser.add_argument("--logfile", help="Specify logfile as source data", type=str, default="")
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
@@ -301,23 +368,46 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
-    df = pd.read_csv(args.logfile, delimiter='|')
-    num_gpus = df['Card#'].nunique()
-    gpu_list = df['Card#'].unique()
-    if args.debug: print("gpu_list: ", gpu_list)
+    if args.logfile != "":
+        df = pd.read_csv(args.logfile, delimiter='|')
+        num_gpus = df['Card#'].nunique()
+        gpu_list = df['Card#'].unique()
+        if args.debug: print("gpu_list: ", gpu_list)
+        if args.debug: print(df.dtypes)
+        if args.debug: print(df.columns)
+        if args.debug: print("num_gpus: ", df['Card#'].nunique())
+    else:
+        if args.gpu_list != "":
+            df = pd.DataFrame()
+            gpu_list = list(map(int, args.gpu_list.strip().split(',')))
+            #gpu_list = list(args.gpu_list.strip().split(','))
+            if len(gpu_list) <1:
+                print("Error: Invalid GPU List: %s" % args.gpu_list)
+                sys.exit(-1)
+            num_gpus = len(gpu_list)
 
-    if args.debug: print(df.dtypes)
-    if args.debug: print(df.columns)
-    if args.debug: print("num_gpus: ", df['Card#'].nunique())
+    passed_data ={}
+    passed_data["df"] = df
+    print(df)
+    print(gpu_list)
+
+    if args.logfile =="":
+        # Start thread to update Monitor
+        readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[passed_data]).start()
+
+    time.sleep(10)
+    print(passed_data["df"].dtypes)
 
     # Define graph components
     gc = GuiComponents(gpu_list)
-
     # Display Gtk style Monitor
-    gplot = GPUPlotWindow(gc, num_gpus, df)
+    gplot = GPUPlotWindow(gc, num_gpus, passed_data)
     #print(gc.gui_components)
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
+    # Start refresh thread
+    monthread = threading.Thread(target=refresh, daemon=True, args=[2, updateData, gc, passed_data]).start()
+
     Gtk.main()
 
 if __name__ == "__main__":
