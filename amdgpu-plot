@@ -93,13 +93,21 @@ class GuiComponents:
     def __init__(self, gpu_list):
         self.gui_components = {}
 
+        #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
+        #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+
         self.gui_components["energy_bar"] = {}
         self.gui_components["sclk_pstate_status"] = {}
+        self.gui_components["sclk_pstate_status"]["df_name"] = 'sclk_ps'
         self.gui_components["mclk_pstate_status"] = {}
+        self.gui_components["mclk_pstate_status"]["df_name"] = 'mclk_ps'
         self.gui_components["temp_status"] = {}
+        self.gui_components["temp_status"]["df_name"] = 'temp'
         self.gui_components["card_plots"] = {}
-        for k,v in gpu_list.items():
-            self.gui_components["card_plots"][k] = {}
+        #for k,v in gpu_list.items():
+            #self.gui_components["card_plots"][k] = {}
+        for gpu in gpu_list:
+            self.gui_components["card_plots"][gpu] = {}
         return
 
 
@@ -144,15 +152,16 @@ class GPUPlotWindow(Gtk.Window):
             v["ax2"].set_ylabel('MHz', color='r')
             v["ax2"].tick_params('y', colors='r')
 
-            N = 5
             exa_means = (20, 35, 30, 35, 27)
-            exa_std = (2, 3, 4, 1, 2)
+            latest = df['Time'].iloc[-1]
+            last_val_df = df[df['Time'].isin([latest])].loc[:,[v['df_name']]]
+            last_val = last_val_df[v['df_name']].values
             
-            ind = np.arange(N)  # the x locations for the groups
+            ind = np.arange(num_gpus)  # the x locations for the groups
             width = 0.35       # the width of the bars
 
             v["figure"], v["ax1"]  = plt.subplots()
-            rects1 = v["ax1"].bar(ind, exa_means, width, color='r', yerr=exa_std)
+            rects1 = v["ax1"].bar(ind, last_val, width, color='r')
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(200, 200)
@@ -240,17 +249,22 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
-    plot_data = PlotData()
-    plot_data.csv_read(args.logfile)
+    #plot_data = PlotData()
+    #plot_data.csv_read(args.logfile)
     #print(plot_data.plot_data)
-    num_gpus = plot_data.get_num_gpus()
-    gpu_list = plot_data.get_gpu_list()
-    print(gpu_list)
+    #num_gpus = plot_data.get_num_gpus()
+    #gpu_list = plot_data.get_gpu_list()
+    #print(gpu_list)
 
     df = pd.read_csv(args.logfile, delimiter='|')
-    print(df.dtypes)
+    num_gpus = df['Card#'].nunique()
+    gpu_list = df['Card#'].unique()
+    print("gpu_list: ", gpu_list)
+
+    #print(df.dtypes)
     #sys.exit(0)
     #print(df.columns)
+    #print("num_gpus: ", df['Card#'].nunique())
     #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx', 'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
     #print(df.describe)
     #print(df[df["Card#"].isin([0])].loc[:,['Time']] )
