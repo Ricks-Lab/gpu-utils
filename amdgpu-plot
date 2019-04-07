@@ -115,16 +115,16 @@ class GPUPlotWindow(Gtk.Window):
             v["ax2"].set_ylabel('MHz', color='r')
             v["ax2"].tick_params('y', colors='r')
 
-            exa_means = (20, 35, 30, 35, 27)
             latest = df['Time'].iloc[-1]
-            last_val_df = df[df['Time'].isin([latest])].loc[:,[v['df_name']]]
-            last_val = last_val_df[v['df_name']].values
+            last_val_df = df[df['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
+            data_val = last_val_df[v['df_name']].values
+            label_val = last_val_df['Card#'].values
             
             ind = np.arange(num_gpus)  # the x locations for the groups
             width = 0.35       # the width of the bars
 
             v["figure"], v["ax1"]  = plt.subplots()
-            rects1 = v["ax1"].bar(ind, last_val, width, color='r')
+            rects1 = v["ax1"].bar(ind, data_val, width, color='#808080', tick_label=label_val)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(200, 200)
