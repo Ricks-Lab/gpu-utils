@@ -51,43 +51,6 @@ import shutil
 from pathlib import Path
 
 
-class PlotData:
-    def __init__(self):
-        self.plot_data = {}
-        self.gpu_list = {}
-
-    def get_num_gpus(self):
-        for k, v in self.plot_data.items():
-            self.gpu_list.update({v["Card#"]: 1})
-        #print(len(self.gpu_list))
-        return(int(len(self.gpu_list)))
-
-    def get_gpu_list(self):
-        for k, v in self.plot_data.items():
-            self.gpu_list.update({v["Card#"]: 1})
-        #print(self.gpu_list)
-        return(self.gpu_list)
-
-    def get_gpu_plot_data(self):
-        for k,v in pd.plot_data.items():
-            pass
-
-    def csv_read(self, logfile):
-        if logfile != "":
-            if(os.path.isfile(logfile) == True):
-                index = 0
-                noheader = True
-                with open(logfile, newline='') as log_file:
-                    logreader = csv.reader(log_file, delimiter='|')
-                    for line in logreader:
-                        if noheader:
-                            header = line
-                            print("header: ", header)
-                            noheader = False
-                            continue
-                        #print("line: ", line)
-                        self.plot_data[index] = dict(zip(header, line))
-                        index += 1
 
 class GuiComponents:
     def __init__(self, gpu_list):
@@ -188,20 +151,20 @@ class GPUPlotWindow(Gtk.Window):
             v["ax2"].set_ylabel('MHz', color='g')
             v["ax2"].tick_params('y', colors='g')
 
-            #t = np.arange(0.0, 3.0, 0.01)
-            #s = np.sin(2*np.pi*t)
-            #v["ax1"].plot(t, s)
-            #s = np.sin(3*np.pi*t)
-            #v["ax2"].plot(t, s)
-
             #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
             #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power']], color='b', linewidth=1, label='pow')
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['loading']], color='k', linewidth=1)
-            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['temp']], color='#808080', linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['vddgfx']], color='#606060', linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['sclk_f']], color='g', linewidth=1)
-            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['mclk_f']], color='y', linewidth=1)
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['power']],
+                    color='b', linewidth=1, label='pow')
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['loading']],
+                    color='k', linewidth=1)
+            v["ax1"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['temp']],
+                    color='#808080', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['vddgfx']],
+                    color='#606060', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['sclk_f']],
+                    color='g', linewidth=1)
+            v["ax2"].plot(df[df["Card#"].isin([k])].loc[:,['Time']], df[df["Card#"].isin([k])].loc[:,['mclk_f']],
+                    color='y', linewidth=1)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(600, 200)
@@ -249,30 +212,17 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
-    #plot_data = PlotData()
-    #plot_data.csv_read(args.logfile)
-    #print(plot_data.plot_data)
-    #num_gpus = plot_data.get_num_gpus()
-    #gpu_list = plot_data.get_gpu_list()
-    #print(gpu_list)
-
     df = pd.read_csv(args.logfile, delimiter='|')
     num_gpus = df['Card#'].nunique()
     gpu_list = df['Card#'].unique()
-    print("gpu_list: ", gpu_list)
+    if args.debug: print("gpu_list: ", gpu_list)
 
-    #print(df.dtypes)
-    #sys.exit(0)
-    #print(df.columns)
-    #print("num_gpus: ", df['Card#'].nunique())
-    #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx', 'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
-    #print(df.describe)
-    #print(df[df["Card#"].isin([0])].loc[:,['Time']] )
+    if args.debug: print(df.dtypes)
+    if args.debug: print(df.columns)
+    if args.debug: print("num_gpus: ", df['Card#'].nunique())
 
     # Define graph components
     gc = GuiComponents(gpu_list)
-
-    #sys.exit(0)
 
     # Display Gtk style Monitor
     gplot = GPUPlotWindow(gc, num_gpus, df)
