@@ -1130,23 +1130,21 @@ class GPU_LIST:
             line_str_item.append("|" + table_item)
         line_str_item.append("\n")
         line_str = ''.join(line_str_item)
-        print(line_str)
-        log_file_ptr.write(line_str.encode())
+        log_file_ptr.write(line_str.encode("utf-8"))
 
     def print_plot(self, log_file_ptr):
         num_gpus = self.num_gpus()
         if num_gpus < 1: return(-1)
 
         #Print Data
-        line_str_item = []
         for k, v in self.list.items():
+            line_str_item = []
             line_str_item.append(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num))
             for table_item in self.table_parameters:
-                line_str_item.append("|"+ str(re.sub('M[Hh]z','',str(v.get_params_value(table_item)))))
+                line_str_item.append("|"+ str(re.sub('M[Hh]z','',str(v.get_params_value(table_item)))).strip())
             line_str_item.append("\n")
             line_str = ''.join(line_str_item)
-            print(line_str)
-            log_file_ptr.write(line_str.encode())
+            log_file_ptr.write(line_str.encode("utf-8"))
 
 def test():
     #env.gut_const.DEBUG = True

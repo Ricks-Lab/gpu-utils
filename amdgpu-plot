@@ -212,6 +212,10 @@ class GPUPlotWindow(Gtk.Window):
             v["figure"], v["ax1"]  = plt.subplots()
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
+            if v["df_name"] == "temp":
+                plt.yticks(np.arange(0,80,10))
+            else:
+                plt.yticks(np.arange(0,8,1))
             rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
@@ -318,13 +322,18 @@ def read_from_stdin(passed_data):
     header = True
     first = True
     for line in sys.stdin:
+        if line == "":
+            time.sleep(1)
+            continue
+        line = line.strip()
         if header:
             header_item = list(line.strip().split('|'))
             header = False
             continue
         line_item = list(line.strip().split('|'))
         new_line_item = []
-        for ll in line_item:
+        for l in line_item:
+            ll = l.strip()
             if ll.isnumeric():
                 new_line_item.append(int(ll))
             elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
@@ -332,10 +341,11 @@ def read_from_stdin(passed_data):
             else:
                 new_line_item.append(ll)
         line_item = tuple(new_line_item)
+        ndf = pd.DataFrame()
         ndf = pd.DataFrame.from_records([line_item], columns=header_item)
         passed_data["df"] = pd.concat([passed_data["df"], ndf], ignore_index = True)
         passed_data["df"] = passed_data["df"].tail(500)
-        print(passed_data["df"])
+        line = ""
 
 
 def updateData(gc, passed_data):
@@ -351,7 +361,10 @@ def updateData(gc, passed_data):
             bar_col.append(gc.gpu_color[l])
         ind = np.arange(gc.num_gpus)  # the x locations for the groups
         width = 0.55       # the width of the bars
+        v["ax1"].clear()
         rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
+        v["canvas"].draw()
+        v["canvas"].flush_events()
     # Update GPU Plots
     for k,v in gc.gui_components["card_plots"].items():
         latest = passed_data["df"]['Time'].iloc[-1]
@@ -382,6 +395,8 @@ def updateData(gc, passed_data):
         v["ax2"].plot(passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['Time']],
                 passed_data["df"][passed_data["df"]["Card#"].isin([k])].loc[:,['mclk_f']],
                 color=gc.colors["mclk_f"], linewidth=1)
+        v["canvas"].draw()
+        v["canvas"].flush_events()
 
 
 def refresh(refreshtime, updateData, gc, passed_data):
@@ -443,10 +458,10 @@ def main():
     passed_data["df"] = df
 
     if args.logfile =="":
-        # Start thread to update Monitor
+        # Start thread to update Plot
         readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[passed_data]).start()
 
-    time.sleep(20)
+    time.sleep(14)
 
     # Define graph components
     gc = GuiComponents(gpu_list)
@@ -459,7 +474,6 @@ def main():
     monthread = threading.Thread(target=refresh, daemon=True, args=[2, updateData, gc, passed_data]).start()
 
     Gtk.main()
-    print(passed_data["df"])
 
 if __name__ == "__main__":
     main()

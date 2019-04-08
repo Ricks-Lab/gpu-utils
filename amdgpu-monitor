@@ -274,7 +274,7 @@ def main():
                         gpu_str += (',' + gitem)
                 cmd_str = plot_util + " --gpu_list " + gpu_str
                 print(cmd_str)
-                cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=1, shell=False, stdin=subprocess.PIPE)
+                cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=0, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
         # Start thread to update Monitor
