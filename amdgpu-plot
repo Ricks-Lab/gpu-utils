@@ -66,6 +66,8 @@ class PlotData:
         self.df = pd.DataFrame()
         self.writer = False
         self.reader = False
+        self.gpu_list = ""
+        self.num_gpus = 0
 
     def get_plot_data(self):
         self.reader = True
@@ -87,9 +89,9 @@ class PlotData:
         self.writer = False
 
 class GuiComponents:
-    def __init__(self, gpu_list):
-        self.gpu_list = gpu_list
-        self.num_gpus = len(gpu_list)
+    def __init__(self, plot_data):
+        self.gpu_list = plot_data.gpu_list
+        self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
         self.gpu_color = {}
         self.colors = {'plotface':'#404040', 'figface':'#909090', 'sclk_f':'#BED661', 'mclk_f':'#89E894',
@@ -115,17 +117,15 @@ class GuiComponents:
         self.gui_components["temp_status"] = {}
         self.gui_components["temp_status"]["df_name"] = 'temp'
         self.gui_components["card_plots"] = {}
-        i=0
-        for gpu in gpu_list:
+        for i, gpu in enumerate(self.gpu_list):
             self.gui_components["card_plots"][gpu] = {}
             self.gui_components["card_plots"][gpu]['color'] = gpu_color_list[i]
             self.gpu_color[gpu] = gpu_color_list[i]
-            i += 1
         return
 
 
 class GPUPlotWindow(Gtk.Window):
-    def __init__(self, gc, num_gpus, plot_data):
+    def __init__(self, gc, plot_data):
         box_sapcing_val = 5
 
         Gtk.Window.__init__(self, title="amdgpu-plot")
@@ -375,7 +375,8 @@ def read_from_stdin(plot_data):
         plot_data.df = plot_data.df.tail(100)
         # Call finish_write to allow readers
         plot_data.finish_write()
-        time.sleep(1)
+        if env.gut_const.DEBUG: print(plot_data.df)
+        time.sleep(0.5)
 
 
 def updateData(gc, plot_data):
@@ -440,8 +441,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
-    parser.add_argument("--gpu_list", help="List of GPUs", type=str, default="")
-    parser.add_argument("--logfile", help="Specify logfile as source data", type=str, default="")
+    #parser.add_argument("--gpu_list", help="List of GPUs", type=str, default="")
+    #parser.add_argument("--logfile", help="Specify logfile as source data", type=str, default="")
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -467,38 +468,42 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
+    #plot_data = PlotData()
+
+    #if args.logfile != "":
+        #plot_data.df = pd.read_csv(args.logfile, delimiter='|')
+        #num_gpus = plot_data.df['Card#'].nunique()
+        #gpu_list = plot_data.df['Card#'].unique()
+        #if args.debug: print("gpu_list: ", gpu_list)
+        #if args.debug: print(plot_data.df.dtypes)
+        #if args.debug: print(plot_data.df.columns)
+        #if args.debug: print("num_gpus: ", plot_data.df['Card#'].nunique())
+    #else:
+        #if args.gpu_list != "":
+            #gpu_list = list(map(int, args.gpu_list.strip().split(',')))
+            ##gpu_list = list(args.gpu_list.strip().split(','))
+            #if len(gpu_list) <1:
+                #print("Error: Invalid GPU List: %s" % args.gpu_list)
+                #sys.exit(-1)
+            #num_gpus = len(gpu_list)
+
+
+    #if args.logfile =="":
+        ## Start thread to update Plot
+        #readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
+
     plot_data = PlotData()
-
-    if args.logfile != "":
-        plot_data.df = pd.read_csv(args.logfile, delimiter='|')
-        num_gpus = plot_data.df['Card#'].nunique()
-        gpu_list = plot_data.df['Card#'].unique()
-        if args.debug: print("gpu_list: ", gpu_list)
-        if args.debug: print(plot_data.df.dtypes)
-        if args.debug: print(plot_data.df.columns)
-        if args.debug: print("num_gpus: ", plot_data.df['Card#'].nunique())
-    else:
-        if args.gpu_list != "":
-            gpu_list = list(map(int, args.gpu_list.strip().split(',')))
-            #gpu_list = list(args.gpu_list.strip().split(','))
-            if len(gpu_list) <1:
-                print("Error: Invalid GPU List: %s" % args.gpu_list)
-                sys.exit(-1)
-            num_gpus = len(gpu_list)
-
-
-    if args.logfile =="":
-        # Start thread to update Plot
-        readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
-
+    readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
     while len(plot_data.df.index) < 9:
         print("waiting for initial data")
         time.sleep(2)
+    plot_data.num_gpus = plot_data.df['Card#'].nunique()
+    plot_data.gpu_list = plot_data.df['Card#'].unique()
 
     # Define graph components
-    gc = GuiComponents(gpu_list)
+    gc = GuiComponents(plot_data)
     # Display Gtk style Monitor
-    gplot = GPUPlotWindow(gc, num_gpus, plot_data)
+    gplot = GPUPlotWindow(gc, plot_data)
     #print(gc.gui_components)
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
