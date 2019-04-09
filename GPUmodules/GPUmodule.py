@@ -22,9 +22,9 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.4.0"
+__version__ = "v2.5.0"
 __maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__status__ = "Development"
 
 import re
 import subprocess
@@ -361,6 +361,7 @@ class GPU_ITEM:
             card_file.close()
         else:
             print("Error: card file doesn't exist: %s" % (self.card_path + "power_dpm_force_performance_level"), file=sys.stderr)
+            self.compatible = False
 
     def read_gpu_pstates(self):
         """Read GPU pstate definitions and parameter ranges from driver files.
@@ -370,11 +371,13 @@ class GPU_ITEM:
         if(os.path.isfile(self.card_path + "pp_od_clk_voltage") == False):
             print("Error getting pstates: ", self.card_path, file=sys.stderr)
             self.compatible = False
-            sys.exit(-1)
+            return
+            #sys.exit(-1)
         if(os.path.isfile(self.card_path + "power_dpm_state") == False):
             print("Error: Looks like DPM is not enabled: %s doesn't exist" % (self.card_path + "power_dpm_state"), file=sys.stderr)
             self.compatible = False
-            sys.exit(-1)
+            return
+            #sys.exit(-1)
         with open(self.card_path + "pp_od_clk_voltage") as card_file:
             for line in card_file:
                 line = line.strip()
@@ -533,11 +536,11 @@ class GPU_ITEM:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
                 self.compatible = False
         except:
-            print("Error: Problem reading sensor data-A from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            print("Error: Problem reading sensor [power/temp] from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
             self.compatible = False
     
-            # Get fan data if --no_fan flag is not set
         try:
+            # Get fan data if --no_fan flag is not set
             if env.gut_const.show_fans == True:
                 # First check non-critical items - on error will be disabled, but still compatible
                 name_hwfile = ("fan1_enable", "fan1_target", "fan1_input")
@@ -551,7 +554,7 @@ class GPU_ITEM:
                         else:
                             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + nh), file=sys.stderr)
                             self.hwmon_disabled.append(nh)
-    
+
                 if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
                     with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
                         pwm_mode_value = int(hwmon_file.readline().strip())
@@ -575,8 +578,9 @@ class GPU_ITEM:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
                     self.compatible = False
         except:
-            print("Error: problem reading sensor [fan] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
-            #self.compatible = False
+            print("Error: problem reading sensor [pwm] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            print("Try running with --no_fan option", file=sys.stderr)
+            self.compatible = False
 
         try:
             if(os.path.isfile(self.hwmon_path + "in0_label") == True):
@@ -757,15 +761,13 @@ class GPU_ITEM:
 
     def print(self, clflag=False):
         """ls like listing function for GPU parameters."""
-        i = 0
-        for k, v in self.get_all_params_labels().items():
+        for i, (k, v) in enumerate(self.get_all_params_labels().items()):
             if i==1:
                 if self.compatible:
                     print(f"{__program_name__} Compatibility: Yes")
                 else:
                     print(f"{__program_name__} Compatibility: NO")
             print(v +": "+ str(self.get_params_value(k)))
-            i += 1
         if clflag:
             for k, v in self.get_all_clinfo_labels().items():
                 print(v +": "+ str(self.get_clinfo_value(k)))
@@ -1113,7 +1115,6 @@ class GPU_LIST:
         for k, v in self.list.items():
             print(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num), end="", file=log_file_ptr)
             for table_item in self.table_parameters:
-                #print("|", str(v.get_params_value(table_item)), end="", file=log_file_ptr)
                 print("|", re.sub('M[Hh]z','',str(v.get_params_value(table_item))), end="", file=log_file_ptr)
             print("", file=log_file_ptr)
 
