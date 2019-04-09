@@ -532,8 +532,12 @@ class GPU_ITEM:
             else:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "temp1_input"), file=sys.stderr)
                 self.compatible = False
+        except:
+            print("Error: Problem reading sensor data-A from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            self.compatible = False
     
             # Get fan data if --no_fan flag is not set
+        try:
             if env.gut_const.show_fans == True:
                 # First check non-critical items - on error will be disabled, but still compatible
                 name_hwfile = ("fan1_enable", "fan1_target", "fan1_input")
@@ -570,7 +574,11 @@ class GPU_ITEM:
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
                     self.compatible = False
+        except:
+            print("Error: problem reading sensor [fan] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            #self.compatible = False
 
+        try:
             if(os.path.isfile(self.hwmon_path + "in0_label") == True):
                 with open(self.hwmon_path + "in0_label") as hwmon_file:
                     if hwmon_file.readline().rstrip() == "vddgfx":
@@ -581,7 +589,7 @@ class GPU_ITEM:
                 print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "in0_label"), file=sys.stderr)
                 self.compatible = False
         except:
-            print("Error: problem reading sensor data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+            print("Error: problem reading sensor [in0_label] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
             self.compatible = False
 
     def read_gpu_driver_info(self):
