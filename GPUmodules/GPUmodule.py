@@ -554,7 +554,11 @@ class GPU_ITEM:
                         else:
                             print("Error: HW file doesn't exist: %s" % (self.hwmon_path + nh), file=sys.stderr)
                             self.hwmon_disabled.append(nh)
+        except:
+            print("Error: problem reading sensor [fan] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
 
+        try:
+            if env.gut_const.show_fans == True:
                 if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
                     with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
                         pwm_mode_value = int(hwmon_file.readline().strip())
