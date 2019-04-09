@@ -539,26 +539,29 @@ class GPU_ITEM:
             print("Error: Problem reading sensor [power/temp] from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
             self.compatible = False
     
-        try:
-            # Get fan data if --no_fan flag is not set
-            if env.gut_const.show_fans == True:
-                # First check non-critical items - on error will be disabled, but still compatible
-                name_hwfile = ("fan1_enable", "fan1_target", "fan1_input")
-                name_param = ("fan_enable", "fan_target", "fan_speed")
-                for nh, np in zip(name_hwfile, name_param):
-                    if (nh in self.hwmon_disabled) == False:
-                        if(os.path.isfile(self.hwmon_path + nh) == True):
+        # Get fan data if --no_fan flag is not set
+        if env.gut_const.show_fans == True:
+            # First non-critical fan data 
+            # On error will be disabled, but still compatible
+            name_hwfile = ("fan1_enable", "fan1_target", "fan1_input")
+            name_param = ("fan_enable", "fan_target", "fan_speed")
+            for nh, np in zip(name_hwfile, name_param):
+                if (nh in self.hwmon_disabled) == False:
+                    if(os.path.isfile(self.hwmon_path + nh) == True):
+                       try:
                             with open(self.hwmon_path + nh) as hwmon_file:
                                 self.set_params_value(np,  hwmon_file.readline().strip())
                             hwmon_file.close()
-                        else:
-                            print("Error: HW file doesn't exist: %s" % (self.hwmon_path + nh), file=sys.stderr)
-                            self.hwmon_disabled.append(nh)
-        except:
-            print("Error: problem reading sensor [fan] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+                       except:
+                           print("Warning: problem reading sensor [%s] data from GPU HWMON: %s" %
+                                   (nh, self.hwmon_path), file=sys.stderr)
+                           self.hwmon_disabled.append(nh)
+                    else:
+                        print("Warning: HW file doesn't exist: %s" % (self.hwmon_path + nh), file=sys.stderr)
+                        self.hwmon_disabled.append(nh)
 
-        try:
-            if env.gut_const.show_fans == True:
+            # Now critical fan data 
+            try:
                 if(os.path.isfile(self.hwmon_path + "pwm1_enable") == True):
                     with open(self.hwmon_path + "pwm1_enable") as hwmon_file:
                         pwm_mode_value = int(hwmon_file.readline().strip())
@@ -581,10 +584,10 @@ class GPU_ITEM:
                 else:
                     print("Error: HW file doesn't exist: %s" % (self.hwmon_path + "pwm1"), file=sys.stderr)
                     self.compatible = False
-        except:
-            print("Error: problem reading sensor [pwm] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
-            print("Try running with --no_fan option", file=sys.stderr)
-            self.compatible = False
+            except:
+                print("Error: problem reading sensor [pwm] data from GPU HWMON: %s" % self.hwmon_path, file=sys.stderr)
+                print("Try running with --no_fan option", file=sys.stderr)
+                self.compatible = False
 
         try:
             if(os.path.isfile(self.hwmon_path + "in0_label") == True):
