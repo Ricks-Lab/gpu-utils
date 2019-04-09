@@ -223,10 +223,14 @@ class GPUPlotWindow(Gtk.Window):
             row += 1
 
             # Add Bar Plots
-            latest = ldf['Time'].iloc[-6]
-            last_val_df = ldf[ldf['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
-            data_val = last_val_df[v['df_name']].values
-            label_val = last_val_df['Card#'].values
+            data_val = []
+            label_val = []
+            for k in plot_data.gpu_list:
+                l, d = ldf[ldf["Card#"].isin([k])][["Card#", v['df_name']]].iloc[-1]
+                label_val.append(l)
+                data_val.append(d)
+            print("data_val: ", data_val, type(data_val))
+            print("label_val: ", label_val, type(label_val))
 
             bar_col = []
             for l in label_val:
@@ -260,15 +264,12 @@ class GPUPlotWindow(Gtk.Window):
 
         row = plot_top_row
         for k,v in gc.gui_components["card_plots"].items():
-            latest = ldf['Time'].iloc[-6]
-            last_val_df = ldf[ldf['Time'].isin([latest])].loc[:,['Card#', 'energy', 'model_display']]
-            last_card_val_df = last_val_df[last_val_df["Card#"].isin([k])]
-            last_model_val_df = last_val_df[last_val_df["model_display"].isin([k])]
-            data_val = last_card_val_df['energy'].iloc[0]
-            model_val = last_card_val_df['model_display'].iloc[0]
+            data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
+            model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
             # Add GPU Plots Titles
             v["title_obj"] = Gtk.Label()
-            v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) + "    Energy:  " + str(data_val) + "</b>" + "</big>")
+            v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
+                    "    Energy:  " + str(data_val) + "</b>" + "</big>")
             v["title_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             v["title_obj"].set_property("margin-top", 1)
             v["title_obj"].set_property("margin-bottom", 1)
@@ -294,7 +295,7 @@ class GPUPlotWindow(Gtk.Window):
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
             v["ax1"].tick_params('y', colors='k', labelsize=8)
             v["ax1"].set_xticks([])
-
+#
             v["ax2"] = v["ax1"].twinx()
             plt.yticks(np.arange(100,2500,100))
             v["ax2"].set_ylabel('MHz/mV', color='k')
@@ -384,10 +385,13 @@ def updateData(gc, plot_data):
     # Update Bar Plots
     ldf = plot_data.get_plot_data()
     for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
-        latest = ldf['Time'].iloc[-6]
-        last_val_df = ldf[ldf['Time'].isin([latest])].loc[:,['Card#', v['df_name']]]
-        data_val = last_val_df[v['df_name']].values
-        label_val = last_val_df['Card#'].values
+        data_val = []
+        label_val = []
+        for k in plot_data.gpu_list:
+            l, d = ldf[ldf["Card#"].isin([k])][["Card#", v['df_name']]].iloc[-1]
+            label_val.append(l)
+            data_val.append(d)
+
         bar_col = []
         for l in label_val:
             bar_col.append(gc.gpu_color[l])
@@ -399,13 +403,22 @@ def updateData(gc, plot_data):
         v["canvas"].flush_events()
     # Update GPU Plots
     for k,v in gc.gui_components["card_plots"].items():
-        latest = ldf['Time'].iloc[-6]
-        last_val_df = ldf[ldf['Time'].isin([latest])].loc[:,['Card#', 'energy', 'model_display']]
-        last_card_val_df = last_val_df[last_val_df["Card#"].isin([k])]
-        last_model_val_df = last_val_df[last_val_df["model_display"].isin([k])]
-        data_val = last_card_val_df['energy'].iloc[0]
-        model_val = last_card_val_df['model_display'].iloc[0]
-        v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) + "    Energy:  " + str(data_val) + "</b>" + "</big>")
+        data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
+        model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
+        v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
+                "    Energy:  " + str(data_val) + "</b>" + "</big>")
+        #v["ax1"].clear()
+        #plt.yticks(np.arange(0,250,20))
+        #v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
+        #v["ax1"].tick_params('y', colors='k', labelsize=8)
+        #v["ax1"].set_xticks([])
+
+        #v["ax2"] = v["ax1"].twinx()
+        #v["ax2"].clear()
+        #plt.yticks(np.arange(100,2500,100))
+        #v["ax2"].set_ylabel('MHz/mV', color='k')
+        #v["ax2"].set_xticks([])
+        #v["ax2"].tick_params('y', colors='k', labelsize=10)
         v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
                 ldf[ldf["Card#"].isin([k])].loc[:,['power_cap']],
                 color=gc.colors["power_cap"], linewidth=1, linestyle = '--', label='pow_cap')
@@ -441,8 +454,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
-    #parser.add_argument("--gpu_list", help="List of GPUs", type=str, default="")
-    #parser.add_argument("--logfile", help="Specify logfile as source data", type=str, default="")
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -468,29 +479,8 @@ def main():
 
     print("WARNING: This is non-functional code, currently under development")
 
-    #plot_data = PlotData()
 
-    #if args.logfile != "":
-        #plot_data.df = pd.read_csv(args.logfile, delimiter='|')
-        #num_gpus = plot_data.df['Card#'].nunique()
-        #gpu_list = plot_data.df['Card#'].unique()
-        #if args.debug: print("gpu_list: ", gpu_list)
-        #if args.debug: print(plot_data.df.dtypes)
-        #if args.debug: print(plot_data.df.columns)
-        #if args.debug: print("num_gpus: ", plot_data.df['Card#'].nunique())
-    #else:
-        #if args.gpu_list != "":
-            #gpu_list = list(map(int, args.gpu_list.strip().split(',')))
-            ##gpu_list = list(args.gpu_list.strip().split(','))
-            #if len(gpu_list) <1:
-                #print("Error: Invalid GPU List: %s" % args.gpu_list)
-                #sys.exit(-1)
-            #num_gpus = len(gpu_list)
-
-
-    #if args.logfile =="":
-        ## Start thread to update Plot
-        #readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
+    #plot_data.df = pd.read_csv(args.logfile, delimiter='|')
 
     plot_data = PlotData()
     readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
