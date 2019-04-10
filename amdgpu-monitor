@@ -142,7 +142,11 @@ def updateData(gpu_list, devices, cmd):
     if env.gut_const.LOG == True:  
         gpu_list.print_log(env.gut_const.log_file_ptr)
     if env.gut_const.PLOT == True:  
-        gpu_list.print_plot(cmd.stdin)
+        try:
+            gpu_list.print_plot(cmd.stdin)
+        except:
+            print("amdgpu-plot has closed")
+            env.gut_const.PLOT = False
 
     # update gui 
     for dk, dv in devices.items():
@@ -266,14 +270,7 @@ def main():
             env.gut_const.PLOT = True
             plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
             if(os.path.isfile(plot_util) == True):
-                gpu_str = ""
-                for gitem in com_gpu_list.get_gpu_card_list():
-                    if gpu_str == "":
-                        gpu_str += gitem
-                    else:
-                        gpu_str += (',' + gitem)
-                cmd_str = plot_util + " --gpu_list " + gpu_str
-                print(cmd_str)
+                cmd_str = plot_util + " --sleep " + str(env.gut_const.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=0, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
