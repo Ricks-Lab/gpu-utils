@@ -40,6 +40,7 @@ import argparse
 import re
 import subprocess
 import threading
+import signal
 import os
 import platform
 import sys
@@ -64,29 +65,47 @@ def hex_to_rgba(value):
 class PlotData:
     def __init__(self):
         self.df = pd.DataFrame()
+        self.quit = False
         self.writer = False
         self.reader = False
         self.gpu_list = ""
         self.num_gpus = 0
 
     def get_plot_data(self):
+        # get deep copy of plot data df
         self.reader = True
         while(self.writer):
             print("wait for writer to finish")
-            time.sleep(0.5)
+            time.sleep(0.05)
         ndf = self.df.copy()
         self.reader = False
         return(ndf)
+
+    def wait_to_read(self):
+        self.read = True
+        while(self.writer):
+            print("wait for writer to finish")
+            time.sleep(0.05)
+        return(True)
+
+    def finish_read(self):
+        self.reader = False
 
     def wait_to_write(self):
         self.writer = True
         while(self.reader):
             print("wait for reader to finish")
-            time.sleep(0.5)
+            time.sleep(0.05)
         return(True)
 
     def finish_write(self):
         self.writer = False
+
+    def kill_thread(self):
+        self.reader = False
+        self.quit = True
+        print("Stopping reader thread")
+        time.sleep(0.2)
 
 class GuiComponents:
     def __init__(self, plot_data):
@@ -103,8 +122,10 @@ class GuiComponents:
 
         #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
         #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+        self.plot_items = {'loading':True, 'power':True, 'power_cap':True,
+                'temp':True, 'vddgfx':True,'sclk_f':True, 'mclk_f':True}
 
-        self.gui_components["energy_bar"] = {}
+        self.gui_components["info_bar"] = {}
         self.gui_components["legend"] = {}
         self.gui_components["legend"]["buttons"] = {}
         self.gui_components["legend"]["plot_items"] = {}
@@ -142,21 +163,21 @@ class GPUPlotWindow(Gtk.Window):
 
         row = 0
         # Top Bar - Energy
-        gc.gui_components["energy_bar"]["gtk_obj"] = Gtk.Label()
-        gc.gui_components["energy_bar"]["gtk_obj"].set_markup("<big><b>" + "amdgpu-util Plot" + "</b>" + "</big>")
-        gc.gui_components["energy_bar"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-top", 1)
-        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-bottom", 1)
-        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-right", 4)
-        gc.gui_components["energy_bar"]["gtk_obj"].set_property("margin-left", 4)
-        gc.gui_components["energy_bar"]["gtk_obj"].set_alignment(0.5, 0.5)
+        gc.gui_components["info_bar"]["gtk_obj"] = Gtk.Label()
+        gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>" + "amdgpu-util Plot" + "</b>" + "</big>")
+        gc.gui_components["info_bar"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        gc.gui_components["info_bar"]["gtk_obj"].set_property("margin-top", 1)
+        gc.gui_components["info_bar"]["gtk_obj"].set_property("margin-bottom", 1)
+        gc.gui_components["info_bar"]["gtk_obj"].set_property("margin-right", 4)
+        gc.gui_components["info_bar"]["gtk_obj"].set_property("margin-left", 4)
+        gc.gui_components["info_bar"]["gtk_obj"].set_alignment(0.5, 0.5)
         lbox = Gtk.Box(spacing=box_sapcing_val)
         lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
         lbox.set_property("margin-right", 1)
         lbox.set_property("margin-left", 1)
-        lbox.pack_start(gc.gui_components["energy_bar"]["gtk_obj"], True, True, 0)
+        lbox.pack_start(gc.gui_components["info_bar"]["gtk_obj"], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
 
@@ -278,16 +299,7 @@ class GPUPlotWindow(Gtk.Window):
             v["figure"], v["ax1"] = plt.subplots()
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
-            plt.yticks(np.arange(0,250,20))
-            v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
-            v["ax1"].tick_params('y', colors='k', labelsize=8)
-            v["ax1"].set_xticks([])
-
             v["ax2"] = v["ax1"].twinx()
-            plt.yticks(np.arange(100,2500,100))
-            v["ax2"].set_ylabel('MHz/mV', color='k')
-            v["ax2"].set_xticks([])
-            v["ax2"].tick_params('y', colors='k', labelsize=10)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(600, 200)
@@ -304,7 +316,10 @@ class GPUPlotWindow(Gtk.Window):
             row += 1
 
     def toggle_plot_item(self, parent, gc, k):
-        pass
+        if gc.plot_items[k] == True:
+            gc.plot_items[k] = False
+        else:
+            gc.plot_items[k] = True
 
 
 def updateData(gc, plot_data):
@@ -318,7 +333,7 @@ def updateData(gc, plot_data):
         # Set Plot Parameters
         for k in plot_data.gpu_list:
             l, d = ldf[ldf["Card#"].isin([k])][["Card#", v['df_name']]].iloc[-1]
-            label_val.append(l)
+            label_val.append(int(l))
             data_val.append(d)
             bar_col.append(gc.gpu_color[l])
         ind = np.arange(gc.num_gpus)  # the x locations for the groups
@@ -326,13 +341,13 @@ def updateData(gc, plot_data):
 
         # Do bar plot
         v["ax1"].clear()
+        rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
         if v["df_name"] == "temp":
             plt.yticks(np.arange(0,80,10))
             v["ax1"].set_ylabel('Temp (C)', color='k')
         else:
             plt.yticks(np.arange(0,8,1))
             v["ax1"].set_ylabel('P-State', color='k')
-        rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
         v["canvas"].draw()
         v["canvas"].flush_events()
     # Update GPU Plots
@@ -341,39 +356,31 @@ def updateData(gc, plot_data):
         model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
         v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
                 "    Energy:  " + str(data_val) + "</b>" + "</big>")
-        v["ax1"].clear()
-        #plt.yticks(np.arange(0,250,20))
-        #v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
-        #v["ax1"].tick_params('y', colors='k', labelsize=8)
-        v["ax1"].set_xticks([])
 
-        #v["ax2"] = v["ax1"].twinx()
+        # Plot GPUs
+        v["ax1"].clear()
+        v["ax1"].set_xticks([])
+        for plot_item in ['loading', 'power_cap', 'power', 'temp']:
+            if gc.plot_items[plot_item] == True:
+                v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                        ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                        color=gc.colors[plot_item], linewidth=0.5)
+                #v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
+                #plt.ylim((0,250))
+                #plt.yticks(np.arange(0,250,20))
+
         v["ax2"].clear()
-        #plt.yticks(np.arange(100,2500,100))
-        #v["ax2"].set_ylabel('MHz/mV', color='k')
         v["ax2"].set_xticks([])
-        #v["ax2"].tick_params('y', colors='k', labelsize=10)
-        v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['power_cap']],
-                color=gc.colors["power_cap"], linewidth=1, linestyle = '--', label='pow_cap')
-        v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['power']],
-                color=gc.colors["power"], linewidth=0.5, label='pow')
-        v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['loading']],
-                color=gc.colors["loading"], linewidth=0.5)
-        v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['temp']],
-                color=gc.colors["temp"], linewidth=0.5)
-        v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx']],
-                color=gc.colors["vddgfx"], linewidth=0.5)
-        v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['sclk_f']],
-                color=gc.colors["sclk_f"], linewidth=0.5)
-        v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                ldf[ldf["Card#"].isin([k])].loc[:,['mclk_f']],
-                color=gc.colors["mclk_f"], linewidth=0.5)
+        v["ax2"].tick_params('y', colors='k', labelsize=10)
+        for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
+            if gc.plot_items[plot_item] == True:
+                v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                        ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                        color=gc.colors[plot_item], linewidth=0.5)
+                #v["ax2"].set_ylabel('MHz/mV', color='k')
+                #plt.ylim((500,2500))
+                #plt.yticks(np.arange(500,2500,500))
+
         v["canvas"].draw()
         v["canvas"].flush_events()
 
@@ -384,6 +391,9 @@ def read_from_stdin(plot_data):
     header = True
     first = True
     for line in sys.stdin:
+        if plot_data.quit:
+            plot_data.finish_write()
+            sys.exit(0)
         if line == "":
             time.sleep(1)
             continue
@@ -412,7 +422,7 @@ def read_from_stdin(plot_data):
         # Call finish_write to allow readers
         plot_data.finish_write()
         if env.gut_const.DEBUG: print(plot_data.df)
-        time.sleep(0.5)
+        time.sleep(0.1)
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
@@ -472,6 +482,7 @@ def main():
     monthread = threading.Thread(target=refresh, daemon=True, args=[2, updateData, gc, plot_data]).start()
 
     Gtk.main()
+    plot_data.kill_thread()
 
 if __name__ == "__main__":
     main()
