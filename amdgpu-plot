@@ -75,7 +75,7 @@ class PlotData:
         # get deep copy of plot data df
         self.reader = True
         while(self.writer):
-            print("wait for writer to finish")
+            if env.gut_const.DEBUG: print("wait for writer to finish")
             time.sleep(0.05)
         ndf = self.df.copy()
         self.reader = False
@@ -84,7 +84,7 @@ class PlotData:
     def wait_to_read(self):
         self.read = True
         while(self.writer):
-            print("wait for writer to finish")
+            if env.gut_const.DEBUG: print("wait for writer to finish")
             time.sleep(0.05)
         return(True)
 
@@ -94,7 +94,7 @@ class PlotData:
     def wait_to_write(self):
         self.writer = True
         while(self.reader):
-            print("wait for reader to finish")
+            if env.gut_const.DEBUG: print("wait for reader to finish")
             time.sleep(0.05)
         return(True)
 
@@ -224,12 +224,14 @@ class GPUPlotWindow(Gtk.Window):
             for child in gc.gui_components["legend"]["buttons"][k].get_children():
                 child.set_label("<big><b>" + k + "</b></big>")
                 child.set_use_markup(True)
+                child.override_color(Gtk.StateFlags.NORMAL,
+                    Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
                 child.override_background_color(Gtk.StateFlags.NORMAL,
                     Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
-                gc.gui_components["legend"]["buttons"][k].override_color(Gtk.StateFlags.NORMAL,
-                    Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
-                gc.gui_components["legend"]["buttons"][k].override_background_color(Gtk.StateFlags.NORMAL,
-                    Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+            gc.gui_components["legend"]["buttons"][k].override_color(Gtk.StateFlags.NORMAL,
+                Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
+            gc.gui_components["legend"]["buttons"][k].override_background_color(Gtk.StateFlags.NORMAL,
+                Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
             gc.gui_components["legend"]["buttons"][k].connect("clicked", self.toggle_plot_item, gc, k)
             gc.gui_components["legend"]["buttons"][k].set_property("width-request", 90)
             gc.gui_components["legend"]["buttons"][k].set_property("margin-top", 1)
@@ -356,7 +358,6 @@ class GPUPlotWindow(Gtk.Window):
 def updateData(gc, plot_data):
     #this should just get the latest from df for plot updates
     # Update Bar Plots
-    #ldf = plot_data.get_plot_data()
     plot_data.wait_to_read()
     ldf = plot_data.df
     for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
@@ -495,15 +496,13 @@ def main():
         print("Error in environment. Exiting...")
         sys.exit(-1)
 
-    print("WARNING: This is non-functional code, currently under development")
-
 
     #plot_data.df = pd.read_csv(args.logfile, delimiter='|')
 
     plot_data = PlotData()
     readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[plot_data]).start()
     while len(plot_data.df.index) < 9:
-        print("waiting for initial data")
+        print("%s waiting for initial data" % __program_name__)
         time.sleep(2)
     plot_data.num_gpus = plot_data.df['Card#'].nunique()
     plot_data.gpu_list = plot_data.df['Card#'].unique()
