@@ -148,6 +148,24 @@ class GuiComponents:
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
         box_sapcing_val = 5
+        num_bar_plots = 3
+        def_gp_y_size = 200
+        def_gp_x_size = 600
+        def_bp_y_size = 200
+        def_bp_x_size = 250
+        def_lab_y_size = 28
+        if gc.num_gpus > num_bar_plots:
+            tot_y_size = gc.num_gpus * (def_gp_y_size + def_lab_y_size)
+            gp_y_size = def_gp_y_size
+            bp_y_size = (tot_y_size - (num_bar_plots * def_lab_y_size))/num_bar_plots
+        elif gc.num_gpus < num_bar_plots:
+            tot_y_size = num_bar_plots * (def_bp_y_size + def_lab_y_size)
+            bp_y_size = def_bp_y_size
+            gp_y_size = (tot_y_size - (gc.num_gpus * def_lab_y_size))/gc.num_gpus
+        else:
+            gp_y_size = def_gp_y_size
+            bp_y_size = def_bp_y_size
+
 
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
@@ -159,6 +177,8 @@ class GPUPlotWindow(Gtk.Window):
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
         self.add(grid)
 
+
+        # Get deep copy of current df
         ldf = plot_data.get_plot_data()
 
         row = 0
@@ -219,8 +239,14 @@ class GPUPlotWindow(Gtk.Window):
             lbox.pack_start(gc.gui_components["legend"]["buttons"][k], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
+        main_last_row = row
 
-        plot_top_row = row
+        # Set up bar plots
+        grid_bar = Gtk.Grid()
+        grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
+        grid.attach(grid_bar, 1, main_last_row, 1, 1)
+        brow = 0
+        #plot_top_row = row
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
 
             # Add Bar Plots Titles
@@ -240,8 +266,8 @@ class GPUPlotWindow(Gtk.Window):
             lbox.set_property("margin-left", 1)
             lbox.pack_start(v["title_obj"], True, True, 0)
 
-            grid.attach(lbox, 1, row, 1, 1)
-            row += 1
+            grid_bar.attach(lbox, 1, brow, 1, 1)
+            brow += 1
 
             # Add Bar Plots
             # Set up plot figure and canvas
@@ -255,7 +281,7 @@ class GPUPlotWindow(Gtk.Window):
                 plt.yticks(np.arange(0,8,1))
                 v["ax1"].set_ylabel('P-State', color='k')
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
-            v["canvas"].set_size_request(200, 200)
+            v["canvas"].set_size_request(def_bp_x_size, bp_y_size)
 
             lbox = Gtk.Box(spacing=box_sapcing_val)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.5,0.5,0.5,1.0))
@@ -265,10 +291,15 @@ class GPUPlotWindow(Gtk.Window):
             lbox.set_property("margin-left", 1)
             lbox.pack_start(v["canvas"], True, True, 0)
 
-            grid.attach(lbox, 1, row, 1, 1)
-            row += 1
+            grid_bar.attach(lbox, 1, brow, 1, 1)
+            brow += 1
 
-        row = plot_top_row
+        # Set up gpu plots
+        grid_plot = Gtk.Grid()
+        grid_plot.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
+        grid.attach(grid_plot, 2, main_last_row, 3, 1)
+        prow = 0
+        #row = plot_top_row
         for k,v in gc.gui_components["card_plots"].items():
             data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
             model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
@@ -291,8 +322,8 @@ class GPUPlotWindow(Gtk.Window):
             lbox.set_property("margin-left", 1)
             lbox.pack_start(v["title_obj"], True, True, 0)
 
-            grid.attach(lbox, 2, row, 3, 1)
-            row += 1
+            grid_plot.attach(lbox, 1, prow, 1, 1)
+            prow += 1
 
             # Add GPU Plots
             # Set up plot figure and canvas
@@ -302,7 +333,7 @@ class GPUPlotWindow(Gtk.Window):
             v["ax2"] = v["ax1"].twinx()
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
-            v["canvas"].set_size_request(600, 200)
+            v["canvas"].set_size_request(def_gp_x_size, gp_y_size)
 
             lbox = Gtk.Box(spacing=box_sapcing_val)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
@@ -312,8 +343,8 @@ class GPUPlotWindow(Gtk.Window):
             lbox.set_property("margin-left", 1)
             lbox.pack_start(v["canvas"], True, True, 0)
 
-            grid.attach(lbox, 2, row, 3, 1)
-            row += 1
+            grid_plot.attach(lbox, 1, prow, 1, 1)
+            prow += 1
 
     def toggle_plot_item(self, parent, gc, k):
         if gc.plot_items[k] == True:
@@ -339,7 +370,7 @@ def updateData(gc, plot_data):
             data_val.append(d)
             bar_col.append(gc.gpu_color[l])
         ind = np.arange(gc.num_gpus)  # the x locations for the groups
-        width = 0.55       # the width of the bars
+        width = 0.45       # the width of the bars
 
         # Do bar plot
         v["ax1"].clear()
@@ -347,10 +378,11 @@ def updateData(gc, plot_data):
         rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
         if v["df_name"] == "temp":
             plt.yticks(np.arange(0,80,10))
-            v["ax1"].set_ylabel('Temp (C)', color='k')
+            #v["ax1"].set_ylabel('Temp (C)', color='k')
         else:
+            data_val = list(map(int, data_val))
             plt.yticks(np.arange(0,8,1))
-            v["ax1"].set_ylabel('P-State', color='k')
+            #v["ax1"].set_ylabel('P-State', color='k')
         v["canvas"].draw()
         v["canvas"].flush_events()
     # Update GPU Plots
