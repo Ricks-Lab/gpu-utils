@@ -295,16 +295,9 @@ class GPUPlotWindow(Gtk.Window):
             # Set up plot figure and canvas
             v["figure_num"] = 100 + fig_num
             fig_num += 1
-            print("figure_num: %d"% v["figure_num"])
             v["figure"], v["ax1"]  = plt.subplots(num=v["figure_num"])
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
-            if v["df_name"] == "temp":
-                plt.yticks(np.arange(0,80,10))
-                v["ax1"].set_ylabel('Temp (C)', color='k')
-            else:
-                plt.yticks(np.arange(0,8,1))
-                v["ax1"].set_ylabel('P-State', color='k')
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_bp_x_size, bp_y_size)
 
@@ -353,12 +346,10 @@ class GPUPlotWindow(Gtk.Window):
             # Add GPU Plots
             # Set up plot figure and canvas
             v["figure_num"] = 500 + k
-            print("figure_num: %d"% v["figure_num"])
             v["figure"], v["ax1"] = plt.subplots(num=v["figure_num"])
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
             v["ax2"] = v["ax1"].twinx()
-
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_gp_x_size, gp_y_size)
 
@@ -383,71 +374,90 @@ class GPUPlotWindow(Gtk.Window):
 def updateData(gc, plot_data):
     #this should just get the latest from df for plot updates
     # Update Bar Plots
-    #plot_data.wait_to_read()
     ldf = plot_data.df
-    for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
-        data_val = []
-        label_val = []
-        bar_col = []
-        # Set Plot Parameters
-        for k in plot_data.gpu_list:
-            l, d = ldf[ldf["Card#"].isin([k])][["Card#", v['df_name']]].iloc[-1]
-            label_val.append(int(l))
-            data_val.append(d)
-            bar_col.append(gc.gpu_color[l])
-        ind = np.arange(gc.num_gpus)  # the x locations for the groups
-        width = 0.45       # the width of the bars
-
-        # Do bar plot
-        plt.figure(v["figure_num"])
-        v["ax1"].clear()
-        #v["figure"].clf()
-        rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
-        if v["df_name"] == "temp":
-            plt.yticks(np.arange(0,80,10))
-            #v["ax1"].set_ylabel('Temp (C)', color='k')
-        else:
-            data_val = list(map(int, data_val))
-            plt.yticks(np.arange(0,8,1))
-            #v["ax1"].set_ylabel('P-State', color='k')
-        v["canvas"].draw()
-        v["canvas"].flush_events()
-    # Update GPU Plots
-    for k,v in gc.gui_components["card_plots"].items():
-        data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
-        model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
-        v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
-                "    Energy:  " + str(data_val) + "</b>" + "</big>")
-
-        # Plot GPUs
-        plt.figure(v["figure_num"])
-        #v["figure"].clf()
-        v["ax1"].clear()
-        v["ax1"].set_xticks([])
-        for plot_item in ['loading', 'power_cap', 'power', 'temp']:
-            if gc.plot_items[plot_item] == True:
-                v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                        ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
-                        color=gc.colors[plot_item], linewidth=0.5)
-                #v["ax1"].set_ylabel('Loading/Power/Temp', color='k')
-                #plt.ylim((0,250))
-                #plt.yticks(np.arange(0,250,20))
-
-        v["ax2"].clear()
-        v["ax2"].set_xticks([])
-        v["ax2"].tick_params('y', colors='k', labelsize=10)
-        for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
-            if gc.plot_items[plot_item] == True:
-                v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                        ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
-                        color=gc.colors[plot_item], linewidth=0.5)
-                #v["ax2"].set_ylabel('MHz/mV', color='k')
-                #plt.ylim((500,2500))
-                #plt.yticks(np.arange(500,2500,500))
-
-        v["canvas"].draw()
-        v["canvas"].flush_events()
-    #plot_data.finish_read()
+    try:
+        for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
+            data_val = []
+            label_val = []
+            bar_col = []
+            # Set Plot Parameters
+            for k in plot_data.gpu_list:
+                l, d = ldf[ldf["Card#"].isin([k])][["Card#", v['df_name']]].iloc[-1]
+                label_val.append(int(l))
+                data_val.append(float(d))
+                bar_col.append(gc.gpu_color[l])
+            ind = np.arange(gc.num_gpus)  # the x locations for the groups
+            width = 0.65       # the width of the bars
+    
+            # Do bar plot
+            plt.figure(v["figure_num"])
+            v["ax1"].clear()
+            plt.subplots_adjust(left=0.13, right=0.97, top=0.97, bottom=0.1)
+            rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
+            if v["df_name"] == "temp":
+                for a, b in zip(ind, data_val):
+                    v["ax1"].text(x=float(a)-(float(width)/2.0), y=0.90*b, s=' '+str(b), fontsize=8)
+                #v["ax1"].text(rects1.get_x() + rects1.get_width()/2., 0.95*height, '%d' % int(height), ha='center', va='bottom')
+                plt.yticks(np.arange(20,91,10))
+                plt.ylim((20,91))
+                #v["ax1"].set_ylabel('Temp (C)', color='k')
+            else:
+                data_val = list(map(int, data_val))
+                for a, b in zip(ind, data_val):
+                    v["ax1"].text(x=a-width/4.0, y=b-width, s=str(b), fontsize=10)
+                plt.yticks(np.arange(0,9,1))
+                #v["ax1"].set_ylabel('P-State', color='k')
+            v["canvas"].draw()
+            v["canvas"].flush_events()
+        # Update GPU Plots
+        for k,v in gc.gui_components["card_plots"].items():
+            data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
+            model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
+            v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
+                    "    Energy:  " + str(data_val) + "</b>" + "</big>")
+    
+            # Plot GPUs
+            plt.figure(v["figure_num"])
+            #v["figure"].clf()
+            v["ax1"].clear()
+            v["ax1"].set_xticks([])
+            v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
+            #v["ax1"].set_ylim(bottom = 0, top=None)
+            v["ax1"].set_yticks(np.arange(0,250,20))
+            v["ax1"].tick_params(axis='y', which='major', labelsize=8)
+            plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
+            for plot_item in ['loading', 'power_cap', 'power', 'temp']:
+                if gc.plot_items[plot_item] == True:
+                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                            ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                            color=gc.colors[plot_item], linewidth=0.5)
+                    v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
+                            y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
+                            s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
+                            bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+    
+            v["ax2"].clear()
+            v["ax2"].set_xticks([])
+            #v["ax2"].tick_params('y', colors='k', fontsize=10)
+            v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
+            #v["ax2"].set_ylim(bottom = 500, top=None)
+            v["ax2"].set_yticks(np.arange(500,2500,100))
+            v["ax2"].tick_params(axis='y', which='major', labelsize=8)
+            for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
+                if gc.plot_items[plot_item] == True:
+                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                            ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                            color=gc.colors[plot_item], linewidth=0.5)
+                    v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
+                            y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
+                            s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
+                            bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+    
+            v["canvas"].draw()
+            v["canvas"].flush_events()
+    except:
+        print("matplotlib error, stack size is %d" % get_stack_size())
+        plot_data.kill_thread()
 
 
 def read_from_stdin(plot_data):
@@ -495,11 +505,14 @@ def refresh(refreshtime, updateData, gc, plot_data):
     while True:
         if plot_data.active_reader():
             print("Refresh skipped due to active reader")
+        elif plot_data.quit:
+            print("refresh stack size: ", get_stack_size())
+            time.sleep(refreshtime)
+            sys.exit(0)
         else:
             plot_data.wait_to_read()
             GLib.idle_add(updateData, gc, plot_data)
             plot_data.finish_read()
-            #print("refresh stack size: ", get_stack_size())
         time.sleep(refreshtime)
 
 
