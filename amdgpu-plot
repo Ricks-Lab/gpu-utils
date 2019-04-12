@@ -62,6 +62,22 @@ def hex_to_rgba(value):
 
     return (r1,g1,b1,a1)
 
+def get_stack_size():
+    """Get stack size for caller's frame.
+
+    %timeit len(inspect.stack())
+    8.86 ms ± 42.5 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    %timeit get_stack_size()
+    4.17 µs ± 11.5 ns per loop (mean ± std. dev. of 7 runs, 100000 loops each)
+    """
+    size = 2  # current frame and caller's frame always exist
+    while True:
+        try:
+            sys._getframe(size)
+            size += 1
+        except ValueError:
+            return size - 1  # subtract current frame
+
 class PlotData:
     def __init__(self):
         self.df = pd.DataFrame()
@@ -81,8 +97,11 @@ class PlotData:
         self.reader = False
         return(ndf)
 
+    def active_reader(self):
+        return(self.reader)
+
     def wait_to_read(self):
-        self.read = True
+        self.reader = True
         while(self.writer):
             if env.gut_const.DEBUG: print("wait for writer to finish")
             time.sleep(0.05)
@@ -248,6 +267,7 @@ class GPUPlotWindow(Gtk.Window):
         grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
         grid.attach(grid_bar, 1, main_last_row, 1, 1)
         brow = 0
+        fig_num=0
         #plot_top_row = row
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
 
@@ -273,7 +293,10 @@ class GPUPlotWindow(Gtk.Window):
 
             # Add Bar Plots
             # Set up plot figure and canvas
-            v["figure"], v["ax1"]  = plt.subplots()
+            v["figure_num"] = 100 + fig_num
+            fig_num += 1
+            print("figure_num: %d"% v["figure_num"])
+            v["figure"], v["ax1"]  = plt.subplots(num=v["figure_num"])
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
             if v["df_name"] == "temp":
@@ -329,7 +352,9 @@ class GPUPlotWindow(Gtk.Window):
 
             # Add GPU Plots
             # Set up plot figure and canvas
-            v["figure"], v["ax1"] = plt.subplots()
+            v["figure_num"] = 500 + k
+            print("figure_num: %d"% v["figure_num"])
+            v["figure"], v["ax1"] = plt.subplots(num=v["figure_num"])
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["figure"].set_facecolor(gc.colors["figface"])
             v["ax2"] = v["ax1"].twinx()
@@ -358,7 +383,7 @@ class GPUPlotWindow(Gtk.Window):
 def updateData(gc, plot_data):
     #this should just get the latest from df for plot updates
     # Update Bar Plots
-    plot_data.wait_to_read()
+    #plot_data.wait_to_read()
     ldf = plot_data.df
     for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
         data_val = []
@@ -374,6 +399,7 @@ def updateData(gc, plot_data):
         width = 0.45       # the width of the bars
 
         # Do bar plot
+        plt.figure(v["figure_num"])
         v["ax1"].clear()
         #v["figure"].clf()
         rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
@@ -394,6 +420,7 @@ def updateData(gc, plot_data):
                 "    Energy:  " + str(data_val) + "</b>" + "</big>")
 
         # Plot GPUs
+        plt.figure(v["figure_num"])
         #v["figure"].clf()
         v["ax1"].clear()
         v["ax1"].set_xticks([])
@@ -420,7 +447,7 @@ def updateData(gc, plot_data):
 
         v["canvas"].draw()
         v["canvas"].flush_events()
-    plot_data.finish_read()
+    #plot_data.finish_read()
 
 
 def read_from_stdin(plot_data):
@@ -461,11 +488,18 @@ def read_from_stdin(plot_data):
         plot_data.finish_write()
         if env.gut_const.DEBUG: print(plot_data.df)
         time.sleep(0.1)
+        #print("read_from_stdin stack size: ", get_stack_size())
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
     while True:
-        GLib.idle_add(updateData, gc, plot_data)
+        if plot_data.active_reader():
+            print("Refresh skipped due to active reader")
+        else:
+            plot_data.wait_to_read()
+            GLib.idle_add(updateData, gc, plot_data)
+            plot_data.finish_read()
+            #print("refresh stack size: ", get_stack_size())
         time.sleep(refreshtime)
 
 
@@ -515,7 +549,7 @@ def main():
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
     # Start refresh thread
-    monthread = threading.Thread(target=refresh, daemon=True, args=[2, updateData, gc, plot_data]).start()
+    monthread = threading.Thread(target=refresh, daemon=True, args=[args.sleep, updateData, gc, plot_data]).start()
 
     Gtk.main()
     plot_data.kill_thread()
