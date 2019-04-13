@@ -57,6 +57,8 @@ import glob
 import shutil 
 from pathlib import Path
 
+pd_sem = threading.Semaphore()
+
 
 def hex_to_rgba(value):
     value = value.lstrip('#')
@@ -70,7 +72,7 @@ def hex_to_rgba(value):
 def get_stack_size():
     """Get stack size for caller's frame.
 
-       Code copied from Stach Overflow
+       Code copied from Stack Overflow
     """
     size = 2  # current frame and caller's frame always exist
     while True:
@@ -107,9 +109,16 @@ class PlotData:
 
     def wait_to_read(self):
         self.reader = True
+        i = 0
         while(self.writer):
-            if env.gut_const.DEBUG: print("wait for writer to finish")
-            time.sleep(0.15)
+            if i < 10:
+                if env.gut_const.DEBUG: print("wait for writer to finish")
+                time.sleep(0.35)
+                i += 1
+            else:
+                if env.gut_const.DEBUG: print("reseting writer")
+                self.writer = False
+        self.reader = True
         return(True)
 
     def finish_read(self):
@@ -117,9 +126,17 @@ class PlotData:
 
     def wait_to_write(self):
         self.writer = True
+        i = 0
         while(self.reader):
-            if env.gut_const.DEBUG: print("wait for reader to finish")
-            time.sleep(0.35)
+            if i < 10:
+                if env.gut_const.DEBUG: print("wait for reader to finish")
+                time.sleep(0.21)
+                i += 1
+            else:
+                if env.gut_const.DEBUG: print("reseting reader")
+                self.reader = False
+                time.sleep(0.5)
+        self.writer = True
         return(True)
 
     def finish_write(self):
@@ -406,6 +423,7 @@ def updateData(gc, plot_data):
     ########################
     gc.updating = True
     plot_data.wait_to_read()
+    pd_sem.acquire()
     ########################
     ldf = plot_data.df
     try:
@@ -479,6 +497,7 @@ def updateData(gc, plot_data):
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
     ########################
+    pd_sem.release()
     plot_data.finish_read()
     gc.updating = False
     ########################
@@ -492,6 +511,7 @@ def read_from_stdin(refreshtime, plot_data):
     while (plot_data.quit == False):
         #########################
         # Call wait_to_write ####
+        pd_sem.acquire()
         plot_data.wait_to_write()
         #########################
         rdf = pd.DataFrame()
@@ -533,6 +553,7 @@ def read_from_stdin(refreshtime, plot_data):
         plot_data.df = plot_data.df.tail(plot_data.length)
         #########################
         # Call finish_write #####
+        pd_sem.release()
         plot_data.finish_write()
         #########################
         #if env.gut_const.DEBUG: print(plot_data.df)
@@ -541,20 +562,20 @@ def read_from_stdin(refreshtime, plot_data):
         #print("read_from_stdin stack size: ", get_stack_size())
 
     # Quit
+    pd_sem.release()
     plot_data.finish_write()
     sys.exit(0)
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
     while True:
-        #if plot_data.active_reader():
-            #print("Refresh skipped due to active reader")
-            #time.sleep(0.25)
-            #continue
-        #elif plot_data.quit:
-        if gc.updating:
+        if plot_data.active_reader():
+            print("Refresh skipped due to active reader")
+            time.sleep(0.15)
+            continue
+        elif gc.updating:
             print("Refresh skipped due to active updateData")
-            time.sleep(0.25)
+            time.sleep(0.15)
             continue
         elif plot_data.quit:
             print("refresh stack size: ", get_stack_size())
@@ -564,7 +585,7 @@ def refresh(refreshtime, updateData, gc, plot_data):
             #while Gtk.events_pending(): Gtk.main_iteration()
             GLib.idle_add(updateData, gc, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-        time.sleep(float(refreshtime)+0.05)
+            time.sleep(float(refreshtime)+0.07)
         #print(datetime.utcnow().strftime('%m%d_%H%M%S'), ": refresh stack size: ", get_stack_size())
 
 
