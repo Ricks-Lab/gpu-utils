@@ -31,8 +31,13 @@ from matplotlib.ticker import AutoLocator
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+try:
+    import pandas as pd
+except:
+    print("Pandas is required for %s", __program_name__)
+    print("Use \"sudo apt-get install python3-pandas\" to install")
+    sys.exit(0)
 import numpy as np
-import pandas as pd
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Gdk
@@ -81,6 +86,7 @@ def get_stack_size():
 class PlotData:
     def __init__(self):
         self.df = pd.DataFrame()
+        self.length = 300
         self.quit = False
         self.writer = False
         self.reader = False
@@ -128,6 +134,7 @@ class PlotData:
 
 class GuiComponents:
     def __init__(self, plot_data):
+        self.updating = False
         self.gpu_list = plot_data.gpu_list
         self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
@@ -348,10 +355,23 @@ class GPUPlotWindow(Gtk.Window):
             v["figure_num"] = 500 + k
             v["figure"], v["ax1"] = plt.subplots(num=v["figure_num"])
             v["ax1"].set_facecolor(gc.colors["plotface"])
+            # from update
+            plt.figure(v["figure_num"])
+            v["ax1"].set_xticks([])
+            v["ax1"].set_yticks(np.arange(0,250,20))
+            v["ax1"].tick_params(axis='y', which='major', labelsize=8)
+            plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
+
             v["figure"].set_facecolor(gc.colors["figface"])
             v["ax2"] = v["ax1"].twinx()
+            # from update
+            v["ax2"].set_xticks([])
+            v["ax2"].set_yticks(np.arange(500,1500,100))
+            v["ax2"].tick_params(axis='y', which='major', labelsize=8)
+
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_gp_x_size, gp_y_size)
+
 
             lbox = Gtk.Box(spacing=box_sapcing_val)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
@@ -373,9 +393,14 @@ class GPUPlotWindow(Gtk.Window):
 
 def updateData(gc, plot_data):
     #this should just get the latest from df for plot updates
-    # Update Bar Plots
+    if gc.updating:
+        if env.gut_const.DEBUG: print("Skipping recursive update")
+        print("Skipping recursive update")
+        return
+    gc.updating = True
     ldf = plot_data.df
     try:
+        # Update Bar Plots
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
             data_val = []
             label_val = []
@@ -397,7 +422,6 @@ def updateData(gc, plot_data):
             if v["df_name"] == "temp":
                 for a, b in zip(ind, data_val):
                     v["ax1"].text(x=float(a)-(float(width)/2.0), y=0.90*b, s=' '+str(b), fontsize=8)
-                #v["ax1"].text(rects1.get_x() + rects1.get_width()/2., 0.95*height, '%d' % int(height), ha='center', va='bottom')
                 plt.yticks(np.arange(20,91,10))
                 plt.ylim((20,91))
                 #v["ax1"].set_ylabel('Temp (C)', color='k')
@@ -418,14 +442,13 @@ def updateData(gc, plot_data):
     
             # Plot GPUs
             plt.figure(v["figure_num"])
-            #v["figure"].clf()
             v["ax1"].clear()
-            v["ax1"].set_xticks([])
+            #v["ax1"].set_xticks([])
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
-            #v["ax1"].set_ylim(bottom = 0, top=None)
-            v["ax1"].set_yticks(np.arange(0,250,20))
-            v["ax1"].tick_params(axis='y', which='major', labelsize=8)
-            plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
+            ##v["ax1"].set_ylim(bottom = 0, top=None)
+            #v["ax1"].set_yticks(np.arange(0,250,20))
+            #v["ax1"].tick_params(axis='y', which='major', labelsize=8)
+            #plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
                 if gc.plot_items[plot_item] == True:
                     v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
@@ -437,12 +460,11 @@ def updateData(gc, plot_data):
                             bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
     
             v["ax2"].clear()
-            v["ax2"].set_xticks([])
-            #v["ax2"].tick_params('y', colors='k', fontsize=10)
+            #v["ax2"].set_xticks([])
             v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
             #v["ax2"].set_ylim(bottom = 500, top=None)
-            v["ax2"].set_yticks(np.arange(500,2500,100))
-            v["ax2"].tick_params(axis='y', which='major', labelsize=8)
+            #v["ax2"].set_yticks(np.arange(500,2500,100))
+            #v["ax2"].tick_params(axis='y', which='major', labelsize=8)
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item] == True:
                     v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
@@ -458,53 +480,66 @@ def updateData(gc, plot_data):
     except:
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
+    gc.updating = False
 
 
 def read_from_stdin(plot_data):
     #this should continuously from from stdin and populate df
     #read with pandas
     header = True
-    first = True
-    for line in sys.stdin:
-        if plot_data.quit:
-            plot_data.finish_write()
-            sys.exit(0)
-        if line == "":
-            time.sleep(1)
-            continue
-        line = line.strip()
-        if header:
-            header_item = list(line.strip().split('|'))
-            header = False
-            continue
-        line_item = list(line.strip().split('|'))
-        new_line_item = []
-        for l in line_item:
-            ll = l.strip()
-            if ll.isnumeric():
-                new_line_item.append(int(ll))
-            elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
-                new_line_item.append(float(ll))
-            else:
-                new_line_item.append(ll)
-        line_item = tuple(new_line_item)
-        ndf = pd.DataFrame()
-        ndf = pd.DataFrame.from_records([line_item], columns=header_item)
+    #for line in sys.stdin:
+    while (plot_data.quit == False):
         # don't write while reader is reading, block readers once start writing
         plot_data.wait_to_write()
+        rdf = pd.DataFrame()
+        ndf = pd.DataFrame()
+        if plot_data.num_gpus ==0: num_gpus = 9
+        else: num_gpus = plot_data.num_gpus
+        for gpu_index in range(0, num_gpus):
+            line = sys.stdin.readline()
+            #print("line: ", line)
+            if line == "":
+                #time.sleep(1)
+                continue
+            if header:
+                header_item = list(line.strip().split('|'))
+                header = False
+                continue
+            line = line.strip()
+            line_item = list(line.strip().split('|'))
+            new_line_item = []
+            for l in line_item:
+                ll = l.strip()
+                if ll.isnumeric():
+                    new_line_item.append(int(ll))
+                elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
+                    new_line_item.append(float(ll))
+                else:
+                    new_line_item.append(ll)
+            line_item = tuple(new_line_item)
+            rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+            ndf = pd.concat([ndf, rdf], ignore_index = True)
+            #if env.gut_const.DEBUG: print(ndf)
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
-        plot_data.df = plot_data.df.tail(400)
+        plot_data.df = plot_data.df.tail(plot_data.length)
         # Call finish_write to allow readers
         plot_data.finish_write()
-        if env.gut_const.DEBUG: print(plot_data.df)
-        time.sleep(0.1)
+        #if env.gut_const.DEBUG: print(plot_data.df)
+        time.sleep(0.3)
+        #time.sleep(2)
         #print("read_from_stdin stack size: ", get_stack_size())
+
+    # Quit
+    plot_data.finish_write()
+    sys.exit(0)
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
     while True:
         if plot_data.active_reader():
             print("Refresh skipped due to active reader")
+            time.sleep(0.3)
+            continue
         elif plot_data.quit:
             print("refresh stack size: ", get_stack_size())
             time.sleep(refreshtime)
@@ -513,7 +548,9 @@ def refresh(refreshtime, updateData, gc, plot_data):
             plot_data.wait_to_read()
             GLib.idle_add(updateData, gc, plot_data)
             plot_data.finish_read()
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
         time.sleep(refreshtime)
+        print(datetime.utcnow().strftime('%m%d_%H%M%S'), ": refresh stack size: ", get_stack_size())
 
 
 def main():
