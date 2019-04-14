@@ -382,7 +382,7 @@ def updateData(gc, plot_data):
     if gc.updating:
         if env.gut_const.DEBUG: print("Skipping recursive update")
         print("Skipping recursive update")
-        time.sleep(1.25)
+        time.sleep(0.1)
         return
     ########################
     gc.updating = True
@@ -473,7 +473,9 @@ def read_from_stdin(refreshtime, plot_data):
     #read with pandas
     header = True
     sync_add = 0
-    loc_refresh_time = 0.3 * refreshtime
+    skip_sleep = False
+    #loc_refresh_time = 0.3 * refreshtime
+    loc_refresh_time = 0.5
     while (plot_data.quit == False):
         #########################
         # Get access to plot_data
@@ -525,12 +527,16 @@ def read_from_stdin(refreshtime, plot_data):
         # Adjust read sleep time to redeuce excess wait for data on stdin
         if len(plot_data.df.index) > 0.25 * plot_data.length:
             if env.gut_const.DEBUG: print("Last read time: %f Current refreshtime: %f" % (read_time, loc_refresh_time))
-            if read_time > 0.9 and loc_refresh_time > 0.4:
-                loc_refresh_time -= 0.1
-                if env.gut_const.DEBUG: print("Reduced loc_refresh_time to: %f" % loc_refresh_time)
-            elif read_time < 0.0001 and loc_refresh_time < 0.25 * refreshtime:
-                loc_refresh_time += 0.05
+            if read_time > 0.9 and loc_refresh_time < (0.9*refreshtime - 0.5):
+                loc_refresh_time += 0.1
                 if env.gut_const.DEBUG: print("Increased loc_refresh_time to: %f" % loc_refresh_time)
+            elif read_time < 0.4 and loc_refresh_time > 0.25 * refreshtime:
+                loc_refresh_time -= 0.05
+                if env.gut_const.DEBUG: print("Reduced loc_refresh_time to: %f" % loc_refresh_time)
+            if read_time < 0.005:
+                #skip next sleep
+                skip_sleep = True
+
 
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
@@ -554,7 +560,11 @@ def read_from_stdin(refreshtime, plot_data):
         #########################
         garbcollect.collect()
         #if env.gut_const.DEBUG: print(plot_data.df)
-        time.sleep(loc_refresh_time)
+        if skip_sleep:
+            skip_sleep = False
+            print("Resyncing: skipped refresh sleep")
+        else:
+            time.sleep(loc_refresh_time)
         #time.sleep(2)
         #print("read_from_stdin stack size: ", get_stack_size())
 
@@ -565,6 +575,7 @@ def read_from_stdin(refreshtime, plot_data):
 
 def refresh(refreshtime, updateData, gc, plot_data):
     if refreshtime < 3: refreshtime = 3
+    time.sleep(refreshtime)
     while True:
         if plot_data.quit:
             print("refresh stack size: ", get_stack_size())

@@ -174,6 +174,7 @@ def main():
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
     parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    parser.add_argument("--pdebug", help="Plot debug output", action="store_true", default=False)
     args = parser.parse_args()
 
 
@@ -191,6 +192,7 @@ def main():
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
+    env.gut_const.PDEBUG = args.pdebug
     if args.no_fan == True: env.gut_const.show_fans = False
     if int(args.sleep) > 0 :
         env.gut_const.SLEEP = int(args.sleep)
@@ -270,7 +272,7 @@ def main():
             env.gut_const.PLOT = True
             plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
             if(os.path.isfile(plot_util) == True):
-                if env.gut_const.DEBUG == True:
+                if env.gut_const.PDEBUG == True:
                     cmd_str = plot_util + " --debug --sleep " + str(env.gut_const.SLEEP)
                 else:
                     cmd_str = plot_util + " --sleep " + str(env.gut_const.SLEEP)
