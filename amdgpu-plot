@@ -41,6 +41,7 @@ import numpy as np
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Gdk
+import gc as garbcollect
 import argparse
 import re
 import subprocess
@@ -96,51 +97,10 @@ class PlotData:
 
     def get_plot_data(self):
         # get deep copy of plot data df
-        self.reader = True
-        while(self.writer):
-            if env.gut_const.DEBUG: print("wait for writer to finish")
-            time.sleep(0.05)
+        pd_sem.acquire()
         ndf = self.df.copy()
-        self.reader = False
+        pd_sem.release()
         return(ndf)
-
-    def active_reader(self):
-        return(self.reader)
-
-    def wait_to_read(self):
-        self.reader = True
-        i = 0
-        while(self.writer):
-            if i < 10:
-                if env.gut_const.DEBUG: print("wait for writer to finish")
-                time.sleep(0.35)
-                i += 1
-            else:
-                if env.gut_const.DEBUG: print("reseting writer")
-                self.writer = False
-        self.reader = True
-        return(True)
-
-    def finish_read(self):
-        self.reader = False
-
-    def wait_to_write(self):
-        self.writer = True
-        i = 0
-        while(self.reader):
-            if i < 10:
-                if env.gut_const.DEBUG: print("wait for reader to finish")
-                time.sleep(0.21)
-                i += 1
-            else:
-                if env.gut_const.DEBUG: print("reseting reader")
-                self.reader = False
-                time.sleep(0.5)
-        self.writer = True
-        return(True)
-
-    def finish_write(self):
-        self.writer = False
 
     def kill_thread(self):
         self.reader = False
@@ -225,7 +185,7 @@ class GPUPlotWindow(Gtk.Window):
         ldf = plot_data.get_plot_data()
 
         row = 0
-        # Top Bar - Energy
+        # Top Bar - info
         gc.gui_components["info_bar"]["gtk_obj"] = Gtk.Label()
         gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>" + "amdgpu-util Plot" + "</b>" + "</big>")
         gc.gui_components["info_bar"]["gtk_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
@@ -418,15 +378,16 @@ def updateData(gc, plot_data):
     if gc.updating:
         if env.gut_const.DEBUG: print("Skipping recursive update")
         print("Skipping recursive update")
-        time.sleep(0.05)
+        time.sleep(1.25)
         return
     ########################
     gc.updating = True
-    plot_data.wait_to_read()
     pd_sem.acquire()
     ########################
     ldf = plot_data.df
     try:
+        time_val = ldf[ldf["Card#"].isin([0])]["Time"].iloc[-1]
+        gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " +  str(time_val) + "</b></big>")
         # Update Bar Plots
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
             data_val = []
@@ -498,7 +459,6 @@ def updateData(gc, plot_data):
         plot_data.kill_thread()
     ########################
     pd_sem.release()
-    plot_data.finish_read()
     gc.updating = False
     ########################
 
@@ -510,11 +470,10 @@ def read_from_stdin(refreshtime, plot_data):
     sync_add = 0
     while (plot_data.quit == False):
         #########################
-        # Call wait_to_write ####
+        # Get access to plot_data
         pd_sem.acquire()
-        plot_data.wait_to_write()
         #########################
-        rdf = pd.DataFrame()
+        #rdf = pd.DataFrame()
         ndf = pd.DataFrame()
         if plot_data.num_gpus ==0: num_gpus = 1
         else: num_gpus = plot_data.num_gpus
@@ -544,18 +503,32 @@ def read_from_stdin(refreshtime, plot_data):
             line_item = tuple(new_line_item)
             rdf = pd.DataFrame.from_records([line_item], columns=header_item)
             ndf = pd.concat([ndf, rdf], ignore_index = True)
+            del(rdf)
             if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
             else: sync_add = 0
 
         if env.gut_const.DEBUG: print(ndf)
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
-        plot_data.df = plot_data.df.tail(plot_data.length)
+        # Following attempt to extend in place doesn't work
+        #for i in np.arange(ndf.shape[0]):
+            #plot_data.df[plot_data.df.shape[0]] = ndf.loc[i]
+        print("Limit: %d  df Length: %d" % (plot_data.length, len(plot_data.df.index)))
+
+        # Truncate df in place
+        if len(plot_data.df.index) > plot_data.length:
+            trun_index = len(plot_data.df.index) - plot_data.length
+            #plot_data.df = plot_data.df.tail(plot_data.length)
+            plot_data.df.reset_index(drop=True, inplace=True)
+            plot_data.df.drop(np.arange(0,trun_index), inplace=True)
+            print("New df Length: %d" % len(plot_data.df.index))
+        del(ndf)
+
         #########################
-        # Call finish_write #####
+        # Release plot_data
         pd_sem.release()
-        plot_data.finish_write()
         #########################
+        #garbcollect.collect()
         #if env.gut_const.DEBUG: print(plot_data.df)
         time.sleep(refreshtime)
         #time.sleep(2)
@@ -563,21 +536,12 @@ def read_from_stdin(refreshtime, plot_data):
 
     # Quit
     pd_sem.release()
-    plot_data.finish_write()
     sys.exit(0)
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
     while True:
-        if plot_data.active_reader():
-            print("Refresh skipped due to active reader")
-            time.sleep(0.15)
-            continue
-        elif gc.updating:
-            print("Refresh skipped due to active updateData")
-            time.sleep(0.15)
-            continue
-        elif plot_data.quit:
+        if plot_data.quit:
             print("refresh stack size: ", get_stack_size())
             time.sleep(refreshtime)
             sys.exit(0)
@@ -585,7 +549,7 @@ def refresh(refreshtime, updateData, gc, plot_data):
             #while Gtk.events_pending(): Gtk.main_iteration()
             GLib.idle_add(updateData, gc, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            time.sleep(float(refreshtime)+0.07)
+            time.sleep(float(2*refreshtime))
         #print(datetime.utcnow().strftime('%m%d_%H%M%S'), ": refresh stack size: ", get_stack_size())
 
 
