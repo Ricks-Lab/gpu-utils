@@ -154,7 +154,9 @@ class GPUPlotWindow(Gtk.Window):
         gc.updating = True
         box_sapcing_val = 5
         num_bar_plots = 3
-        def_gp_y_size = 200
+        if gc.num_gpus > 4: def_gp_y_size = 150
+        elif gc.num_gpus == 4: def_gp_y_size = 200
+        else: def_gp_y_size = 250
         def_gp_x_size = 600
         def_bp_y_size = 200
         def_bp_x_size = 250
@@ -477,7 +479,6 @@ def read_from_stdin(refreshtime, plot_data):
         # Get access to plot_data
         pd_sem.acquire()
         #########################
-        #rdf = pd.DataFrame()
         ndf = pd.DataFrame()
         if plot_data.num_gpus ==0: num_gpus = 1
         else: num_gpus = plot_data.num_gpus
@@ -492,7 +493,7 @@ def read_from_stdin(refreshtime, plot_data):
             if tmp_read_time > read_time: read_time = tmp_read_time
 
             if line == "":
-                print("Error: Null input line")
+                if env.gut_const.DEBUG: print("Error: Null input line")
                 time.sleep(0.1)
                 continue
             if header:
@@ -525,7 +526,6 @@ def read_from_stdin(refreshtime, plot_data):
         if len(plot_data.df.index) > 0.25 * plot_data.length:
             if env.gut_const.DEBUG: print("Last read time: %f Current refreshtime: %f" % (read_time, loc_refresh_time))
             if read_time > 0.9 and loc_refresh_time > 0.4:
-                #loc_refresh_time += (read_time -0.9)
                 loc_refresh_time -= 0.1
                 if env.gut_const.DEBUG: print("Reduced loc_refresh_time to: %f" % loc_refresh_time)
             elif read_time < 0.0001 and loc_refresh_time < 0.25 * refreshtime:
@@ -564,6 +564,7 @@ def read_from_stdin(refreshtime, plot_data):
 
 
 def refresh(refreshtime, updateData, gc, plot_data):
+    if refreshtime < 3: refreshtime = 3
     while True:
         if plot_data.quit:
             print("refresh stack size: ", get_stack_size())
@@ -573,7 +574,7 @@ def refresh(refreshtime, updateData, gc, plot_data):
             #while Gtk.events_pending(): Gtk.main_iteration()
             GLib.idle_add(updateData, gc, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            time.sleep(float(2*refreshtime))
+            time.sleep(refreshtime)
         #print(datetime.utcnow().strftime('%m%d_%H%M%S'), ": refresh stack size: ", get_stack_size())
 
 
@@ -611,9 +612,11 @@ def main():
     plot_data = PlotData()
 
     readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
+    print("%s waiting for initial data" % (__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 9:
-        print("%s waiting for initial data" % __program_name__)
+        print(".", end='', flush=True)
         time.sleep(args.sleep/4.0)
+    print("")
     plot_data.num_gpus = plot_data.df['Card#'].nunique()
     plot_data.gpu_list = plot_data.df['Card#'].unique()
 
