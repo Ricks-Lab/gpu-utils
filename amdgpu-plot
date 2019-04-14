@@ -27,6 +27,7 @@ __version__ = "v2.4.1"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
+import sys
 from matplotlib.ticker import AutoLocator
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 from matplotlib.figure import Figure
@@ -49,7 +50,6 @@ import threading
 import signal
 import os
 import platform
-import sys
 import csv
 import time
 from GPUmodules import env
@@ -457,6 +457,7 @@ def updateData(gc, plot_data):
     except:
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
+    garbcollect.collect()
     ########################
     pd_sem.release()
     gc.updating = False
@@ -468,6 +469,7 @@ def read_from_stdin(refreshtime, plot_data):
     #read with pandas
     header = True
     sync_add = 0
+    loc_refresh_time = 0.3 * refreshtime
     while (plot_data.quit == False):
         #########################
         # Get access to plot_data
@@ -479,8 +481,14 @@ def read_from_stdin(refreshtime, plot_data):
         else: num_gpus = plot_data.num_gpus
 
         # Process a set of GPUs at a time
+        read_time = 0.0
         for gpu_index in range(0, num_gpus + sync_add):
+            tb = datetime.now()
             line = sys.stdin.readline()
+            tmp_read_time = (datetime.now() - tb).total_seconds()
+            #if env.gut_const.DEBUG: print("time: %s   read time: %f" % (tb.strftime('%c'), tmp_read_time))
+            if tmp_read_time > read_time: read_time = tmp_read_time
+
             if line == "":
                 print("Error: Null input line")
                 time.sleep(0.1)
@@ -507,13 +515,27 @@ def read_from_stdin(refreshtime, plot_data):
             if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
             else: sync_add = 0
 
-        if env.gut_const.DEBUG: print(ndf)
+        if env.gut_const.DEBUG:
+            print(datetime.now().strftime('%c'))
+            print(ndf)
+
+        # Adjust read sleep time to redeuce excess wait for data on stdin
+        if len(plot_data.df.index) > 0.25 * plot_data.length:
+            if env.gut_const.DEBUG: print("Last read time: %f Current refreshtime: %f" % (read_time, loc_refresh_time))
+            if read_time > 0.9 and loc_refresh_time > 0.4:
+                #loc_refresh_time += (read_time -0.9)
+                loc_refresh_time -= 0.1
+                if env.gut_const.DEBUG: print("Reduced loc_refresh_time to: %f" % loc_refresh_time)
+            elif read_time < 0.0001 and loc_refresh_time < 0.25 * refreshtime:
+                loc_refresh_time += 0.05
+                if env.gut_const.DEBUG: print("Increased loc_refresh_time to: %f" % loc_refresh_time)
+
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
         # Following attempt to extend in place doesn't work
         #for i in np.arange(ndf.shape[0]):
             #plot_data.df[plot_data.df.shape[0]] = ndf.loc[i]
-        print("Limit: %d  df Length: %d" % (plot_data.length, len(plot_data.df.index)))
+        #print("Limit: %d  df Length: %d" % (plot_data.length, len(plot_data.df.index)))
 
         # Truncate df in place
         if len(plot_data.df.index) > plot_data.length:
@@ -521,16 +543,16 @@ def read_from_stdin(refreshtime, plot_data):
             #plot_data.df = plot_data.df.tail(plot_data.length)
             plot_data.df.reset_index(drop=True, inplace=True)
             plot_data.df.drop(np.arange(0,trun_index), inplace=True)
-            print("New df Length: %d" % len(plot_data.df.index))
+            #print("New df Length: %d" % len(plot_data.df.index))
         del(ndf)
 
         #########################
         # Release plot_data
         pd_sem.release()
         #########################
-        #garbcollect.collect()
+        garbcollect.collect()
         #if env.gut_const.DEBUG: print(plot_data.df)
-        time.sleep(refreshtime)
+        time.sleep(loc_refresh_time)
         #time.sleep(2)
         #print("read_from_stdin stack size: ", get_stack_size())
 
