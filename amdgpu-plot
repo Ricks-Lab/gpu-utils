@@ -36,7 +36,9 @@ try:
     import pandas as pd
 except:
     print("Pandas is required for %s", __program_name__)
-    print("Use \"sudo apt-get install python3-pandas\" to install")
+    #print("Use \"sudo apt-get install python3-pandas\" to install")
+    print("Install pip3 if needed: \"sudo apt install python3-pip\"")
+    print("Then pip install pandas: \"pip3 install pandas\"")
     sys.exit(0)
 import numpy as np
 import gi
