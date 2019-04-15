@@ -62,7 +62,6 @@ from pathlib import Path
 
 pd_sem = threading.Semaphore()
 
-
 def hex_to_rgba(value):
     value = value.lstrip('#')
     if len(value) == 3:
@@ -88,6 +87,8 @@ def get_stack_size():
 class PlotData:
     def __init__(self):
         self.df = pd.DataFrame()
+        self.gui_comp = None
+        self.gui_ready = False
         self.length = 300
         self.quit = False
         self.writer = False
@@ -99,6 +100,7 @@ class PlotData:
 
     def get_plot_data(self):
         # get deep copy of plot data df
+        # This may have contention issues
         pd_sem.acquire()
         ndf = self.df.copy()
         pd_sem.release()
@@ -112,6 +114,8 @@ class PlotData:
 
 class GuiComponents:
     def __init__(self, plot_data):
+        plot_data.gui_comp = self
+        self.ready = False
         self.updating = False
         self.gpu_list = plot_data.gpu_list
         self.num_gpus = plot_data.num_gpus
@@ -147,11 +151,18 @@ class GuiComponents:
             self.gui_components["card_plots"][gpu]['color'] = gpu_color_list[i]
             self.gpu_color[gpu] = gpu_color_list[i]
         return
+    
+    def set_ready(self, mode):
+        self.ready = mode
 
+    def is_ready(self):
+        return(self.ready)
 
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
+        ########################
         gc.updating = True
+        ########################
         box_sapcing_val = 5
         num_bar_plots = 3
         if gc.num_gpus > 4: def_gp_y_size = 150
@@ -176,7 +187,7 @@ class GPUPlotWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
+        icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-plot.icon.png")
         if(os.path.isfile(icon_file) == True):
             self.set_icon_from_file(icon_file)
         #self.set_default_size(1000, 100*num_gpus)
@@ -368,7 +379,9 @@ class GPUPlotWindow(Gtk.Window):
 
             grid_plot.attach(lbox, 1, prow, 1, 1)
             prow += 1
+        ########################
         gc.updating = False
+        ########################
 
     def toggle_plot_item(self, parent, gc, k):
         if gc.plot_items[k] == True:
@@ -378,12 +391,6 @@ class GPUPlotWindow(Gtk.Window):
 
 
 def updateData(gc, plot_data):
-    #this should just get the latest from df for plot updates
-    if gc.updating:
-        if env.gut_const.DEBUG: print("Skipping recursive update")
-        print("Skipping recursive update")
-        time.sleep(0.1)
-        return
     ########################
     gc.updating = True
     pd_sem.acquire()
@@ -463,29 +470,23 @@ def updateData(gc, plot_data):
         plot_data.kill_thread()
     garbcollect.collect()
     ########################
-    pd_sem.release()
     gc.updating = False
+    pd_sem.release()
     ########################
 
 
 def read_from_stdin(refreshtime, plot_data):
-    #this should continuously from from stdin and populate df
-    #read with pandas
+    #this should continuously from from stdin and populate df and call plot/gui update
+    first_update = True
     header = True
     sync_add = 0
-    skip_sleep = False
-    #loc_refresh_time = 0.3 * refreshtime
-    loc_refresh_time = 0.5
     while (plot_data.quit == False):
-        #########################
-        # Get access to plot_data
-        pd_sem.acquire()
-        #########################
         ndf = pd.DataFrame()
         if plot_data.num_gpus ==0: num_gpus = 1
         else: num_gpus = plot_data.num_gpus
 
         # Process a set of GPUs at a time
+        skip_update = False
         read_time = 0.0
         for gpu_index in range(0, num_gpus + sync_add):
             tb = datetime.now()
@@ -496,13 +497,14 @@ def read_from_stdin(refreshtime, plot_data):
 
             if line == "":
                 if env.gut_const.DEBUG: print("Error: Null input line")
-                time.sleep(0.1)
-                continue
+                plot_data.kill_thread()
+                break
             if header:
                 header_item = list(line.strip().split('|'))
                 header = False
                 continue
             line = line.strip()
+            #if env.gut_const.DEBUG: print("Line: %s" % line)
             line_item = list(line.strip().split('|'))
             new_line_item = []
             for l in line_item:
@@ -524,20 +526,10 @@ def read_from_stdin(refreshtime, plot_data):
             print(datetime.now().strftime('%c'))
             print(ndf)
 
-        # Adjust read sleep time to redeuce excess wait for data on stdin
-        if len(plot_data.df.index) > 0.25 * plot_data.length:
-            if env.gut_const.DEBUG: print("Last read time: %f Current refreshtime: %f" % (read_time, loc_refresh_time))
-            if read_time > 0.9 and loc_refresh_time < (0.9*refreshtime - 0.5):
-                loc_refresh_time += 0.1
-                if env.gut_const.DEBUG: print("Increased loc_refresh_time to: %f" % loc_refresh_time)
-            elif read_time < 0.4 and loc_refresh_time > 0.25 * refreshtime:
-                loc_refresh_time -= 0.05
-                if env.gut_const.DEBUG: print("Reduced loc_refresh_time to: %f" % loc_refresh_time)
-            if read_time < 0.005:
-                #skip next sleep
-                skip_sleep = True
+        if read_time < 0.005:
+            skip_update = True
 
-
+        pd_sem.acquire()
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
         # Following attempt to extend in place doesn't work
@@ -552,41 +544,30 @@ def read_from_stdin(refreshtime, plot_data):
             plot_data.df.reset_index(drop=True, inplace=True)
             plot_data.df.drop(np.arange(0,trun_index), inplace=True)
             #print("New df Length: %d" % len(plot_data.df.index))
+        pd_sem.release()
         del(ndf)
 
         #########################
-        # Release plot_data
-        pd_sem.release()
+        # Update plots
         #########################
-        garbcollect.collect()
-        #if env.gut_const.DEBUG: print(plot_data.df)
-        if skip_sleep:
-            skip_sleep = False
-            print("Resyncing: skipped refresh sleep")
-        else:
-            time.sleep(loc_refresh_time)
-        #time.sleep(2)
-        #print("read_from_stdin stack size: ", get_stack_size())
+        if skip_update == None: continue
+        if plot_data.gui_comp == None: continue
+        if plot_data.gui_comp.is_ready():
+            if first_update:
+                time.sleep(refreshtime)
+                first_update = False
+            GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
+            #while(plot_data.gui_comp.updating): time.sleep(0.1)
+            pd_sem.acquire()
+            pd_sem.release()
+            garbcollect.collect()
+        if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
 
     # Quit
-    pd_sem.release()
+    print("exit stack size: ", get_stack_size())
     sys.exit(0)
 
-
-def refresh(refreshtime, updateData, gc, plot_data):
-    if refreshtime < 3: refreshtime = 3
-    time.sleep(refreshtime)
-    while True:
-        if plot_data.quit:
-            print("refresh stack size: ", get_stack_size())
-            time.sleep(refreshtime)
-            sys.exit(0)
-        else:
-            #while Gtk.events_pending(): Gtk.main_iteration()
-            GLib.idle_add(updateData, gc, plot_data)
-            while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            time.sleep(refreshtime)
-        #print(datetime.utcnow().strftime('%m%d_%H%M%S'), ": refresh stack size: ", get_stack_size())
 
 
 def main():
@@ -632,14 +613,10 @@ def main():
     plot_data.gpu_list = plot_data.df['Card#'].unique()
 
     gc = GuiComponents(plot_data)
-    # Display Gtk style Monitor
     gplot = GPUPlotWindow(gc, plot_data)
-    #print(gc.gui_components)
     gplot.connect("delete-event", Gtk.main_quit)
     gplot.show_all()
-    # Start refresh thread
-    monthread = threading.Thread(target=refresh, daemon=True, args=[args.sleep, updateData, gc, plot_data]).start()
-
+    gc.set_ready(True)
     Gtk.main()
     plot_data.kill_thread()
 
