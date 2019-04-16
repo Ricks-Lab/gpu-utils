@@ -161,7 +161,7 @@ class GuiComponents:
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
         ########################
-        gc.updating = True
+        #gc.updating = True
         ########################
         box_sapcing_val = 5
         num_bar_plots = 3
@@ -380,7 +380,7 @@ class GPUPlotWindow(Gtk.Window):
             grid_plot.attach(lbox, 1, prow, 1, 1)
             prow += 1
         ########################
-        gc.updating = False
+        #gc.updating = False
         ########################
 
     def toggle_plot_item(self, parent, gc, k):
@@ -392,7 +392,7 @@ class GPUPlotWindow(Gtk.Window):
 
 def updateData(gc, plot_data):
     ########################
-    gc.updating = True
+    #gc.updating = True
     pd_sem.acquire()
     ########################
     ldf = plot_data.df
@@ -468,9 +468,9 @@ def updateData(gc, plot_data):
     except:
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
-    garbcollect.collect()
+    #garbcollect.collect()
     ########################
-    gc.updating = False
+    #gc.updating = False
     pd_sem.release()
     ########################
 
@@ -550,7 +550,7 @@ def read_from_stdin(refreshtime, plot_data):
         #########################
         # Update plots
         #########################
-        if skip_update == None: continue
+        if skip_update: continue
         if plot_data.gui_comp == None: continue
         if plot_data.gui_comp.is_ready():
             if first_update:
