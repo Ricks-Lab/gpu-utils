@@ -23,7 +23,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = []
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
-__version__ = "v2.4.1"
+__version__ = "v2.5.0"
 __maintainer__ = "RueiKe"
 __status__ = "Development"
 
@@ -60,15 +60,17 @@ import glob
 import shutil 
 from pathlib import Path
 
+###SEMAPHORE#############
 pd_sem = threading.Semaphore()
-
+#########################
+ 
 def hex_to_rgba(value):
+    # Code copied from Stack Overflow
     value = value.lstrip('#')
     if len(value) == 3:
         value = ''.join([v*2 for v in list(value)])
     (r1,g1,b1,a1)=tuple(int(value[i:i+2], 16) for i in range(0, 6, 2))+(1,) 
     (r1,g1,b1,a1)=(r1/255.00000,g1/255.00000,b1/255.00000,a1)
-
     return (r1,g1,b1,a1)
 
 def get_stack_size():
@@ -98,12 +100,20 @@ class PlotData:
         self.gpu_list = ""
         self.num_gpus = 0
 
+    def set_gpus(self):
+        self.num_gpus = self.df['Card#'].nunique()
+        self.gpu_list = self.df['Card#'].unique()
+
     def get_plot_data(self):
         # get deep copy of plot data df
         # This may have contention issues
+        ###SEMAPHORE#############
         pd_sem.acquire()
+        #########################
         ndf = self.df.copy()
+        ###SEMAPHORE#############
         pd_sem.release()
+        #########################
         return(ndf)
 
     def kill_thread(self):
@@ -116,7 +126,6 @@ class GuiComponents:
     def __init__(self, plot_data):
         plot_data.gui_comp = self
         self.ready = False
-        self.updating = False
         self.gpu_list = plot_data.gpu_list
         self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
@@ -160,9 +169,6 @@ class GuiComponents:
 
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
-        ########################
-        #gc.updating = True
-        ########################
         box_sapcing_val = 5
         num_bar_plots = 3
         if gc.num_gpus > 4: def_gp_y_size = 150
@@ -190,11 +196,9 @@ class GPUPlotWindow(Gtk.Window):
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-plot.icon.png")
         if(os.path.isfile(icon_file) == True):
             self.set_icon_from_file(icon_file)
-        #self.set_default_size(1000, 100*num_gpus)
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
         self.add(grid)
-
 
         # Get deep copy of current df
         ldf = plot_data.get_plot_data()
@@ -379,9 +383,6 @@ class GPUPlotWindow(Gtk.Window):
 
             grid_plot.attach(lbox, 1, prow, 1, 1)
             prow += 1
-        ########################
-        #gc.updating = False
-        ########################
 
     def toggle_plot_item(self, parent, gc, k):
         if gc.plot_items[k] == True:
@@ -391,8 +392,7 @@ class GPUPlotWindow(Gtk.Window):
 
 
 def updateData(gc, plot_data):
-    ########################
-    #gc.updating = True
+    ###SEMAPHORE############
     pd_sem.acquire()
     ########################
     ldf = plot_data.df
@@ -419,13 +419,17 @@ def updateData(gc, plot_data):
             rects1 = v["ax1"].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v["df_name"] == "temp":
                 for a, b in zip(ind, data_val):
-                    v["ax1"].text(x=float(a)-(float(width)/2.0), y=0.90*b, s=' '+str(b), fontsize=8)
+                    v["ax1"].text(x=float(a)-(float(width)/1.8), y=0.90*b, s=' '+str(b), fontsize=8)
                 plt.ylim((20,91))
                 #v["ax1"].set_ylabel('Temp (C)', color='k')
             else:
                 data_val = list(map(int, data_val))
                 for a, b in zip(ind, data_val):
-                    v["ax1"].text(x=a-width/4.0, y=b-width, s=str(b), fontsize=10)
+                    if b == 0:
+                        y_val = b + width
+                    else:
+                        y_val = b - width
+                    v["ax1"].text(x=a-width/4.0, y=y_val, s=str(b), fontsize=10)
                 plt.ylim((0,8))
                 #v["ax1"].set_ylabel('P-State', color='k')
             v["canvas"].draw()
@@ -469,8 +473,7 @@ def updateData(gc, plot_data):
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
     #garbcollect.collect()
-    ########################
-    #gc.updating = False
+    ###SEMAPHORE############
     pd_sem.release()
     ########################
 
@@ -529,7 +532,9 @@ def read_from_stdin(refreshtime, plot_data):
         if read_time < 0.005:
             skip_update = True
 
+        ###SEMAPHORE#############
         pd_sem.acquire()
+        #########################
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
         # Following attempt to extend in place doesn't work
@@ -544,7 +549,9 @@ def read_from_stdin(refreshtime, plot_data):
             plot_data.df.reset_index(drop=True, inplace=True)
             plot_data.df.drop(np.arange(0,trun_index), inplace=True)
             #print("New df Length: %d" % len(plot_data.df.index))
+        ###SEMAPHORE#############
         pd_sem.release()
+        #########################
         del(ndf)
 
         #########################
@@ -558,9 +565,10 @@ def read_from_stdin(refreshtime, plot_data):
                 first_update = False
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            #while(plot_data.gui_comp.updating): time.sleep(0.1)
+            ###SEMAPHORE#############
             pd_sem.acquire()
             pd_sem.release()
+            #########################
             garbcollect.collect()
         if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
 
@@ -598,8 +606,6 @@ def main():
         sys.exit(-1)
 
 
-    #plot_data.df = pd.read_csv(args.logfile, delimiter='|')
-
     # Define graph gui and data components
     plot_data = PlotData()
 
@@ -609,8 +615,9 @@ def main():
         print(".", end='', flush=True)
         time.sleep(args.sleep/4.0)
     print("")
-    plot_data.num_gpus = plot_data.df['Card#'].nunique()
-    plot_data.gpu_list = plot_data.df['Card#'].unique()
+
+    # After reading intitial data, set gpus
+    plot_data.set_gpus()
 
     gc = GuiComponents(plot_data)
     gplot = GPUPlotWindow(gc, plot_data)
