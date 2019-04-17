@@ -1,7 +1,7 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-## Current amdgpu-utils Version: 2.4.x
+## Current amdgpu-utils Version: 2.5.x
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
@@ -46,6 +46,13 @@ After saving, update grub:
 sudo update-grub
 ```
 and then reboot.
+
+If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas module.  For Ubuntu, use the following for the instalation:
+
+```
+sudo apt install python3-pip
+pip3 install pandas
+```
 
 
 ## Using amdgpu-ls
@@ -219,6 +226,9 @@ approach.
 The Perf Mode field gives the current power performance mode, which can be modified in with amdgpu-pac.
 These modes affect the how frequency and voltage are managed versus loading.  Also a very important 
 parameter when managing compute performance.
+
+Executing *amdgpu-monitor* with the *--plot* option will display a continuously updating plot of the critical GPU parameters.
+![](amdgpu-plot_scrshot.png)
 
 ## Using amdgpu-pac
 By default, *amdgpu-pac* will open a Gtk based GUI to allow the user to modify GPU performance parameters.
