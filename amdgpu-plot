@@ -25,7 +25,7 @@ __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
 __version__ = "v2.5.0"
 __maintainer__ = "RueiKe"
-__status__ = "Development"
+__status__ = "Release Candidate"
 
 import sys
 from matplotlib.ticker import AutoLocator

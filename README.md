@@ -28,7 +28,8 @@ option where N is an integer > zero that specifies the number of seconds to slee
 The *--no_fan* option can be used to disable the reading and display of fan
 information.  The *--log* option is used to write all monitor data to a psv log file.
 When writing to a log file, the utility will indicate this in red at the top of the 
-window with a message that includes the log file name.
+window with a message that includes the log file name. The *--plot* will display a plot 
+of critical GPU parameters which updates at the specified *--sleep N* interval.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
@@ -51,20 +52,18 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  v2.4.0
-* Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
-* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
-* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
-* Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
-* Tuned *amdgpu-pac* window format.
+## New in this Release  -  v2.5.0
+* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
+* Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.
+* Fixed a bug in implementation of compatibility checks and improved usage of try/except.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Develop a startup utility to initialize GPU settings at boot up.
 * Implement an option to write a startup script to effect changes on boot up.
-* Implement a matplotlib based GPU parameter visualization utility or option to amdgpu-monitor.
 
 ## Known Issues
+* The plot display will eventually lock up the plot GUI, so it is not recomended to run for extended periods of time.  Help in fixing this would be appreciated!
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
@@ -80,6 +79,13 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
+## New in Previos Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
+* Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
+* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
+* Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
+* Tuned *amdgpu-pac* window format.
+
 #### New in Previous Release  -  [v2.3.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.3.1)
 * Fixed and improved Python/Kernel compatibility checks.
 * Added Python2 compatible utility to check *amdgpu-utils* compatibility.
