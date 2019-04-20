@@ -28,10 +28,16 @@ __maintainer__ = "RueiKe"
 __status__ = "Release Candidate"
 
 import sys
-from matplotlib.ticker import AutoLocator
-from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+try:
+    from matplotlib.ticker import AutoLocator
+    from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+    from matplotlib.figure import Figure
+    import matplotlib.pyplot as plt
+except:
+    print("matplotlib is required for %s", __program_name__)
+    print("Use \"sudo apt-get install python3-matplotlib\" to install")
+    sys.exit(0)
+
 try:
     import pandas as pd
 except:
