@@ -54,6 +54,7 @@ import os
 import platform
 import csv
 import time
+from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
 from datetime import datetime
 import glob 
@@ -577,11 +578,106 @@ def read_from_stdin(refreshtime, plot_data):
     sys.exit(0)
 
 
+def read_from_gpus(refreshtime, plot_data):
+    #this should continuously from from gpus and populate df and call plot/gui update
+    first_update = True
+    header = True
+    sync_add = 0
+    while (plot_data.quit == False):
+        ndf = pd.DataFrame()
+        if plot_data.num_gpus ==0: num_gpus = 1
+        else: num_gpus = plot_data.num_gpus
+
+        # Process a set of GPUs at a time
+        skip_update = False
+        read_time = 0.0
+        for gpu_index in range(0, num_gpus + sync_add):
+            tb = datetime.now()
+            line = sys.stdin.readline()
+            tmp_read_time = (datetime.now() - tb).total_seconds()
+            #if env.gut_const.DEBUG: print("time: %s   read time: %f" % (tb.strftime('%c'), tmp_read_time))
+            if tmp_read_time > read_time: read_time = tmp_read_time
+
+            if line == "":
+                if env.gut_const.DEBUG: print("Error: Null input line")
+                plot_data.kill_thread()
+                break
+            if header:
+                header_item = list(line.strip().split('|'))
+                header = False
+                continue
+            line = line.strip()
+            #if env.gut_const.DEBUG: print("Line: %s" % line)
+            line_item = list(line.strip().split('|'))
+            new_line_item = []
+            for l in line_item:
+                ll = l.strip()
+                if ll.isnumeric():
+                    new_line_item.append(int(ll))
+                elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
+                    new_line_item.append(float(ll))
+                else:
+                    new_line_item.append(ll)
+            line_item = tuple(new_line_item)
+            rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+            ndf = pd.concat([ndf, rdf], ignore_index = True)
+            del(rdf)
+            if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
+            else: sync_add = 0
+
+        if env.gut_const.DEBUG:
+            print(datetime.now().strftime('%c'))
+            print(ndf)
+
+        if read_time < 0.005:
+            skip_update = True
+
+        ###SEMAPHORE#############
+        pd_sem.acquire()
+        #########################
+        # Concatenate new data on plot_data dataframe and truncate
+        plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
+
+        # Truncate df in place
+        if len(plot_data.df.index) > plot_data.length:
+            trun_index = len(plot_data.df.index) - plot_data.length
+            plot_data.df.reset_index(drop=True, inplace=True)
+            plot_data.df.drop(np.arange(0,trun_index), inplace=True)
+            #print("New df Length: %d" % len(plot_data.df.index))
+        ###SEMAPHORE#############
+        pd_sem.release()
+        #########################
+        del(ndf)
+
+        #########################
+        # Update plots
+        #########################
+        if skip_update: continue
+        if plot_data.gui_comp == None: continue
+        if plot_data.gui_comp.is_ready():
+            if first_update:
+                time.sleep(refreshtime)
+                first_update = False
+            GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
+            ###SEMAPHORE#############
+            pd_sem.acquire()
+            pd_sem.release()
+            #########################
+            garbcollect.collect()
+        if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
+
+    # Quit
+    print("exit stack size: ", get_stack_size())
+    sys.exit(0)
+
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
+    parser.add_argument("--stdin", help="Read from stdin", action="store_true", default=False)
+    parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=3)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -605,11 +701,68 @@ def main():
         print("Error in environment. Exiting...")
         sys.exit(-1)
 
+    if args.stdin == False:
+        # Check value of AMD Feature mask
+        try:
+            featuremask = env.gut_const.read_amdfeaturemask()
+        except FileNotFoundError:
+            print("Cannot read ppfeaturemask. Exiting...")
+            sys.exit(-1)
+        if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
+            print("AMD Wattman features enabled: %s" % hex(featuremask))
+        else:
+            print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+            sys.exit(-1)
+    
+        env.gut_const.get_amd_driver_version()
+    
+        # Get list of AMD GPUs and get basic non-driver details
+        gpu_list = GPU.GPU_LIST()
+        gpu_list.get_gpu_list()
+        gpu_list.read_allgpu_pci_info()
+    
+        # Check list of AMD GPUs
+        num_amd_gpus = gpu_list.num_gpus()
+        num_com_gpus = gpu_list.num_compatible_gpus()
+        if num_amd_gpus == 0:
+            print("No AMD GPUs detected, exiting...")
+            sys.exit(-1)
+        else:
+            if num_com_gpus == 0:
+                print("None are compatible, exiting...")
+                sys.exit(-1)
+            print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
+
+        # Read data static driver information for GPUs
+        gpu_list.read_gpu_driver_info()
+        gpu_list.read_gpu_sensor_static_data()
+        # Read dynamic sensor and state data from GPUs
+        gpu_list.read_gpu_sensor_data()
+        gpu_list.read_gpu_state_data()
+    
+        # Check number of compatible GPUs again
+        num_com_gpus = gpu_list.num_compatible_gpus()
+        if num_com_gpus == 0:
+            print("None are compatible, exiting...")
+            sys.exit(-1)
+        else:
+            print(f"{num_com_gpus} are confirmed compatible.")
+            print("")
+    
+        # Generate a new list of only compatible GPUs
+        com_gpu_list = gpu_list.list_compatible_gpus()
+    #end of if args.stdin == False
+
+
 
     # Define graph gui and data components
     plot_data = PlotData()
 
-    readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
+    if args.stdin:
+        readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
+    else:
+        readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
+
     print("%s waiting for initial data" % (__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 9:
         print(".", end='', flush=True)

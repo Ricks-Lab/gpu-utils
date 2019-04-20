@@ -274,9 +274,9 @@ def main():
             plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
             if(os.path.isfile(plot_util) == True):
                 if env.gut_const.PDEBUG == True:
-                    cmd_str = plot_util + " --debug --sleep " + str(env.gut_const.SLEEP)
+                    cmd_str = plot_util + " --debug --stdin --sleep " + str(env.gut_const.SLEEP)
                 else:
-                    cmd_str = plot_util + " --sleep " + str(env.gut_const.SLEEP)
+                    cmd_str = plot_util + " --stdin --sleep " + str(env.gut_const.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=0, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
