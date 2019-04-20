@@ -100,6 +100,7 @@ class PlotData:
         self.consec_reader = 0
         self.gpu_list = ""
         self.num_gpus = 0
+        self.com_gpu_list = GPU.GPU_LIST()
 
     def set_gpus(self):
         self.num_gpus = self.df['Card#'].nunique()
@@ -581,56 +582,21 @@ def read_from_stdin(refreshtime, plot_data):
 def read_from_gpus(refreshtime, plot_data):
     #this should continuously from from gpus and populate df and call plot/gui update
     first_update = True
-    header = True
-    sync_add = 0
     while (plot_data.quit == False):
         ndf = pd.DataFrame()
-        if plot_data.num_gpus ==0: num_gpus = 1
-        else: num_gpus = plot_data.num_gpus
+
+        plot_data.com_gpu_list.read_gpu_sensor_data()
+        plot_data.com_gpu_list.read_gpu_state_data()
 
         # Process a set of GPUs at a time
         skip_update = False
-        read_time = 0.0
-        for gpu_index in range(0, num_gpus + sync_add):
-            tb = datetime.now()
-            line = sys.stdin.readline()
-            tmp_read_time = (datetime.now() - tb).total_seconds()
-            #if env.gut_const.DEBUG: print("time: %s   read time: %f" % (tb.strftime('%c'), tmp_read_time))
-            if tmp_read_time > read_time: read_time = tmp_read_time
+        for k, v in plot_data.com_gpu_list.list.items():
+            gpu_plot_data = v.get_plot_data(plot_data.com_gpu_list)
+            if env.gut_const.DEBUG: print("gpu_plot_data: ", gpu_plot_data)
 
-            if line == "":
-                if env.gut_const.DEBUG: print("Error: Null input line")
-                plot_data.kill_thread()
-                break
-            if header:
-                header_item = list(line.strip().split('|'))
-                header = False
-                continue
-            line = line.strip()
-            #if env.gut_const.DEBUG: print("Line: %s" % line)
-            line_item = list(line.strip().split('|'))
-            new_line_item = []
-            for l in line_item:
-                ll = l.strip()
-                if ll.isnumeric():
-                    new_line_item.append(int(ll))
-                elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
-                    new_line_item.append(float(ll))
-                else:
-                    new_line_item.append(ll)
-            line_item = tuple(new_line_item)
-            rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+            rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             ndf = pd.concat([ndf, rdf], ignore_index = True)
             del(rdf)
-            if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
-            else: sync_add = 0
-
-        if env.gut_const.DEBUG:
-            print(datetime.now().strftime('%c'))
-            print(ndf)
-
-        if read_time < 0.005:
-            skip_update = True
 
         ###SEMAPHORE#############
         pd_sem.acquire()
@@ -653,7 +619,9 @@ def read_from_gpus(refreshtime, plot_data):
         # Update plots
         #########################
         if skip_update: continue
-        if plot_data.gui_comp == None: continue
+        if plot_data.gui_comp == None:
+            time.sleep(refreshtime)
+            continue
         if plot_data.gui_comp.is_ready():
             if first_update:
                 time.sleep(refreshtime)
@@ -666,6 +634,7 @@ def read_from_gpus(refreshtime, plot_data):
             #########################
             garbcollect.collect()
         if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
+        time.sleep(refreshtime)
 
     # Quit
     print("exit stack size: ", get_stack_size())
@@ -700,6 +669,9 @@ def main():
     if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
         sys.exit(-1)
+
+    # Define graph gui and data components
+    plot_data = PlotData()
 
     if args.stdin == False:
         # Check value of AMD Feature mask
@@ -750,13 +722,9 @@ def main():
             print("")
     
         # Generate a new list of only compatible GPUs
-        com_gpu_list = gpu_list.list_compatible_gpus()
+        plot_data.com_gpu_list = gpu_list.list_compatible_gpus()
     #end of if args.stdin == False
 
-
-
-    # Define graph gui and data components
-    plot_data = PlotData()
 
     if args.stdin:
         readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()

@@ -780,6 +780,22 @@ class GPU_ITEM:
                 print(v +": "+ str(self.get_clinfo_value(k)))
         print("")
 
+    def get_plot_data(self, gpu_list):
+        gpu_state = {}
+
+        gpu_state["Time"] = str(self.energy["tn"].strftime('%c'))
+        gpu_state["Card#"] = int(self.card_num)
+        for table_item in gpu_list.table_parameters:
+            gpu_state_str = str(re.sub('M[Hh]z','',str(self.get_params_value(table_item)))).strip()
+            if gpu_state_str.isnumeric():
+                gpu_state[table_item] = int(gpu_state_str)
+            elif re.fullmatch(r'[0-9]+.[0-9]*', gpu_state_str) or re.fullmatch(r'[0-9]*.[0-9]+', gpu_state_str):
+                gpu_state[table_item] = float(gpu_state_str)
+            else:
+                gpu_state[table_item] = gpu_state_str
+        return(gpu_state)
+
+
 class GPU_LIST:
     """A list of GPU_ITEMS indexed with uuid.  It also contains a table of parameters used for tabular printouts"""
     def __init__(self):
