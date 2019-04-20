@@ -260,6 +260,7 @@ def main():
         env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w',1)
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 
+    if args.plot == True: args.gui = True
     if args.gui == True:
         # Display Gtk style Monitor
         devices = {}
