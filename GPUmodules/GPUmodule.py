@@ -791,6 +791,8 @@ class GPU_ITEM:
                 gpu_state[table_item] = int(gpu_state_str)
             elif re.fullmatch(r'[0-9]+.[0-9]*', gpu_state_str) or re.fullmatch(r'[0-9]*.[0-9]+', gpu_state_str):
                 gpu_state[table_item] = float(gpu_state_str)
+            elif gpu_state_str == '' or gpu_state_str == '-1' or gpu_state_str == 'NA' or gpu_state_str == None:
+                    new_line_item.append('NA')
             else:
                 gpu_state[table_item] = gpu_state_str
         return(gpu_state)

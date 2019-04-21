@@ -492,6 +492,7 @@ def read_from_stdin(refreshtime, plot_data):
     header = True
     sync_add = 0
     while (plot_data.quit == False):
+        if env.gut_const.SIMLOG: time.sleep(refreshtime/4)
         ndf = pd.DataFrame()
         if plot_data.num_gpus ==0: num_gpus = 1
         else: num_gpus = plot_data.num_gpus
@@ -524,6 +525,8 @@ def read_from_stdin(refreshtime, plot_data):
                     new_line_item.append(int(ll))
                 elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
                     new_line_item.append(float(ll))
+                elif ll == '' or ll == '-1' or ll == 'NA' or ll == None:
+                    new_line_item.append(np.nan)
                 else:
                     new_line_item.append(ll)
             line_item = tuple(new_line_item)
@@ -537,8 +540,9 @@ def read_from_stdin(refreshtime, plot_data):
             print(datetime.now().strftime('%c'))
             print(ndf)
 
-        if read_time < 0.005:
-            skip_update = True
+        if env.gut_const.SIMLOG == False: 
+            if read_time < 0.005:
+                skip_update = True
 
         ###SEMAPHORE#############
         pd_sem.acquire()
@@ -652,6 +656,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--stdin", help="Read from stdin", action="store_true", default=False)
+    parser.add_argument("--simlog", help="Simulate with piped log file", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=3)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
@@ -671,6 +676,7 @@ def main():
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
+    env.gut_const.SIMLOG = args.simlog
 
     if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")
