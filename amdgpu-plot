@@ -405,7 +405,7 @@ def updateData(gc, plot_data):
     ########################
     ldf = plot_data.df
     try:
-        time_val = ldf[ldf["Card#"].isin([0])]["Time"].iloc[-1]
+        time_val = ldf[ldf["Card#"].isin([plot_data.gpu_list[0]])]["Time"].iloc[-1]
         gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " +  str(time_val) + "</b></big>")
         # Update Bar Plots
         for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
