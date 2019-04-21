@@ -492,7 +492,7 @@ def read_from_stdin(refreshtime, plot_data):
     header = True
     sync_add = 0
     while (plot_data.quit == False):
-        if env.gut_const.SIMLOG: time.sleep(refreshtime/4)
+        if env.gut_const.SIMLOG: time.sleep(refreshtime/4.0)
         ndf = pd.DataFrame()
         if plot_data.num_gpus ==0: num_gpus = 1
         else: num_gpus = plot_data.num_gpus
@@ -541,8 +541,9 @@ def read_from_stdin(refreshtime, plot_data):
             print(ndf)
 
         if env.gut_const.SIMLOG == False: 
-            if read_time < 0.005:
+            if read_time < 0.003:
                 skip_update = True
+                if env.gut_const.DEBUG: print("skipping update")
 
         ###SEMAPHORE#############
         pd_sem.acquire()
@@ -578,6 +579,7 @@ def read_from_stdin(refreshtime, plot_data):
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
             ###SEMAPHORE#############
+            time.sleep(0.01)
             pd_sem.acquire()
             pd_sem.release()
             #########################
@@ -639,6 +641,7 @@ def read_from_gpus(refreshtime, plot_data):
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
             ###SEMAPHORE#############
+            time.sleep(0.01)
             pd_sem.acquire()
             pd_sem.release()
             #########################
@@ -738,7 +741,7 @@ def main():
     #end of if args.stdin == False
 
 
-    if args.stdin:
+    if args.stdin or args.simlog:
         readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
     else:
         readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
