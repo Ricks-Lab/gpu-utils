@@ -781,9 +781,13 @@ class GPU_ITEM:
         print("")
 
     def get_plot_data(self, gpu_list):
+        """return a dictionary of dynamic gpu parameters
+
+           used by amdgpu-plot to popluate a df.
+        """
         gpu_state = {}
 
-        gpu_state["Time"] = str(self.energy["tn"].strftime('%c'))
+        gpu_state["Time"] = str(self.energy["tn"].strftime('%c')).strip()
         gpu_state["Card#"] = int(self.card_num)
         for table_item in gpu_list.table_parameters:
             gpu_state_str = str(re.sub('M[Hh]z','',str(self.get_params_value(table_item)))).strip()
@@ -1138,9 +1142,9 @@ class GPU_LIST:
 
         #Print Data
         for k, v in self.list.items():
-            print(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num), end="", file=log_file_ptr)
+            print(str(v.energy["tn"].strftime('%c')).strip() + "|" + str(v.card_num), sep='', end="", file=log_file_ptr)
             for table_item in self.table_parameters:
-                print("|", re.sub('M[Hh]z','',str(v.get_params_value(table_item))), end="", file=log_file_ptr)
+                print("|", re.sub('M[Hh]z','',str(v.get_params_value(table_item)).strip()), sep='', end="", file=log_file_ptr)
             print("", file=log_file_ptr)
 
     def print_plot_header(self, log_file_ptr):
@@ -1163,7 +1167,7 @@ class GPU_LIST:
         #Print Data
         for k, v in self.list.items():
             line_str_item = []
-            line_str_item.append(str(v.energy["tn"].strftime('%c')) + "|" + str(v.card_num))
+            line_str_item.append(str(v.energy["tn"].strftime('%c')).strip() + "|" + str(v.card_num))
             for table_item in self.table_parameters:
                 line_str_item.append("|"+ str(re.sub('M[Hh]z','',str(v.get_params_value(table_item)))).strip())
             line_str_item.append("\n")
