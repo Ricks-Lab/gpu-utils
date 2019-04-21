@@ -44,6 +44,8 @@ class GUT_CONST:
         self.hwmon_sub = "hwmon/hwmon"
         self.execute_pac = False
         self.DEBUG = False
+        self.PDEBUG = False
+        self.SIMLOG = False
         self.LOG = False
         self.PLOT = False
         self.log_file_ptr = ""
