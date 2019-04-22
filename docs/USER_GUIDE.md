@@ -214,7 +214,9 @@ The fields are the same as the gui version of the display, available with the *-
 ![](amdgpu-monitor_scrshot.png)
 
 The first row gives the card number for each GPU.  This number is the integer used by the driver
-for each GPU.  Most fields are self describing.  The Power Cap field is especially useful in managing
+for each GPU. Card0 will be the AMD card with the monitor connected. If the monitor is connected to a motherboard port using on-board (integrated) graphics, then AMD cards will be listed starting with card1 in the first PCIe slot. 
+
+Most fields are self describing.  The Power Cap field is especially useful in managing
 compute power efficiency and lowering the cap, which can result in more level loading and overall lower power
 usage for little compromise in performance.  The Energy field is a derived metric that accumulates GPU 
 energy usage, in kWh, consumed since the monitor started. Note that total card power usage may be more than reported GPU usage.  Energy is calculated as the product of the latest power reading and the elapsed time since the last power reading. 
