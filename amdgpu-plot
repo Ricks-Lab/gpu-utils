@@ -179,11 +179,16 @@ class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
         box_sapcing_val = 5
         num_bar_plots = 3
-        if gc.num_gpus > 4: def_gp_y_size = 150
-        elif gc.num_gpus == 4: def_gp_y_size = 200
-        else: def_gp_y_size = 250
+        if gc.num_gpus > 4:
+            def_gp_y_size = 150
+            def_bp_y_size = 200
+        elif gc.num_gpus == 4:
+            def_gp_y_size = 200
+            def_bp_y_size = 200
+        else:
+            def_gp_y_size = 250
+            def_bp_y_size = 250
         def_gp_x_size = 600
-        def_bp_y_size = 200
         def_bp_x_size = 250
         def_lab_y_size = 28
         if gc.num_gpus > num_bar_plots:
@@ -443,6 +448,8 @@ def updateData(gc, plot_data):
             v["canvas"].draw()
             v["canvas"].flush_events()
         # Update GPU Plots
+        ylim_max_val = 100*(ldf.loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max() // 100) + 200
+        ylim_min_val = 100*(ldf.loc[:,['vddgfx', 'sclk_f', 'mclk_f']].min().min() // 100)
         for k,v in gc.gui_components["card_plots"].items():
             data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
             model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
@@ -465,6 +472,7 @@ def updateData(gc, plot_data):
     
             v["ax2"].clear()
             v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
+            #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item] == True:
                     v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
@@ -474,6 +482,8 @@ def updateData(gc, plot_data):
                             y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
                             s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
                             bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+
+            v["ax2"].set_yticks(np.arange(ylim_min_val, ylim_max_val, 100))
     
             v["canvas"].draw()
             v["canvas"].flush_events()
