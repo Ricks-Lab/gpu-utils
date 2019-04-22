@@ -6,6 +6,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
  - [Using amdgpu-monitor](#using-amdgpu-monitor)
+ - [Using amdgpu-plot](#using-amdgpu-plot)
  - [Using amdgpu-pac](#using-amdgpu-pac)
  - [Using amdgpu-pciid](#using-amdgpu-pciid)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
@@ -47,11 +48,12 @@ sudo update-grub
 ```
 and then reboot.
 
-If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas module.  For Ubuntu, use the following for the instalation:
+If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas and matplotlib modules.  For Ubuntu, use the following for the instalation:
 
 ```
 sudo apt install python3-pip
 pip3 install pandas
+sudo apt-get install python3-matplotlib
 ```
 
 
@@ -229,6 +231,9 @@ parameter when managing compute performance.
 
 Executing *amdgpu-monitor* with the *--plot* option will display a continuously updating plot of the critical GPU parameters.
 ![](amdgpu-plot_scrshot.png)
+
+## Using amdgpu-plot
+In addition to being called from *amdgpu-monitor* with the *--plot* option, *amdgpu-plot* can be ran as a standalone utility.  Just execute *amdgpu-plot --sleep N* and the plot will update at the defined interval.  it is not recomended to run both the monitor with an independently executed plot, as it will result in twice as many reads from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the named button on the plot display.  Currently, the plot module will eventually freeze, so it is not recomended to run for an extended period of time.  If you know of a solution to this problem, let me know.
 
 ## Using amdgpu-pac
 By default, *amdgpu-pac* will open a Gtk based GUI to allow the user to modify GPU performance parameters.
