@@ -32,14 +32,14 @@ window with a message that includes the log file name. The *--plot* will display
 of critical GPU parameters which updates at the specified *--sleep N* interval.
 
 ## amdgpu-plot
-A utility to continuously plot the trend of critical GPU parameters of all compatible AMD
-GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot* utility
-has 2 modes of operation.  The default mode is to read the GPU driver details directly, which
-is useful as a standalone utility.  The *--stdin* option causes *amdgpu-plot* to read GPU
-data from stdin.  This is how *amdgpu-monitor* produces the plot.  The benfifit of using it in
-this mode is that both the table and plots are updated with a single read from the driver files.  
-The *--simlog* option can be used with the *--stdin* when a monitor log file is piped as stdin.  
-This is useful for troubleshooting.
+A utility to continuously plot the trend of critical GPU parameters of all compatible
+AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot*
+utility has 2 modes of operation.  The default mode is to read the GPU driver details
+directly, which is useful as a standalone utility.  The *--stdin* option causes
+*amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the
+plot.  The benefit of using it in this mode is that both the table and plots are updated
+with a single read from the driver files.  The *--simlog* option can be used with the
+*--stdin* when a monitor log file is piped as stdin.  This is useful for troubleshooting.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
