@@ -89,7 +89,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
-## New in Previos Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
+#### New in Previos Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
 * Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
 * Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
