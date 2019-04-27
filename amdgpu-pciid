@@ -35,7 +35,7 @@ __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pciid"
 __version__ = "v2.5.0"
 __maintainer__ = "RueiKe"
-__status__ = "Release Candidate"
+__status__ = "Stable Release"
 
 import argparse
 import re
