@@ -38,8 +38,10 @@ import sys
 try:
     from matplotlib.ticker import AutoLocator
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+    #from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
     from matplotlib.figure import Figure
     import matplotlib.pyplot as plt
+    #import matplotlib.dates as mdates
 except:
     print("matplotlib is required for %s", __program_name__)
     print("Use \"sudo apt-get install python3-matplotlib\" to install")
@@ -416,7 +418,8 @@ def updateData(gc, plot_data):
     pd_sem.acquire()
     ########################
     ldf = plot_data.df
-    try:
+    #try:
+    if True:
         time_val = ldf[ldf["Card#"].isin([plot_data.gpu_list[0]])]["Time"].iloc[-1]
         gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " +  str(time_val) + "</b></big>")
         # Update Bar Plots
@@ -469,34 +472,36 @@ def updateData(gc, plot_data):
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                            ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
-                            color=gc.colors[plot_item], linewidth=0.5)
+                    v["ax1"].plot(kind='line',
+                                  x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                                  color=gc.colors[plot_item], linewidth=0.5)
                     v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
-                            y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
-                            s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
-                            bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
+                                  bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
     
             v["ax2"].clear()
             v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
             #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                            ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
-                            color=gc.colors[plot_item], linewidth=0.5)
+                    v["ax2"].plot(kind='line',
+                                  x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                                  color=gc.colors[plot_item], linewidth=0.5)
                     v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
-                            y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
-                            s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
-                            bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
+                                  bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
 
             v["ax2"].set_yticks(np.arange(ylim_min_val, ylim_max_val, 100))
     
             v["canvas"].draw()
             v["canvas"].flush_events()
-    except:
-        print("matplotlib error, stack size is %d" % get_stack_size())
-        plot_data.kill_thread()
+    #except:
+        #print("matplotlib error, stack size is %d" % get_stack_size())
+        #plot_data.kill_thread()
     #garbcollect.collect()
     ###SEMAPHORE############
     pd_sem.release()
@@ -692,6 +697,10 @@ def main():
         print("Version: ", __version__)
         print("Maintainer: ", __maintainer__)
         print("Status: ", __status__)
+        import matplotlib
+        print("matplotlib version: ", matplotlib.__version__)
+        print("pandas version: ", pd.__version__)
+        print("numpy version: ", np.__version__)
         sys.exit(0)
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
