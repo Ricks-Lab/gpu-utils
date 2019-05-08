@@ -472,9 +472,8 @@ def updateData(gc, plot_data):
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax1"].plot(kind='line',
-                                  x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']], 
+                                  ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
                     v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
                                   y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
@@ -486,9 +485,8 @@ def updateData(gc, plot_data):
             #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax2"].plot(kind='line',
-                                  x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
-                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                                  ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
                     v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
                                   y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
