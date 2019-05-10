@@ -49,6 +49,8 @@ except:
 
 try:
     import pandas as pd
+    from pandas.plotting import register_matplotlib_converters
+    register_matplotlib_converters()
 except:
     print("Pandas is required for %s", __program_name__)
     #print("Use \"sudo apt-get install python3-pandas\" to install")
@@ -472,10 +474,10 @@ def updateData(gc, plot_data):
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']], 
+                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['datetime']], 
                                   ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
-                    v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
+                    v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['datetime']].iloc[-1],
                                   y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
                                   s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
                                   bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
@@ -485,10 +487,10 @@ def updateData(gc, plot_data):
             #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item] == True:
-                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['Time']],
+                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['datetime']],
                                   ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
-                    v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['Time']].iloc[-1],
+                    v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['datetime']].iloc[-1],
                                   y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
                                   s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
                                   bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
@@ -551,6 +553,7 @@ def read_from_stdin(refreshtime, plot_data):
                     new_line_item.append(ll)
             line_item = tuple(new_line_item)
             rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+            rdf['datetime'] = pd.to_datetime(rdf['Time'])
             ndf = pd.concat([ndf, rdf], ignore_index = True)
             del(rdf)
             if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
@@ -627,6 +630,7 @@ def read_from_gpus(refreshtime, plot_data):
             if env.gut_const.DEBUG: print("gpu_plot_data: ", gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
+            rdf['datetime'] = pd.to_datetime(rdf['Time'])
             ndf = pd.concat([ndf, rdf], ignore_index = True)
             del(rdf)
 
