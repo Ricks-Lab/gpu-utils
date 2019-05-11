@@ -30,7 +30,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
-__version__ = "v2.5.0"
+__version__ = "v2.5.1"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -38,7 +38,6 @@ import sys
 try:
     from matplotlib.ticker import AutoLocator
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
-    #from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
     from matplotlib.figure import Figure
     import matplotlib.pyplot as plt
     #import matplotlib.dates as mdates
@@ -420,8 +419,7 @@ def updateData(gc, plot_data):
     pd_sem.acquire()
     ########################
     ldf = plot_data.df
-    #try:
-    if True:
+    try:
         time_val = ldf[ldf["Card#"].isin([plot_data.gpu_list[0]])]["Time"].iloc[-1]
         gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " +  str(time_val) + "</b></big>")
         # Update Bar Plots
@@ -499,9 +497,9 @@ def updateData(gc, plot_data):
     
             v["canvas"].draw()
             v["canvas"].flush_events()
-    #except:
-        #print("matplotlib error, stack size is %d" % get_stack_size())
-        #plot_data.kill_thread()
+    except:
+        print("matplotlib error, stack size is %d" % get_stack_size())
+        plot_data.kill_thread()
     #garbcollect.collect()
     ###SEMAPHORE############
     pd_sem.release()

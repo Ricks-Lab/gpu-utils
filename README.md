@@ -9,7 +9,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest release: [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
+Download latest release: [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
 
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
@@ -62,10 +62,9 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
-* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
-* Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.
-* Fixed a bug in implementation of compatibility checks and improved usage of try/except.
+## New in this Release  -  [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
+* Fixed a compatibility issue with matplotlib 3.x.  Converted time string to a datetime object.
+* Display version information for pandas, matplotlib, and numpy with the *--about* option for *amdgpu-plot*
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -89,7 +88,12 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
-#### New in Previos Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
+#### New in Previous Release  -  [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
+* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
+* Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.
+* Fixed a bug in implementation of compatibility checks and improved usage of try/except.
+
+#### New in Previous Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
 * Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
 * Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
