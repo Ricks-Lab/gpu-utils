@@ -222,6 +222,12 @@ The Perf Mode field gives the current power performance mode, which can be modif
 Executing *amdgpu-monitor* with the *--plot* option will display a continuously updating plot of the critical GPU parameters.
 ![](amdgpu-plot_scrshot.png)
 
+Having an *amdgpu-monitor* Gtx window open at startup might be useful if you run GPU compute projects that autostart and you need to quickly confirm that *amdgpu-pac* bash scripts ran as expected at startup (see *Using amdgpu-pac*). You can have *amdgpu-monitor --gui* automatically launch at startup or upon reboot by using the startup utility for your system. In Ubuntu, for example, open *Startup Applications*, then in the Preferences window select *Add* and use something like this in the command field:
+```
+/usr/bin/python3 /home/<user>/Desktop/amdgpu-utils/amdgpu-monitor --gui
+```
+where `/amdgpu-utils` can be a soft link to your current distribution directory. At the moment, this startup approach does not work for the default terminal text execution of *amdgpu-monitor*. 
+
 ## Using amdgpu-plot
 In addition to being called from *amdgpu-monitor* with the *--plot* option, *amdgpu-plot* can be ran as a standalone utility.  Just execute *amdgpu-plot --sleep N* and the plot will update at the defined interval.  It is not recomended to run both the monitor with an independently executed plot, as it will result in twice as many reads from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the named button on the plot display.  Currently, the plot module will eventually freeze, so it is not recomended to run for an extended period of time.  If you know of a solution to this problem, let me know.
 
