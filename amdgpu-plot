@@ -721,7 +721,7 @@ def main():
         except FileNotFoundError:
             print("Cannot read ppfeaturemask. Exiting...")
             sys.exit(-1)
-        if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) :
+        if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
             print("AMD Wattman features enabled: %s" % hex(featuremask))
         else:
             print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
