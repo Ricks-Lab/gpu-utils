@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.5.0"
+__version__ = "v2.5.2"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -31,7 +31,7 @@ import subprocess
 import os
 import platform
 import sys
-import time
+#import time
 import shlex
 import shutil
 from datetime import datetime
@@ -54,6 +54,19 @@ class GUT_CONST:
         self.SLEEP = 2
         self.PATH = "."
         self.amdfeaturemask = ""
+        self.USELTZ = False
+        self.LTZ = datetime.utcnow().astimezone().tzinfo
+        if self.DEBUG: print("Local TZ: %s" % str(self.LTZ))
+
+    def now(self, ltz=False):
+        if ltz: return(datetime.now())
+        return(datetime.utcnow())
+
+    def utc2local(self, utc):
+        # from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
+        epoch = time.mktime(utc.timetuple())
+        offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
+        return utc + offset
 
     def read_amdfeaturemask(self):
         with open(gut_const.featuremask) as fm_file:

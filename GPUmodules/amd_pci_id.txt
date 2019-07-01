@@ -1,8 +1,8 @@
 #
 #	List of PCI ID's
 #
-#	Version: 2019.04.25
-#	Date:    2019-04-25 03:15:02
+#	Version: 2019.06.30
+#	Date:    2019-06-30 03:15:01
 #
 #	Maintained by Albert Pool, Martin Mares, and other volunteers from
 #	the PCI ID Project at https://pci-ids.ucw.cz/.
@@ -1692,6 +1692,7 @@
 		1462 3413  Radeon RX 480 Gaming X 8GB
 		1462 3416  Radeon RX 570
 		1462 3418  Radeon RX 580 Armor 4G OC
+		1462 341e  Radeon RX 570 Armor 4G OC
 		1462 8a92  Radeon RX 580
 		148c 2372  Radeon RX 480
 		148c 2373  Radeon RX 470
@@ -2437,6 +2438,7 @@
 		1028 0643  Radeon R7 M260/M265
 		1028 067f  Radeon R7 M260
 		1028 0767  Radeon R7 M445
+		1028 0810  Radeon 530
 		1028 130a  Radeon R7 M260
 		103c 2263  Radeon R7 M260
 		103c 2269  Radeon R7 M260
@@ -2483,12 +2485,12 @@
 	694e  Polaris 22 XL [Radeon RX Vega M GL]
 	694f  Polaris 22 MGL XL [Radeon Pro WX Vega M GL]
 	6980  Polaris12
-	6981  Polaris12
+	6981  Lexa XT [Radeon PRO WX 3200]
 	6985  Lexa XT [Radeon PRO WX 3100]
 	6986  Polaris12
-	6987  Lexa [Radeon E9171 MCM]
+	6987  Lexa [Radeon 540X/550X/630 / RX 640 / E9171 MCM]
 	6995  Lexa XT [Radeon PRO WX 2100]
-	699f  Lexa PRO [Radeon RX 550/550X]
+	699f  Lexa PRO [Radeon 540/540X/550/550X / RX 540X/550/550X]
 		1028 1720  Radeon RX 550X
 		148c 2380  Lexa XL [Radeon RX 550]
 		1da2 e367  Lexa PRO [Radeon RX 550]

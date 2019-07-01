@@ -31,7 +31,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-monitor"
-__version__ = "v2.5.0"
+__version__ = "v2.5.2"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -171,6 +171,7 @@ def main():
     parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
     parser.add_argument("--log", help="Write all monitor data to logfile", action="store_true", default=False)
     parser.add_argument("--plot", help="Open and write to amdgpu-plot", action="store_true", default=False)
+    parser.add_argument("--ltz", help="Use local time zone instead of UTC", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
     parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
@@ -193,6 +194,7 @@ def main():
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.PDEBUG = args.pdebug
+    if args.ltz: env.gut_const.USELTZ = True
     if args.no_fan == True: env.gut_const.show_fans = False
     if int(args.sleep) > 0 :
         env.gut_const.SLEEP = int(args.sleep)
@@ -256,7 +258,8 @@ def main():
 
     if args.log == True:
         env.gut_const.LOG = True
-        env.gut_const.log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
+        #env.gut_const.log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
+        env.gut_const.log_file = "./log_monitor_" + env.gut_const.now(ltz=env.gut_const.USELTZ).strftime('%m%d_%H%M%S') + ".txt"
         env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w',1)
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 

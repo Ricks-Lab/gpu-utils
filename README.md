@@ -3,13 +3,13 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You also must first set your linux machine to boot with
-amdgpu.ppfeaturemask=0xffff7fff.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xffff7fff or 0xfffd7fff.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
 /etc/default/grub and executing *sudo update-grub*
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest release: [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
+Download latest official release: [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
 
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
@@ -62,9 +62,10 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
-* Fixed a compatibility issue with matplotlib 3.x.  Converted time string to a datetime object.
-* Display version information for pandas, matplotlib, and numpy with the *--about* option for *amdgpu-plot*
+## New on Master Branch  -  [v2.5.2]
+* Added *--ltz* option to use local times instead of UTC for logging and plot data.
+* Added 0xfffd7fff to valid amdgpu.ppfeaturemask values (@pastaq).
+* Updates to User Guide to include instructions to apply PAC conditions on startup (@csecht).
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -88,6 +89,10 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
+#### New in this Release  -  [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
+* Fixed a compatibility issue with matplotlib 3.x.  Converted time string to a datetime object.
+* Display version information for pandas, matplotlib, and numpy with the *--about* option for *amdgpu-plot*
+
 #### New in Previous Release  -  [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
 * Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
 * Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.

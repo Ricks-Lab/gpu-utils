@@ -30,7 +30,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
-__version__ = "v2.5.1"
+__version__ = "v2.5.2"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -521,9 +521,11 @@ def read_from_stdin(refreshtime, plot_data):
         skip_update = False
         read_time = 0.0
         for gpu_index in range(0, num_gpus + sync_add):
-            tb = datetime.now()
+            #tb = datetime.utcnow()
+            tb = env.gut_const.now(env.gut_const.USELTZ)
             line = sys.stdin.readline()
-            tmp_read_time = (datetime.now() - tb).total_seconds()
+            #tmp_read_time = (datetime.utcnow() - tb).total_seconds()
+            tmp_read_time = (env.gut_const.now(env.gut_const.USELTZ) - tb).total_seconds()
             #if env.gut_const.DEBUG: print("time: %s   read time: %f" % (tb.strftime('%c'), tmp_read_time))
             if tmp_read_time > read_time: read_time = tmp_read_time
 
@@ -558,7 +560,8 @@ def read_from_stdin(refreshtime, plot_data):
             else: sync_add = 0
 
         if env.gut_const.DEBUG:
-            print(datetime.now().strftime('%c'))
+            #print(datetime.utcnow().strftime('%c'))
+            print(env.gut_const.now(env.gut_const.USELTZ).strftime('%c'))
             print(ndf)
 
         if env.gut_const.SIMLOG == False: 
@@ -682,6 +685,7 @@ def main():
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--stdin", help="Read from stdin", action="store_true", default=False)
     parser.add_argument("--simlog", help="Simulate with piped log file", action="store_true", default=False)
+    parser.add_argument("--ltz", help="Use local time zone instead of UTC", action="store_true", default=False)
     parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=3)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
@@ -706,6 +710,7 @@ def main():
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.SIMLOG = args.simlog
+    if args.ltz: env.gut_const.USELTZ = True
 
     if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")

@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.5.0"
+__version__ = "v2.5.2"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -58,7 +58,8 @@ class GPU_ITEM:
         self.card_path = ""
         self.hwmon_path = ""
         self.compatible = True
-        time_0 = datetime.utcnow()
+        #time_0 = datetime.utcnow()
+        time_0 = env.gut_const.now(env.gut_const.USELTZ)
         self.energy = {"t0": time_0, "tn": time_0, "cummulative": 0.0}
         self.hwmon_disabled = []
 
@@ -517,7 +518,8 @@ class GPU_ITEM:
             if(os.path.isfile(self.hwmon_path + "power1_average") == True):
                 with open(self.hwmon_path + "power1_average") as hwmon_file:
                     power_uw = int(hwmon_file.readline())
-                    time_n = datetime.utcnow()
+                    #time_n = datetime.utcnow()
+                    time_n = env.gut_const.now(env.gut_const.USELTZ)
                     self.set_params_value("power", int(power_uw)/1000000)
                     delta_hrs = ((time_n - self.energy["tn"]).total_seconds())/3600
                     self.energy["tn"] = time_n
