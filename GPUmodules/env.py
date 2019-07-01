@@ -122,13 +122,21 @@ class GUT_CONST:
             print("can not determine amdgpu version")
             return(-1)
         try:
-            dpkg_out = subprocess.check_output(shlex.split('dpkg -l amdgpu'), shell=False,
-                    stderr=subprocess.DEVNULL).decode().split("\n")
-            for dpkg_line in dpkg_out:
-                searchObj = re.search('amdgpu', dpkg_line)
-                if(searchObj != None):
-                    dpkg_items = dpkg_line.split()
-                    print(f"amdgpu version: {dpkg_items[2]}")
+            for pkgname in ['amdgpu-core', 'amdgpu', 'amdgpu-pro']:
+                dpkg_out = subprocess.check_output(shlex.split(f'dpkg -l {pkgname}'), shell=False,
+                        stderr=subprocess.DEVNULL).decode().split("\n")
+                for dpkg_line in dpkg_out:
+                    searchObj = re.search('amdgpu', dpkg_line)
+                    if(searchObj != None):
+                        dpkg_items = dpkg_line.split()
+                        #print('dpkg_line: %s  len if dpkg_items: %d' % (dpkg_line, len(dpkg_items)))
+                        if len(dpkg_items) > 2:
+                            if re.fullmatch(r'.*none.*', dpkg_items[2]):
+                                continue
+                            else:
+                                print(f"amdgpu version: {dpkg_items[2]}")
+                                break
+
         except subprocess.CalledProcessError as e:
             if re.search('exit status 1', str(e)) != None:
                 print(str(e))
