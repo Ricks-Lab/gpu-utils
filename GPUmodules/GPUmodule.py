@@ -763,9 +763,10 @@ class GPU_ITEM:
                 print(f"  {str(k)}:  {self.mclk_state[k][0].ljust(8,' ')}  {self.mclk_state[k][1].ljust(8,' ')}")
             else:
                 print("")
-        print("VDDC_CURVE")
-        for k, v in self.vddc_curve.items():
-            print(f"{str(k)}: {v}")
+        if self.get_params_value("gpu_type") == 2:
+            print("VDDC_CURVE")
+            for k, v in self.vddc_curve.items():
+                print(f"{str(k)}: {v}")
         print("")
 
     def print(self, clflag=False):
