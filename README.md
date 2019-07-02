@@ -29,17 +29,19 @@ The *--no_fan* option can be used to disable the reading and display of fan
 information.  The *--log* option is used to write all monitor data to a psv log file.
 When writing to a log file, the utility will indicate this in red at the top of the 
 window with a message that includes the log file name. The *--plot* will display a plot 
-of critical GPU parameters which updates at the specified *--sleep N* interval.
+of critical GPU parameters which updates at the specified *--sleep N* interval. The
+*--ltz* option results in the use of local time instead of UTC.
 
 ## amdgpu-plot
-A utility to continuously plot the trend of critical GPU parameters of all compatible
-AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot*
-utility has 2 modes of operation.  The default mode is to read the GPU driver details
-directly, which is useful as a standalone utility.  The *--stdin* option causes
-*amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the
-plot.  The benefit of using it in this mode is that both the table and plots are updated
-with a single read from the driver files.  The *--simlog* option can be used with the
+A utility to continuously plot the trend of critical GPU parameters of all compatible 
+AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot* 
+utility has 2 modes of operation.  The default mode is to read the GPU driver details 
+directly, which is useful as a standalone utility.  The *--stdin* option causes 
+*amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the 
+plot.  The benefit of using it in this mode is that both the table and plots are updated 
+with a single read from the driver files.  The *--simlog* option can be used with the 
 *--stdin* when a monitor log file is piped as stdin.  This is useful for troubleshooting.
+The *--ltz* option results in the use of local time instead of UTC.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
@@ -89,7 +91,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
-#### New in this Release  -  [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
+#### New in Previous Release  -  [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
 * Fixed a compatibility issue with matplotlib 3.x.  Converted time string to a datetime object.
 * Display version information for pandas, matplotlib, and numpy with the *--about* option for *amdgpu-plot*
 

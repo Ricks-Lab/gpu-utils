@@ -27,7 +27,7 @@ kernels may not be ideal.
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You can check with the following command:
 ```
-dpkg -l amdgpu
+dpkg -l amdgpu-core amdgpu amdgpu-pro
 ```
 
 You also must set your linux machine to boot with the feature mask set to support the functionality
