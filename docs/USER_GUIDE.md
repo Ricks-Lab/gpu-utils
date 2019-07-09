@@ -156,7 +156,27 @@ Power Performance Mode: manual
   5:          CUSTOM                 0                 0                 0                 0
  -1:            AUTO              Auto
 ```
+The amdgpu driver package version: 19.30-838629 has an additional Power mode (*--ppm* option shown for one of two RX 570s on a system with amdgpu open drivers installed instead of the amdgpu-pro package):
+```
+AMD Wattman features enabled: 0xffff7fff
+amdgpu version: 19.30-838629
+amdgpu version: 19.30-838629
+Command '['dpkg', '-l', 'amdgpu-pro']' returned non-zero exit status 1.
+Warning: amdgpu drivers not may not be installed.
+2 AMD GPUs detected, 2 may be compatible, checking...
+2 are confirmed compatible.
 
+Card: /sys/class/drm/card1/device/
+Power Performance Mode: manual
+  0:  BOOTUP_DEFAULT                 -                 -                 -                 -                 -                 -
+  1:  3D_FULL_SCREEN                 0               100                30                 0               100                10
+  2:    POWER_SAVING                10                 0                30                 -                 -                 -
+  3:           VIDEO                 -                 -                 -                10                16                31
+  4:              VR                 0                11                50                 0               100                10
+  5:         COMPUTE                 0                 5                30                 0               100                10
+  6:          CUSTOM                 -                 -                 -                 -                 -                 -
+ -1:            AUTO              Auto
+```
 ## GPU Type Dependent Behavior
 AMD GPU's compatible with the amdgpu open source drivers are of 3 different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
