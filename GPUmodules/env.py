@@ -121,14 +121,15 @@ class GUT_CONST:
         if shutil.which("/usr/bin/dpkg") == None:
             print("can not determine amdgpu version")
             return(-1)
-        try:
-            version_ok = False
-            for pkgname in ['amdgpu-core', 'amdgpu', 'amdgpu-pro']:
+        version_ok = False
+        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
+            try:
                 dpkg_out = subprocess.check_output(shlex.split(f'dpkg -l {pkgname}'), shell=False,
                         stderr=subprocess.DEVNULL).decode().split("\n")
                 for dpkg_line in dpkg_out:
                     searchObj = re.search('amdgpu', dpkg_line)
                     if(searchObj != None):
+                        if self.DEBUG: print("Debug: {}".format(dpkg_line))
                         dpkg_items = dpkg_line.split()
                         #print('dpkg_line: %s  len if dpkg_items: %d' % (dpkg_line, len(dpkg_items)))
                         if len(dpkg_items) > 2:
@@ -138,18 +139,11 @@ class GUT_CONST:
                                 print(f"amdgpu version: {dpkg_items[2]}")
                                 version_ok = True
                                 break
-            if version_ok == False:
-                print(f"amdgpu version: UNKNOWN")
-
-        except subprocess.CalledProcessError as e:
-            if re.search('exit status 1', str(e)) != None:
-                print(str(e))
-                print("Warning: amdgpu drivers not may not be installed.")
-                return(-1)
-                #print("Error: amdgpu drivers not installed, exiting...")
-                #sys.exit(-1)
-        except:
-            print("Warning: Cannot read determine amdgpu version.")
+                if version_ok: break
+            except:
+                pass
+        if not version_ok: 
+            print("amdgpu version: UNKNOWN")
             return(-1)
         return(0)
 
