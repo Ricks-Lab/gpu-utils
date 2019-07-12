@@ -10,6 +10,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-pac](#using-amdgpu-pac)
  - [Using amdgpu-pciid](#using-amdgpu-pciid)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
+ - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
 
 ## Getting Started
 First, this set of utils is written and tested with Python3.6.  If you are using and older
@@ -48,7 +49,7 @@ sudo update-grub
 ```
 and then reboot.
 
-If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas and matplotlib modules.  For Ubuntu, use the following for the instalation:
+If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas and matplotlib modules.  For Ubuntu, use the following for the installation:
 
 ```
 sudo apt install python3-pip
@@ -160,9 +161,6 @@ The amdgpu driver package version: 19.30-838629 has an additional Power mode (*-
 ```
 AMD Wattman features enabled: 0xffff7fff
 amdgpu version: 19.30-838629
-amdgpu version: 19.30-838629
-Command '['dpkg', '-l', 'amdgpu-pro']' returned non-zero exit status 1.
-Warning: amdgpu drivers not may not be installed.
 2 AMD GPUs detected, 2 may be compatible, checking...
 2 are confirmed compatible.
 
@@ -341,13 +339,7 @@ In the interface, you will notice entry fields for indicating new values for spe
 
 Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  Such changes to fan PWM may occur even though you did not specifically change Fan PWM and even if Fan PWM was previously set to dynamic (automatic, default) mode.  The direction and magnitude of differences between expected and realized fan speeds may depend on card model, so you will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  The cause of the differences between entered, or shown, and final fan PWM values is being investigated. 
 
-Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
-
-One approach to automatically execute a saved PAC bash file at startup or reboot is to run it as a cron job. To do this, first create a PAC bash file of your optimized GPU settings using the *amdgpu-pac --force-write* command line option. The executable file will be named, *pac_writer_[string-of-characters].sh* and will be created in the current amdgpu-utils directory. If you have additional cards, a separate file will be written for each. Copy the file(s), without renaming and while preserving all attributes, to a convenient directory. (If you leave them in the amdgpu-utils directory, then they my be lost with the next distribution update.) In this example, they have been copied into `/etc/cron.custom`. Now open crontab, the tables that drive cron, using the command `~$ sudo crontab -e`. This will open crontab in your default terminal text editor. (You may be prompted to choose an editor like *nano* or *vi*.) Add a line like this to the file:
-```
-@reboot /etc/cron.custom/pac_writer_[string of characters].sh && /path/to/additional/pac-bash.sh
-```
-then save and exit. The next time you reboot, or the system restarts after a power outage, your GPU card(s) will be ready with their optimized settings.  Because some PAC parameters can't be changed when a card is under load, you will want to make sure that PAC settings are executed before the card begins computing. For example, if you have *boinc-client*, then consider delaying it at startup for 30 seconds with the cc_config.xml option *<start_delay>30</start_delay>*.
+Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly. See section below for how to run PAC bash scripts automatically at system startup.
 
 For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, other changes may require that the GPU not be under load (be in 0 sclk and mclk P-state) for *amdgpu-pac* to work properly. Possible issues with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot is needed to restore settings. Note that when you change a P-pstate mask, default mask values will reappear in the field after Save, but will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not be permanent when a card has a display connected. 
 
@@ -376,3 +368,14 @@ of SETI@Home performance, the Energy feature has also been built into [benchMT](
 *amdgpu-monitor --gui --log* can be useful in the optimization of performance.
 
 ![](https://i.imgur.com/YPuDez2l.png)
+
+## Setting GPU Automatically at Startup
+If you set your system to run *amdgpu-pac* bash scripts automatically, as described in this section, note that changes in your hardware or graphic drivers may cause potentially serious problems with GPU settings unless new PAC bash files are generated following the changes. Review the "Using amdgpu-pac" section before proceeding.
+
+One approach to automatically execute a saved PAC bash file at startup or reboot is to run it as a cron job. To do this, first create a PAC bash file of your optimized GPU settings using the *amdgpu-pac --force-write* option. The executable file will be named, *pac_writer_[string-of-characters].sh* and will be created in your current amdgpu-utils directory. If you have additional cards, a separate file will be needed for each. Copy the file(s), without renaming and while preserving all attributes, to a convenient directory. (If you leave them in the amdgpu-utils directory, then they may be lost with the next distribution update.) In the example here, they have been copied into a new directory, `/etc/cron.custom`. Now open crontab, the tables that drive cron, using the command `~$ sudo crontab -e`. This will open crontab in your default terminal text editor. (You may be prompted to choose an editor like *nano* or *vi*.) Add a line like this:
+```
+@reboot /etc/cron.custom/pac_writer_[string of characters].sh && /path/to/another card's/pac-bash-file.sh
+```
+then save and exit. The next time you reboot, or the system restarts after a power outage, your GPU card(s) will be ready to run with optimized settings.  Because some PAC parameters can't be changed when a card is under load, you will want to make sure that the PAC bash script executes before the card begins computing. For example, if you have a *boinc-client* that automatically runs on startup, then consider delaying it for 30 seconds or so by using the cc_config.xml option *<start_delay>30</start_delay>*.
+
+There may be other methods to automatically run PAC bash scripts at startup, like Ubuntu's Starup Applications Preferences app, but they haven't been tested. 
