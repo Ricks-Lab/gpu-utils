@@ -386,10 +386,12 @@ class GPUPlotWindow(Gtk.Window):
             plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["ax1"].set_xticks([])
+            v["ax1"].set_xticklabels([])
             v["ax1"].set_yticks(np.arange(0,250,20))
             v["ax1"].tick_params(axis='y', which='major', labelsize=8)
             v["ax2"] = v["ax1"].twinx()
             v["ax2"].set_xticks([])
+            v["ax2"].set_xticklabels([])
             v["ax2"].set_yticks(np.arange(500,1500,100))
             v["ax2"].tick_params(axis='y', which='major', labelsize=8)
 
@@ -469,6 +471,7 @@ def updateData(gc, plot_data):
     
             # Plot GPUs
             plt.figure(v["figure_num"])
+            v["ax1"].set_xticklabels([])
             v["ax1"].clear()
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
@@ -482,6 +485,7 @@ def updateData(gc, plot_data):
                                   bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
     
             v["ax2"].clear()
+            v["ax2"].set_xticklabels([])
             v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
             #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
