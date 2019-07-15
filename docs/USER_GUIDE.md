@@ -13,7 +13,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
 
 ## Getting Started
-First, this set of utils is written and tested with Python3.6.  If you are using and older
+First, this set of utilities is written and tested with Python3.6.  If you are using and older
 version, you will likely see syntax errors.  Unfortunately, I don't know how to catch a
 syntax error, so if you have issues, just execute:
 ```
@@ -21,20 +21,20 @@ syntax error, so if you have issues, just execute:
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
 also notice that there is a minimum version of the Kernel that supports these features, but be
-warned, I have only tested it with 4.15. There have been amdgpu features implemented over time
-that spans many releases of the kernel, so your experience in using these utilities with older 
-kernels may not be ideal.
+warned, I have tested it with only 4.15. There have been amdgpu features implemented over time
+that span many releases of the kernel, so your experience in using these utilities with older 
+kernels might not be ideal.
 
-In order to use any of these utilities, you must have the *amdgpu* open source driver
-package installed. You can check with the following command:
+To use any of these utilities, you must have the *amdgpu* open source driver
+package installed, either the All-Open stack or Pro stack. You can check with the following command:
 ```
 dpkg -l amdgpu-core amdgpu amdgpu-pro
 ```
 
-You also must set your linux machine to boot with the feature mask set to support the functionality
+You also must set your Linux machine to boot with the feature mask set to support the functionality
 that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xffff7fff.  This
 can be accomplished by adding amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT
-value in /etc/default/grub and executing *sudo update-grub* as in the following example:
+value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or your favorite command line editor:
 ```
 cd /etc/default
 sudo vi grub
@@ -157,7 +157,7 @@ Power Performance Mode: manual
   5:          CUSTOM                 0                 0                 0                 0
  -1:            AUTO              Auto
 ```
-The amdgpu driver package version: 19.30-838629 has an additional Power mode (*--ppm* option shown for one of two RX 570s on a system with amdgpu open drivers installed instead of the amdgpu-pro package):
+The amdgpu driver package version: 19.30 has an additional Power mode, as seen with *--ppm* option (showing one of two GPU on a system with the amdgpu All-0pen driver stack installed instead of the amdgpu-pro stack):
 ```
 AMD Wattman features enabled: 0xffff7fff
 amdgpu version: 19.30-838629
@@ -166,22 +166,22 @@ amdgpu version: 19.30-838629
 
 Card: /sys/class/drm/card1/device/
 Power Performance Mode: manual
-  0:  BOOTUP_DEFAULT                 -                 -                 -                 -                 -                 -
-  1:  3D_FULL_SCREEN                 0               100                30                 0               100                10
-  2:    POWER_SAVING                10                 0                30                 -                 -                 -
-  3:           VIDEO                 -                 -                 -                10                16                31
-  4:              VR                 0                11                50                 0               100                10
-  5:         COMPUTE                 0                 5                30                 0               100                10
-  6:          CUSTOM                 -                 -                 -                 -                 -                 -
- -1:            AUTO              Auto
+  0:  BOOTUP_DEFAULT             -             -             -             -             -             -
+  1:  3D_FULL_SCREEN             0           100            30             0           100            10
+  2:    POWER_SAVING            10             0            30             -             -             -
+  3:           VIDEO             -             -             -            10            16            31
+  4:              VR             0            11            50             0           100            10
+  5:         COMPUTE             0             5            30             0           100            10
+  6:          CUSTOM             -             -             -             -             -             -
+ -1:            AUTO          Auto
 ```
 ## GPU Type Dependent Behavior
-AMD GPU's compatible with the amdgpu open source drivers are of 3 different types in terms of how frequency/voltage
+AMD GPU's compatible with the amdgpu open source drivers are of three different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
-the clock frequency and voltage.  The GPU will operate at only the specific Frequency/Voltage states that are defined, 
+the clock frequency and voltage.  The GPU will operate only at the specific Frequency/Voltage states that are defined, 
 and move between states based on power, temperature, and loading.  These GPU's are of type 1, if the p-state table
-is readble and type 0 if it is not. For GPUs of Vega20 architecture or newer, it appears that Voltage/Frequency curves
-are defined with 3 points on a Voltage vs. Frequency curve.  These GPU's are classified as type 2.
+is readable and type 0 if it is not.  For GPUs of Vega20 architecture or newer, it appears that Voltage/Frequency curves
+are defined with three points on a Voltage vs. Frequency curve.  These GPU's are classified as type 2.
 
 With the *amdgpu-ls* tool, you can determine if your card is of type 1 or 2. Here are the relevant lines from the 
 output for and RX Vega64 GPU and the Radeon VII:
@@ -196,10 +196,10 @@ Decoded Device ID: Radeon VII
 GPU Frequency/Voltage Control Type: 2
 ```
 
-Monitor and Control utilities will differ between the 3 types.
+Monitor and Control utilities will differ between the three types.
 * For type 0, you can monitor the p-state details with monitor utilities, but you can NOT define p-states or set p-state masks.
 * For type 1, you can monitor the p-state details with monitor utilities, and you can define p-states and set p-state masks.
-* For Type 2, you can monitor current Clocks frequency and p-states, with latest amdgpu drivers.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as p-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd pointwould be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
+* For Type 2, you can monitor current Clocks frequency and p-states, with latest amdgpu drivers.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as p-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
@@ -208,7 +208,7 @@ Below is a plot of what I extracted for the Frequency vs Voltage curves of the R
 ## Using amdgpu-monitor
 By default, *amdgpu-monitor* will display a text based table in the current terminal window that updates
 every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by default. If you are using
-water cooling, you can us the *--no_fans* to remove fan functionality.
+water cooling, you can use the *--no_fans* to remove fan functionality.
 ```
 ┌─────────────┬────────────────┬────────────────┐
 │Card #       │card1           │card0           │
@@ -228,28 +228,28 @@ water cooling, you can us the *--no_fans* to remove fan functionality.
 │Perf Mode    │4-COMPUTE       │4-COMPUTE       │
 └─────────────┴────────────────┴────────────────┘
 ```
-The fields are the same as the gui version of the display, available with the *--gui* option.
+The fields are the same as the GUI version of the display, available with the *--gui* option.
 ![](amdgpu-monitor_scrshot.png)
 
-The first row gives the card number for each GPU.  This number is the integer used by the driver for each GPU.  Most fields are self describing.  The Power Cap field is especially useful in managing compute power efficiency, and lowering the cap can result in more level loading and overall lower power usage for little compromise in performance.  The Energy field is a derived metric that accumulates GPU energy usage, in kWh, consumed since the monitor started. Note that total card power usage may be more than reported GPU usage.  Energy is calculated as the product of the latest power reading and the elapsed time since the last power reading. 
+The first row gives the card number for each GPU.  This number is the integer used by the driver for each GPU.  Most fields are self describing.  The Power Cap field is especially useful in managing compute power efficiency, and lowering the cap can result in more level loading and overall lower power usage for little compromise in performance.  The Energy field is a derived metric that accumulates GPU energy usage, in kWh, consumed since the monitor started. Note that total card power usage may be more than reported GPU power usage.  Energy is calculated as the product of the latest power reading and the elapsed time since the last power reading. 
 
-You will notice that there are no clock frequencies or valid p-states for the Vega 20 card.  This was due to a limitation in the first drivers that supported Vega 20 which has a change in the way frequency vs voltage is managed. In later version of the drivers, actual clock frequency and p-states are readable. The P-state table for Vega 20 is a definition of frequency vs. voltage curves, so setting p-states to control the GPU is no longer relevant, but these concepts are used in reading current states.
+You will notice no clock frequencies or valid p-states for the Vega 20 card.  This is because of a limitation in the first drivers that supported Vega 20 which have a change in the way frequency vs voltage is managed. In later version of the drivers, actual clock frequency and p-states are readable. The p-state table for Vega 20 is a definition of frequency vs. voltage curves, so setting p-states to control the GPU is no longer relevant, but these concepts are used in reading current states.
 
-The Perf Mode field gives the current power performance mode, which can be modified in with amdgpu-pac.  These modes affect the how frequency and voltage are managed versus loading.  Ths is a very important parameter when managing compute performance.
+The Perf Mode field gives the current power performance mode, which may be modified in with *amdgpu-pac*.  These modes affect the how frequency and voltage are managed versus loading.  This is a very important parameter when managing compute performance.
 
 Executing *amdgpu-monitor* with the *--plot* option will display a continuously updating plot of the critical GPU parameters.
 ![](amdgpu-plot_scrshot.png)
 
-Having an *amdgpu-monitor* Gtx window open at startup might be useful if you run GPU compute projects that autostart and you need to quickly confirm that *amdgpu-pac* bash scripts ran as expected at startup (see *Using amdgpu-pac*). You can have *amdgpu-monitor --gui* automatically launch at startup or upon reboot by using the startup utility for your system. In Ubuntu, for example, open *Startup Applications*, then in the Preferences window select *Add* and use something like this in the command field:
+Having an *amdgpu-monitor* Gtx window open at startup may be useful if you run GPU compute projects that autostart and you need to quickly confirm that *amdgpu-pac* bash scripts ran as expected at startup (see [Using amdgpu-pac](#using-amdgpu-pac)). You can have *amdgpu-monitor --gui* automatically launch at startup or upon reboot by using the startup utility for your system. In Ubuntu, for example, open *Startup Applications Preferences* app, then in the Preferences window select *Add* and use something like this in the command field:
 ```
 /usr/bin/python3 /home/<user>/Desktop/amdgpu-utils/amdgpu-monitor --gui
 ```
-where `/amdgpu-utils` can be a soft link to your current distribution directory. At the moment, this startup approach does not work for the default terminal text execution of *amdgpu-monitor*. 
+where `/amdgpu-utils` may be a soft link to your current distribution directory. At the moment, this startup approach does not work for the default Terminal text execution of *amdgpu-monitor*. 
 
 ## Using amdgpu-plot
-In addition to being called from *amdgpu-monitor* with the *--plot* option, *amdgpu-plot* can be ran as a standalone utility.  Just execute *amdgpu-plot --sleep N* and the plot will update at the defined interval.  It is not recomended to run both the monitor with an independently executed plot, as it will result in twice as many reads from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the named button on the plot display.  Currently, the plot module will eventually freeze, so it is not recomended to run for an extended period of time.  If you know of a solution to this problem, let me know.
+In addition to being called from *amdgpu-monitor* with the *--plot* option, *amdgpu-plot* may be ran as a standalone utility.  Just execute *amdgpu-plot --sleep N* and the plot will update at the defined interval.  It is not recommended to run both the monitor with an independently executed plot, as it will result in twice as many reads from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the named button on the plot display.  With the current version, the plot module will eventually freeze, so it is not recommended to run for an extended period of time.  If you know of a solution to this problem, let me know.
 
-The *--stdin* option is used by *amdgpu-monitor --plot* in its execution of *amdgpu-plot*.  This option along with *--simlog* option can be used to simulate a plot output using a log file generated by *amdgpu-monitor --log*.  I use this feature when troubleshooting problems from other users, but may also be useful in benchmarking performance.  An example of the command line for this is as follows:
+The *--stdin* option is used by *amdgpu-monitor --plot* in its execution of *amdgpu-plot*.  This option along with *--simlog* option can be used to simulate a plot output using a log file generated by *amdgpu-monitor --log*.  I use this feature when troubleshooting problems from other users, but it may also be useful in benchmarking performance.  An example of the command line for this is as follows:
 ```
 cat log_monitor_0421_081038.txt | ./amdgpu-plot --stdin --simlog
 ```
@@ -257,7 +257,7 @@ cat log_monitor_0421_081038.txt | ./amdgpu-plot --stdin --simlog
 ## Using amdgpu-pac
 By default, *amdgpu-pac* will open a Gtk based GUI to allow the user to modify GPU performance parameters.  I strongly suggest that you completely understand the implications of changing any of the performance settings before you use this utility.  As per the terms of the GNU General Public License that covers this project, there is no warranty on the usability of these tools.  Any use of this tool is at your own risk.
 
-To help you manage the risk in using this tool, there are 2 modes in which GPUs are written to.  By default, a bash file is created that you can review and execute to implement the desired changes.  Here is an example of that file:
+To help you manage the risk in using this tool, two modes are provided to modify GPU parameters.  By default, a bash file is created that you can review and execute to implement the desired changes.  Here is an example of that file:
 ```
 #!/bin/sh
 ###########################################################################
@@ -325,9 +325,9 @@ sudo sh -c "echo '4 5 6' >  /sys/class/drm/card1/device/pp_dpm_sclk"
 sudo sh -c "echo '3' >  /sys/class/drm/card1/device/pp_dpm_mclk"
 ```
 
-When you execute *amdgpu-pac*, you will notice a message bar at the bottom of the interface.  By default, it informs you of the mode you are running in.  By default, the operation mode is to create a bash file, but with the *--execute_pac* (or *--execute*) command line option, the bash file will be automatically executed and then deleted.  The message bar will indicate this status.  Since the driver files are only writable by root, the commands to write configuration settings are executed with sudo.  The message bar will have a red indicator that credentials are pending if that is the case.  Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.  I suggest to use the monitor routine while you run pac in order to see the changes in real-time.
+When you execute *amdgpu-pac*, you will notice a message bar at the bottom of the interface.  By default, it informs you of the mode you are running in.  By default, the operation mode is to create a bash file, but with the *--execute_pac* (or *--execute*) command line option, the bash file will be automatically executed and then deleted.  The message bar will indicate this status.  Because the driver files are writable only by root, the commands to write configuration settings are executed with sudo.  The message bar will display in red when credentials are pending.  Once executed, a yellow message will remind you to check the state of the gpu with *amdgpu-monitor*.  I suggest to using the monitor routine when executing pac to see the changes in real-time.
 
-The command line option *--force_write* will result in all configuration parameters to be written to the bash file.  The default behavior since v2.4.0 is to only write changes.  The *--force_write* is useful for creating a bash file which can be execute to set your cards to a known state. As an example, you could use such a file to configure your GPUs on boot up (see below).
+The command line option *--force_write* will result in all configuration parameters to be written to the bash file.  The default behavior since v2.4.0 is to write only changes.  The *--force_write* is useful for creating a bash file that can be execute to set your cards to a known state. As an example, you could use such a file to configure your GPUs on boot up (see [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)).
 
 ### The amdgpu-pac interface for Type 1 cards
 ![](amdgpu-pac_type1.png)
@@ -337,13 +337,13 @@ The command line option *--force_write* will result in all configuration paramet
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In most cases, the values in these fields will be the current values, but in the case of P-state masks, it will show the default value instead of the current value.  If you know how to obtain the current value, please let me know!
 
-Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  Such changes to fan PWM may occur even though you did not specifically change Fan PWM and even if Fan PWM was previously set to dynamic (automatic, default) mode.  The direction and magnitude of differences between expected and realized fan speeds may depend on card model, so you will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  The cause of the differences between entered, or shown, and final fan PWM values is being investigated. 
+Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  Such changes to fan PWM can occur even though you did not specifically change Fan PWM or if Fan PWM was previously set to dynamic (automatic, default) mode.  The direction and magnitude of differences between expected and realized fan speeds can depend on card model.  You will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  If you know the cause of the differences between entered and final fan PWM values, let me know. 
 
-Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly. See section below for how to run PAC bash scripts automatically at system startup.
+Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly. See [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup) for how to run PAC bash scripts automatically at system startup.
 
-For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, other changes may require that the GPU not be under load (be in 0 sclk and mclk P-state) for *amdgpu-pac* to work properly. Possible issues with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot is needed to restore settings. Note that when you change a P-pstate mask, default mask values will reappear in the field after Save, but will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not be permanent when a card has a display connected. 
+For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, for *amdgpu-pac* to work properly, other changes may require that the GPU not be under load, *i.e.*, that sclk p-state and mclk p-state are 0. Possible consequences with making changes under load is that the GPU become stuck in a 0 p-state or that the entire system becomes slow to respond, where a reboot will be needed to restore full GPU functions. Note that when you change a p-state mask, default mask values will reappear in the field after Save, but will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not persist when a card has a connected display. 
 
-There is some very basic error checking done before writing, but I suggest you be very certain of all entries before you save to the GPU.
+Some basic error checking done before writing, but I suggest you be very certain of all entries before you save changes to the GPU.
 
 ## Using amdgpu-pciid
 In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lscpi -k -s nn:nn.n* is used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver files, a set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID are read and used to extract a GPU model name from a file retrieved from  [https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  An AMD only extract from that source is included in this distribution.  The *amdgpu-pciid* tool can be used to manage the local extract.  Execute *amdgpu-pciid* to check if a newer version is available and use *amdgpu-pciid --install* to replace the existing extract used by the utilities with an updated version.  If your GPU is not listed in the extract, the pci.id website has an interface to allow the user to request an addition to the master list.  
@@ -363,19 +363,18 @@ optional arguments:
 ## Optimizing Compute Performance-Power
 The *amdgpu-utils* tools can be used to optimize performance vs. power for compute workloads by leveraging
 its ability to measure power and control relevant GPU settings.  This flexibility allows one to execute a
-DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In the case 
-of SETI@Home performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to benchmark power and execution times for various work units.  This combined with the log file produced with
-*amdgpu-monitor --gui --log* can be useful in the optimization of performance.
+DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In SETI@Home performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to benchmark power and execution times for various work units.  This, combined with the log file produced with
+*amdgpu-monitor --gui --log*, may be useful in optimizing performance.
 
 ![](https://i.imgur.com/YPuDez2l.png)
 
 ## Setting GPU Automatically at Startup
-If you set your system to run *amdgpu-pac* bash scripts automatically, as described in this section, note that changes in your hardware or graphic drivers may cause potentially serious problems with GPU settings unless new PAC bash files are generated following the changes. Review the "Using amdgpu-pac" section before proceeding.
+If you set your system to run *amdgpu-pac* bash scripts automatically, as described in this section, note that changes in your hardware or graphic drivers may cause potentially serious problems with GPU settings unless new PAC bash files are generated following the changes. Review the [Using amdgpu-pac](#using-amdgpu-pac) section before proceeding.
 
-One approach to automatically execute a saved PAC bash file at startup or reboot is to run it as a cron job. To do this, first create a PAC bash file of your optimized GPU settings using the *amdgpu-pac --force-write* option. The executable file will be named, *pac_writer_[string-of-characters].sh* and will be created in your current amdgpu-utils directory. If you have additional cards, a separate file will be needed for each. Copy the file(s), without renaming and while preserving all attributes, to a convenient directory. (If you leave them in the amdgpu-utils directory, then they may be lost with the next distribution update.) In the example here, they have been copied into a new directory, `/etc/cron.custom`. Now open crontab, the tables that drive cron, using the command `~$ sudo crontab -e`. This will open crontab in your default terminal text editor. (You may be prompted to choose an editor like *nano* or *vi*.) Add a line like this:
+One approach to automatically execute a saved PAC bash file at startup or reboot is to run it as a cron job. To do this, first create a PAC bash file of your optimized GPU settings using the *amdgpu-pac --force-write* option. The executable file will be named *pac_writer_[string-of-characters].sh* and will be created in your current amdgpu-utils directory. A separate file is needed for each GPU card. Copy the file(s) to a convenient directory, without renaming or changing attributes. (If you leave it in the amdgpu-utils directory, then it may be lost with the next distribution update.) In the example here, two bash files were copied to a new directory, `/etc/cron.custom`. Now open crontab, the table that drive cron, using the command `~$ sudo crontab -e`. This will open crontab in your default terminal text editor. (You may be prompted to choose an editor like *nano* or *vi*.) Add a line like this, including an explicit path for each card's bash file:
 ```
-@reboot /etc/cron.custom/pac_writer_[string of characters].sh && /path/to/another card's/pac-bash-file.sh
+@reboot /etc/cron.custom/pac_writer_[string for 1st card].sh && /etc/cron.custom/pac_writer_[string for 2nd card].sh
 ```
-then save and exit. The next time you reboot, or the system restarts after a power outage, your GPU card(s) will be ready to run with optimized settings.  Because some PAC parameters can't be changed when a card is under load, you will want to make sure that the PAC bash script executes before the card begins computing. For example, if you have a *boinc-client* that automatically runs on startup, then consider delaying it for 30 seconds or so by using the cc_config.xml option *<start_delay>30</start_delay>*.
+then save and exit. The next time you reboot, or the system restarts after a power outage, your GPU card(s) will be ready to run with optimized settings.  Because some PAC parameters can't be changed when a card is under load, you will want to make sure that the PAC bash script executes before the card begins computing. For example, if you have a *boinc-client* that automatically runs on startup, then consider delaying it for 30 seconds using the cc_config.xml option *<start_delay>30</start_delay>*.
 
-There may be other methods to automatically run PAC bash scripts at startup, like Ubuntu's Starup Applications Preferences app, but they haven't been tested. 
+There may be other ways to automatically run PAC bash scripts at startup, such as Ubuntu's Startup Applications Preferences app, but only the cron approach has been tested. 
