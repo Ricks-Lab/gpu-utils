@@ -52,9 +52,7 @@ and then reboot.
 If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas and matplotlib modules.  For Ubuntu, use the following for the installation:
 
 ```
-sudo apt install python3-pip
-pip3 install pandas
-sudo apt-get install python3-matplotlib
+sudo apt-get install python3-matplotlib python3-pandas
 ```
 
 
