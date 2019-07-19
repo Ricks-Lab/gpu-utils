@@ -8,5 +8,6 @@ setup(name='amdgpu-utils',
       url='https://github.com/Ricks-Lab/amdgpu-utils',
       packages=['GPUmodules'],
       scripts=['amdgpu-chk','amdgpu-ls','amdgpu-monitor','amdgpu-pac','amdgpu-pciid','amdgpu-plot'],
-      licene="GPL-3"
+      licene="GPL-3",
+      package_data={'GPUmodules':['amd_pci_id.txt']}
 )
