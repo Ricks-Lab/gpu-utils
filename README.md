@@ -2,14 +2,14 @@
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
-package installed. You also must first set your linux machine to boot with
+package installed. You also must first set your Linux machine to boot with
 amdgpu.ppfeaturemask=0xffff7fff or 0xfffd7fff.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
 /etc/default/grub and executing *sudo update-grub*
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v2.5.1](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.1)
+Download latest official release: [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
@@ -64,18 +64,16 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 amdgpu-ls and make a request for the addition on the pci.ids website.
 
-## New on Master Branch  -  [v2.5.2]
+## New in this Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 * Added *--ltz* option to use local times instead of UTC for logging and plot data.
 * Added 0xfffd7fff to valid amdgpu.ppfeaturemask values (@pastaq).
 * Updates to User Guide to include instructions to apply PAC conditions on startup (@csecht).
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
-* Develop a startup utility to initialize GPU settings at boot up.
-* Implement an option to write a startup script to effect changes on boot up.
 
 ## Known Issues
-* The plot display will eventually lock up the plot GUI, so it is not recomended to run for extended periods of time.  Help in fixing this would be appreciated!
+* The plot display will eventually lock up the plot GUI, so it is not recommended to run for extended periods of time.  Help in fixing this would be appreciated!
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.

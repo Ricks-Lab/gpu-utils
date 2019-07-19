@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='amdgpu-utils',
-      version='2.5.1',
+      version='2.5.2',
       description='Ricks-Lab AMD GPU Utilities',
       author='RueiKe',
       url='https://github.com/Ricks-Lab/amdgpu-utils',
