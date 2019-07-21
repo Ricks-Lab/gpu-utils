@@ -156,10 +156,10 @@ def updateData(gpu_list, devices, cmd):
             if lk == "card_num":
                 data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
             else:
-                data_value = str(gpu_list.list[dk].get_params_value(lk))
+                data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
                 if data_value == "-1": data_value = ""
             lv.set_text(data_value)
-            lv.set_width_chars(16)
+            lv.set_width_chars(17)
 
 def refresh(refreshtime, updateData, gpu_list, devices, cmd):
     while True:
