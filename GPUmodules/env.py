@@ -22,7 +22,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -114,6 +114,7 @@ class GUT_CONST:
                     return(0)
                 else:
                     print(f"amdgpu-utils non-compatible driver: {driver_str}")
+                    print(f"amdgpu-utils requires AMD's \'amdgpu\' driver package in order to function.")
                     return(-3)
         return(0)
 
