@@ -34,18 +34,27 @@ __version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk, Gdk
 import argparse
 import re
 import subprocess
 import os
 import sys
 import time
+from uuid import uuid4
+
+try:
+    import gi
+except ModuleNotFoundError as error:
+    print("gi import error: {}".format(error))
+    print("gi is required for %s", __program_name__)
+    print("   In a venv, first install vext:  pip install --no-cache-dir vext")
+    print("   Then install vext.gi:  pip install --no-cache-dir vext.gi")
+    sys.exit(0)
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk, Gdk
+
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from uuid import uuid4
 
 
 class PACWindow(Gtk.Window):

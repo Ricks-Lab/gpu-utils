@@ -36,6 +36,15 @@ __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
 import sys
+import gc as garbcollect
+import argparse
+import re
+import threading
+import os
+import time
+from pathlib import Path
+import numpy as np
+
 try:
     from matplotlib.ticker import AutoLocator
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
@@ -50,28 +59,29 @@ except ModuleNotFoundError as error:
 
 try:
     import pandas as pd
-    from pandas.plotting import register_matplotlib_converters
-    register_matplotlib_converters()
 except ModuleNotFoundError as error:
     print("Pandas import error: {}".format(error))
     print("Pandas is required for %s", __program_name__)
-    #print("Use \"sudo apt-get install python3-pandas\" to install")
     print("Install pip3 if needed: \"sudo apt install python3-pip\"")
     print("Then pip install pandas: \"pip3 install pandas\"")
     sys.exit(0)
-import numpy as np
-import gi
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+try:
+    import gi
+except ModuleNotFoundError as error:
+    print("gi import error: {}".format(error))
+    print("gi is required for %s", __program_name__)
+    print("   In a venv, first install vext:  pip install --no-cache-dir vext")
+    print("   Then install vext.gi:  pip install --no-cache-dir vext.gi")
+    sys.exit(0)
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Gdk
-import gc as garbcollect
-import argparse
-import re
-import threading
-import os
-import time
+
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from pathlib import Path
+
 
 ###SEMAPHORE#############
 pd_sem = threading.Semaphore()

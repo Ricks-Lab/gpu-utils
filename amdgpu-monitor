@@ -45,9 +45,18 @@ import sys
 import shlex
 import time
 from pathlib import Path
-import gi
+
+try:
+    import gi
+except ModuleNotFoundError as error:
+    print("gi import error: {}".format(error))
+    print("gi is required for %s", __program_name__)
+    print("   In a venv, first install vext:  pip install --no-cache-dir vext")
+    print("   Then install vext.gi:  pip install --no-cache-dir vext.gi")
+    sys.exit(0)
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib, Gtk, Gdk
+
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
 
