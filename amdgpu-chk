@@ -26,55 +26,55 @@ __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
 import argparse
-import os
 import re
 import subprocess
 import shlex
 import platform
 import sys
 
+
 class GUT_CONST:
     def __init__(self):
         self.DEBUG = False
 
     def check_env(self):
-        ret_val = [0,0,0]
+        ret_val = [0, 0, 0]
         # Check python version
-        required_pversion = [3,6]
+        required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        print("Using python " + python_major +"."+ python_minor +"."+ python_patch)
+        print("Using python " + python_major + "." + python_minor + "." + python_patch)
         if int(python_major) < required_pversion[0]:
             print("          " +'\x1b[1;37;41m' + " but amdgpu-utils requires python " +
-                    str(required_pversion[0]) +"."+ str(required_pversion[1]) + " or newer." + '\x1b[0m')
+                  str(required_pversion[0]) + "." + str(required_pversion[1]) + " or newer." + '\x1b[0m')
             ret_val[0] = -1
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-utils requires python " +
-                    str(required_pversion[0]) +"."+ str(required_pversion[1]) + " or newer." + '\x1b[0m')
+            print("          " + '\x1b[1;37;41m' + " but amdgpu-utils requires python " +
+                  str(required_pversion[0]) + "." + str(required_pversion[1]) + " or newer." + '\x1b[0m')
             ret_val[0] = -1
         else:
-            print("          " +'\x1b[1;37;42m' + " Python version OK. " + '\x1b[0m')
+            print("          " + '\x1b[1;37;42m' + " Python version OK. " + '\x1b[0m')
             ret_val[0] = 0
 
         # Check Linux Kernel version
-        required_kversion = [4,8]
+        required_kversion = [4, 8]
         linux_version = platform.release()
         print("Using Linux Kernel " + str(linux_version))
         if int(linux_version.split(".")[0]) < required_kversion[0]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-util requires " + 
-                    str(required_kversion[0]) +"."+ str(required_kversion[1]) + " or newer." + '\x1b[0m')
+            print("          " + '\x1b[1;37;41m' + " but amdgpu-util requires " +
+                  str(required_kversion[0]) + "." + str(required_kversion[1]) + " or newer." + '\x1b[0m')
             ret_val[1] = -2
         elif int(linux_version.split(".")[0]) == required_kversion[0] and int(linux_version.split(".")[1]) < required_kversion[1]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-util requires " + 
-                    str(required_kversion[0]) +"."+ str(required_kversion[1]) + " or newer." + '\x1b[0m')
+            print("          " + '\x1b[1;37;41m' + " but amdgpu-util requires " +
+                  str(required_kversion[0]) + "." + str(required_kversion[1]) + " or newer." + '\x1b[0m')
             ret_val[1] = -2
         else:
-            print("          " +'\x1b[1;37;42m' + " OS kernel OK. " + '\x1b[0m')
+            print("          " + '\x1b[1;37;42m' + " OS kernel OK. " + '\x1b[0m')
             ret_val[1] = 0
 
         # Check for amdgpu driver
         required_aversion = 'driver=amdgpu'
         lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
-                stderr=subprocess.DEVNULL).decode().split("\n")
+                                           stderr=subprocess.DEVNULL).decode().split("\n")
         config_found = False
         for lshw_line in lshw_out:
             searchObj = re.search('configuration:', lshw_line)
@@ -87,15 +87,15 @@ class GUT_CONST:
         if not config_found:
             driver_str = "not detected"
             print("AMD GPU driver not detected")
-            print("          " +'\x1b[1;37;41m' + " AMD's \'amdgpu\' driver package is required. " + '\x1b[0m')
+            print("          " + '\x1b[1;37;41m' + " AMD's \'amdgpu\' driver package is required. " + '\x1b[0m')
             ret_val[2] = -3
         if(searchObj != None):
-            print("AMD GPU driver is "+ driver_str)
-            print("          " +'\x1b[1;37;42m' + " AMD driver OK. " + '\x1b[0m')
+            print("AMD GPU driver is " + driver_str)
+            print("          " + '\x1b[1;37;42m' + " AMD driver OK. " + '\x1b[0m')
             ret_val[2] = 0
         else:
-            print("AMD GPU driver is "+ driver_str)
-            print("          " +'\x1b[1;37;41m' + " AMD's \'amdgpu\' driver package is required. " + '\x1b[0m')
+            print("AMD GPU driver is " + driver_str)
+            print("          " + '\x1b[1;37;41m' + " AMD's \'amdgpu\' driver package is required. " + '\x1b[0m')
             ret_val[2] = -3
 
         return(ret_val)
@@ -103,17 +103,17 @@ class GUT_CONST:
 
 gut_const = GUT_CONST()
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)
@@ -124,9 +124,10 @@ def main():
 
     gut_const.DEBUG = args.debug
 
-    if gut_const.check_env() != [0,0,0]:
+    if gut_const.check_env() != [0, 0, 0]:
         print("Error in environment. Exiting...")
         sys.exit(-1)
+
 
 if __name__ == "__main__":
     main()

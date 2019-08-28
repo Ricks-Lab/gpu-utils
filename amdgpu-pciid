@@ -33,20 +33,15 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = [""]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pciid"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
 import argparse
-import re
-import subprocess
 import os
-import platform
 import sys
-import time
 from GPUmodules import PCImodule as PCI
 from GPUmodules import env
-import shutil 
 from pathlib import Path
 
 
@@ -54,18 +49,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--about", help="README", action="store_true", default=False)
     parser.add_argument("--download", help="download pci decode table from https://pci-ids.ucw.cz/v2.2/pci.ids",
-            action="store_true", default=False)
+                        action="store_true", default=False)
     parser.add_argument("--install", help="download, parse amd entries, and install a new decode file",
-            action="store_true", default=False)
+                        action="store_true", default=False)
     parser.add_argument("--force", help="force install of new pci.ids data even if revision is unchanged",
-            action="store_true", default=False)
+                        action="store_true", default=False)
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)
@@ -84,19 +79,19 @@ def main():
     pciid = PCI.PCI_ID()
 
     # display info about pci.ids
-    if args.download == False and args.install == False:
+    if not args.download and not args.install:
         original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
         print("Current pci.ids version %s : %s" % (original_file_version, original_amd_file))
         sys.exit(0)
 
-    if args.download == True or args.install == True:
+    if args.download or args.install:
         pciid_filename_new = pciid.download_pciid()
         print("Download complete: %s" % pciid_filename_new)
         new_file_version = pciid.get_pciid_version(pciid_filename_new)
         print("    Download %s : %s" % (new_file_version, pciid_filename_new))
 
-    if args.install == True:
+    if args.install:
         original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
         print("    Original %s : %s" % (original_file_version, original_amd_file))

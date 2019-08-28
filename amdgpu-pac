@@ -30,7 +30,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-pac"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -40,19 +40,12 @@ from gi.repository import GLib, Gtk, Gdk
 import argparse
 import re
 import subprocess
-import threading
 import os
-import platform
 import sys
 import time
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from datetime import datetime
 from uuid import uuid4
-import glob 
-import shutil 
-from pathlib import Path
-import multiprocessing
 
 
 class PACWindow(Gtk.Window):
@@ -76,8 +69,8 @@ class PACWindow(Gtk.Window):
             row = 0
             # Card Number in top center of box
             devices[v.uuid] = {"card_num":  Gtk.Label()}
-            devices[v.uuid]["card_num"].set_markup("<big><b>Card "+ v.get_params_value(str("card_num")) +
-                    ":  </b>" + v.get_params_value("model_display") + "</big>")
+            devices[v.uuid]["card_num"].set_markup("<big><b>Card "+ v.get_params_value(str("card_num")) + ":  </b>"
+                                                   + v.get_params_value("model_display") + "</big>")
             devices[v.uuid]["card_num"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             devices[v.uuid]["card_num"].set_property("margin-top", 1)
             devices[v.uuid]["card_num"].set_property("margin-bottom", 1)
@@ -86,7 +79,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["card_num"].set_alignment(0.5, 0.5)
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -106,7 +99,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["card_path"].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -118,8 +111,8 @@ class PACWindow(Gtk.Window):
             # Card Power Cap
             power_cap_range = v.get_params_value("power_cap_range")
             devices[v.uuid]["power_cap"] = Gtk.Label()
-            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> "+
-                    "Range (" + str(power_cap_range[0])+" - "+str(power_cap_range[1])+" W)")
+            devices[v.uuid]["power_cap"].set_markup("<b>Power Cap: </b> " + "Range (" + str(power_cap_range[0]) +
+                                                    " - " + str(power_cap_range[1]) + " W)")
             devices[v.uuid]["power_cap"].set_property("margin-top", 1)
             devices[v.uuid]["power_cap"].set_property("margin-bottom", 1)
             devices[v.uuid]["power_cap"].set_property("margin-right", 2)
@@ -127,7 +120,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["power_cap"].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -162,7 +155,7 @@ class PACWindow(Gtk.Window):
 
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
             lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -177,8 +170,8 @@ class PACWindow(Gtk.Window):
                 # Fan PWM Value
                 fan_pwm_range = v.get_params_value("fan_pwm_range")
                 devices[v.uuid]["fan_pwm_range"] = Gtk.Label()
-                devices[v.uuid]["fan_pwm_range"].set_markup("<b>Fan PWM: </b> "+ "Range (" +
-                        str(fan_pwm_range[0])+" - "+str(fan_pwm_range[1])+" %)")
+                devices[v.uuid]["fan_pwm_range"].set_markup("<b>Fan PWM: </b> " + "Range (" + str(fan_pwm_range[0])
+                                                            + " - " + str(fan_pwm_range[1])+" %)")
                 devices[v.uuid]["fan_pwm_range"].set_property("margin-top", 1)
                 devices[v.uuid]["fan_pwm_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["fan_pwm_range"].set_property("margin-right", 2)
@@ -186,7 +179,7 @@ class PACWindow(Gtk.Window):
                 devices[v.uuid]["fan_pwm_range"].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(spacing=6)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -221,7 +214,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -235,9 +228,11 @@ class PACWindow(Gtk.Window):
             if v.get_params_value("gpu_type") == 1:
                 # Sclk P-States
                 devices[v.uuid]["sclk_range"] = Gtk.Label()
-                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " +
-                        "Ranges " + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) +
-                        ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1])+"  ")
+                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk P-States: </b> " + "Ranges " +
+                                                         str(v.get_params_value("sclk_f_range")[0]) + "-" +
+                                                         str(v.get_params_value("sclk_f_range")[1]) + ", " +
+                                                         str(v.get_params_value("vddc_range")[0]) + "-" +
+                                                         str(v.get_params_value("vddc_range")[1]) + "  ")
                 devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["sclk_range"].set_property("margin-right", 2)
@@ -246,7 +241,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -302,7 +297,7 @@ class PACWindow(Gtk.Window):
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
-                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                     lbox.set_property("margin-top", 1)
                     lbox.set_property("margin-bottom", 1)
                     lbox.set_property("margin-right", 1)
@@ -333,7 +328,7 @@ class PACWindow(Gtk.Window):
             
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -346,8 +341,9 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value("gpu_type") == 2:
                 # Sclk Curve End Points
                 devices[v.uuid]["sclk_range"] = Gtk.Label()
-                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk Curve End Points: </b> " + "Ranges "
-                        + str(v.get_params_value("sclk_f_range")[0]) +"-"+ str(v.get_params_value("sclk_f_range")[1]) + "  ")
+                devices[v.uuid]["sclk_range"].set_markup("<b>Sclk Curve End Points: </b> " + "Ranges " +
+                                                         str(v.get_params_value("sclk_f_range")[0]) + "-" +
+                                                         str(v.get_params_value("sclk_f_range")[1]) + "  ")
                 devices[v.uuid]["sclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["sclk_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["sclk_range"].set_property("margin-right", 2)
@@ -356,7 +352,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -396,7 +392,7 @@ class PACWindow(Gtk.Window):
     
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
-                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                     lbox.set_property("margin-top", 1)
                     lbox.set_property("margin-bottom", 1)
                     lbox.set_property("margin-right", 1)
@@ -410,9 +406,11 @@ class PACWindow(Gtk.Window):
             if v.get_params_value("gpu_type") == 1:
                 # Mclk P-States
                 devices[v.uuid]["mclk_range"] = Gtk.Label()
-                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " +
-                        "Ranges " + str(v.get_params_value("mclk_f_range")[0]) +"-"+ str(v.get_params_value("mclk_f_range")[1]) +
-                        ", " + str(v.get_params_value("vddc_range")[0]) +"-"+ str(v.get_params_value("vddc_range")[1]))
+                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk P-States: </b> " + "Ranges " +
+                                                         str(v.get_params_value("mclk_f_range")[0]) + "-" +
+                                                         str(v.get_params_value("mclk_f_range")[1]) + ", " +
+                                                         str(v.get_params_value("vddc_range")[0]) + "-" +
+                                                         str(v.get_params_value("vddc_range")[1]))
                 devices[v.uuid]["mclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["mclk_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["mclk_range"].set_property("margin-right", 2)
@@ -421,7 +419,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -477,7 +475,7 @@ class PACWindow(Gtk.Window):
     
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
-                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                     lbox.set_property("margin-top", 1)
                     lbox.set_property("margin-bottom", 1)
                     lbox.set_property("margin-right", 1)
@@ -508,7 +506,7 @@ class PACWindow(Gtk.Window):
             
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -520,8 +518,9 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value("gpu_type") == 2:
                 # Mclk Curve End points
                 devices[v.uuid]["mclk_range"] = Gtk.Label()
-                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk Curve End Points: </b> " + "Ranges "
-                        + str(v.get_params_value("mclk_f_range")[0]) +"-"+ str(v.get_params_value("mclk_f_range")[1]))
+                devices[v.uuid]["mclk_range"].set_markup("<b>Mclk Curve End Points: </b> " + "Ranges " +
+                                                         str(v.get_params_value("mclk_f_range")[0]) + "-" +
+                                                         str(v.get_params_value("mclk_f_range")[1]))
                 devices[v.uuid]["mclk_range"].set_property("margin-top", 1)
                 devices[v.uuid]["mclk_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["mclk_range"].set_property("margin-right", 2)
@@ -530,7 +529,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -570,7 +569,7 @@ class PACWindow(Gtk.Window):
     
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
-                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                     lbox.set_property("margin-top", 1)
                     lbox.set_property("margin-bottom", 1)
                     lbox.set_property("margin-right", 1)
@@ -585,10 +584,10 @@ class PACWindow(Gtk.Window):
                 # VDDC Curve Points
                 devices[v.uuid]["vddc_curve_range"] = Gtk.Label()
                 devices[v.uuid]["vddc_curve_range"].set_markup("<b>VDDC Curve Points: </b> " + "Ranges " +
-                        str(v.vddc_curve_range["0"]["SCLK"][0]) +"-"+
-                        str(v.vddc_curve_range["0"]["SCLK"][1]) +", "+
-                        str(v.vddc_curve_range["0"]["VOLT"][0]) +"-"+
-                        str(v.vddc_curve_range["0"]["VOLT"][1]) +"  ")
+                                                               str(v.vddc_curve_range["0"]["SCLK"][0]) + "-" +
+                                                               str(v.vddc_curve_range["0"]["SCLK"][1]) + ", " +
+                                                               str(v.vddc_curve_range["0"]["VOLT"][0]) + "-" +
+                                                               str(v.vddc_curve_range["0"]["VOLT"][1]) + "  ")
                 devices[v.uuid]["vddc_curve_range"].set_property("margin-top", 1)
                 devices[v.uuid]["vddc_curve_range"].set_property("margin-bottom", 1)
                 devices[v.uuid]["vddc_curve_range"].set_property("margin-right", 2)
@@ -597,7 +596,7 @@ class PACWindow(Gtk.Window):
     
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -653,7 +652,7 @@ class PACWindow(Gtk.Window):
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
-                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                    lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                     lbox.set_property("margin-top", 1)
                     lbox.set_property("margin-bottom", 1)
                     lbox.set_property("margin-right", 1)
@@ -676,7 +675,7 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]["ppm"].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.12))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -696,7 +695,7 @@ class PACWindow(Gtk.Window):
                 item_num += 1
 
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -726,7 +725,7 @@ class PACWindow(Gtk.Window):
 
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
             lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6,.6,.6,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6, .6, .6, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -767,7 +766,7 @@ class PACWindow(Gtk.Window):
     
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
             lbox.set_homogeneous(False)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6,.6,.6,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6, .6, .6, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -785,11 +784,11 @@ class PACWindow(Gtk.Window):
 
         devices["message_label"].set_alignment(0, 0.5)
         devices["message_label"].set_max_width_chars(num_com_amd_gpus * MAX_CHAR)
-        devices["message_label"].set_property("width-request", num_com_amd_gpus *MAX_CHAR*CHAR_WIDTH)
+        devices["message_label"].set_property("width-request", num_com_amd_gpus * MAX_CHAR * CHAR_WIDTH)
         devices["message_label"].set_line_wrap(True)
         devices["message_box"].set_homogeneous(False)
         devices["message_label"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-        devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6,.6,.6,1.0))
+        devices["message_box"].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6, .6, .6, 1.0))
         devices["message_box"].set_property("margin-top", 1)
         devices["message_box"].set_property("margin-bottom", 1)
         devices["message_box"].set_property("margin-right", 1)
@@ -1012,7 +1011,7 @@ class PACWindow(Gtk.Window):
             if v.is_valid_power_cap(new_power_cap):
                 changed += 1
                 if new_power_cap < 0:
-                    #reset
+                    # reset
                     print("# Reseting Power Cap to default", file=fileptr)
                     print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
                 else:
@@ -1046,7 +1045,7 @@ class PACWindow(Gtk.Window):
                 if v.is_valid_fan_pwm(new_pwm):
                     changed += 1
                     if new_pwm < 0:
-                        #reset
+                        # reset
                         print("# Reseting fans to Dynamic mode", file=fileptr)
                         print("sudo sh -c \"echo \'2\' >  %s\"" % (pwm_enable_file), file=fileptr)
                     else:
@@ -1390,9 +1389,9 @@ def main():
     args = parser.parse_args()
 
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)
@@ -1426,9 +1425,6 @@ def main():
         sys.exit(-1)
 
     env.gut_const.get_amd_driver_version()
-
-    #print("Non working Development version. Exiting...")
-    #sys.exit(-1)
 
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = GPU.GPU_LIST()

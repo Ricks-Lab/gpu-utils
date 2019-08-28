@@ -28,23 +28,15 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-ls"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
 import argparse
-import re
-import subprocess
 import os
-import platform
 import sys
-import time
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from datetime import datetime
-from uuid import uuid4
-import glob 
-import shutil 
 from pathlib import Path
 
 
@@ -58,11 +50,10 @@ def main():
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)

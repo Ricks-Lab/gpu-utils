@@ -21,21 +21,16 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = [""]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-utils"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
 import re
-import socket
 import os
-import platform
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
-from uuid import uuid4
-import glob 
-import shutil 
+import shutil
 import urllib.request
 
 
@@ -49,7 +44,6 @@ class PCI_ID:
             self.pci_id_file_ptr = open(self.amdgpu_utils_file, 'r')
         except:
             print("Can not open [%s] to read. Exiting..." % os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
-
 
     def get_pciid_version(self, filename=""):
         """ Get version information of specified pci.ids file. 
@@ -80,7 +74,7 @@ class PCI_ID:
                 if len(lineItem) > 1:
                     file_date = lineItem[1].strip()
                 break
-        return("Version: "+ file_version + ", Date: " + file_date)
+        return("Version: " + file_version + ", Date: " + file_date)
 
     def download_pciid(self):
         """ download from https://pci-ids.ucw.cz/v2.2/pci.ids
@@ -119,13 +113,12 @@ class PCI_ID:
                 print("Can not open [%s] to write. Exiting..." % out_file_name)
                 sys.exit(-1)
 
-
         level = -1
         vendor_match = False
         for line_item in in_file_ptr:
             line = line_item.rstrip()
             if level == -1:
-                if len(line)<4:
+                if len(line) < 4:
                     print(line, file=file_ptr)
                     continue
                 if line[0] == '#':
@@ -133,9 +126,9 @@ class PCI_ID:
                     continue
             if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
                 level = 0
-                if vendor_match == True:
+                if vendor_match:
                     break
-            if vendor_match == True:
+            if vendor_match:
                 print(line, file=file_ptr)
                 continue
             if line[:4] == vendor.replace('0x',''):
@@ -157,11 +150,11 @@ class PCI_ID:
         level = 0
         for line_item in self.pci_id_file_ptr:
             line = line_item.rstrip()
-            if len(line)<4: continue
+            if len(line) < 4: continue
             if line[0] == '#': continue
             if level == 0:
                 if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    if line[:4] == dev_id["vendor"].replace('0x',''):
+                    if line[:4] == dev_id["vendor"].replace('0x', ''):
                         level += 1
                         continue
             elif level == 1:
@@ -178,8 +171,8 @@ class PCI_ID:
                 if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
                     break
                 if re.fullmatch(r'^\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
-                    if line[2:6] == dev_id["subsystem_vendor"].replace('0x',''):
-                        if line[7:11] == dev_id["subsystem_device"].replace('0x',''):
+                    if line[2:6] == dev_id["subsystem_vendor"].replace('0x', ''):
+                        if line[7:11] == dev_id["subsystem_device"].replace('0x', ''):
                             model_str = line[11:]
                             break
         return(model_str.strip())
@@ -197,11 +190,11 @@ def test():
     model_name = pciid.get_model(test_id)
     print("Device: %s Model name: %s" % (test_id, model_name))
 
-    test_id =  {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
+    test_id = {'vendor': '0x1002', 'device': '0x67ef', 'subsystem_vendor': '0x103c', 'subsystem_device': '0x3421'}
     model_name = pciid.get_model(test_id)
     print("Device: %s Model name: %s" % (test_id, model_name))
 
-    test_id =  {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
+    test_id = {'vendor': '0x1002', 'device': '0x67df', 'subsystem_vendor': '0x1682', 'subsystem_device': '0xc570'}
     model_name = pciid.get_model(test_id)
     print("Device: %s Model name: %s" % (test_id, model_name))
 

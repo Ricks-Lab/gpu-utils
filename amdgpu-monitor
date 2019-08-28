@@ -33,53 +33,45 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-monitor"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import GLib, Gtk, Gdk
 import argparse
-import re
 import subprocess
 import threading
 import os
-import platform
 import sys
 import shlex
 import time
+from pathlib import Path
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import GLib, Gtk, Gdk
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from datetime import datetime
-from uuid import uuid4
-import glob 
-import shutil 
-from pathlib import Path
 
 
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title="amdgpu-monitor")
         self.set_border_width(1)
-        #if(os.path.isfile(env.gut_const.PATH + '/icons/amdgpu-monitor.icon.png') == True):
-            #self.set_icon_from_file(env.gut_const.PATH + '/amdgpu-monitor.icon.png')
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
-        if(os.path.isfile(icon_file) == True):
+        if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
         self.add(grid)
 
         col = 0
-        row=0
+        row = 0
         num_amd_gpus = gpu_list.num_gpus()
-        if env.gut_const.LOG == True:  
+        if env.gut_const.LOG:
             log_label = Gtk.Label()
             log_label.set_markup("<big><b> Logging to:    </b>" + env.gut_const.log_file + "</big>")
             log_label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=6)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60,.20,.20,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60, .20, .20, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -95,12 +87,12 @@ class MonitorWindow(Gtk.Window):
         row_labels["card_num"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in gpu_list.table_param_labels.items():
             row_labels[k] = Gtk.Label()
-            row_labels[k].set_markup("<b>"+str(v)+"</b>")
+            row_labels[k].set_markup("<b>" + str(v) + "</b>")
             row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
             #lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -124,7 +116,7 @@ class MonitorWindow(Gtk.Window):
             row = row_start
             for lk, lv in dv.items():
                 lbox = Gtk.Box(spacing=6)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                 lbox.set_property("margin-top", 1)
                 lbox.set_property("margin-bottom", 1)
                 lbox.set_property("margin-right", 1)
@@ -133,6 +125,7 @@ class MonitorWindow(Gtk.Window):
                 lv.set_property("margin-bottom", 1)
                 lv.set_property("margin-right", 3)
                 lv.set_property("margin-left", 3)
+                lv.set_width_chars(17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -141,9 +134,9 @@ class MonitorWindow(Gtk.Window):
 def updateData(gpu_list, devices, cmd):
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
-    if env.gut_const.LOG == True:  
+    if env.gut_const.LOG:
         gpu_list.print_log(env.gut_const.log_file_ptr)
-    if env.gut_const.PLOT == True:  
+    if env.gut_const.PLOT:
         try:
             gpu_list.print_plot(cmd.stdin)
         except:
@@ -160,6 +153,7 @@ def updateData(gpu_list, devices, cmd):
                 if data_value == "-1": data_value = ""
             lv.set_text(data_value)
             lv.set_width_chars(17)
+
 
 def refresh(refreshtime, updateData, gpu_list, devices, cmd):
     while True:
@@ -180,11 +174,10 @@ def main():
     parser.add_argument("--pdebug", help="Plot debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)
@@ -197,8 +190,8 @@ def main():
     env.gut_const.DEBUG = args.debug
     env.gut_const.PDEBUG = args.pdebug
     if args.ltz: env.gut_const.USELTZ = True
-    if args.no_fan == True: env.gut_const.show_fans = False
-    if int(args.sleep) > 0 :
+    if args.no_fan: env.gut_const.show_fans = False
+    if int(args.sleep) > 0:
         env.gut_const.SLEEP = int(args.sleep)
     else:
         print("Invalid value for sleep specified.  Must be an integer great than zero")
@@ -258,15 +251,14 @@ def main():
     # Generate a new list of only compatible GPUs
     com_gpu_list = gpu_list.list_compatible_gpus()
 
-    if args.log == True:
+    if args.log:
         env.gut_const.LOG = True
-        #env.gut_const.log_file = "./log_monitor_" + datetime.utcnow().strftime('%m%d_%H%M%S') + ".txt"
         env.gut_const.log_file = "./log_monitor_" + env.gut_const.now(ltz=env.gut_const.USELTZ).strftime('%m%d_%H%M%S') + ".txt"
         env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w',1)
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 
-    if args.plot == True: args.gui = True
-    if args.gui == True:
+    if args.plot: args.gui = True
+    if args.gui:
         # Display Gtk style Monitor
         devices = {}
         gmonitor = MonitorWindow(com_gpu_list, devices)
@@ -274,11 +266,11 @@ def main():
         gmonitor.show_all()
 
         cmd = None
-        if args.plot == True:
+        if args.plot:
             env.gut_const.PLOT = True
             plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
-            if(os.path.isfile(plot_util) == True):
-                if env.gut_const.PDEBUG == True:
+            if os.path.isfile(plot_util):
+                if env.gut_const.PDEBUG:
                     cmd_str = plot_util + " --debug --stdin --sleep " + str(env.gut_const.SLEEP)
                 else:
                     cmd_str = plot_util + " --stdin --sleep " + str(env.gut_const.SLEEP)
@@ -286,7 +278,8 @@ def main():
                 gpu_list.print_plot_header(cmd.stdin)
 
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP, updateData, gpu_list, devices, cmd]).start()
+        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP,
+                                     updateData, gpu_list, devices, cmd]).start()
 
         Gtk.main()
     else:
@@ -295,14 +288,14 @@ def main():
             while True:
                 com_gpu_list.read_gpu_sensor_data()
                 com_gpu_list.read_gpu_state_data()
-                if env.gut_const.DEBUG == False: os.system('clear')
-                if env.gut_const.LOG == True:  
+                if not env.gut_const.DEBUG: os.system('clear')
+                if env.gut_const.LOG:
                     print("%sLogging to:  %s%s" % ("\033[31m \033[01m", env.gut_const.log_file, "\033[0m"))
                     com_gpu_list.print_log(env.gut_const.log_file_ptr)
                 com_gpu_list.print_table()
                 time.sleep(env.gut_const.SLEEP)
         except KeyboardInterrupt:
-            if env.gut_const.LOG == True:  
+            if env.gut_const.LOG:
                 env.gut_const.log_file_ptr.close()
             sys.exit(0)
 

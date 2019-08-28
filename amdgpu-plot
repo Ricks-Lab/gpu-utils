@@ -31,7 +31,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
-__version__ = "v2.5.2"
+__version__ = "v2.5.3"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
@@ -42,7 +42,8 @@ try:
     from matplotlib.figure import Figure
     import matplotlib.pyplot as plt
     #import matplotlib.dates as mdates
-except:
+except ModuleNotFoundError as error:
+    print("matplotlib import error: {}".format(error))
     print("matplotlib is required for %s", __program_name__)
     print("Use \"sudo apt-get install python3-matplotlib\" to install")
     sys.exit(0)
@@ -51,7 +52,8 @@ try:
     import pandas as pd
     from pandas.plotting import register_matplotlib_converters
     register_matplotlib_converters()
-except:
+except ModuleNotFoundError as error:
+    print("Pandas import error: {}".format(error))
     print("Pandas is required for %s", __program_name__)
     #print("Use \"sudo apt-get install python3-pandas\" to install")
     print("Install pip3 if needed: \"sudo apt install python3-pip\"")
@@ -64,32 +66,27 @@ from gi.repository import GLib, Gtk, Gdk
 import gc as garbcollect
 import argparse
 import re
-import subprocess
 import threading
-import signal
 import os
-import platform
-import csv
 import time
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from datetime import datetime
-import glob 
-import shutil 
 from pathlib import Path
 
 ###SEMAPHORE#############
 pd_sem = threading.Semaphore()
 #########################
- 
+
+
 def hex_to_rgba(value):
     # Code copied from Stack Overflow
     value = value.lstrip('#')
     if len(value) == 3:
         value = ''.join([v*2 for v in list(value)])
-    (r1,g1,b1,a1)=tuple(int(value[i:i+2], 16) for i in range(0, 6, 2))+(1,) 
-    (r1,g1,b1,a1)=(r1/255.00000,g1/255.00000,b1/255.00000,a1)
-    return (r1,g1,b1,a1)
+    (r1, g1, b1, a1) = tuple(int(value[i:i+2], 16) for i in range(0, 6, 2))+(1,)
+    (r1, g1, b1, a1) = (r1/255.00000, g1/255.00000, b1/255.00000, a1)
+    return (r1, g1, b1, a1)
+
 
 def get_stack_size():
     """Get stack size for caller's frame.
@@ -103,6 +100,7 @@ def get_stack_size():
             size += 1
         except ValueError:
             return size - 1  # subtract current frame
+
 
 class PlotData:
     def __init__(self):
@@ -141,6 +139,7 @@ class PlotData:
         print("Stopping reader thread")
         time.sleep(0.2)
 
+
 class GuiComponents:
     def __init__(self, plot_data):
         plot_data.gui_comp = self
@@ -149,17 +148,19 @@ class GuiComponents:
         self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
         self.gpu_color = {}
-        self.colors = {'plotface':'#404040', 'figface':'#909090', 'sclk_f':'#BED661', 'mclk_f':'#89E894',
-                'loading':'#1E90FF', 'power':'#E12B06', 'power_cap':'#800000', 'vddgfx':'#778899', 'temp':'#E0E0E0'}
-        self.font_colors = {'plotface':'#000000', 'figface':'#000000', 'sclk_f':'#000000', 'mclk_f':'#000000',
-                'loading':'#FFFFFF', 'power':'#FFFFFF', 'power_cap':'#FFFFFF', 'vddgfx':'#000000', 'temp':'#000000'}
+        self.colors = {'plotface': '#404040', 'figface': '#909090', 'sclk_f': '#BED661', 'mclk_f': '#89E894',
+                       'loading': '#1E90FF', 'power': '#E12B06', 'power_cap': '#800000', 'vddgfx': '#778899',
+                       'temp': '#E0E0E0'}
+        self.font_colors = {'plotface': '#000000', 'figface': '#000000', 'sclk_f': '#000000', 'mclk_f': '#000000',
+                            'loading': '#FFFFFF', 'power': '#FFFFFF', 'power_cap': '#FFFFFF', 'vddgfx': '#000000',
+                            'temp': '#000000'}
         gpu_color_list = ['#B52735', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
         plot_item_list = ['loading', 'power', 'power_cap', 'temp', 'vddgfx', 'sclk_f', 'mclk_f']
 
         #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
         #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
-        self.plot_items = {'loading':True, 'power':True, 'power_cap':True,
-                'temp':True, 'vddgfx':True,'sclk_f':True, 'mclk_f':True}
+        self.plot_items = {'loading': True, 'power': True, 'power_cap': True,
+                           'temp': True, 'vddgfx': True,'sclk_f': True, 'mclk_f': True}
 
         self.gui_components["info_bar"] = {}
         self.gui_components["legend"] = {}
@@ -185,6 +186,7 @@ class GuiComponents:
 
     def is_ready(self):
         return(self.ready)
+
 
 class GPUPlotWindow(Gtk.Window):
     def __init__(self, gc, plot_data):
@@ -214,14 +216,13 @@ class GPUPlotWindow(Gtk.Window):
             gp_y_size = def_gp_y_size
             bp_y_size = def_bp_y_size
 
-
         Gtk.Window.__init__(self, title="amdgpu-plot")
         self.set_border_width(1)
         icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-plot.icon.png")
-        if(os.path.isfile(icon_file) == True):
+        if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
         self.add(grid)
 
         # Get deep copy of current df
@@ -238,7 +239,7 @@ class GPUPlotWindow(Gtk.Window):
         gc.gui_components["info_bar"]["gtk_obj"].set_property("margin-left", 4)
         gc.gui_components["info_bar"]["gtk_obj"].set_alignment(0.5, 0.5)
         lbox = Gtk.Box(spacing=box_sapcing_val)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
         lbox.set_property("margin-right", 1)
@@ -257,7 +258,7 @@ class GPUPlotWindow(Gtk.Window):
         gc.gui_components["legend"]["gtk_obj"].set_property("margin-left", 4)
         gc.gui_components["legend"]["gtk_obj"].set_alignment(0.5, 0.5)
         lbox = Gtk.Box(spacing=box_sapcing_val)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.40,.40,.40,1.0))
+        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.40, .40, .40, 1.0))
         lbox.set_property("margin-top", 1)
         lbox.set_property("margin-bottom", 1)
         lbox.set_property("margin-right", 1)
@@ -270,14 +271,18 @@ class GPUPlotWindow(Gtk.Window):
             for child in gc.gui_components["legend"]["buttons"][k].get_children():
                 child.set_label("<big><b>" + k + "</b></big>")
                 child.set_use_markup(True)
-                child.override_color(Gtk.StateFlags.NORMAL,
-                    Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
-                child.override_background_color(Gtk.StateFlags.NORMAL,
-                    Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
-            gc.gui_components["legend"]["buttons"][k].override_color(Gtk.StateFlags.NORMAL,
-                Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
-            gc.gui_components["legend"]["buttons"][k].override_background_color(Gtk.StateFlags.NORMAL,
-                Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+                child.override_color(
+                        Gtk.StateFlags.NORMAL,
+                        Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
+                child.override_background_color(
+                        Gtk.StateFlags.NORMAL,
+                        Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+            gc.gui_components["legend"]["buttons"][k].override_color(
+                        Gtk.StateFlags.NORMAL,
+                        Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
+            gc.gui_components["legend"]["buttons"][k].override_background_color(
+                        Gtk.StateFlags.NORMAL,
+                        Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
             gc.gui_components["legend"]["buttons"][k].connect("clicked", self.toggle_plot_item, gc, k)
             gc.gui_components["legend"]["buttons"][k].set_property("width-request", 90)
             gc.gui_components["legend"]["buttons"][k].set_property("margin-top", 1)
@@ -291,13 +296,14 @@ class GPUPlotWindow(Gtk.Window):
 
         # Set up bar plots
         grid_bar = Gtk.Grid()
-        grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
+        grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
         grid.attach(grid_bar, 1, main_last_row, 1, 1)
         brow = 0
         fig_num=0
         #plot_top_row = row
-        for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
-
+        for v in [gc.gui_components["sclk_pstate_status"],
+                  gc.gui_components["mclk_pstate_status"],
+                  gc.gui_components["temp_status"]]:
             # Add Bar Plots Titles
             v["title_obj"] = Gtk.Label()
             v["title_obj"].set_markup("<big><b>Card " + v["df_name"] + "</b>" + "</big>")
@@ -308,7 +314,7 @@ class GPUPlotWindow(Gtk.Window):
             v["title_obj"].set_property("margin-left", 4)
             v["title_obj"].set_alignment(0.5, 0.5)
             lbox = Gtk.Box(spacing=box_sapcing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20,.40,.60,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -322,20 +328,20 @@ class GPUPlotWindow(Gtk.Window):
             # Set up plot figure and canvas
             v["figure_num"] = 100 + fig_num
             fig_num += 1
-            v["figure"], v["ax1"]  = plt.subplots(num=v["figure_num"])
+            v["figure"], v["ax1"] = plt.subplots(num=v["figure_num"])
             v["figure"].set_facecolor(gc.colors["figface"])
 
             plt.figure(v["figure_num"])
             plt.subplots_adjust(left=0.13, right=0.97, top=0.97, bottom=0.1)
             v["ax1"].set_facecolor(gc.colors["plotface"])
-            if v["df_name"] == "temp": plt.yticks(np.arange(20,91,10))
-            else: plt.yticks(np.arange(0,9,1))
+            if v["df_name"] == "temp": plt.yticks(np.arange(20, 91, 10))
+            else: plt.yticks(np.arange(0, 9, 1))
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_bp_x_size, bp_y_size)
 
             lbox = Gtk.Box(spacing=box_sapcing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.5,0.5,0.5,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.5, 0.5, 0.5, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -347,7 +353,7 @@ class GPUPlotWindow(Gtk.Window):
 
         # Set up gpu plots
         grid_plot = Gtk.Grid()
-        grid_plot.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7,0.7,0.7,1))
+        grid_plot.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
         grid.attach(grid_plot, 2, main_last_row, 3, 1)
         prow = 0
         #row = plot_top_row
@@ -356,8 +362,8 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
             # Add GPU Plots Titles
             v["title_obj"] = Gtk.Label()
-            v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
-                    "    Energy:  " + str(data_val) + "</b>" + "</big>")
+            v["title_obj"].set_markup("<big><b>Card   " + str(k) + "    " + str(model_val) +
+                                      "    Energy:  " + str(data_val) + "</b>" + "</big>")
             v["title_obj"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             v["title_obj"].set_property("margin-top", 1)
             v["title_obj"].set_property("margin-bottom", 1)
@@ -366,7 +372,9 @@ class GPUPlotWindow(Gtk.Window):
             v["title_obj"].set_alignment(0.5, 0.5)
             lbox = Gtk.Box(spacing=box_sapcing_val)
             rgba_col = hex_to_rgba(v["color"])
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2],rgba_col[3]))
+            lbox.override_background_color(
+                    Gtk.StateType.NORMAL,
+                    Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2],rgba_col[3]))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -387,12 +395,12 @@ class GPUPlotWindow(Gtk.Window):
             v["ax1"].set_facecolor(gc.colors["plotface"])
             v["ax1"].set_xticks([])
             v["ax1"].set_xticklabels([])
-            v["ax1"].set_yticks(np.arange(0,250,20))
+            v["ax1"].set_yticks(np.arange(0, 250, 20))
             v["ax1"].tick_params(axis='y', which='major', labelsize=8)
             v["ax2"] = v["ax1"].twinx()
             v["ax2"].set_xticks([])
             v["ax2"].set_xticklabels([])
-            v["ax2"].set_yticks(np.arange(500,1500,100))
+            v["ax2"].set_yticks(np.arange(500, 1500, 100))
             v["ax2"].tick_params(axis='y', which='major', labelsize=8)
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
@@ -400,7 +408,7 @@ class GPUPlotWindow(Gtk.Window):
 
 
             lbox = Gtk.Box(spacing=box_sapcing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1.0))
+            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -411,22 +419,24 @@ class GPUPlotWindow(Gtk.Window):
             prow += 1
 
     def toggle_plot_item(self, parent, gc, k):
-        if gc.plot_items[k] == True:
+        if gc.plot_items[k]:
             gc.plot_items[k] = False
         else:
             gc.plot_items[k] = True
 
 
 def updateData(gc, plot_data):
-    ###SEMAPHORE############
+    # SEMAPHORE ###########
     pd_sem.acquire()
-    ########################
+    #######################
     ldf = plot_data.df
     try:
         time_val = ldf[ldf["Card#"].isin([plot_data.gpu_list[0]])]["Time"].iloc[-1]
-        gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " +  str(time_val) + "</b></big>")
+        gc.gui_components["info_bar"]["gtk_obj"].set_markup("<big><b>Time   " + str(time_val) + "</b></big>")
         # Update Bar Plots
-        for v in [gc.gui_components["sclk_pstate_status"], gc.gui_components["mclk_pstate_status"], gc.gui_components["temp_status"]]:
+        for v in [gc.gui_components["sclk_pstate_status"],
+                  gc.gui_components["mclk_pstate_status"],
+                  gc.gui_components["temp_status"]]:
             data_val = []
             label_val = []
             bar_col = []
@@ -446,7 +456,7 @@ def updateData(gc, plot_data):
             if v["df_name"] == "temp":
                 for a, b in zip(ind, data_val):
                     v["ax1"].text(x=float(a)-(float(width)/1.8), y=0.90*b, s=' '+str(b), fontsize=8)
-                plt.ylim((20,91))
+                plt.ylim((20, 91))
                 #v["ax1"].set_ylabel('Temp (C)', color='k')
             else:
                 data_val = list(map(int, data_val))
@@ -461,13 +471,13 @@ def updateData(gc, plot_data):
             v["canvas"].draw()
             v["canvas"].flush_events()
         # Update GPU Plots
-        ylim_max_val = 100*(ldf.loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max() // 100) + 200
-        ylim_min_val = 100*(ldf.loc[:,['vddgfx', 'sclk_f', 'mclk_f']].min().min() // 100)
+        ylim_max_val = 100*(ldf.loc[:, ['vddgfx', 'sclk_f', 'mclk_f']].max().max() // 100) + 200
+        ylim_min_val = 100*(ldf.loc[:, ['vddgfx', 'sclk_f', 'mclk_f']].min().min() // 100)
         for k,v in gc.gui_components["card_plots"].items():
             data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
             model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
-            v["title_obj"].set_markup("<big><b>Card   " + str(k) +"    "+ str(model_val) +
-                    "    Energy:  " + str(data_val) + "</b>" + "</big>")
+            v["title_obj"].set_markup("<big><b>Card   " + str(k) + "    " + str(model_val) +
+                                      "    Energy:  " + str(data_val) + "</b>" + "</big>")
     
             # Plot GPUs
             plt.figure(v["figure_num"])
@@ -475,28 +485,28 @@ def updateData(gc, plot_data):
             v["ax1"].clear()
             v["ax1"].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
-                if gc.plot_items[plot_item] == True:
-                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['datetime']], 
-                                  ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                if gc.plot_items[plot_item]:
+                    v["ax1"].plot(ldf[ldf["Card#"].isin([k])].loc[:, ['datetime']],
+                                  ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
-                    v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['datetime']].iloc[-1],
-                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
-                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
-                                  bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+                    v["ax1"].text(x=ldf[ldf["Card#"].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  bbox=dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
     
             v["ax2"].clear()
             v["ax2"].set_xticklabels([])
             v["ax2"].set_ylabel('MHz/mV', color='k', fontsize=10)
             #ylim_val = 1.1* ldf[ldf["Card#"].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
-                if gc.plot_items[plot_item] == True:
-                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:,['datetime']],
-                                  ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]],
+                if gc.plot_items[plot_item]:
+                    v["ax2"].plot(ldf[ldf["Card#"].isin([k])].loc[:, ['datetime']],
+                                  ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]],
                                   color=gc.colors[plot_item], linewidth=0.5)
-                    v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:,['datetime']].iloc[-1],
-                                  y=ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1],
-                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:,[plot_item]].iloc[-1].values[0])),
-                                  bbox = dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
+                    v["ax2"].text(x=ldf[ldf["Card#"].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  y=ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf["Card#"].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  bbox=dict(boxstyle="round,pad=0.2", facecolor=gc.colors[plot_item]), fontsize=6)
 
             v["ax2"].set_yticks(np.arange(ylim_min_val, ylim_max_val, 100))
     
@@ -506,21 +516,23 @@ def updateData(gc, plot_data):
         print("matplotlib error, stack size is %d" % get_stack_size())
         plot_data.kill_thread()
     #garbcollect.collect()
-    ###SEMAPHORE############
+    # SEMAPHORE ###########
     pd_sem.release()
-    ########################
+    #######################
 
 
 def read_from_stdin(refreshtime, plot_data):
-    #this should continuously from from stdin and populate df and call plot/gui update
+    # this should continuously from from stdin and populate df and call plot/gui update
     first_update = True
     header = True
     sync_add = 0
-    while (plot_data.quit == False):
+    while not plot_data.quit:
         if env.gut_const.SIMLOG: time.sleep(refreshtime/4.0)
         ndf = pd.DataFrame()
-        if plot_data.num_gpus ==0: num_gpus = 1
-        else: num_gpus = plot_data.num_gpus
+        if plot_data.num_gpus ==0:
+            num_gpus = 1
+        else:
+            num_gpus = plot_data.num_gpus
 
         # Process a set of GPUs at a time
         skip_update = False
@@ -561,24 +573,26 @@ def read_from_stdin(refreshtime, plot_data):
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
             ndf = pd.concat([ndf, rdf], ignore_index = True)
             del(rdf)
-            if ndf['Time'].tail(num_gpus).nunique() > 1: sync_add = 1
-            else: sync_add = 0
+            if ndf['Time'].tail(num_gpus).nunique() > 1:
+                sync_add = 1
+            else:
+                sync_add = 0
 
         if env.gut_const.DEBUG:
             #print(datetime.utcnow().strftime('%c'))
             print(env.gut_const.now(env.gut_const.USELTZ).strftime('%c'))
             print(ndf)
 
-        if env.gut_const.SIMLOG == False: 
+        if not env.gut_const.SIMLOG:
             if read_time < 0.003:
                 skip_update = True
                 if env.gut_const.DEBUG: print("skipping update")
 
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.acquire()
-        #########################
+        ########################
         # Concatenate new data on plot_data dataframe and truncate
-        plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
+        plot_data.df = pd.concat([plot_data.df, ndf], ignore_index=True)
         # Following attempt to extend in place doesn't work
         #for i in np.arange(ndf.shape[0]):
             #plot_data.df[plot_data.df.shape[0]] = ndf.loc[i]
@@ -589,11 +603,11 @@ def read_from_stdin(refreshtime, plot_data):
             trun_index = len(plot_data.df.index) - plot_data.length
             #plot_data.df = plot_data.df.tail(plot_data.length)
             plot_data.df.reset_index(drop=True, inplace=True)
-            plot_data.df.drop(np.arange(0,trun_index), inplace=True)
+            plot_data.df.drop(np.arange(0, trun_index), inplace=True)
             #print("New df Length: %d" % len(plot_data.df.index))
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.release()
-        #########################
+        ########################
         del(ndf)
 
         #########################
@@ -607,11 +621,11 @@ def read_from_stdin(refreshtime, plot_data):
                 first_update = False
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            ###SEMAPHORE#############
+            # SEMAPHORE ############
             time.sleep(0.01)
             pd_sem.acquire()
             pd_sem.release()
-            #########################
+            ########################
             garbcollect.collect()
         if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
 
@@ -623,7 +637,7 @@ def read_from_stdin(refreshtime, plot_data):
 def read_from_gpus(refreshtime, plot_data):
     #this should continuously from from gpus and populate df and call plot/gui update
     first_update = True
-    while (plot_data.quit == False):
+    while not plot_data.quit:
         ndf = pd.DataFrame()
 
         plot_data.com_gpu_list.read_gpu_sensor_data()
@@ -637,24 +651,24 @@ def read_from_gpus(refreshtime, plot_data):
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
-            ndf = pd.concat([ndf, rdf], ignore_index = True)
+            ndf = pd.concat([ndf, rdf], ignore_index=True)
             del(rdf)
 
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.acquire()
-        #########################
+        ########################
         # Concatenate new data on plot_data dataframe and truncate
-        plot_data.df = pd.concat([plot_data.df, ndf], ignore_index = True)
+        plot_data.df = pd.concat([plot_data.df, ndf], ignore_index=True)
 
         # Truncate df in place
         if len(plot_data.df.index) > plot_data.length:
             trun_index = len(plot_data.df.index) - plot_data.length
             plot_data.df.reset_index(drop=True, inplace=True)
-            plot_data.df.drop(np.arange(0,trun_index), inplace=True)
+            plot_data.df.drop(np.arange(0, trun_index), inplace=True)
             #print("New df Length: %d" % len(plot_data.df.index))
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.release()
-        #########################
+        ########################
         del(ndf)
 
         #########################
@@ -670,11 +684,11 @@ def read_from_gpus(refreshtime, plot_data):
                 first_update = False
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
             while Gtk.events_pending(): Gtk.main_iteration_do(True)
-            ###SEMAPHORE#############
+            # SEMAPHORE ############
             time.sleep(0.01)
             pd_sem.acquire()
             pd_sem.release()
-            #########################
+            ########################
             garbcollect.collect()
         if env.gut_const.DEBUG: print("update stack size: ", get_stack_size())
         time.sleep(refreshtime)
@@ -682,7 +696,6 @@ def read_from_gpus(refreshtime, plot_data):
     # Quit
     print("exit stack size: ", get_stack_size())
     sys.exit(0)
-
 
 
 def main():
@@ -695,11 +708,10 @@ def main():
     parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
     args = parser.parse_args()
 
-
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
+    if args.about:
+        print(__doc__)
+        print("Author: ", __author__)
         print("Copyright: ", __copyright__)
         print("Credits: ", __credits__)
         print("License: ", __license__)
@@ -724,7 +736,7 @@ def main():
     # Define graph gui and data components
     plot_data = PlotData()
 
-    if args.stdin == False:
+    if not args.stdin:
         # Check value of AMD Feature mask
         try:
             featuremask = env.gut_const.read_amdfeaturemask()
@@ -782,7 +794,7 @@ def main():
     else:
         readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
-    print("%s waiting for initial data" % (__program_name__), end='', flush=True)
+    print("%s waiting for initial data" % __program_name__, end='', flush=True)
     while len(plot_data.df.index) < 9:
         print(".", end='', flush=True)
         time.sleep(args.sleep/4.0)
@@ -798,6 +810,7 @@ def main():
     gc.set_ready(True)
     Gtk.main()
     plot_data.kill_thread()
+
 
 if __name__ == "__main__":
     main()
