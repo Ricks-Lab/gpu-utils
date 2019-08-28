@@ -1,8 +1,8 @@
 #
 #	List of PCI ID's
 #
-#	Version: 2019.06.30
-#	Date:    2019-06-30 03:15:01
+#	Version: 2019.08.25
+#	Date:    2019-08-25 03:15:01
 #
 #	Maintained by Albert Pool, Martin Mares, and other volunteers from
 #	the PCI ID Project at https://pci-ids.ucw.cz/.
@@ -1740,6 +1740,7 @@
 		1028 1726  Radeon RX 560DX
 		103c 8479  Radeon RX 560X Mobile
 		1043 04bc  Radeon RX 560
+		1043 052f  Radeon RX 560
 		1458 22ed  Radeon RX 560
 		148c 2381  Radeon RX 560
 		1682 9560  Radeon RX 560
@@ -2432,7 +2433,7 @@
 		174b e180  Radeon HD 7350
 		17af 3015  Radeon HD 7350
 	68fe  Cedar LE
-	6900  Topaz XT [Radeon R7 M260/M265 / M340/M360 / M440/M445]
+	6900  Topaz XT [Radeon R7 M260/M265 / M340/M360 / M440/M445 / 530/535 / 620/625 Mobile]
 		1025 1056  Radeon R7 M360 / R8 M365DX
 		1028 0640  Radeon R7 M260/M265
 		1028 0643  Radeon R7 M260/M265
@@ -2643,7 +2644,7 @@
 		1043 04a0  Radeon R9 FURY X
 		174b e329  Radeon R9 FURY
 	7310  Navi 10
-	731f  Navi 10
+	731f  Navi 10 [Radeon RX 5700 / 5700 XT]
 	7833  RS350 Host Bridge
 	7834  RS350 [Radeon 9100 PRO/XT IGP]
 	7835  RS350M [Mobility Radeon 9000 IGP]
