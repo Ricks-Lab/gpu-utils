@@ -69,7 +69,7 @@ class MonitorWindow(Gtk.Window):
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1,1,1,1))
+        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1))
         self.add(grid)
 
         col = 0
@@ -100,7 +100,6 @@ class MonitorWindow(Gtk.Window):
             row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
-            #lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06,.06,.06,.06))
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
@@ -115,11 +114,12 @@ class MonitorWindow(Gtk.Window):
             v.set_alignment(0, 0.5)
             row += 1
         for k, v in gpu_list.list.items():
-            devices[v.uuid] = {"card_num":  Gtk.Label(label="card"+v.get_params_value("card_num"))}
+            devices[v.uuid] = {"card_num":  Gtk.Label(label="card" + v.get_params_value("card_num"))}
             for cv in gpu_list.table_param_labels:
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
 
+        print(devices.keys())
         for dk, dv in devices.items():
             col += 1
             row = row_start
@@ -159,7 +159,8 @@ def updateData(gpu_list, devices, cmd):
                 data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
-                if data_value == "-1": data_value = ""
+                if data_value == "-1":
+                    data_value = ""
             lv.set_text(data_value)
             lv.set_width_chars(17)
 
@@ -262,11 +263,13 @@ def main():
 
     if args.log:
         env.gut_const.LOG = True
-        env.gut_const.log_file = "./log_monitor_" + env.gut_const.now(ltz=env.gut_const.USELTZ).strftime('%m%d_%H%M%S') + ".txt"
-        env.gut_const.log_file_ptr = open(env.gut_const.log_file,'w',1)
+        env.gut_const.log_file = './log_monitor_{}.txt'.format(
+            env.gut_const.now(ltz=env.gut_const.USELTZ).strftime('%m%d_%H%M%S'))
+        env.gut_const.log_file_ptr = open(env.gut_const.log_file, 'w', 1)
         gpu_list.print_log_header(env.gut_const.log_file_ptr)
 
-    if args.plot: args.gui = True
+    if args.plot:
+        args.gui = True
     if args.gui:
         # Display Gtk style Monitor
         devices = {}
