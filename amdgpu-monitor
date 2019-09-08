@@ -28,14 +28,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = "RueiKe"
-__copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
-__license__ = "GNU General Public License"
-__program_name__ = "amdgpu-monitor"
-__version__ = "v2.5.3"
-__maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__author__ = 'RueiKe'
+__copyright__ = 'Copyright (C) 2019 RueiKe'
+__credits__ = ['Craig Echt - Testing, Debug, and Verification']
+__license__ = 'GNU General Public License'
+__program_name__ = 'amdgpu-monitor'
+__version__ = 'v2.5.3'
+__maintainer__ = 'RueiKe'
+__status__ = 'Stable Release'
 
 import argparse
 import subprocess
@@ -49,12 +49,12 @@ from pathlib import Path
 try:
     import gi
 except ModuleNotFoundError as error:
-    print("gi import error: {}".format(error))
-    print("gi is required for %s", __program_name__)
-    print("   In a venv, first install vext:  pip install --no-cache-dir vext")
-    print("   Then install vext.gi:  pip install --no-cache-dir vext.gi")
+    print('gi import error: {}'.format(error))
+    print('gi is required for %s', __program_name__)
+    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
+    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
-gi.require_version("Gtk", "3.0")
+gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk
 
 from GPUmodules import GPUmodule as GPU
@@ -63,9 +63,9 @@ from GPUmodules import env
 
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
-        Gtk.Window.__init__(self, title="amdgpu-monitor")
+        Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.PATH, "icons", "amdgpu-monitor.icon.png")
+        icon_file = os.path.join(env.gut_const.PATH, 'icons', 'amdgpu-monitor.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -77,44 +77,44 @@ class MonitorWindow(Gtk.Window):
         num_amd_gpus = gpu_list.num_gpus()
         if env.gut_const.LOG:
             log_label = Gtk.Label()
-            log_label.set_markup("<big><b> Logging to:    </b>" + env.gut_const.log_file + "</big>")
+            log_label.set_markup('<big><b> Logging to:    </b>' + env.gut_const.log_file + '</big>')
             log_label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60, .20, .20, 1.0))
-            lbox.set_property("margin-top", 1)
-            lbox.set_property("margin-bottom", 1)
-            lbox.set_property("margin-right", 1)
-            lbox.set_property("margin-left", 1)
+            lbox.set_property('margin-top', 1)
+            lbox.set_property('margin-bottom', 1)
+            lbox.set_property('margin-right', 1)
+            lbox.set_property('margin-left', 1)
             lbox.pack_start(log_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
         row_start = row
 
         row = row_start
-        row_labels = {"card_num": Gtk.Label()}
-        row_labels["card_num"].set_markup("<b>Card #</b>")
-        row_labels["card_num"].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+        row_labels = {'card_num': Gtk.Label()}
+        row_labels['card_num'].set_markup('<b>Card #</b>')
+        row_labels['card_num'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in gpu_list.table_param_labels.items():
             row_labels[k] = Gtk.Label()
-            row_labels[k].set_markup("<b>" + str(v) + "</b>")
+            row_labels[k].set_markup('<b>' + str(v) + '</b>')
             row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
-            lbox.set_property("margin-top", 1)
-            lbox.set_property("margin-bottom", 1)
-            lbox.set_property("margin-right", 1)
-            lbox.set_property("margin-left", 1)
-            v.set_property("margin-top", 1)
-            v.set_property("margin-bottom", 1)
-            v.set_property("margin-right", 4)
-            v.set_property("margin-left", 4)
+            lbox.set_property('margin-top', 1)
+            lbox.set_property('margin-bottom', 1)
+            lbox.set_property('margin-right', 1)
+            lbox.set_property('margin-left', 1)
+            v.set_property('margin-top', 1)
+            v.set_property('margin-bottom', 1)
+            v.set_property('margin-right', 4)
+            v.set_property('margin-left', 4)
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             v.set_alignment(0, 0.5)
             row += 1
         for k, v in gpu_list.list.items():
-            devices[v.uuid] = {"card_num":  Gtk.Label(label="card" + v.get_params_value("card_num"))}
+            devices[v.uuid] = {'card_num':  Gtk.Label(label='card' + v.get_params_value('card_num'))}
             for cv in gpu_list.table_param_labels:
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
@@ -126,14 +126,14 @@ class MonitorWindow(Gtk.Window):
                 lv.set_text('')
                 lbox = Gtk.Box(spacing=6)
                 lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
-                lbox.set_property("margin-top", 1)
-                lbox.set_property("margin-bottom", 1)
-                lbox.set_property("margin-right", 1)
-                lbox.set_property("margin-left", 1)
-                lv.set_property("margin-top", 1)
-                lv.set_property("margin-bottom", 1)
-                lv.set_property("margin-right", 3)
-                lv.set_property("margin-left", 3)
+                lbox.set_property('margin-top', 1)
+                lbox.set_property('margin-bottom', 1)
+                lbox.set_property('margin-right', 1)
+                lbox.set_property('margin-left', 1)
+                lv.set_property('margin-top', 1)
+                lv.set_property('margin-bottom', 1)
+                lv.set_property('margin-right', 3)
+                lv.set_property('margin-left', 3)
                 lv.set_width_chars(17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -149,18 +149,18 @@ def updateData(gpu_list, devices, cmd):
         try:
             gpu_list.print_plot(cmd.stdin)
         except:
-            print("amdgpu-plot has closed")
+            print('amdgpu-plot has closed')
             env.gut_const.PLOT = False
 
     # update gui 
     for dk, dv in devices.items():
         for lk, lv in dv.items():
-            if lk == "card_num":
-                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")[:16]
+            if lk == 'card_num':
+                data_value = 'card'+gpu_list.list[dk].get_params_value('card_num')[:16]
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
-                if data_value == "-1":
-                    data_value = ""
+                if data_value == '-1':
+                    data_value = ''
             lv.set_text(data_value)
             lv.set_width_chars(17)
 
@@ -173,27 +173,27 @@ def refresh(refreshtime, updateData, gpu_list, devices, cmd):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--gui", help="Display GTK Version of Monitor", action="store_true", default=False)
-    parser.add_argument("--log", help="Write all monitor data to logfile", action="store_true", default=False)
-    parser.add_argument("--plot", help="Open and write to amdgpu-plot", action="store_true", default=False)
-    parser.add_argument("--ltz", help="Use local time zone instead of UTC", action="store_true", default=False)
-    parser.add_argument("--sleep", help="Number of seconds to sleep between updates", type=int, default=2)
-    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
-    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
-    parser.add_argument("--pdebug", help="Plot debug output", action="store_true", default=False)
+    parser.add_argument('--about', help='README', action='store_true', default=False)
+    parser.add_argument('--gui', help='Display GTK Version of Monitor', action='store_true', default=False)
+    parser.add_argument('--log', help='Write all monitor data to logfile', action='store_true', default=False)
+    parser.add_argument('--plot', help='Open and write to amdgpu-plot', action='store_true', default=False)
+    parser.add_argument('--ltz', help='Use local time zone instead of UTC', action='store_true', default=False)
+    parser.add_argument('--sleep', help='Number of seconds to sleep between updates', type=int, default=2)
+    parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
+    parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
+    parser.add_argument('--pdebug', help='Plot debug output', action='store_true', default=False)
     args = parser.parse_args()
 
     # About me
     if args.about:
         print(__doc__)
-        print("Author: ", __author__)
-        print("Copyright: ", __copyright__)
-        print("Credits: ", __credits__)
-        print("License: ", __license__)
-        print("Version: ", __version__)
-        print("Maintainer: ", __maintainer__)
-        print("Status: ", __status__)
+        print('Author: ', __author__)
+        print('Copyright: ', __copyright__)
+        print('Credits: ', __credits__)
+        print('License: ', __license__)
+        print('Version: ', __version__)
+        print('Maintainer: ', __maintainer__)
+        print('Status: ', __status__)
         sys.exit(0)
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
@@ -206,23 +206,23 @@ def main():
     if int(args.sleep) > 0:
         env.gut_const.SLEEP = int(args.sleep)
     else:
-        print("Invalid value for sleep specified.  Must be an integer great than zero")
+        print('Invalid value for sleep specified.  Must be an integer great than zero')
         sys.exit(-1)
 
     if env.gut_const.check_env() < 0:
-        print("Error in environment. Exiting...")
+        print('Error in environment. Exiting...')
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
         featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
-        print("Cannot read ppfeaturemask. Exiting...")
+        print('Cannot read ppfeaturemask. Exiting...')
         sys.exit(-1)
     if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff) :
-        print("AMD Wattman features enabled: %s" % hex(featuremask))
+        print('AMD Wattman features enabled: %s' % hex(featuremask))
     else:
-        print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+        print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
         sys.exit(-1)
 
     env.gut_const.get_amd_driver_version()
@@ -236,13 +236,13 @@ def main():
     num_amd_gpus = gpu_list.num_gpus()
     num_com_gpus = gpu_list.num_compatible_gpus()
     if num_amd_gpus == 0:
-        print("No AMD GPUs detected, exiting...")
+        print('No AMD GPUs detected, exiting...')
         sys.exit(-1)
     else:
         if num_com_gpus == 0:
-            print("None are compatible, exiting...")
+            print('None are compatible, exiting...')
             sys.exit(-1)
-        print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
+        print(f'{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...')
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
@@ -254,11 +254,11 @@ def main():
     # Check number of compatible GPUs again
     num_com_gpus = gpu_list.num_compatible_gpus()
     if num_com_gpus == 0:
-        print("None are compatible, exiting...")
+        print('None are compatible, exiting...')
         sys.exit(-1)
     else:
-        print(f"{num_com_gpus} are confirmed compatible.")
-        print("")
+        print(f'{num_com_gpus} are confirmed compatible.')
+        print('')
 
     # Generate a new list of only compatible GPUs
     com_gpu_list = gpu_list.list_compatible_gpus()
@@ -276,18 +276,18 @@ def main():
         # Display Gtk style Monitor
         devices = {}
         gmonitor = MonitorWindow(com_gpu_list, devices)
-        gmonitor.connect("delete-event", Gtk.main_quit)
+        gmonitor.connect('delete-event', Gtk.main_quit)
         gmonitor.show_all()
 
         cmd = None
         if args.plot:
             env.gut_const.PLOT = True
-            plot_util = os.path.join(env.gut_const.PATH, "amdgpu-plot")
+            plot_util = os.path.join(env.gut_const.PATH, 'amdgpu-plot')
             if os.path.isfile(plot_util):
                 if env.gut_const.PDEBUG:
-                    cmd_str = plot_util + " --debug --stdin --sleep " + str(env.gut_const.SLEEP)
+                    cmd_str = plot_util + ' --debug --stdin --sleep ' + str(env.gut_const.SLEEP)
                 else:
-                    cmd_str = plot_util + " --stdin --sleep " + str(env.gut_const.SLEEP)
+                    cmd_str = plot_util + ' --stdin --sleep ' + str(env.gut_const.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=0, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
@@ -304,7 +304,7 @@ def main():
                 com_gpu_list.read_gpu_state_data()
                 if not env.gut_const.DEBUG: os.system('clear')
                 if env.gut_const.LOG:
-                    print("%sLogging to:  %s%s" % ("\033[31m \033[01m", env.gut_const.log_file, "\033[0m"))
+                    print('%sLogging to:  %s%s' % ('\033[31m \033[01m', env.gut_const.log_file, '\033[0m'))
                     com_gpu_list.print_log(env.gut_const.log_file_ptr)
                 com_gpu_list.print_table()
                 time.sleep(env.gut_const.SLEEP)
@@ -314,5 +314,5 @@ def main():
             sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
