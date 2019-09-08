@@ -119,11 +119,11 @@ class MonitorWindow(Gtk.Window):
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
 
-        print(devices.keys())
         for dk, dv in devices.items():
             col += 1
             row = row_start
             for lk, lv in dv.items():
+                lv.set_text('')
                 lbox = Gtk.Box(spacing=6)
                 lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
                 lbox.set_property("margin-top", 1)
@@ -156,7 +156,7 @@ def updateData(gpu_list, devices, cmd):
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == "card_num":
-                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")
+                data_value = "card"+gpu_list.list[dk].get_params_value("card_num")[:16]
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
                 if data_value == "-1":
@@ -199,8 +199,10 @@ def main():
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.PDEBUG = args.pdebug
-    if args.ltz: env.gut_const.USELTZ = True
-    if args.no_fan: env.gut_const.show_fans = False
+    if args.ltz:
+        env.gut_const.USELTZ = True
+    if args.no_fan:
+        env.gut_const.show_fans = False
     if int(args.sleep) > 0:
         env.gut_const.SLEEP = int(args.sleep)
     else:
