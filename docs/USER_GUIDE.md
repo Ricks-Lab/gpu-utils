@@ -49,11 +49,22 @@ sudo update-grub
 ```
 and then reboot.
 
-If you plan to use the GPU plot feature of amdgpu-monitor, you must first install the pandas and matplotlib modules.
-For Ubuntu, use the following to install all required python modules
-
+It is suggested run amdgpu-util in a virtual environment to avoid dependency issues. If you don't have venv installed 
+with python3, then execute the following (Ubuntu example)
 ```
-sudo apt-get install python3-matplotlib python3-pandas
+sudo apt install -y python3-venv
+```
+
+Initialize your amdgpu-util-env if it is your first time to use it.  From the project directory, execute:
+```
+python3 -m venv amdgpu-util-env
+source amdgpu-util-env/bin/activate
+pip install --no-cache-dir -r requirements-venv.txt
+```
+
+The amdgpu-util package can by run without a venv by pip installing the requirments.txt file:
+```
+sudo -H pip3 install --no-cache-dir -r requirements.txt
 ```
 
 
