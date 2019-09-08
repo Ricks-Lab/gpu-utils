@@ -1,7 +1,7 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-## Current amdgpu-utils Version: 2.5.x
+## Current amdgpu-utils Version: 2.6.x
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
@@ -61,8 +61,9 @@ python3 -m venv amdgpu-util-env
 source amdgpu-util-env/bin/activate
 pip install --no-cache-dir -r requirements-venv.txt
 ```
+Use the deactivate command to leave the venv.
 
-The amdgpu-util package can by run without a venv by pip installing the requirments.txt file:
+The amdgpu-util package can by run without a venv by pip installing the requirements.txt file:
 ```
 sudo -H pip3 install --no-cache-dir -r requirements.txt
 ```

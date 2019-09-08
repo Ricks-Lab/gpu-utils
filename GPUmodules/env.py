@@ -22,7 +22,7 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v2.5.3'
+__version__ = 'v2.6.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 
@@ -154,3 +154,18 @@ class GUT_CONST:
 
 gut_const = GUT_CONST()
 
+
+def about():
+    print(__doc__)
+    print('Author: ', __author__)
+    print('Copyright: ', __copyright__)
+    print('Credits: ', __credits__)
+    print('License: ', __license__)
+    print('Version: ', __version__)
+    print('Maintainer: ', __maintainer__)
+    print('Status: ', __status__)
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    about()

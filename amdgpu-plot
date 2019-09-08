@@ -31,7 +31,7 @@ __copyright__ = "Copyright (C) 2019 RueiKe"
 __credits__ = ["Craig Echt - Testing, Debug, and Verification"]
 __license__ = "GNU General Public License"
 __program_name__ = "amdgpu-plot"
-__version__ = "v2.5.3"
+__version__ = "v2.6.0"
 __maintainer__ = "RueiKe"
 __status__ = "Stable Release"
 
