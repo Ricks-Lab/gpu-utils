@@ -28,17 +28,21 @@ __status__ = 'Stable Release'
 import argparse
 import re
 import subprocess
-import shutil
+import os
 import shlex
 import platform
 import sys
+import shutil
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class GUT_CONST:
     def __init__(self):
         self.DEBUG = False
 
-    def check_env(self):
+    @staticmethod
+    def check_env():
         ret_val = [0, 0, 0]
         # Check python version
         required_pversion = [3, 6]
@@ -85,6 +89,7 @@ class GUT_CONST:
                 driver_str = lineitems[1].strip()
                 searchObj = re.search(required_aversion, driver_str)
                 break
+        driver_str = ''
         if not config_found:
             driver_str = 'not detected'
             print('AMD GPU driver not detected')
@@ -99,51 +104,57 @@ class GUT_CONST:
             print('          ' + '\x1b[1;37;41m' + ' AMD\'s \'amdgpu\' driver package is required. ' + '\x1b[0m')
             ret_val[2] = -3
 
-        return(ret_val)
+        return ret_val
 
 
 gut_const = GUT_CONST()
 
-def is_venv_installed():
-    pkgname = 'python3-venv'
-    installed = False
-    if not shutil.which('/usr/bin/dpkg'):
-        print('Can not determine if ', pkgname, 'is installed.')
-        sys.exit(-2)
 
+def is_venv_installed():
+    cmdstr = 'python3 -m venv -h > /dev/null'
     try:
-        cmdstr = 'dpkg -l ' + pkgname
-        dpkg_out = subprocess.check_output(shlex.split(cmdstr), shell=False,
-                                           stderr=subprocess.DEVNULL).decode().split('\n')
-        for dpkg_line in dpkg_out:
-            searchObj = re.search('venv', dpkg_line)
-            if searchObj:
-                return True
+        p = subprocess.Popen(shlex.split(cmdstr), shell=False, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = p.communicate()
+        # print('subprocess output: ', output.decode(), 'subprocess error: ', error.decode())
+        if not re.fullmatch(r'.*No module named.*', output.decode()):
+            print('python3 venv is installed')
+            print('          ' + '\x1b[1;37;42m' + ' python3-venv OK. ' + '\x1b[0m')
+            return True
     except:
         pass
+    print('python3 venv is NOT installed')
+    print('          ' + '\x1b[1;30;43m' + ' Python3 venv package \'python3-venv\' package is recommended. ' + '\x1b[0m')
     return False
 
 
-def set_amdgpu_utils_env():
-    commands = ['./set_venv.sh']
+def does_amdgpu_utils_env_exist():
+    env_name = './amdgpu-utils-env/bin/activate'
 
-    for command in commands:
-        print('Executing: [', command, ']')
-        if True:
-            lines_out = subprocess.check_output(command, shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
-            for line in lines_out:
-                print(line)
-        else:
-            print(' Failed')
-            return False
-        print(' Passed')
-    return True
+    if os.path.isfile(env_name):
+        print('amdgpu-utils venv available')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils venv OK. ' + '\x1b[0m')
+        return True
+    print('amdgpu-utils venv is NOT available')
+    print('python3 venv is NOT installed.')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils venv should be configured per README. ' + '\x1b[0m')
+    return False
+
+def is_in_venv():
+    python_path = shutil.which('python')
+
+    if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
+        print('In amdgpu-utils-env')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils venv is activated. ' + '\x1b[0m')
+        return True
+    print('Not in a venv')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils venv should be activated per README. ' + '\x1b[0m')
+    return False
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
-    parser.add_argument('--setenv', help='Set environment with venv', action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 
@@ -165,13 +176,11 @@ def main():
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    if args.setenv:
-        if is_venv_installed():
-            print('venv installed')
-        else:
-            print('venv not installed')
-            sys.exit(-1)
-        set_amdgpu_utils_env()
+    if not is_venv_installed() or not does_amdgpu_utils_env_exist():
+        print('Environment not configured. WARNING')
+
+    if not is_in_venv():
+        print('Virtual Environment not activated. WARNING')
 
 
 if __name__ == '__main__':
