@@ -83,9 +83,9 @@ from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
 
 
-###SEMAPHORE#############
+# SEMAPHORE ############
 pd_sem = threading.Semaphore()
-#########################
+########################
 
 
 def hex_to_rgba(value):
@@ -95,7 +95,7 @@ def hex_to_rgba(value):
         value = ''.join([v*2 for v in list(value)])
     (r1, g1, b1, a1) = tuple(int(value[i:i+2], 16) for i in range(0, 6, 2))+(1,)
     (r1, g1, b1, a1) = (r1/255.00000, g1/255.00000, b1/255.00000, a1)
-    return (r1, g1, b1, a1)
+    return r1, g1, b1, a1
 
 
 def get_stack_size():
@@ -134,14 +134,14 @@ class PlotData:
     def get_plot_data(self):
         # get deep copy of plot data df
         # This may have contention issues
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.acquire()
-        #########################
+        ########################
         ndf = self.df.copy()
-        ###SEMAPHORE#############
+        # SEMAPHORE ############
         pd_sem.release()
-        #########################
-        return(ndf)
+        ########################
+        return ndf
 
     def kill_thread(self):
         self.reader = False
@@ -167,8 +167,6 @@ class GuiComponents:
         gpu_color_list = ['#B52735', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
         plot_item_list = ['loading', 'power', 'power_cap', 'temp', 'vddgfx', 'sclk_f', 'mclk_f']
 
-        #header:  ['Time', 'Card#', 'model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
-        #'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
         self.plot_items = {'loading': True, 'power': True, 'power_cap': True,
                            'temp': True, 'vddgfx': True,'sclk_f': True, 'mclk_f': True}
 
@@ -274,7 +272,7 @@ class GPUPlotWindow(Gtk.Window):
         lbox.set_property("margin-right", 1)
         lbox.set_property("margin-left", 1)
         lbox.pack_start(gc.gui_components["legend"]["gtk_obj"], True, True, 0)
-        for k,v in gc.gui_components["legend"]["plot_items"].items():
+        for k, v in gc.gui_components["legend"]["plot_items"].items():
             but_color = hex_to_rgba(gc.colors[k])
             but_font_color = hex_to_rgba(gc.font_colors[k])
             gc.gui_components["legend"]["buttons"][k] = Gtk.Button("")
@@ -309,7 +307,7 @@ class GPUPlotWindow(Gtk.Window):
         grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
         grid.attach(grid_bar, 1, main_last_row, 1, 1)
         brow = 0
-        fig_num=0
+        fig_num = 0
         #plot_top_row = row
         for v in [gc.gui_components["sclk_pstate_status"],
                   gc.gui_components["mclk_pstate_status"],
@@ -344,8 +342,10 @@ class GPUPlotWindow(Gtk.Window):
             plt.figure(v["figure_num"])
             plt.subplots_adjust(left=0.13, right=0.97, top=0.97, bottom=0.1)
             v["ax1"].set_facecolor(gc.colors["plotface"])
-            if v["df_name"] == "temp": plt.yticks(np.arange(20, 91, 10))
-            else: plt.yticks(np.arange(0, 9, 1))
+            if v["df_name"] == "temp":
+                plt.yticks(np.arange(20, 91, 10))
+            else:
+                plt.yticks(np.arange(0, 9, 1))
 
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_bp_x_size, bp_y_size)
@@ -367,7 +367,7 @@ class GPUPlotWindow(Gtk.Window):
         grid.attach(grid_plot, 2, main_last_row, 3, 1)
         prow = 0
         #row = plot_top_row
-        for k,v in gc.gui_components["card_plots"].items():
+        for k, v in gc.gui_components["card_plots"].items():
             data_val = ldf[ldf["Card#"].isin([k])]["energy"].iloc[-1]
             model_val = ldf[ldf["Card#"].isin([k])]["model_display"].iloc[-1]
             # Add GPU Plots Titles
@@ -382,9 +382,8 @@ class GPUPlotWindow(Gtk.Window):
             v["title_obj"].set_alignment(0.5, 0.5)
             lbox = Gtk.Box(spacing=box_sapcing_val)
             rgba_col = hex_to_rgba(v["color"])
-            lbox.override_background_color(
-                    Gtk.StateType.NORMAL,
-                    Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2],rgba_col[3]))
+            lbox.override_background_color(Gtk.StateType.NORMAL,
+                                           Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2], rgba_col[3]))
             lbox.set_property("margin-top", 1)
             lbox.set_property("margin-bottom", 1)
             lbox.set_property("margin-right", 1)
@@ -416,7 +415,6 @@ class GPUPlotWindow(Gtk.Window):
             v["canvas"] = FigureCanvas(v["figure"])  # a Gtk.DrawingArea
             v["canvas"].set_size_request(def_gp_x_size, gp_y_size)
 
-
             lbox = Gtk.Box(spacing=box_sapcing_val)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1.0))
             lbox.set_property("margin-top", 1)
@@ -433,7 +431,6 @@ class GPUPlotWindow(Gtk.Window):
             gc.plot_items[k] = False
         else:
             gc.plot_items[k] = True
-
 
 def updateData(gc, plot_data):
     # SEMAPHORE ###########
@@ -539,7 +536,7 @@ def read_from_stdin(refreshtime, plot_data):
     while not plot_data.quit:
         if env.gut_const.SIMLOG: time.sleep(refreshtime/4.0)
         ndf = pd.DataFrame()
-        if plot_data.num_gpus ==0:
+        if plot_data.num_gpus == 0:
             num_gpus = 1
         else:
             num_gpus = plot_data.num_gpus
@@ -548,13 +545,11 @@ def read_from_stdin(refreshtime, plot_data):
         skip_update = False
         read_time = 0.0
         for gpu_index in range(0, num_gpus + sync_add):
-            #tb = datetime.utcnow()
             tb = env.gut_const.now(env.gut_const.USELTZ)
             line = sys.stdin.readline()
-            #tmp_read_time = (datetime.utcnow() - tb).total_seconds()
             tmp_read_time = (env.gut_const.now(env.gut_const.USELTZ) - tb).total_seconds()
-            #if env.gut_const.DEBUG: print("time: %s   read time: %f" % (tb.strftime('%c'), tmp_read_time))
-            if tmp_read_time > read_time: read_time = tmp_read_time
+            if tmp_read_time > read_time:
+                read_time = tmp_read_time
 
             if line == "":
                 if env.gut_const.DEBUG: print("Error: Null input line")
@@ -565,7 +560,6 @@ def read_from_stdin(refreshtime, plot_data):
                 header = False
                 continue
             line = line.strip()
-            #if env.gut_const.DEBUG: print("Line: %s" % line)
             line_item = list(line.strip().split('|'))
             new_line_item = []
             for l in line_item:
@@ -574,14 +568,14 @@ def read_from_stdin(refreshtime, plot_data):
                     new_line_item.append(int(ll))
                 elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
                     new_line_item.append(float(ll))
-                elif ll == '' or ll == '-1' or ll == 'NA' or ll == None:
+                elif ll == '' or ll == '-1' or ll == 'NA' or ll is None:
                     new_line_item.append(np.nan)
                 else:
                     new_line_item.append(ll)
             line_item = tuple(new_line_item)
             rdf = pd.DataFrame.from_records([line_item], columns=header_item)
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
-            ndf = pd.concat([ndf, rdf], ignore_index = True)
+            ndf = pd.concat([ndf, rdf], ignore_index=True)
             del(rdf)
             if ndf['Time'].tail(num_gpus).nunique() > 1:
                 sync_add = 1
@@ -589,7 +583,6 @@ def read_from_stdin(refreshtime, plot_data):
                 sync_add = 0
 
         if env.gut_const.DEBUG:
-            #print(datetime.utcnow().strftime('%c'))
             print(env.gut_const.now(env.gut_const.USELTZ).strftime('%c'))
             print(ndf)
 
@@ -623,14 +616,17 @@ def read_from_stdin(refreshtime, plot_data):
         #########################
         # Update plots
         #########################
-        if skip_update: continue
-        if plot_data.gui_comp == None: continue
+        if skip_update:
+            continue
+        if plot_data.gui_comp is None:
+            continue
         if plot_data.gui_comp.is_ready():
             if first_update:
                 time.sleep(refreshtime)
                 first_update = False
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
-            while Gtk.events_pending(): Gtk.main_iteration_do(True)
+            while Gtk.events_pending():
+                Gtk.main_iteration_do(True)
             # SEMAPHORE ############
             time.sleep(0.01)
             pd_sem.acquire()
@@ -645,7 +641,7 @@ def read_from_stdin(refreshtime, plot_data):
 
 
 def read_from_gpus(refreshtime, plot_data):
-    #this should continuously from from gpus and populate df and call plot/gui update
+    # This should continuously from from gpus and populate df and call plot/gui update
     first_update = True
     while not plot_data.quit:
         ndf = pd.DataFrame()
@@ -684,8 +680,9 @@ def read_from_gpus(refreshtime, plot_data):
         #########################
         # Update plots
         #########################
-        if skip_update: continue
-        if plot_data.gui_comp == None:
+        if skip_update:
+            continue
+        if plot_data.gui_comp is None:
             time.sleep(refreshtime)
             continue
         if plot_data.gui_comp.is_ready():
@@ -693,7 +690,8 @@ def read_from_gpus(refreshtime, plot_data):
                 time.sleep(refreshtime)
                 first_update = False
             GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
-            while Gtk.events_pending(): Gtk.main_iteration_do(True)
+            while Gtk.events_pending():
+                Gtk.main_iteration_do(True)
             # SEMAPHORE ############
             time.sleep(0.01)
             pd_sem.acquire()
@@ -737,7 +735,8 @@ def main():
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.SIMLOG = args.simlog
-    if args.ltz: env.gut_const.USELTZ = True
+    if args.ltz:
+        env.gut_const.USELTZ = True
 
     if env.gut_const.check_env() < 0:
         print("Error in environment. Exiting...")

@@ -23,14 +23,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = "RueiKe"
-__copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
-__license__ = "GNU General Public License"
-__program_name__ = "amdgpu-ls"
-__version__ = "v2.5.3"
-__maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__author__ = 'RueiKe'
+__copyright__ = 'Copyright (C) 2019 RueiKe'
+__credits__ = ['Craig Echt - Testing, Debug, and Verification']
+__license__ = 'GNU General Public License'
+__program_name__ = 'amdgpu-ls'
+__version__ = 'v2.5.3'
+__maintainer__ = 'RueiKe'
+__status__ = 'Stable Release'
 
 import argparse
 import os
@@ -42,44 +42,51 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--pstates", help="Output pstate tables instead of GPU details", action="store_true", default=False)
-    parser.add_argument("--ppm", help="Output power/performance mode tables instead of GPU details", action="store_true", default=False)
-    parser.add_argument("--clinfo", help="Include openCL with card details", action="store_true", default=False)
-    parser.add_argument("--no_fan", help="don't include fan setting options", action="store_true", default=False)
-    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    parser.add_argument('--about', help='README',
+                        action='store_true', default=False)
+    parser.add_argument('--pstates', help='Output pstate tables instead of GPU details',
+                        action='store_true', default=False)
+    parser.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
+                        action='store_true', default=False)
+    parser.add_argument('--clinfo', help='Include openCL with card details',
+                        action='store_true', default=False)
+    parser.add_argument('--no_fan', help='do not include fan setting options',
+                        action='store_true', default=False)
+    parser.add_argument('-d', '--debug', help='Debug output',
+                        action='store_true', default=False)
     args = parser.parse_args()
 
     # About me
     if args.about:
         print(__doc__)
-        print("Author: ", __author__)
-        print("Copyright: ", __copyright__)
-        print("Credits: ", __credits__)
-        print("License: ", __license__)
-        print("Version: ", __version__)
-        print("Maintainer: ", __maintainer__)
-        print("Status: ", __status__)
+        print('Author: ', __author__)
+        print('Copyright: ', __copyright__)
+        print('Credits: ', __credits__)
+        print('License: ', __license__)
+        print('Version: ', __version__)
+        print('Maintainer: ', __maintainer__)
+        print('Status: ', __status__)
         sys.exit(0)
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
-    if args.no_fan == True: env.gut_const.show_fans = False
+    if args.no_fan:
+        env.gut_const.show_fans = False
 
     if env.gut_const.check_env() < 0:
-        print("Error in environment. Exiting...")
+        print('Error in environment. Exiting...')
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
         featuremask = env.gut_const.read_amdfeaturemask()
     except FileNotFoundError:
-        print("Cannot read ppfeaturemask. Exiting...")
+        print('Cannot read ppfeaturemask. Exiting...')
         sys.exit(-1)
     if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
-        print("AMD Wattman features enabled: %s" % hex(featuremask))
+        print('AMD Wattman features enabled: %s' % hex(featuremask))
     else:
-        print("AMD Wattman features not enabled: %s, See README file." % hex(featuremask))
+        print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
         sys.exit(-1)
 
     env.gut_const.get_amd_driver_version()
@@ -93,17 +100,18 @@ def main():
     num_amd_gpus = gpu_list.num_gpus()
     num_com_gpus = gpu_list.num_compatible_gpus()
     if num_amd_gpus == 0:
-        print("No AMD GPUs detected, exiting...")
+        print('No AMD GPUs detected, exiting...')
         sys.exit(-1)
     else:
         if num_com_gpus == 0:
-            print("None are compatible, exiting...")
+            print('None are compatible, exiting...')
             sys.exit(-1)
-        print(f"{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...")
+        print(f'{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...')
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
     gpu_list.read_gpu_sensor_static_data()
+
     # Read dynamic sensor and state data from GPUs
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
@@ -111,11 +119,11 @@ def main():
     # Check number of compatible GPUs again
     num_com_gpus = gpu_list.num_compatible_gpus()
     if num_com_gpus == 0:
-        print("None are compatible, exiting...")
+        print('None are compatible, exiting...')
         sys.exit(-1)
     else:
-        print(f"{num_com_gpus} are confirmed compatible.")
-        print("")
+        print(f'{num_com_gpus} are confirmed compatible.')
+        print('')
 
     # Read report specific details
     if args.clinfo:
@@ -125,14 +133,14 @@ def main():
     gpu_list.read_gpu_ppm_table()
 
     # Print out user requested details
-    if args.pstates == True:
+    if args.pstates:
         gpu_list.print_pstates()
-    if args.ppm == True:
+    if args.ppm:
         gpu_list.print_ppm_table()
-    if args.pstates == False and args.ppm == False:
+    if not args.pstates and not args.ppm:
         gpu_list.print(args.clinfo)
     sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
