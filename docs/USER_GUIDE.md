@@ -55,10 +55,10 @@ with python3, then execute the following (Ubuntu example)
 sudo apt install -y python3-venv
 ```
 
-Initialize your amdgpu-util-env if it is your first time to use it.  From the project directory, execute:
+Initialize your amdgpu-utils-env if it is your first time to use it.  From the project directory, execute:
 ```
-python3 -m venv amdgpu-util-env
-source amdgpu-util-env/bin/activate
+python3 -m venv amdgpu-utils-env
+source amdgpu-utils-env/bin/activate
 pip install --no-cache-dir -r requirements-venv.txt
 ```
 Use the deactivate command to leave the venv.
