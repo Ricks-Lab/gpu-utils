@@ -99,7 +99,7 @@ class GUT_CONST:
                   str(required_kversion[0]) + '.' + str(required_kversion[1]), file=sys.stderr)
             return -2
         elif int(linux_version.split('.')[0]) == required_kversion[0] and \
-             int(linux_version.split('.')[1]) < required_kversion[1]:
+                                                 int(linux_version.split('.')[1]) < required_kversion[1]:
             print('Using Linux Kernel ' + linux_version + ', but ' + __program_name__ + ' requires > ' +
                   str(required_kversion[0]) + '.' + str(required_kversion[1]), file=sys.stderr)
             return -2

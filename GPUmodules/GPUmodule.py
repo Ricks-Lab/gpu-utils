@@ -145,7 +145,8 @@ class GPU_ITEM:
         for k, v in gpu_item.clinfo.items():
             self.clinfo[k] = v
 
-    def get_all_params_labels(self):
+    @staticmethod
+    def get_all_params_labels():
         # Human friendly labels for params keys
         GPU_Param_Labels = {'uuid': 'UUID',
                             'id': 'Device ID',
@@ -272,7 +273,6 @@ class GPU_ITEM:
         return False
 
     def is_changed_vddc_curve_pt(self, pstate):
-        #self.vddc_curve = {} #{'1':['Mhz','mV']}
         if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
             return True
         if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][1])) != pstate[2]:
@@ -398,7 +398,8 @@ class GPU_ITEM:
                             self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
                         elif clk_name == 'OD_MCLK:':
                             self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                    else: # Type 2
+                    else:
+                        # Type 2
                         if clk_name == 'OD_SCLK:':
                             self.sclk_state[lineitems[0]] = [lineitems[1], '-']
                         elif clk_name == 'OD_MCLK:':
@@ -421,7 +422,6 @@ class GPU_ITEM:
                             if env.gut_const.DEBUG:
                                 print('Curve: index: %s param: %s, val1 %s, val2: %s' %
                                       (index, param, lineitems[1], lineitems[2]))
-                            #self.vddc_curve = {} #{'1':{SCLK:['val1','val2'], VOLT:['val1','val2']}
                             if index in self.vddc_curve_range.keys():
                                 self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
                             else:
@@ -507,7 +507,6 @@ class GPU_ITEM:
             if os.path.isfile(self.hwmon_path + 'power1_average'):
                 with open(self.hwmon_path + 'power1_average') as hwmon_file:
                     power_uw = int(hwmon_file.readline())
-                    #time_n = datetime.utcnow()
                     time_n = env.gut_const.now(env.gut_const.USELTZ)
                     self.set_params_value('power', int(power_uw)/1000000)
                     delta_hrs = ((time_n - self.energy['tn']).total_seconds())/3600
@@ -537,16 +536,16 @@ class GPU_ITEM:
             name_hwfile = ('fan1_enable', 'fan1_target', 'fan1_input')
             name_param = ('fan_enable', 'fan_target', 'fan_speed')
             for nh, np in zip(name_hwfile, name_param):
-                if (nh in self.hwmon_disabled) == False:
+                if not (nh in self.hwmon_disabled):
                     if os.path.isfile(self.hwmon_path + nh):
-                       try:
+                        try:
                             with open(self.hwmon_path + nh) as hwmon_file:
                                 self.set_params_value(np,  hwmon_file.readline().strip())
                             hwmon_file.close()
-                       except:
-                           print('Warning: problem reading sensor [%s] data from GPU HWMON: %s' %
-                                 (nh, self.hwmon_path), file=sys.stderr)
-                           self.hwmon_disabled.append(nh)
+                        except:
+                            print('Warning: problem reading sensor [%s] data from GPU HWMON: %s' %
+                                  (nh, self.hwmon_path), file=sys.stderr)
+                            self.hwmon_disabled.append(nh)
                     else:
                         print('Warning: HW file does not exist: %s' % (self.hwmon_path + nh), file=sys.stderr)
                         self.hwmon_disabled.append(nh)
@@ -709,8 +708,8 @@ class GPU_ITEM:
                 with open(self.card_path + 'pp_power_profile_mode') as card_file:
                     for line in card_file:
                         linestr = line.strip()
-                        searchObj = re.search('\*:', linestr)
-                        if(searchObj != None):
+                        searchObj = re.search(r'\*:', linestr)
+                        if searchObj:
                             lineitems = linestr.split(sep='*:')
                             mode_str = lineitems[0].strip()
                             mode_str = re.sub(r'[ ]+', '-', mode_str)
@@ -728,7 +727,7 @@ class GPU_ITEM:
                 card_file.close()
             else:
                 print('Error: card file does not exist: %s' % (self.card_path + 'power_dpm_force_performance_level'),
-                        file=sys.stderr)
+                      file=sys.stderr)
                 self.compatible = False
         except:
             print('Error: getting data from GPU Card Path: %s' % self.card_path, file=sys.stderr)
@@ -739,7 +738,7 @@ class GPU_ITEM:
         print(f'Card: {self.card_path}')
         print('Power Performance Mode: %s' % self.get_params_value('power_dpm_force'))
         for k, v in self.ppm_modes.items():
-            print(str(k).rjust(3, ' ') + ': ' + v[0].rjust(15,' '), end='')
+            print(str(k).rjust(3, ' ') + ': ' + v[0].rjust(15, ' '), end='')
             for v_item in v[1:]:
                 print(str(v_item).rjust(18, ' '), end='')
             print('')
@@ -759,7 +758,6 @@ class GPU_ITEM:
         if self.get_params_value('gpu_type') == 2:
             print('VDDC_CURVE')
             for k, v in self.vddc_curve.items():
-                # print(f'{str(k)}: {v}')
                 print('{}: {}'.format(str(k), v))
         print('')
 
@@ -780,20 +778,19 @@ class GPU_ITEM:
     def get_plot_data(self, gpu_list):
         """return a dictionary of dynamic gpu parameters
 
-           used by amdgpu-plot to popluate a df.
+           used by amdgpu-plot to populate a df.
         """
-        gpu_state = {}
+        gpu_state = {'Time': str(self.energy['tn'].strftime('%c')).strip(), 'Card#': int(self.card_num)}
 
-        gpu_state['Time'] = str(self.energy['tn'].strftime('%c')).strip()
-        gpu_state['Card#'] = int(self.card_num)
         for table_item in gpu_list.table_parameters:
             gpu_state_str = str(re.sub('M[Hh]z', '', str(self.get_params_value(table_item)))).strip()
             if gpu_state_str.isnumeric():
                 gpu_state[table_item] = int(gpu_state_str)
             elif re.fullmatch(r'[0-9]+.[0-9]*', gpu_state_str) or re.fullmatch(r'[0-9]*.[0-9]+', gpu_state_str):
                 gpu_state[table_item] = float(gpu_state_str)
-            elif gpu_state_str == '' or gpu_state_str == '-1' or gpu_state_str == 'NA' or gpu_state_str == None:
-                    new_line_item.append('NA')
+            elif gpu_state_str == '' or gpu_state_str == '-1' or gpu_state_str == 'NA' or gpu_state_str is None:
+                # new_line_item.append('NA')
+                gpu_state[table_item] = 'NA'
             else:
                 gpu_state[table_item] = gpu_state_str
         return gpu_state
@@ -803,7 +800,7 @@ class GPU_LIST:
     """A list of GPU_ITEMS indexed with uuid.  It also contains a table of parameters used for tabular printouts"""
     def __init__(self):
         self.list = {}
-        if env.gut_const.show_fans == True:
+        if env.gut_const.show_fans:
             self.table_parameters = ['model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
                                      'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
             self.table_param_labels = {'model_display': 'Model',
@@ -841,9 +838,9 @@ class GPU_LIST:
         """
         for card_name in glob.glob(env.gut_const.card_root + 'card?/device/pp_od_clk_voltage'):
             gpu_item = GPU_ITEM(uuid4().hex)
-            gpu_item.set_params_value('card_path',  card_name.replace('pp_od_clk_voltage',''))
+            gpu_item.set_params_value('card_path',  card_name.replace('pp_od_clk_voltage', ''))
             gpu_item.set_params_value('card_num',
-                    card_name.replace('/device/pp_od_clk_voltage','').replace(env.gut_const.card_root + 'card', ''))
+                     card_name.replace('/device/pp_od_clk_voltage', '').replace(env.gut_const.card_root + 'card', ''))
             hw_file_srch = glob.glob(os.path.join(gpu_item.card_path, env.gut_const.hwmon_sub) + '?')
             if len(hw_file_srch) > 1:
                 print('More than one hwmon file found: ', hw_file_srch)
@@ -854,7 +851,7 @@ class GPU_LIST:
         compatible_list = GPU_LIST()
         for k, v in self.list.items():
             if v.compatible:
-                compatible_list.list[k]=v
+                compatible_list.list[k] = v
         return compatible_list
 
     def get_gpu_card_list(self):
@@ -942,9 +939,9 @@ class GPU_LIST:
 
             # Check for Fiji ProDuo
             searchObj = re.search('Fiji', gpu_name_0)
-            if(searchObj != None):
+            if searchObj:
                 searchObj = re.search('Radeon Pro Duo', gpu_name_1)
-                if(searchObj != None):
+                if searchObj:
                     gpu_name = 'Radeon Fiji Pro Duo'
 
             if len(gpu_name) == 0:
@@ -954,7 +951,7 @@ class GPU_LIST:
                     gpu_name = gpu_name_1
                 if env.gut_const.DEBUG: print('gpu_name: %s' % gpu_name)
 
-            #Get Driver Name
+            # Get Driver Name
             driver_module_items = lspci_items[2].split(':')
             if len(driver_module_items) < 2:
                 driver_module = 'UNKNOWN'
@@ -1088,7 +1085,7 @@ class GPU_LIST:
 
     def num_gpus(self):
         cnt = 0
-        for k, v in self.list.items():
+        for _, _ in self.list.items():
             cnt += 1
         return cnt
 
@@ -1112,7 +1109,7 @@ class GPU_LIST:
             return -1
 
         print('┌', '─'.ljust(13, '─'), sep='', end='')
-        for k, v in self.list.items():
+        for _, _ in self.list.items():
             print('┬', '─'.ljust(16, '─'), sep='', end='')
         print('┐')
 
@@ -1123,8 +1120,8 @@ class GPU_LIST:
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
-        for k, v in self.list.items():
-                print('┼', '─'.ljust(16, '─'), sep='', end='')
+        for _, _ in self.list.items():
+            print('┼', '─'.ljust(16, '─'), sep='', end='')
         print('┤')
 
         for table_item in self.table_parameters:
@@ -1135,7 +1132,7 @@ class GPU_LIST:
             print('│')
 
         print('└', '─'.ljust(13, '─'), sep='', end='')
-        for k, v in self.list.items():
+        for _, _ in self.list.items():
             print('┴', '─'.ljust(16, '─'), sep='', end='')
         print('┘')
 
