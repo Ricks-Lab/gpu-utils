@@ -132,12 +132,11 @@ def does_amdgpu_utils_env_exist():
     env_name = './amdgpu-utils-env/bin/activate'
 
     if os.path.isfile(env_name):
-        print('amdgpu-utils venv available')
-        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-venv OK. ' + '\x1b[0m')
+        print('amdgpu-utils-env available')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env OK. ' + '\x1b[0m')
         return True
-    print('amdgpu-utils venv is NOT available')
-    print('python3 venv is NOT installed.')
-    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-venv should be configured per README. ' + '\x1b[0m')
+    print('amdgpu-utils-env is NOT available')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be configured per User Guide. ' + '\x1b[0m')
     return False
 
 def is_in_venv():
@@ -145,10 +144,10 @@ def is_in_venv():
 
     if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
         print('In amdgpu-utils-env')
-        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-venv is activated. ' + '\x1b[0m')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
         return True
-    print('Not in a venv')
-    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-venv should be activated per README. ' + '\x1b[0m')
+    print('Not in amdgpu-utils-env')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be activated per User Guide. ' + '\x1b[0m')
     return False
 
 
