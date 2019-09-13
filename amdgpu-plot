@@ -399,9 +399,9 @@ class GPUPlotWindow(Gtk.Window):
             v['figure'], v['ax1'] = plt.subplots(num=v['figure_num'])
             v['figure'].set_facecolor(gc.colors['figface'])
 
-            y = [0] * plot_data.length
-            x = list(range(0, plot_data.length))
-            print(len(x), len(y))
+            #y = [0] * plot_data.length
+            #x = list(range(0, plot_data.length))
+            #print(len(x), len(y))
             plt.figure(v['figure_num'])
             plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
             v['ax1'].set_facecolor(gc.colors['plotface'])
@@ -409,18 +409,18 @@ class GPUPlotWindow(Gtk.Window):
             v['ax1'].set_xticklabels([])
             v['ax1'].set_yticks(np.arange(0, 250, 20))
             v['ax1'].tick_params(axis='y', which='major', labelsize=8)
-            for plot_item in ['loading', 'power_cap', 'power', 'temp']:
-                v[plot_item] = {}
-                v[plot_item]['line'], = v['ax1'].plot(x, y, color=gc.colors[plot_item], linewidth=0.6)
+            #for plot_item in ['loading', 'power_cap', 'power', 'temp']:
+                #v[plot_item] = {}
+                #v[plot_item]['line'], = v['ax1'].plot(x, y, color=gc.colors[plot_item], linewidth=0.6)
 
             v['ax2'] = v['ax1'].twinx()
             v['ax2'].set_xticks([])
             v['ax2'].set_xticklabels([])
             v['ax2'].set_yticks(np.arange(500, 1500, 100))
             v['ax2'].tick_params(axis='y', which='major', labelsize=8)
-            for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
-                v[plot_item] = {}
-                v[plot_item]['line'], = v['ax2'].plot(x, y, color=gc.colors[plot_item], linewidth=0.6)
+            #for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
+                #v[plot_item] = {}
+                #v[plot_item]['line'], = v['ax2'].plot(x, y, color=gc.colors[plot_item], linewidth=0.6)
 
             v['canvas'] = FigureCanvas(v['figure'])  # a Gtk.DrawingArea
             v['canvas'].set_size_request(def_gp_x_size, gp_y_size)
@@ -488,10 +488,11 @@ def updateData(gc, plot_data):
                 #v['ax1'].set_ylabel('P-State', color='k')
             v['canvas'].draw()
             v['canvas'].flush_events()
+
         # Update GPU Plots
-        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp']].max().max() // 10) + 10
+        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp']].max().max() // 10) + 5
         y1lim_min_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp']].min().min() // 10) - 5
-        y2lim_max_val = 100*(ldf.loc[:, ['vddgfx', 'sclk_f', 'mclk_f']].max().max() // 100) + 200
+        y2lim_max_val = 100*(ldf.loc[:, ['vddgfx', 'sclk_f', 'mclk_f']].max().max() // 100) + 300
         y2lim_min_val = 100*(ldf.loc[:, ['vddgfx', 'sclk_f', 'mclk_f']].min().min() // 100) - 100
         for k, v in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([k])]['energy'].iloc[-1]
@@ -502,49 +503,55 @@ def updateData(gc, plot_data):
             # Plot GPUs
             plt.figure(v['figure_num'])
             v['ax1'].set_xticklabels([])
-            #v['ax1'].clear()
+            v['ax1'].clear()
             v['ax1'].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp']:
                 if gc.plot_items[plot_item]:
-                    y = [np.NAN] * plot_data.length
-                    index = plot_data.length - 1
+                    #y = [np.NAN] * plot_data.length
+                    #index = plot_data.length - 1
                     y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
-                    y_df.reverse()
-                    for y_val in y_df:
-                        y[index] = y_val
-                        index -= 1
+                    x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
+                    #y_df.reverse()
+                    #for y_val in y_df:
+                        #y[index] = y_val
+                        #index -= 1
                     #print(y)
                     #print(len((ldf[ldf['Card#'].isin([k])][plot_item]).tolist()))
-                    v[plot_item]['line'].set_ydata(y)
+                    #v[plot_item]['line'].set_ydata(y)
                     #v['ax1'].plot(ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']],
                                   #ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]],
                                   #color=gc.colors[plot_item], linewidth=0.5)
-                    #v['ax1'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
-                                  #y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
-                                  #s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
-                                  #bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                    #print('x_df: {}'.format(x_df))
+                    print('{} y_df: {}'.format(plot_item, y_df))
+                    v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
+                    v['ax1'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
     
-            #v['ax2'].clear()
+            v['ax2'].clear()
             v['ax2'].set_xticklabels([])
             v['ax2'].set_ylabel('MHz/mV', color='k', fontsize=10)
-            #ylim_val = 1.1* ldf[ldf['Card#'].isin([k])].loc[:,['vddgfx', 'sclk_f', 'mclk_f']].max().max()
             for plot_item in ['vddgfx', 'sclk_f', 'mclk_f']:
                 if gc.plot_items[plot_item]:
-                    y = [0] * plot_data.length
-                    index = plot_data.length - 1
+                    #y = [0] * plot_data.length
+                    #index = plot_data.length - 1
+                    #y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
                     y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
-                    y_df.reverse()
-                    for y_val in y_df:
-                        y[index] = y_val
-                        index -= 1
-                    v[plot_item]['line'].set_ydata(y)
+                    x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
+                    #y_df.reverse()
+                    #for y_val in y_df:
+                        #y[index] = y_val
+                        #index -= 1
+                    #v[plot_item]['line'].set_ydata(y)
                     #v['ax2'].plot(ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']],
                                   #ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]],
                                   #color=gc.colors[plot_item], linewidth=0.5)
-                    #v['ax2'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
-                                  #y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
-                                  #s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
-                                  #bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                    v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
+                    v['ax2'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
 
             v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, 10))
             v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, 100))
@@ -554,7 +561,7 @@ def updateData(gc, plot_data):
     else:
         print('matplotlib error, stack size is %d' % get_stack_size())
         plot_data.kill_thread()
-    #garbcollect.collect()
+
     # SEMAPHORE ###########
     pd_sem.release()
     #######################
@@ -604,7 +611,7 @@ def read_from_stdin(refreshtime, plot_data):
             rdf = pd.DataFrame.from_records([line_item], columns=header_item)
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
             ndf = pd.concat([ndf, rdf], ignore_index=True)
-            del(rdf)
+            del rdf
             if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1:
                 sync_add = 1
             else:
@@ -684,7 +691,7 @@ def read_from_gpus(refreshtime, plot_data):
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
             ndf = pd.concat([ndf, rdf], ignore_index=True)
-            del(rdf)
+            del rdf
 
         # SEMAPHORE ############
         pd_sem.acquire()
