@@ -41,9 +41,14 @@ class PCI_ID:
         self.amdgpu_utils_file = os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name)
         try:
             self.pci_id_file_ptr = open(self.amdgpu_utils_file, 'r')
-        except:
+        except FileNotFoundError:
+            print('File [%s] not found. Exiting...' %
+                  os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
+            sys.exit(-1)
+        except OSError:
             print('Can not open [%s] to read. Exiting...' %
                   os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name))
+            sys.exit(-1)
 
     def get_pciid_version(self, filename=''):
         """ Get version information of specified pci.ids file. 
@@ -92,12 +97,16 @@ class PCI_ID:
         self.extract_vendor_from_pci_id('0x1002', in_file_name, self.amdgpu_utils_file)
         return 0
 
-    def extract_vendor_from_pci_id(self, vendor, in_file_name, out_file_name=''):
+    @staticmethod
+    def extract_vendor_from_pci_id(vendor, in_file_name, out_file_name=''):
         """ For a given vendor id, extract all relevant entries.
         """
         try:
             in_file_ptr = open(in_file_name, 'r')
-        except:
+        except FileNotFoundError:
+            print('File [%s] not found. Exiting...' % in_file_name)
+            sys.exit(-1)
+        except OSError:
             print('Can not open [%s] to read. Exiting...' % in_file_name)
             sys.exit(-1)
 
@@ -107,7 +116,7 @@ class PCI_ID:
             shutil.copy2(out_file_name, out_file_name + datetime.utcnow().strftime('%m%d_%H%M%S'))
             try:
                 file_ptr = open(out_file_name, 'w')
-            except:
+            except OSError:
                 print('Can not open [%s] to write. Exiting...' % out_file_name)
                 sys.exit(-1)
 

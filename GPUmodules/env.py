@@ -126,7 +126,7 @@ class GUT_CONST:
             print('can not determine amdgpu version')
             return -1
         version_ok = False
-        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
+        for pkgname in ['xamdgpu', 'xamdgpu-core', 'xamdgpu-pro']:
             try:
                 dpkg_out = subprocess.check_output(shlex.split(f'dpkg -l {pkgname}'), shell=False,
                                                    stderr=subprocess.DEVNULL).decode().split('\n')
@@ -144,9 +144,11 @@ class GUT_CONST:
                                 break
                 if version_ok:
                     break
-            except:
+            except subprocess.CalledProcessError:
                 pass
-        if not version_ok: 
+            except OSError:
+                pass
+        if not version_ok:
             print('amdgpu version: UNKNOWN')
             return -1
         return 0
