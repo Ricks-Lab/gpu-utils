@@ -509,9 +509,10 @@ def updateData(gc, plot_data):
                 if gc.plot_items[plot_item]:
                     #y = [np.NAN] * plot_data.length
                     #index = plot_data.length - 1
-                    y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
-                    x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
+                    #y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
+                    #x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
                     #y_df.reverse()
+                    #x_df.reverse()
                     #for y_val in y_df:
                         #y[index] = y_val
                         #index -= 1
@@ -521,12 +522,19 @@ def updateData(gc, plot_data):
                     #v['ax1'].plot(ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']],
                                   #ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]],
                                   #color=gc.colors[plot_item], linewidth=0.5)
+                    v['ax1'].plot(ldf[ldf['Card#'].isin([k])]['datetime'],
+                                  ldf[ldf['Card#'].isin([k])][plot_item],
+                                  color=gc.colors[plot_item], linewidth=0.5)
                     #print('x_df: {}'.format(x_df))
-                    print('{} y_df: {}'.format(plot_item, y_df))
-                    v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
-                    v['ax1'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
-                                  y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
-                                  s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                    #print('{} y_df: {}'.format(plot_item, y_df))
+                    #v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
+                    #v['ax1'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  #y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  #s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  #bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                    v['ax1'].text(x=ldf[ldf['Card#'].isin([k])]['datetime'].iloc[-1],
+                                  y=ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1],
+                                  s=str(int(ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1])),
                                   bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
     
             v['ax2'].clear()
@@ -537,8 +545,8 @@ def updateData(gc, plot_data):
                     #y = [0] * plot_data.length
                     #index = plot_data.length - 1
                     #y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
-                    y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
-                    x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
+                    #y_df = ((ldf[ldf['Card#'].isin([k])][plot_item]).tolist())
+                    #x_df = ((ldf[ldf['Card#'].isin([k])]['datetime']).tolist())
                     #y_df.reverse()
                     #for y_val in y_df:
                         #y[index] = y_val
@@ -547,10 +555,17 @@ def updateData(gc, plot_data):
                     #v['ax2'].plot(ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']],
                                   #ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]],
                                   #color=gc.colors[plot_item], linewidth=0.5)
-                    v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
-                    v['ax2'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
-                                  y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
-                                  s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                    v['ax2'].plot(ldf[ldf['Card#'].isin([k])]['datetime'],
+                                  ldf[ldf['Card#'].isin([k])][plot_item],
+                                  color=gc.colors[plot_item], linewidth=0.5)
+                    #v['ax1'].plot(x_df, y_df, color=gc.colors[plot_item], linewidth=0.5)
+                    #v['ax2'].text(x=ldf[ldf['Card#'].isin([k])].loc[:, ['datetime']].iloc[-1],
+                                  #y=ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1],
+                                  #s=str(int(ldf[ldf['Card#'].isin([k])].loc[:, [plot_item]].iloc[-1].values[0])),
+                                  #bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                    v['ax2'].text(x=ldf[ldf['Card#'].isin([k])]['datetime'].iloc[-1],
+                                  y=ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1],
+                                  s=str(int(ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1])),
                                   bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
 
             v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, 10))
