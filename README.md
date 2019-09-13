@@ -69,6 +69,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * PEP8 style modifications
 * Fixed a bug in monitor display.
 * Implement requirements file for with and without a venv.
+* Found and fixed a few minor bugs.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -90,7 +91,7 @@ amdgpu-ls and make a request for the addition on the pci.ids website.
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
-## New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
+#### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 * Some preparation work for Debian package (@smoe).
 * Added *--ltz* option to use local times instead of UTC for logging and plot data.
 * Added 0xfffd7fff to valid amdgpu.ppfeaturemask values (@pastaq).
