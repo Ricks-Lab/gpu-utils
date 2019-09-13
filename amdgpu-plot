@@ -117,7 +117,7 @@ class PlotData:
         self.df = pd.DataFrame()
         self.gui_comp = None
         self.gui_ready = False
-        self.length = 300
+        self.length = 200
         self.quit = False
         self.writer = False
         self.reader = False
