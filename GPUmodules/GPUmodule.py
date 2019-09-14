@@ -1173,6 +1173,7 @@ class GPU_LIST:
         line_str_item.append('\n')
         line_str = ''.join(line_str_item)
         log_file_ptr.write(line_str.encode('utf-8'))
+        log_file_ptr.flush()
 
     def print_plot(self, log_file_ptr):
         num_gpus = self.num_gpus()
@@ -1187,6 +1188,7 @@ class GPU_LIST:
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
             log_file_ptr.write(line_str.encode('utf-8'))
+        log_file_ptr.flush()
 
 
 def about():
