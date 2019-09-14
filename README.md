@@ -41,8 +41,9 @@ directly, which is useful as a standalone utility.  The *--stdin* option causes
 *amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the 
 plot.  The benefit of using it in this mode is that both the table and plots are updated 
 with a single read from the driver files.  The *--simlog* option can be used with the 
-*--stdin* when a monitor log file is piped as stdin.  This is useful for troubleshooting.
-The *--ltz* option results in the use of local time instead of UTC.
+*--stdin* when a monitor log file is piped as stdin.  This is useful for troubleshooting
+and can be used to display saved log results. The *--ltz* option results in the use of
+local time instead of UTC.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
