@@ -72,6 +72,7 @@ from the pci.ids file, you can use the device id of your card found with
 * Implement requirements file for with and without a venv.
 * Found and fixed a few minor bugs.
 * Fixed issue with *amdgpu-plot* becoming corrupt over time.
+* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems with many GPUs.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
