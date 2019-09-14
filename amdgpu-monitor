@@ -168,6 +168,8 @@ def updateData(gpu_list, devices, cmd):
 def refresh(refreshtime, updateData, gpu_list, devices, cmd):
     while True:
         GLib.idle_add(updateData, gpu_list, devices, cmd)
+        while Gtk.events_pending():
+            Gtk.main_iteration_do(True)
         time.sleep(refreshtime)
 
 
