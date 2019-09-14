@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""amdgpu-pciid  -  Manages the local pci id lookup table
-
-    WARNING: this utility is under development and should not be used
+""" amdgpu-pciid  -  Manages the local pci id lookup table
 
     This utility will display the version of the current pci.ids data extract
-    in use.  With the *--download* option, the latest pci.ids file from 
+    in use.  With the *--download* option, the latest pci.ids file from
     https://pci-ids.ucw.cz/ will be downloaded. With the *--install* option,
     the latest pci.ids will be downloaded and filtered for AMD specific data
     and written to the file used by amdgpu-utils to decode device names from the
-    driver provided device id.  The *--force* option can be used to update this 
+    driver provided device id.  The *--force* option can be used to update this
     file even if there is no change in version.  If your GPU model is missing
-    from the pci.ids file, you can use the device id of your card found with 
-    amdgpu-ls and make a request for the addition on the pci.ids website.
+    from the pci.ids file, you can use the device id of your card found with
+    *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
     Copyright (C) 2019  RueiKe
 
@@ -28,14 +26,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = "RueiKe"
-__copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = [""]
-__license__ = "GNU General Public License"
-__program_name__ = "amdgpu-pciid"
-__version__ = "v2.6.0"
-__maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__author__ = 'RueiKe'
+__copyright__ = 'Copyright (C) 2019 RueiKe'
+__credits__ = ['']
+__license__ = 'GNU General Public License'
+__program_name__ = 'amdgpu-pciid'
+__version__ = 'v2.6.0'
+__maintainer__ = 'RueiKe'
+__status__ = 'Stable Release'
 
 import argparse
 import os
@@ -47,64 +45,64 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("--download", help="download pci decode table from https://pci-ids.ucw.cz/v2.2/pci.ids",
-                        action="store_true", default=False)
-    parser.add_argument("--install", help="download, parse amd entries, and install a new decode file",
-                        action="store_true", default=False)
-    parser.add_argument("--force", help="force install of new pci.ids data even if revision is unchanged",
-                        action="store_true", default=False)
-    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    parser.add_argument('--about', help='README', action='store_true', default=False)
+    parser.add_argument('--download', help='download pci decode table from https://pci-ids.ucw.cz/v2.2/pci.ids',
+                        action='store_true', default=False)
+    parser.add_argument('--install', help='download, parse amd entries, and install a new decode file',
+                        action='store_true', default=False)
+    parser.add_argument('--force', help='force install of new pci.ids data even if revision is unchanged',
+                        action='store_true', default=False)
+    parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 
     # About me
     if args.about:
         print(__doc__)
-        print("Author: ", __author__)
-        print("Copyright: ", __copyright__)
-        print("Credits: ", __credits__)
-        print("License: ", __license__)
-        print("Version: ", __version__)
-        print("Maintainer: ", __maintainer__)
-        print("Status: ", __status__)
+        print('Author: ', __author__)
+        print('Copyright: ', __copyright__)
+        print('Credits: ', __credits__)
+        print('License: ', __license__)
+        print('Version: ', __version__)
+        print('Maintainer: ', __maintainer__)
+        print('Status: ', __status__)
         sys.exit(0)
 
     env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
 
     if env.gut_const.check_env() < 0:
-        print("Error in environment. Exiting...")
+        print('Error in environment. Exiting...')
         sys.exit(-1)
 
     pciid = PCI.PCI_ID()
 
     # display info about pci.ids
     if not args.download and not args.install:
-        original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
+        original_amd_file = os.path.join(env.gut_const.PATH, 'GPUmodules', pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
-        print("Current pci.ids version %s : %s" % (original_file_version, original_amd_file))
+        print('Current pci.ids version %s : %s' % (original_file_version, original_amd_file))
         sys.exit(0)
 
     if args.download or args.install:
         pciid_filename_new = pciid.download_pciid()
-        print("Download complete: %s" % pciid_filename_new)
+        print('Download complete: %s' % pciid_filename_new)
         new_file_version = pciid.get_pciid_version(pciid_filename_new)
-        print("    Download %s : %s" % (new_file_version, pciid_filename_new))
+        print('    Download %s : %s' % (new_file_version, pciid_filename_new))
 
     if args.install:
-        original_amd_file = os.path.join(env.gut_const.PATH, "GPUmodules", pciid.amdgpu_utils_file)
+        original_amd_file = os.path.join(env.gut_const.PATH, 'GPUmodules', pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
-        print("    Original %s : %s" % (original_file_version, original_amd_file))
-        if original_file_version == new_file_version and args.force != True:
-            print("No updates, skipping install")
+        print('    Original %s : %s' % (original_file_version, original_amd_file))
+        if original_file_version == new_file_version and not args.force:
+            print('No updates, skipping install')
         else:
             pciid.update_pci_id(pciid_filename_new)
-            print("Completed update to %s" % new_file_version)
+            print('Completed update to %s' % new_file_version)
         # remove downloaded file
         os.remove(pciid_filename_new)
 
     sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

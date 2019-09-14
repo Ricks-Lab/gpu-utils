@@ -12,6 +12,9 @@ Check out the [User Guide](docs/USER_GUIDE.md)!
 Download latest official release: [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 Or use this development version from master branch.
 
+## amdgpu-chk
+This utility verifies if the environment is compatible with *amdgpu-util*s.
+
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs.
 The default behavior is to list relevant parameters by GPU.  OpenCL platform information
@@ -25,31 +28,35 @@ A utility to give the current state of all compatible AMD GPUs. The default beha
 is to continuously update a text based table in the current window until Ctrl-C is
 pressed.  With the *--gui* option, a table of relevant parameters will be updated
 in a Gtk window.  You can specify the delay between updates with the *--sleep N*
-option where N is an integer > zero that specifies the number of seconds to sleep.
-The *--no_fan* option can be used to disable the reading and display of fan
-information.  The *--log* option is used to write all monitor data to a psv log file.
-When writing to a log file, the utility will indicate this in red at the top of the 
-window with a message that includes the log file name. The *--plot* will display a plot 
-of critical GPU parameters which updates at the specified *--sleep N* interval. The
-*--ltz* option results in the use of local time instead of UTC.
+option where N is an integer > zero that specifies the number of seconds to sleep
+between updates.  The *--no_fan* option can be used to disable the reading and display
+of fan information.  The *--log* option is used to write all monitor data to a psv log
+file.  When writing to a log file, the utility will indicate this in red at the top of
+the window with a message that includes the log file name. The *--plot* will display a
+plot of critical GPU parameters which updates at the specified *--sleep N* interval. If
+you need both the plot and monitor displays, then using the --plot option is preferred
+over running both tools as a single read of the GPUs is used to update both displays.
+The *--ltz* option results in the use of local time instead of UTC.
 
 ## amdgpu-plot
-A utility to continuously plot the trend of critical GPU parameters of all compatible 
+A utility to continuously plot the trend of critical GPU parameters for all compatible 
 AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot* 
 utility has 2 modes of operation.  The default mode is to read the GPU driver details 
 directly, which is useful as a standalone utility.  The *--stdin* option causes 
 *amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the 
-plot.  The benefit of using it in this mode is that both the table and plots are updated 
-with a single read from the driver files.  The *--simlog* option can be used with the 
-*--stdin* when a monitor log file is piped as stdin.  This is useful for troubleshooting
-and can be used to display saved log results. The *--ltz* option results in the use of
-local time instead of UTC.
+plot and can also be used to pipe your own data into the process.  The *--simlog*
+option can be used with the *--stdin* when a monitor log file is piped as stdin. 
+This is useful for troubleshooting and can be used to display saved log results.
+The *--ltz* option results in the use of local time instead of UTC.  If you plan
+to run both *amdgpu-plot* and *amdgpu-monitor*, then the *--plot* option of the
+*amdgpu-monitor* utility should be used instead of both utilities in order reduce
+data reads by a factor of 2.
 
 ## amdgpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
 be written to a GPU are written to a bash file for the user to inspect and run.  If you
-have confidence, the *--execute_pac* option can be used to execute the bash file when saved
-and then delete it. Since the GPU device files are writable only by root, sudo is used to
+have confidence, the *--execute_pac* option can be used to execute and then delete the 
+saved bash file.  Since the GPU device files are writable only by root, sudo is used to
 execute commands in the bash file, as a result, you will be prompted for credentials in the
 terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
 fan details from the utility. The *--force_write* option can be used to force all configuration

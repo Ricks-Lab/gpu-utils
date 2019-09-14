@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""amdgpu-monitor  -  Displays current status of all active GPUs
+""" amdgpu-monitor  -  Displays current status of all active GPUs
 
     A utility to give the current state of all compatible AMD GPUs. The default behavior
     is to continuously update a text based table in the current window until Ctrl-C is
     pressed.  With the *--gui* option, a table of relevant parameters will be updated
     in a Gtk window.  You can specify the delay between updates with the *--sleep N*
-    option where N is an integer > zero that specifies the number of seconds to sleep.
-    The *--no_fan* option can be used to disable the reading and display of fan
-    information.  The *--log* option is used to write all monitor data to a psv log file.
-    When writing to a log file, the utility will indicate this in red at the top of the
-    window with a message that includes the log file name. The *--plot* will display a plot
-    of critical GPU parameters which updates at the specified *--sleep N* interval. The 
-    *--ltz* option results in the use of local time instead of UTC.
+    option where N is an integer > zero that specifies the number of seconds to sleep
+    between updates.  The *--no_fan* option can be used to disable the reading and display
+    of fan information.  The *--log* option is used to write all monitor data to a psv log
+    file.  When writing to a log file, the utility will indicate this in red at the top of
+    the window with a message that includes the log file name. The *--plot* will display a
+    plot of critical GPU parameters which updates at the specified *--sleep N* interval. If
+    you need both the plot and monitor displays, then using the --plot option is preferred
+    over running both tools as a single read of the GPUs is used to update both displays.
+    The *--ltz* option results in the use of local time instead of UTC.
 
     Copyright (C) 2019  RueiKe
 
@@ -30,7 +32,7 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RueiKe'
-__credits__ = ['Craig Echt - Testing, Debug, and Verification']
+__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-monitor'
 __version__ = 'v2.6.0'
