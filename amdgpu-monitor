@@ -176,7 +176,9 @@ def updateData(gpu_list, devices, cmd):
 def refresh(refreshtime, updateData, gpu_list, devices, cmd, gmonitor):
     while True:
         if gmonitor.quit:
+            print('Quitting...')
             Gtk.main_quit()
+            sys.exit(0)
         GLib.idle_add(updateData, gpu_list, devices, cmd)
         time.sleep(refreshtime)
 
