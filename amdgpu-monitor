@@ -141,7 +141,7 @@ class MonitorWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-    def set_quit(self, arg2, arg3):
+    def set_quit(self, _arg2, _arg3):
         self.quit = True
 
 
