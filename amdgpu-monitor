@@ -152,7 +152,7 @@ def updateData(gpu_list, devices, cmd):
             print('amdgpu-plot has closed')
             env.gut_const.PLOT = False
 
-    # update gui 
+    # update gui
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == 'card_num':
@@ -164,12 +164,13 @@ def updateData(gpu_list, devices, cmd):
             lv.set_text(data_value)
             lv.set_width_chars(17)
 
+    while Gtk.events_pending():
+        Gtk.main_iteration_do(True)
+
 
 def refresh(refreshtime, updateData, gpu_list, devices, cmd):
     while True:
         GLib.idle_add(updateData, gpu_list, devices, cmd)
-        while Gtk.events_pending():
-            Gtk.main_iteration_do(True)
         time.sleep(refreshtime)
 
 
