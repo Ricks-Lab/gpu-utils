@@ -63,6 +63,8 @@ from GPUmodules import env
 
 class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
+        self.quit = False
+
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
         icon_file = os.path.join(env.gut_const.PATH, 'icons', 'amdgpu-monitor.icon.png')
@@ -139,6 +141,9 @@ class MonitorWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
+    def set_quit(self, arg2, arg3):
+        self.quit = True
+
 
 def updateData(gpu_list, devices, cmd):
     gpu_list.read_gpu_sensor_data()
@@ -168,8 +173,10 @@ def updateData(gpu_list, devices, cmd):
         Gtk.main_iteration_do(True)
 
 
-def refresh(refreshtime, updateData, gpu_list, devices, cmd):
+def refresh(refreshtime, updateData, gpu_list, devices, cmd, gmonitor):
     while True:
+        if gmonitor.quit:
+            Gtk.main_quit()
         GLib.idle_add(updateData, gpu_list, devices, cmd)
         time.sleep(refreshtime)
 
@@ -279,7 +286,8 @@ def main():
         # Display Gtk style Monitor
         devices = {}
         gmonitor = MonitorWindow(com_gpu_list, devices)
-        gmonitor.connect('delete-event', Gtk.main_quit)
+        #gmonitor.connect('delete-event', Gtk.main_quit)
+        gmonitor.connect('delete-event', gmonitor.set_quit)
         gmonitor.show_all()
 
         cmd = None
@@ -296,7 +304,7 @@ def main():
 
         # Start thread to update Monitor
         monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP,
-                                     updateData, gpu_list, devices, cmd]).start()
+                                     updateData, gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:
