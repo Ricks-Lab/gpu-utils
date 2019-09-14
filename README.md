@@ -63,19 +63,19 @@ and written to the file used by amdgpu-utils to decode device names from the
 driver provided device id.  The *--force* option can be used to update this 
 file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
-amdgpu-ls and make a request for the addition on the pci.ids website.
+*amdgpu-ls* and make a request for the addition on the pci.ids website.
 
 ## Under Development in this Release  -  [v2.6.0]
 * PEP8 style modifications
 * Fixed a bug in monitor display.
 * Implement requirements file for with and without a venv.
 * Found and fixed a few minor bugs.
+* Fixed issue with *amdgpu-plot* becoming corrupt over time.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 
 ## Known Issues
-* The plot display will eventually lock up the plot GUI, so it is not recommended to run for extended periods of time.  Help in fixing this would be appreciated!
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
