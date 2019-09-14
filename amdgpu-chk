@@ -82,6 +82,7 @@ class GUT_CONST:
         lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
                                            stderr=subprocess.DEVNULL).decode().split('\n')
         config_found = False
+        driver_str = ''
         for lshw_line in lshw_out:
             searchObj = re.search('configuration:', lshw_line)
             if searchObj:
@@ -90,7 +91,6 @@ class GUT_CONST:
                 driver_str = lineitems[1].strip()
                 searchObj = re.search(required_aversion, driver_str)
                 break
-        driver_str = ''
         if not config_found:
             driver_str = 'not detected'
             print('AMD GPU driver not detected')
