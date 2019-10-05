@@ -9,7 +9,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
+Download latest official release: [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
 Or use this development version from master branch.
 
 ## amdgpu-chk
@@ -73,7 +73,7 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
-## Under Development in this Release  -  [v2.6.0]
+## New in this Release  -  [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
 * PEP8 style modifications
 * Fixed a bug in monitor display.
 * Implement requirements file for with and without a venv.
