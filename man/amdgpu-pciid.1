@@ -1,0 +1,66 @@
+.TH AMDGPU-PCIID 1 "October 2019" "amdgpu-utils" "User Commands"
+.SH NAME
+amdgpu-pciid \- synchronize the GPU name decode file with official source
+
+.SH SYNOPSIS
+.B amdgpu-pciid
+.RB [ \-\-debug ]
+.br
+.B amdgpu-pciid
+.RB [ \-\-help "] [" \-\-about "]"
+.br
+.B amdgpu-pciid
+.RB [ \-\-install "] [" \-\-force "] [" \-\-debug "]
+.br
+.B amdgpu-pciid
+.RB [ \-\-download "] [" \-\-debug "]
+
+.SH CONFIGURATION
+All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+the feature to access them is enabled.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing update-grub.
+
+.SH DESCRIPTION
+.B amdgpu-pciid
+allows the user to interact with the official source of PCI identification decode data at
+https://pci-ids.ucw.cz/v2.2/pci.ids
+It can be used to download a local copy of the AMD entries or to update the data file used by
+\fBamdgpu-utils\fR to decode GPU names.
+
+.SH OPTIONS
+.TP
+.BR " \-\-about"
+Will display details about
+.B amdgpu-pciid\fP.
+.TP
+.BR " \-\-download"
+Will download a copy of the AMD GPU decode entries from
+https://pci-ids.ucw.cz/v2.2/pci.ids
+and save in your current directory.
+.TP
+.BR " \-\-install"
+Will update the \fBamdgpu-utils\fR data file with AMD GPU name decode information for use with
+\fBamdgpu-utils\fR.
+.TP
+.BR " \-\-force"
+Will result in the the \fBamdgpu-utils\fR data file being updated with the latest from
+https://pci-ids.ucw.cz/v2.2/pci.ids
+even if no changes are detected.
+.TP
+.BR " \-\-debug"
+Will display additional details useful in troubleshooting.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+
+.SH BUGS
+No known bugs.
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+
+.SH "SEE ALSO"
+.BR amdgpu (4)
+
+.SH AVAILABILITY
+The amdgpu-pciid command is part of the amdgpu-utils package and is available from
+https://github.com/Ricks-Lab/amdgpu-utils

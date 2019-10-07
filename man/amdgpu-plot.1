@@ -4,13 +4,10 @@ amdgpu-plot \- continuously update and plot critical GPU parameters as a functio
 
 .SH SYNOPSIS
 .B amdgpu-plot
-.RB [ \-\-debug ]
-.br
-.B amdgpu-plot
 .RB [ \-\-help "] [" \-\-about "]"
 .br
 .B amdgpu-plot
-.RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP]
+.RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "]
 
 .SH CONFIGURATION
 All amdgpu-utils require that compatible GPU cards and drivers are installed and that
@@ -45,7 +42,7 @@ define by \-\-sleep.
 Spcifies N, the number of seconds to sleep between updates.
 .TP
 .BR " \-\-debug"
-Will display additional details while checking the user environment.
+Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.

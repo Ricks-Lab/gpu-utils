@@ -4,13 +4,10 @@ amdgpu-monitor \- continuously update a display of the state of all compatible A
 
 .SH SYNOPSIS
 .B amdgpu-monitor
-.RB [ \-\-debug ]
-.br
-.B amdgpu-monitor
 .RB [ \-\-help "] [" \-\-about "]"
 .br
 .B amdgpu-monitor
-.RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP]
+.RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
 
 .SH CONFIGURATION
 All amdgpu-utils require that compatible GPU cards and drivers are installed and that
@@ -56,7 +53,7 @@ Open and write to, \fBamdgpu-plot\fR, the amdgpu-util plotting utility.
 Specifies N, the number of seconds to sleep between updates.
 .TP
 .BR " \-\-debug"
-Will display additional details while checking the user environment.
+Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
