@@ -1,0 +1,66 @@
+.TH AMDGPU-PLOT 1 "October 2019" "amdgpu-utils" "User Commands"
+.SH NAME
+amdgpu-plot \- continuously update and plot critical GPU parameters as a function of time.
+.SH SYNOPSIS
+.B amdgpu-plot
+.RB [ \-\-debug ]
+.br
+.B amdgpu-plot
+.BR \-\-help | \-\-about
+.br
+.B amdgpu-plot
+.RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP]
+.SH DESCRIPTION
+.B amdgpu-plot
+will continuously display the current state of all compatible AMD GPUs. The default
+behavior is to update a text based table in the current window until Ctrl-C is pressed.
+Command line options can alter this behaviour allowing the use of GUI, modifying update
+interval, excluding fans, writing to a log, time display options and engaging a grphical
+display of real-time parameters.
+
+.SH OPTIONS
+.TP
+.BR " \-\-about"
+Will display details about 
+.B amdgpu-plot\fP.
+.TP
+.BR " \-\-gui"
+With the *--gui* option, a table of relevant parameters will be updated
+in a Gtk window.
+.TP
+.BR " \-\-log"
+Write all plot data to a logfile.  The real-time display will indicate that logging
+is enabled and will show the filename used.
+.TP
+.BR " \-\-ltz"
+Use local time zone instead of UTC for displays and logging.
+.TP
+.BR " \-\-no_fan"
+Will exclude fan information from the display.  Useful with watercooled GPUs.
+.TP
+.BR " \-\-pdebug"
+Will enable debug output for the \fBamdgpu-plot\fP plotting utility.
+.TP
+.BR " \-\-plot"
+Open and write to, \fBamdgpu-plot\fP, the amdgpu-util plotting utility.
+.TP
+.BR " \-\-sleep " \fIN\fP
+Spcifies N, the number of seconds to sleep between updates.
+.TP
+.BR " \-\-debug"
+Will display additional details while checking the user environment.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+.SH BUGS
+Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
+.SH AUTHOR
+.nf
+Ricks-Lab <rueikes.homelab@gmail.com>
+.fi
+.SH "SEE ALSO"
+.BR amdgpu (4)
+.BR amdgpu-monitor (1)
+.SH AVAILABILITY
+The amdgpu-plot command is part of the amdgpu-utils package and is available from
+https://github.com/Ricks-Lab/amdgpu-utils

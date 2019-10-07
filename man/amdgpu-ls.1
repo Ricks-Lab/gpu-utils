@@ -1,0 +1,57 @@
+.TH AMDGPU-LS 1 "October 2019" "amdgpu-utils" "User Commands"
+.SH NAME
+amdgpu-ls \- display details about amdgpu compatible GPU cards.
+.SH SYNOPSIS
+.B amdgpu-ls
+.RB [ \-\-debug ]
+.br
+.B amdgpu-ls
+.BR \-\-help | \-\-about
+.br
+.B amdgpu-ls
+.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstate "]
+.SH DESCRIPTION
+.B amdgpu-ls
+displays most relevant parameters for installed and compatible AMD GPUs.
+The default behavior is to list relevant parameters by GPU.  OpenCL platform information
+is added when the *--clinfo* option is used.  The *--no_fan* can be used to ignore fan
+settings.  The *--pstate* option can be used to output the p-state table for each GPU
+instead of the list of basic parameters.  The *--ppm* option is used to output the table
+of available power/performance modes instead of basic parameters.
+
+.SH OPTIONS
+.TP
+.BR " \-\-about"
+Will display details about 
+.B amdgpu-ls\fP.
+.TP
+.BR " \-\-clinfo"
+If the clinfo package is installed, opencCL datails will be included in the output 
+for each compatible AMD GPU.
+.TP
+.BR " \-\-no_fan"
+Will exclude fan information from the display.  Useful with watercooled GPUs.
+.TP
+.BR " \-\-ppm"
+Will display descriptions of available power performance modes.
+.TP
+.BR " \-\-pstate"
+Will display P-state table for system and memory clocks.
+.TP
+.BR " \-\-debug"
+Will display additional details while checking the user environment.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+.SH BUGS
+Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
+.SH AUTHOR
+.nf
+Ricks-Lab <rueikes.homelab@gmail.com>
+.fi
+.SH "SEE ALSO"
+.BR clinfo (1)
+.BR amdgpu (4)
+.SH AVAILABILITY
+The amdgpu-ls command is part of the amdgpu-utils package and is available from
+https://github.com/Ricks-Lab/amdgpu-utils
