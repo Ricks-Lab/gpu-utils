@@ -1,22 +1,30 @@
 .TH AMDGPU-MONITOR 1 "October 2019" "amdgpu-utils" "User Commands"
 .SH NAME
-amdgpu-monitor \- continuously update a display of the state of all compatible AMD GPUs.
+amdgpu-monitor \- continuously update a display of the state of all compatible AMD GPUs
+
 .SH SYNOPSIS
 .B amdgpu-monitor
 .RB [ \-\-debug ]
 .br
 .B amdgpu-monitor
-.BR \-\-help | \-\-about
+.RB [ \-\-help "] [" \-\-about "]"
 .br
 .B amdgpu-monitor
 .RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP]
+
+.SH CONFIGURATION
+All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+the feature to access them is enabled.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing update-grub.
+
 .SH DESCRIPTION
 .B amdgpu-monitor
 will continuously display the current state of all compatible AMD GPUs. The default
 behavior is to update a text based table in the current window until Ctrl-C is pressed.
 Command line options can alter this behaviour allowing the use of GUI, modifying update
-interval, excluding fans, writing to a log, time display options and engaging a grphical
-display of real-time parameters.
+interval, excluding fans, writing to a log, selecting UTC or local time zone, and
+engaging a graphical display of real-time trends of relevant parameters.
 
 .SH OPTIONS
 .TP
@@ -45,22 +53,22 @@ Will enable debug output for the \fBamdgpu-plot\fR plotting utility.
 Open and write to, \fBamdgpu-plot\fR, the amdgpu-util plotting utility.
 .TP
 .BR " \-\-sleep " \fIN\fR
-Spcifies N, the number of seconds to sleep between updates.
+Specifies N, the number of seconds to sleep between updates.
 .TP
 .BR " \-\-debug"
 Will display additional details while checking the user environment.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
-.SH AUTHOR
-.nf
-Ricks-Lab <rueikes.homelab@gmail.com>
-.fi
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+
 .SH "SEE ALSO"
-.BR amdgpu (4)
+.BR amdgpu (4),
 .BR amdgpu-plot (1)
+
 .SH AVAILABILITY
 The amdgpu-monitor command is part of the amdgpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils

@@ -1,23 +1,27 @@
 .TH AMDGPU-LS 1 "October 2019" "amdgpu-utils" "User Commands"
 .SH NAME
-amdgpu-ls \- display details about amdgpu compatible GPU cards.
+amdgpu-ls \- display details about amdgpu compatible GPU cards
+
 .SH SYNOPSIS
 .B amdgpu-ls
 .RB [ \-\-debug ]
 .br
 .B amdgpu-ls
-.BR \-\-help | \-\-about
+.RB [ \-\-help "] [" \-\-about "]"
 .br
 .B amdgpu-ls
 .RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstate "]
+
+.SH CONFIGURATION
+All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+the feature to access them is enabled.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing update-grub.
+
 .SH DESCRIPTION
 .B amdgpu-ls
 displays most relevant parameters for installed and compatible AMD GPUs.
-The default behavior is to list relevant parameters by GPU.  OpenCL platform information
-is added when the *--clinfo* option is used.  The *--no_fan* can be used to ignore fan
-settings.  The *--pstate* option can be used to output the p-state table for each GPU
-instead of the list of basic parameters.  The *--ppm* option is used to output the table
-of available power/performance modes instead of basic parameters.
+The default behavior is to list relevant base parameters by GPU.
 
 .SH OPTIONS
 .TP
@@ -26,7 +30,7 @@ Will display details about
 .B amdgpu-ls\fP.
 .TP
 .BR " \-\-clinfo"
-If the clinfo package is installed, opencCL datails will be included in the output 
+If the clinfo package is installed, openCL details will be included in the output
 for each compatible AMD GPU.
 .TP
 .BR " \-\-no_fan"
@@ -43,15 +47,15 @@ Will display additional details while checking the user environment.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
-.SH AUTHOR
-.nf
-Ricks-Lab <rueikes.homelab@gmail.com>
-.fi
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+
 .SH "SEE ALSO"
-.BR clinfo (1)
+.BR clinfo (1),
 .BR amdgpu (4)
+
 .SH AVAILABILITY
 The amdgpu-ls command is part of the amdgpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils
