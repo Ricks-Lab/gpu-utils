@@ -12,11 +12,7 @@ amdgpu-plot \- continuously update and plot critical GPU parameters as a functio
 .RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP]
 .SH DESCRIPTION
 .B amdgpu-plot
-will continuously display the current state of all compatible AMD GPUs. The default
-behavior is to update a text based table in the current window until Ctrl-C is pressed.
-Command line options can alter this behaviour allowing the use of GUI, modifying update
-interval, excluding fans, writing to a log, time display options and engaging a grphical
-display of real-time parameters.
+will continuously plot a trend of critical GPU parameters for all compatible AMD GPUs.
 
 .SH OPTIONS
 .TP
@@ -24,25 +20,18 @@ display of real-time parameters.
 Will display details about 
 .B amdgpu-plot\fP.
 .TP
-.BR " \-\-gui"
-With the *--gui* option, a table of relevant parameters will be updated
-in a Gtk window.
-.TP
-.BR " \-\-log"
-Write all plot data to a logfile.  The real-time display will indicate that logging
-is enabled and will show the filename used.
-.TP
 .BR " \-\-ltz"
 Use local time zone instead of UTC for displays and logging.
 .TP
 .BR " \-\-no_fan"
 Will exclude fan information from the display.  Useful with watercooled GPUs.
 .TP
-.BR " \-\-pdebug"
-Will enable debug output for the \fBamdgpu-plot\fP plotting utility.
+.BR " \-\-stdin"
+Will read data from stdin.  This is useful to display plots of a logfile save with \fBamdgpu-monitor\fR.
 .TP
-.BR " \-\-plot"
-Open and write to, \fBamdgpu-plot\fP, the amdgpu-util plotting utility.
+.BR " \-\-simlog"
+When used with the \-\-stdin option, it will simulate the reading of data from the logfile at a rate
+define by \-\-sleep.
 .TP
 .BR " \-\-sleep " \fIN\fP
 Spcifies N, the number of seconds to sleep between updates.
