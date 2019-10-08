@@ -1,4 +1,6 @@
-.TH AMDGPU-LS 1 "October 2019" "amdgpu-utils" "User Commands"
+.TH AMDGPU\-LS 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.ad l
 .SH NAME
 amdgpu-ls \- display details about amdgpu compatible GPU cards
 
@@ -10,7 +12,7 @@ amdgpu-ls \- display details about amdgpu compatible GPU cards
 .RB [ \-\-help "] [" \-\-about "]"
 .br
 .B amdgpu-ls
-.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstate "]
+.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
 
 .SH CONFIGURATION
 All amdgpu-utils require that compatible GPU cards and drivers are installed and that
@@ -39,7 +41,7 @@ Will exclude fan information from the display.  Useful with watercooled GPUs.
 .BR " \-\-ppm"
 Will display descriptions of available power performance modes.
 .TP
-.BR " \-\-pstate"
+.BR " \-\-pstates"
 Will display P-state table for system and memory clocks.
 .TP
 .BR " \-\-debug"
@@ -47,6 +49,37 @@ Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-ls
+
+.fi
+This will display the basic parameters for all compatible AMD GPUs.  These include
+device ID, GPU frequency/voltage control type, decoded device ID, card model, short card model,
+display card model, card number, card path, PCIe ID, driver, vBIOS version, HWmon path, current power,
+power cap, power cap range, fan enable, fan PWM mode, current fan PWM, current fan speed,
+fan target speed, fan speed range, fan PWM range, current temp, critical temp, current VddGF,
+Vddc range, current loading, link speed, link width, current Sclk p-state, current Sclk frequency,
+Sclk range, current Mclk p-state, current Mclk frequency, Mclk range, power performance mode,  and
+power force performance level.
+.P
+.B amdgpu-ls \-\-clinfo
+
+.fi
+In addition to the basic parameters, openCL parameters are also displayed for each compatible AMD GPU.
+This option is dependent on the installation of \fBclinfo\fR.
+.P
+.B amdgpu-ls \-\-ppm
+
+.fi
+Instead of the basic parameters, a table of power/performance modes is displayed.
+.P
+.B amdgpu-ls \-\-pstates
+
+.fi
+Instead of the basic parameters, a table of power states or curve points is displayed.
+.P
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.

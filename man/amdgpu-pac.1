@@ -1,4 +1,6 @@
-.TH AMDGPU-PAC 1 "October 2019" "amdgpu-utils" "User Commands"
+.TH AMDGPU\-PAC 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.ad l
 .SH NAME
 amdgpu-pac \- program and control compatible AMD GPUs
 
@@ -47,6 +49,30 @@ Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-pac
+
+.fi
+Will open a Gtk based user interface which will display current or default values for modifiable GPU operating
+parameters.  The interface supports entry of new values for all compatible AMD GPUs.  The user can select to save
+or reset values for individual or all GPUs.  By default, the commands for writing to the GPUs are saved to bash files
+for the user to inspect and then execute as root.  It is suggested that \fBamdgpu-monitor\fR be used to make sure
+the changes are made as expected.
+.P
+.B amdgpu-pac \-\-execute-pac
+
+.fi
+To simplify this process, the \fB\-\-execute-pac\fR option can be specified to automate execution of the bash files.
+A message in the user interface will indicate if credentials are required in the original terminal window.
+.P
+.B amdgpu-pac \-\-force_write
+
+.fi
+With this option, all parameters will be written to the bash file, even if they are unchanged.  This is useful in
+creating bash files used to put GPU's into a known state which is convenient for use in start up routines.
+.P
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.  The

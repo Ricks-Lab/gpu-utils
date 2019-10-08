@@ -1,6 +1,8 @@
-.TH AMDGPU-MONITOR 1 "October 2019" "amdgpu-utils" "User Commands"
+.TH AMDGPU\-MONITOR 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.ad l
 .SH NAME
-amdgpu-monitor \- continuously update a display of the state of all compatible AMD GPUs
+amdgpu-monitor \- continuously update a table with the state of all compatible AMD GPUs
 
 .SH SYNOPSIS
 .B amdgpu-monitor
@@ -57,6 +59,31 @@ Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-monitor \-\-sleep 5 \-\-log
+
+.fi
+Will display a continuously updating table of GPU operating parameters updating with an interval of 5s. All
+parameters will be written to a logfile which will be indicated in the table.
+The displayed parameters include GPU model, load percentage, power, power cap, energy consumption, temperature,
+voltage, fan speed, Sclk frequency/p-state, Mclk frequency/pstate, and performance mode.
+Updating of the table will continue until ctrl-c is pressed.
+.P
+.B amdgpu-monitor \-\-gui
+
+.fi
+Will open a new Gtk window and display basic parameters updated with the default interval.
+.P
+.B amdgpu-monitor \-\-plot
+
+.fi
+Will open 2 new Gtk windows. One will display the basic parameters and the second will display a continuously
+updating plot of these parameters.  It is suggested that this method be used if both displays are desired, instead
+of executing both \fBamdgpu-monitor\fR and \fBamdgpu-plot\fR as the later will result in twice the reads of
+GPU data.
+.P
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
