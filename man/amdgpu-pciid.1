@@ -1,4 +1,6 @@
 .TH AMDGPU-PCIID 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.ad l
 .SH NAME
 amdgpu-pciid \- synchronize the GPU name decode file with official source
 
@@ -53,6 +55,28 @@ Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-pciid \-\-install
+
+.fi
+Will extract the latest AMD GPU decode data from https://pci-ids.ucw.cz/v2.2/pci.ids
+and update the \fBamdgpu-util\fR data file.  It will report the old and new versions of
+the decode data and update only if a new version is available.  If the \fB\-\-force\fR
+is specified, then the data file will be refreshed even if the version has not been updated.
+.P
+
+.SH "FILES"
+.PP
+.TP
+\fBamd_pci_id.txt\fR
+A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
+Special driver file for each GPU required for \fBamdgpu-utils\fR.
+
+
 
 .SH BUGS
 No known bugs.

@@ -74,6 +74,15 @@ With this option, all parameters will be written to the bash file, even if they 
 creating bash files used to put GPU's into a known state which is convenient for use in start up routines.
 .P
 
+.SH "FILES"
+.PP
+.TP
+\fBamd_pci_id.txt\fR
+A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
+Special driver file for each GPU required for \fBamdgpu-utils\fR.
+
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.  The
 display of P-state masks is always the defaults, not the actual values.

@@ -85,6 +85,15 @@ of executing both \fBamdgpu-monitor\fR and \fBamdgpu-plot\fR as the later will r
 GPU data.
 .P
 
+.SH "FILES"
+.PP
+.TP
+\fBamd_pci_id.txt\fR
+A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
+Special driver file for each GPU required for \fBamdgpu-utils\fR.
+
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
 Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
