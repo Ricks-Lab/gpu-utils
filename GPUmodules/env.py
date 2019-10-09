@@ -22,7 +22,7 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v2.6.0'
+__version__ = 'v2.7.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 
@@ -30,6 +30,7 @@ import re
 import subprocess
 import platform
 import sys
+import os
 import shlex
 import shutil
 import time
@@ -38,6 +39,9 @@ from datetime import datetime
 
 class GUT_CONST:
     def __init__(self):
+        self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
+        self.dist_share = '/usr/share/ricks-amdgpu-utils/'
+        self.dist_icons = '/usr/share/ricks-amdgpu-utils/icons/'
         self.featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
         self.card_root = '/sys/class/drm/'
         self.hwmon_sub = 'hwmon/hwmon'
