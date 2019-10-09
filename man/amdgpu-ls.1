@@ -1,6 +1,5 @@
 .TH AMDGPU\-LS 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
 .nh
-.ad l
 .SH NAME
 amdgpu-ls \- display details about amdgpu compatible GPU cards
 
@@ -9,7 +8,7 @@ amdgpu-ls \- display details about amdgpu compatible GPU cards
 .RB [ \-\-debug ]
 .br
 .B amdgpu-ls
-.RB [ \-\-help "] [" \-\-about "]"
+.RB [ \-\-help " | " \-\-about "]"
 .br
 .B amdgpu-ls
 .RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
@@ -89,6 +88,9 @@ A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.
+.TP
+\fB/etc/default/grub\fR
+The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
@@ -96,6 +98,7 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH "SEE ALSO"
 .BR clinfo (1),
+.BR update-grub (8),
 .BR amdgpu (4)
 
 .SH AVAILABILITY

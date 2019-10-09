@@ -1,12 +1,11 @@
 .TH AMDGPU\-MONITOR 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
 .nh
-.ad l
 .SH NAME
 amdgpu-monitor \- continuously update a table with the state of all compatible AMD GPUs
 
 .SH SYNOPSIS
 .B amdgpu-monitor
-.RB [ \-\-help "] [" \-\-about "]"
+.RB [ \-\-help " | " \-\-about "]"
 .br
 .B amdgpu-monitor
 .RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
@@ -32,8 +31,7 @@ Will display details about
 .B amdgpu-monitor\fP.
 .TP
 .BR " \-\-gui"
-With the *--gui* option, a table of relevant parameters will be updated
-in a Gtk window.
+The table of relevant parameters will be updated in a Gtk window instead of a text table in the terminal window.
 .TP
 .BR " \-\-log"
 Write all monitor data to a logfile.  The real-time display will indicate that logging
@@ -43,7 +41,7 @@ is enabled and will show the filename used.
 Use local time zone instead of UTC for displays and logging.
 .TP
 .BR " \-\-no_fan"
-Will exclude fan information from the display.  Useful with watercooled GPUs.
+Will exclude fan information from the display.  Useful with water cooled GPUs.
 .TP
 .BR " \-\-pdebug"
 Will enable debug output for the \fBamdgpu-plot\fR plotting utility.
@@ -93,6 +91,9 @@ A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.
+.TP
+\fB/etc/default/grub\fR
+The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
@@ -100,6 +101,7 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH "SEE ALSO"
 .BR amdgpu (4),
+.BR update-grub (8),
 .BR amdgpu-plot (1)
 
 .SH AVAILABILITY

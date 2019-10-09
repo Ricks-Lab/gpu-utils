@@ -1,6 +1,5 @@
 .TH AMDGPU-PCIID 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
 .nh
-.ad l
 .SH NAME
 amdgpu-pciid \- synchronize the GPU name decode file with official source
 
@@ -9,7 +8,7 @@ amdgpu-pciid \- synchronize the GPU name decode file with official source
 .RB [ \-\-debug ]
 .br
 .B amdgpu-pciid
-.RB [ \-\-help "] [" \-\-about "]"
+.RB [ \-\-help " | " \-\-about "]"
 .br
 .B amdgpu-pciid
 .RB [ \-\-install "] [" \-\-force "] [" \-\-debug "]
@@ -75,8 +74,9 @@ A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.
-
-
+.TP
+\fB/etc/default/grub\fR
+The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 No known bugs.
@@ -84,6 +84,7 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH "SEE ALSO"
 .BR amdgpu (4)
+.BR update-grub (8)
 
 .SH AVAILABILITY
 The amdgpu-pciid command is part of the amdgpu-utils package and is available from
