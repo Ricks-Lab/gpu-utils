@@ -1,4 +1,6 @@
 .TH AMDGPU-PLOT 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.ad l
 .SH NAME
 amdgpu-plot \- continuously update and plot critical GPU parameters as a function of time
 
@@ -46,6 +48,15 @@ Will display additional details useful in troubleshooting.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-plot \-\-sleep 5 \-\-ltz
+
+.fi
+Will open a Gtk window that will display plots of operation parameters for all compatible AMD GPU's that
+every 5s.  Time stamps displayed will use local time zone.
+.P
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
