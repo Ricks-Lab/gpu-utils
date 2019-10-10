@@ -11,7 +11,7 @@ amdgpu-pciid \- synchronize the GPU name decode file with official source
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B amdgpu-pciid
-.RB [ \-\-install "] [" \-\-force "] [" \-\-debug "]
+.RB [ \-\-install " | " \-\-install_repository  "] [" \-\-force "] [" \-\-debug "]
 .br
 .B amdgpu-pciid
 .RB [ \-\-download "] [" \-\-debug "]
@@ -41,8 +41,11 @@ https://pci-ids.ucw.cz/v2.2/pci.ids
 and save in your current directory.
 .TP
 .BR " \-\-install"
-Will update the \fBamdgpu-utils\fR data file with AMD GPU name decode information for use with
-\fBamdgpu-utils\fR.
+Will update a local version of the \fBamdgpu-utils\fR PCI ID data file with AMD GPU name decode information
+for use with \fBamdgpu-utils\fR.
+.TP
+.BR " \-\-install_repository"
+Same as \fB\-\-install\fR except that the repository version is updated.  This should not be used in most cases.
 .TP
 .BR " \-\-force"
 Will result in the the \fBamdgpu-utils\fR data file being updated with the latest from
@@ -67,7 +70,7 @@ Will display details about the current decode file being used by \fBamdgpu-utils
 
 .fi
 Will extract the latest AMD GPU decode data from https://pci-ids.ucw.cz/v2.2/pci.ids
-and update the \fBamdgpu-util\fR data file.  It will report the old and new versions of
+and update the local \fBamdgpu-util\fR PCI ID data file.  It will report the old and new versions of
 the decode data and update only if a new version is available.  If the \fB\-\-force\fR
 is specified, then the data file will be refreshed even if the version has not been updated.
 .P
@@ -75,8 +78,12 @@ is specified, then the data file will be refreshed even if the version has not b
 .SH "FILES"
 .PP
 .TP
-\fBamd_pci_id.txt\fR
+\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
 A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
+with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.

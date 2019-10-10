@@ -66,8 +66,12 @@ to simulate streamed data with a 1 sec interval.
 .SH "FILES"
 .PP
 .TP
-\fBamd_pci_id.txt\fR
+\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
 A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
+with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.

@@ -21,7 +21,7 @@ amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 will present the user with a gui to modify the operating conditions of compatible AMD GPUs.
 With this utility, the user can change GPU power limit, S-Clk and M-Clk P-state/Curve definitions,
 P-state masks, fan speed, and power performance mode.
-By default, the commands to be written to a GPU are written to a bash file for the user to inspect
+By default, the commands to program and control a GPU are written to a bash file for the user to inspect
 and run with root permissions.
 
 .SH OPTIONS
@@ -56,9 +56,8 @@ Display help text and exit.
 .fi
 Will open a Gtk based user interface which will display current or default values for modifiable GPU operating
 parameters.  The interface supports entry of new values for all compatible AMD GPUs.  The user can select to save
-or reset values for individual or all GPUs.  By default, the commands for writing to the GPUs are saved to bash files
-for the user to inspect and then execute as root.  It is suggested that \fBamdgpu-monitor\fR be used to make sure
-the changes are made as expected.
+or reset values for individual or all GPUs. It is suggested that \fBamdgpu-monitor\fR be used
+to make sure the changes are made as expected.
 .P
 .B amdgpu-pac \-\-execute-pac
 
@@ -76,8 +75,12 @@ creating bash files used to put GPU's into a known state which is convenient for
 .SH "FILES"
 .PP
 .TP
-\fBamd_pci_id.txt\fR
+\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
 A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
+with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.

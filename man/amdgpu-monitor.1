@@ -63,7 +63,7 @@ Display help text and exit.
 .B amdgpu-monitor \-\-sleep 5 \-\-log
 
 .fi
-Will display a continuously updating table of GPU operating parameters updating with an interval of 5s. All
+Will display a continuously updating table of GPU operating parameters updating with an interval of 5 sec. All
 parameters will be written to a logfile which will be indicated in the table.
 The displayed parameters include GPU model, load percentage, power, power cap, energy consumption, temperature,
 voltage, fan speed, Sclk frequency/p-state, Mclk frequency/pstate, and performance mode.
@@ -86,8 +86,12 @@ GPU data.
 .SH "FILES"
 .PP
 .TP
-\fBamd_pci_id.txt\fR
+\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
 A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
+with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.

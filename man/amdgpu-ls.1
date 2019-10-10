@@ -35,7 +35,7 @@ If the clinfo package is installed, openCL details will be included in the outpu
 for each compatible AMD GPU.
 .TP
 .BR " \-\-no_fan"
-Will exclude fan information from the display.  Useful with watercooled GPUs.
+Will exclude fan information from the display.  Useful with water cooled GPUs.
 .TP
 .BR " \-\-ppm"
 Will display descriptions of available power performance modes.
@@ -83,8 +83,12 @@ Instead of the basic parameters, a table of power states or curve points is disp
 .SH "FILES"
 .PP
 .TP
-\fBamd_pci_id.txt\fR
+\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
 A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
+with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.
