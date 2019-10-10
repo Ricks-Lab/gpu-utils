@@ -45,7 +45,6 @@ import re
 import threading
 import os
 import time
-from pathlib import Path
 import numpy as np
 
 try:
@@ -229,7 +228,7 @@ class GPUPlotWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title='amdgpu-plot')
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.PATH, 'icons', 'amdgpu-plot.icon.png')
+        icon_file = os.path.join(env.gut_const.icon_path, 'amdgpu-plot.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -734,7 +733,6 @@ def main():
         print('numpy version: ', np.__version__)
         sys.exit(0)
 
-    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.SIMLOG = args.simlog
     if args.ltz:

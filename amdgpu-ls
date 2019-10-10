@@ -33,11 +33,9 @@ __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 
 import argparse
-import os
 import sys
 from GPUmodules import GPUmodule as GPU
 from GPUmodules import env
-from pathlib import Path
 
 
 def main():
@@ -68,7 +66,6 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     if args.no_fan:
         env.gut_const.show_fans = False

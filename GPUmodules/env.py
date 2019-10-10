@@ -31,6 +31,7 @@ import subprocess
 import platform
 import sys
 import os
+from pathlib import Path
 import shlex
 import shutil
 import time
@@ -39,9 +40,15 @@ from datetime import datetime
 
 class GUT_CONST:
     def __init__(self):
+        self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
+        self.repository_path = os.path.join(self.repository_module_path, '..')
         self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
-        self.dist_icons = '/usr/share/ricks-amdgpu-utils/icons/'
+        self.dist_icons = os.path.join(self.dist_share, 'icons')
+        if os.path.isdir(self.dist_icons):
+            self.icon_path = self.dist_icons
+        else:
+            self.icon_path = os.path.join(self.repository_path, 'icons')
         self.featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
         self.card_root = '/sys/class/drm/'
         self.hwmon_sub = 'hwmon/hwmon'
@@ -55,7 +62,6 @@ class GUT_CONST:
         self.show_fans = True
         self.write_delta_only = False
         self.SLEEP = 2
-        self.PATH = '.'
         self.amdfeaturemask = ''
         self.USELTZ = False
         self.LTZ = datetime.utcnow().astimezone().tzinfo

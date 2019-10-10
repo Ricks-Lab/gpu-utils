@@ -46,7 +46,7 @@ import os
 import sys
 import shlex
 import time
-from pathlib import Path
+#from pathlib import Path
 
 try:
     import gi
@@ -69,7 +69,8 @@ class MonitorWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.PATH, 'icons', 'amdgpu-monitor.icon.png')
+        icon_file = os.path.join(env.gut_const.icon_path, 'amdgpu-monitor.icon.png')
+        if env.gut_const.DEBUG: print('Icon file: [{}]'.format(icon_file))
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -210,7 +211,6 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
     env.gut_const.PDEBUG = args.pdebug
     if args.ltz:
@@ -297,7 +297,10 @@ def main():
         cmd = None
         if args.plot:
             env.gut_const.PLOT = True
-            plot_util = os.path.join(env.gut_const.PATH, 'amdgpu-plot')
+            if os.path.isfile('/usr/bin/amdgpu-plot'):
+                plot_util = '/usr/bin/amdgpu-plot'
+            else:
+                plot_util = os.path.join(env.gut_const.repository_path, 'amdgpu-plot')
             if os.path.isfile(plot_util):
                 if env.gut_const.PDEBUG:
                     cmd_str = plot_util + ' --debug --stdin --sleep ' + str(env.gut_const.SLEEP)

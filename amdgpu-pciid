@@ -40,7 +40,6 @@ import os
 import sys
 from GPUmodules import PCImodule as PCI
 from GPUmodules import env
-from pathlib import Path
 
 
 def main():
@@ -67,7 +66,6 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.gut_const.PATH = os.path.dirname(str(Path(__file__).resolve()))
     env.gut_const.DEBUG = args.debug
 
     if env.gut_const.check_env() < 0:
@@ -78,7 +76,6 @@ def main():
 
     # display info about pci.ids
     if not args.download and not args.install:
-        # original_amd_file = os.path.join(env.gut_const.PATH, 'GPUmodules', pciid.amdgpu_utils_file)
         original_amd_file = pciid.amdgpu_utils_file
         original_file_version = pciid.get_pciid_version()
         print('Current pci.ids version %s : %s' % (original_file_version, original_amd_file))
@@ -91,7 +88,7 @@ def main():
         print('    Download %s : %s' % (new_file_version, pciid_filename_new))
 
     if args.install:
-        original_amd_file = os.path.join(env.gut_const.PATH, 'GPUmodules', pciid.amdgpu_utils_file)
+        original_amd_file = os.path.join(env.gut_const.repository_module_path, pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
         print('    Original %s : %s' % (original_file_version, original_amd_file))
         if original_file_version == new_file_version and not args.force:
