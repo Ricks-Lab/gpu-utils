@@ -121,7 +121,9 @@ class PCI_ID:
         else:
             return None
 
-    def update_pci_id(self, in_file_name):
+    def update_pci_id(self, in_file_name, target=None):
+        if not target:
+            target = self.pciid_file_local
         if not os.path.isdir(env.gut_const.config_dir):
             os.mkdir(env.gut_const.config_dir)
         if not os.path.isdir(env.gut_const.config_dir):
@@ -129,7 +131,7 @@ class PCI_ID:
             sys.exit(-1)
         self.pci_id_file_ptr.close()
         # self.extract_vendor_from_pci_id('0x1002', in_file_name, self.amdgpu_utils_file)
-        self.extract_vendor_from_pci_id('0x1002', in_file_name, self.pciid_file_local)
+        self.extract_vendor_from_pci_id('0x1002', in_file_name, target)
         self.file_open_status = False
         self.amdgpu_utils_file = self.pciid_file_local
         self.pci_id_file_ptr = None

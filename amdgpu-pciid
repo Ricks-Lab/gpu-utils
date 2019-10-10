@@ -47,7 +47,10 @@ def main():
     parser.add_argument('--about', help='README', action='store_true', default=False)
     parser.add_argument('--download', help='download pci decode table from https://pci-ids.ucw.cz/v2.2/pci.ids',
                         action='store_true', default=False)
-    parser.add_argument('--install', help='download, parse amd entries, and install a new decode file',
+    parser.add_argument('--install', help='download, parse amd entries, and install a new local decode file',
+                        action='store_true', default=False)
+    parser.add_argument('--install_repository',
+                        help='download, parse amd entries, and install a new repository decode file',
                         action='store_true', default=False)
     parser.add_argument('--force', help='force install of new pci.ids data even if revision is unchanged',
                         action='store_true', default=False)
@@ -75,27 +78,32 @@ def main():
     pciid = PCI.PCI_ID()
 
     # display info about pci.ids
-    if not args.download and not args.install:
+    if not args.download and not (args.install or args.install_repository):
         original_amd_file = pciid.amdgpu_utils_file
         original_file_version = pciid.get_pciid_version()
         print('Current pci.ids version %s : %s' % (original_file_version, original_amd_file))
         sys.exit(0)
 
-    if args.download or args.install:
+    if args.download or args.install or args.install_repository:
         pciid_filename_new = pciid.download_pciid()
         print('Download complete: %s' % pciid_filename_new)
         new_file_version = pciid.get_pciid_version(pciid_filename_new)
         print('    Download %s : %s' % (new_file_version, pciid_filename_new))
 
-    if args.install:
+    if args.install or args.install_repository:
+        if args.install_repository:
+            target = pciid.pciid_file_repository
+        else:
+            target = pciid.pciid_file_local
         original_amd_file = os.path.join(env.gut_const.repository_module_path, pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
         print('    Original %s : %s' % (original_file_version, original_amd_file))
         if original_file_version == new_file_version and not args.force:
             print('No updates, skipping install')
         else:
-            pciid.update_pci_id(pciid_filename_new)
+            pciid.update_pci_id(pciid_filename_new, target=target)
             print('Completed update to %s' % new_file_version)
+            print('Target: %s' % target)
         # remove downloaded file
         os.remove(pciid_filename_new)
 
