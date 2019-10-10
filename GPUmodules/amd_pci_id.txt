@@ -1,8 +1,8 @@
 #
 #	List of PCI ID's
 #
-#	Version: 2019.10.02
-#	Date:    2019-10-02 03:15:02
+#	Version: 2019.10.09
+#	Date:    2019-10-09 03:15:03
 #
 #	Maintained by Albert Pool, Martin Mares, and other volunteers from
 #	the PCI ID Project at https://pci-ids.ucw.cz/.
@@ -2646,6 +2646,7 @@
 		174b e329  Radeon R9 FURY
 	7310  Navi 10
 	731f  Navi 10 [Radeon RX 5700 / 5700 XT]
+	7340  Navi 14 [Radeon RX 5500 / 5500M]
 	7833  RS350 Host Bridge
 	7834  RS350 [Radeon 9100 PRO/XT IGP]
 	7835  RS350M [Mobility Radeon 9000 IGP]
