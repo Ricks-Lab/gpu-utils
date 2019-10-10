@@ -73,13 +73,9 @@ file even if there is no change in version.  If your GPU model is missing
 from the pci.ids file, you can use the device id of your card found with 
 *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
-* PEP8 style modifications
-* Fixed a bug in monitor display.
-* Implement requirements file for with and without a venv.
-* Found and fixed a few minor bugs.
-* Fixed issue with *amdgpu-plot* becoming corrupt over time.
-* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems with many GPUs.
+## New in this Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
+* Initial release of man pages
+* Modifications to work with distribution installation
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -100,6 +96,14 @@ from the pci.ids file, you can use the device id of your card found with
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
+#### New in Previous Release  -  [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
+* PEP8 style modifications
+* Fixed a bug in monitor display.
+* Implement requirements file for with and without a venv.
+* Found and fixed a few minor bugs.
+* Fixed issue with *amdgpu-plot* becoming corrupt over time.
+* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems with many GPUs.
+
 #### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 * Some preparation work for Debian package (@smoe).
 * Added *--ltz* option to use local times instead of UTC for logging and plot data.

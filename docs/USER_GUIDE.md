@@ -1,7 +1,7 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-## Current amdgpu-utils Version: 2.6.x
+## Current amdgpu-utils Version: 2.7.x
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
@@ -32,8 +32,8 @@ dpkg -l 'amdgpu*'
 ```
 
 You also must set your Linux machine to boot with the feature mask set to support the functionality
-that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xffff7fff.  This
-can be accomplished by adding amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT
+that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xfffd7fff.  This
+can be accomplished by adding amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT
 value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or your favorite command line editor:
 ```
 cd /etc/default
@@ -41,7 +41,7 @@ sudo vi grub
 ```
 Modify to include the featuremask as follows:
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xffff7fff"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xfffd7fff"
 ```
 After saving, update grub:
 ```
