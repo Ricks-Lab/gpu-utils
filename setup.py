@@ -21,5 +21,6 @@ setup(name='amdgpu-utils',
                         'pytz==2019.1',
                         'ruamel.yaml==0.16.5',
                         'ruamel.yaml.clib==0.1.2',
-                        'six==1.12.0']
+                        'six==1.12.0'],
+      data_files=[('icons', ['amdgpu-monitor.icon.png',  'amdgpu-pac.icon.png',  'amdgpu-plot.icon.png'])]
       )
