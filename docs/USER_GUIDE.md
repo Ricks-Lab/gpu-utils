@@ -21,9 +21,9 @@ syntax error, so if you have issues, just execute:
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
 also notice that there is a minimum version of the Kernel that supports these features, but be
-warned, I have tested it with only 4.15 and 5.0.0.31. There have been amdgpu features implemented over time
-that span many releases of the kernel, so your experience in using these utilities with older 
-kernels might not be ideal.
+warned, I have tested it with kernel releases no older than 4.15. There have been amdgpu features
+implemented over time that span many releases of the kernel, so your experience in using these
+utilities with older kernels might not be ideal.
 
 To use any of these utilities, you must have the *amdgpu* open source driver
 package installed, either the All-Open stack or Pro stack. You can check with the following command:
