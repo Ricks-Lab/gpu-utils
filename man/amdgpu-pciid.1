@@ -11,6 +11,9 @@ amdgpu-pciid \- synchronize the GPU name decode file with official source
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B amdgpu-pciid
+.RB [ \-\-remove_local "] [" \-\-debug "]
+.br
+.B amdgpu-pciid
 .RB [ \-\-install " | " \-\-install_repository  "] [" \-\-force "] [" \-\-debug "]
 .br
 .B amdgpu-pciid
@@ -34,6 +37,10 @@ It can be used to download a local copy of the AMD entries or to update the data
 .BR " \-\-about"
 Will display details about
 .B amdgpu-pciid\fP.
+.TP
+.BR " \-\-remove_local"
+Will remove the local version of the PCI ID data file. Using the system PCI-ID file is now preferred.  It
+can be updated with the \fBupdate-pciids\fR command.
 .TP
 .BR " \-\-download"
 Will download a copy of the AMD GPU decode entries from
@@ -78,12 +85,14 @@ is specified, then the data file will be refreshed even if the version has not b
 .SH "FILES"
 .PP
 .TP
-\fB/usr/share/ricks-amdgpu-utils/amd_pci_id.txt\fR
-A list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+\fB/usr/share/misc/pci.ids\fR
+The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+It can be updated with the \fBupdate-pciids\fR command.
 .TP
 \fB~/.amdgpu-utils/amd_pci_id.txt\fR
-A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses). This is produced
-with the \fBamdgpu-pciid --install\fR command and if it exists, is used instead if the /usr/share version.
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+It is preferred to use the system PCI ID file.  If the local file exists, it will be used instead of
+the system file and can be removed with \fB\-\-remove_local\fR option.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
 Special driver file for each GPU required for \fBamdgpu-utils\fR.
@@ -96,8 +105,10 @@ No known bugs.
 Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
 
 .SH "SEE ALSO"
-.BR amdgpu (4)
-.BR update-grub (8)
+.BR amdgpu (4),
+.BR update-grub (8),
+.BR update-pciids (8),
+.BR lspci (8)
 
 .SH AVAILABILITY
 The amdgpu-pciid command is part of the amdgpu-utils package and is available from

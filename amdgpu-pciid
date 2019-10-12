@@ -33,7 +33,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-pciid'
 __version__ = 'v2.7.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Deprecated'
 
 import argparse
 import os
@@ -54,6 +54,8 @@ def main():
                         action='store_true', default=False)
     parser.add_argument('--force', help='force install of new pci.ids data even if revision is unchanged',
                         action='store_true', default=False)
+    parser.add_argument('--remove_local', help='removes the local version of the PCI-ID file',
+                        action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 
@@ -67,6 +69,8 @@ def main():
         print('Version: ', __version__)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
+        print('Warning: this utility is obsolete and will be deprecated in the next release.  ')
+        print('   amdgpu-utils now uses the PCI-ID file used by lspci and can be updated with sudo update-pciids.')
         sys.exit(0)
 
     env.gut_const.DEBUG = args.debug
@@ -76,6 +80,19 @@ def main():
         sys.exit(-1)
 
     pciid = PCI.PCI_ID()
+
+    # Remove local pci-id file.
+    if args.remove_local:
+        print('Removing local pci.ids file: %s' % pciid.pciid_file_local)
+        if os.path.isfile(pciid.pciid_file_local):
+            os.remove(pciid.pciid_file_local)
+        sys.exit(0)
+
+    # Display deprecation warning.
+    print('Warning: this utility is obsolete and will be deprecated in the next release.  ')
+    print('   amdgpu-utils now uses the PCI-ID file used by lspci and can be updated with sudo update-pciids.')
+    if os.path.isfile(pciid.pciid_file_local):
+        print('   Use amdgpu-pciid --remove_local to switch to system PCI-ID file.')
 
     # display info about pci.ids
     if not args.download and not (args.install or args.install_repository):

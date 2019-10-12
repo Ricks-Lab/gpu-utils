@@ -63,19 +63,25 @@ fan details from the utility. The *--force_write* option can be used to force al
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
 ## amdgpu-pciid
-This utility will display the version of the current pci.ids data extract
-in use.  With the *--download* option, the latest pci.ids file from 
-https://pci-ids.ucw.cz/ will be downloaded. With the *--install* option,
-the latest pci.ids will be downloaded and filtered for AMD specific data
-and written to the file used by amdgpu-utils to decode device names from the
-driver provided device id.  The *--force* option can be used to update this 
-file even if there is no change in version.  If your GPU model is missing
-from the pci.ids file, you can use the device id of your card found with 
+The system pci.ids file is used by *amdgpu-utils* starting in v2.7.0.  The *amdgpu-pciid*
+should only be used to delete a local version of the file, if it exists, in order for 
+the system file to be used.  The system command *update-pciids* can be used to update
+the system pci-ids file from the original source.
+
+The *amdgpu-pciid* utility will display the version of the current pci.ids data extract
+in use.  With the *--download* option, the latest pci.ids file from https://pci-ids.ucw.cz/
+will be downloaded. With the *--install* option, the latest pci.ids will be downloaded and
+filtered for AMD specific data and written to the file used by amdgpu-utils to decode device
+names from the driver provided device id.  The *--force* option can be used to update this 
+file even if there is no change in version.  The *--remove_local* option can be used to remove
+a local version of the file, which will override the preferred system file results if it exists.
+If your GPU model is missing from the pci.ids file, you can use the device id of your card found with 
 *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
+## New under Development  -  [v2.7.0]
 * Initial release of man pages
 * Modifications to work with distribution installation
+* Use system pci.ids file and make *amdgpy-pciid* obsolete
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!

@@ -8,7 +8,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-monitor](#using-amdgpu-monitor)
  - [Using amdgpu-plot](#using-amdgpu-plot)
  - [Using amdgpu-pac](#using-amdgpu-pac)
- - [Using amdgpu-pciid](#using-amdgpu-pciid)
+ - [Updating the pci.id decode file](#Updating the pci.id decode file)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
  - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
 
@@ -49,7 +49,7 @@ sudo update-grub
 ```
 and then reboot.
 
-It is suggested run amdgpu-util in a virtual environment to avoid dependency issues. If you don't have venv installed 
+If not running from a package installation, it is suggested run amdgpu-util in a virtual environment to avoid dependency issues. If you don't have venv installed 
 with python3, then execute the following (Ubuntu example)
 ```
 sudo apt install -y python3-venv
@@ -356,20 +356,21 @@ For Type 1 cards, while changes to power caps and fan speeds can be made while t
 
 Some basic error checking done before writing, but I suggest you be very certain of all entries before you save changes to the GPU.
 
-## Using amdgpu-pciid
-In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lscpi -k -s nn:nn.n* is used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver files, a set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID are read and used to extract a GPU model name from a file retrieved from  [https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  An AMD only extract from that source is included in this distribution.  The *amdgpu-pciid* tool can be used to manage the local extract.  Execute *amdgpu-pciid* to check if a newer version is available and use *amdgpu-pciid --install* to replace the existing extract used by the utilities with an updated version.  If your GPU is not listed in the extract, the pci.id website has an interface to allow the user to request an addition to the master list.  
-```
-usage: amdgpu-pciid [-h] [--about] [--download] [--install] [--force] [-d]
+## Updating the pci.id decode file
+Starting in v2.7.0, the system PCI ID file is used, making the *amdgpu-pciid* command obsolete. It will be removed in
+the next major release.
 
-optional arguments:
-  -h, --help   show this help message and exit
-  --about      README
-  --download   download pci decode table from https://pci-
-               ids.ucw.cz/v2.2/pci.ids
-  --install    download, parse amd entries, and install a new decode file
-  --force      force install of new pci.ids data even if revision is unchanged
-  -d, --debug  Debug output
+In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lscpi -k -s nn:nn.n* is
+used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver files, a
+set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID are read and used
+to extract a GPU model name from system pci.ids file which is sourced from
+[https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  The system file can
+be updated from the original source with the command:
 ```
+sudo update-pciids
+```
+If your GPU is not listed in the extract, the pci.id website has an interface to allow the user to request an
+addition to the master list.  
 
 ## Optimizing Compute Performance-Power
 The *amdgpu-utils* tools can be used to optimize performance vs. power for compute workloads by leveraging

@@ -45,8 +45,9 @@ class PCI_ID:
         self.pciid_file = 'pci.ids'    # base of name for downloaded file
 
         # Possible locations of PCI ID files
+        self.pciid_file_system = env.gut_const.sys_pciid
         self.pciid_file_local = os.path.join(env.gut_const.config_dir, file_name)
-        self.pciid_file_distribution = os.path.join(env.gut_const.dist_share, file_name)
+        # self.pciid_file_distribution = os.path.join(env.gut_const.dist_share, file_name)
         self.pciid_file_repository = os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name)
 
         # Details on PCI-ID file in use
@@ -54,7 +55,7 @@ class PCI_ID:
         self.amdgpu_utils_file = None
         self.pci_id_file_ptr = None
 
-        for try_filename in [self.pciid_file_local, self.pciid_file_distribution, self.pciid_file_repository]:
+        for try_filename in [self.pciid_file_local, self.pciid_file_system, self.pciid_file_repository]:
             if env.gut_const.DEBUG: print('Trying pci-id file [{}].'.format(try_filename))
             self.amdgpu_utils_file = try_filename
             if not os.path.isfile(self.amdgpu_utils_file):

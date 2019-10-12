@@ -44,6 +44,7 @@ class GUT_CONST:
         self.repository_path = os.path.join(self.repository_module_path, '..')
         self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
+        self.sys_pciid = '/usr/share/misc/pci.ids'
         self.dist_icons = os.path.join(self.dist_share, 'icons')
         if os.path.isdir(self.dist_icons):
             self.icon_path = self.dist_icons
