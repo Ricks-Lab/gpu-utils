@@ -13,7 +13,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
 
 ## Getting Started
-First, this set of utilities is written and tested with Python3.6.  If you are using and older
+First, this set of utilities is written and tested with Python3.6.  If you are using an older
 version, you will likely see syntax errors.  Unfortunately, I don't know how to catch a
 syntax error, so if you have issues, just execute:
 ```
@@ -21,7 +21,7 @@ syntax error, so if you have issues, just execute:
 ```
 and it should display a message indicating any Python or Kernel incompatibilities.  You will
 also notice that there is a minimum version of the Kernel that supports these features, but be
-warned, I have tested it with only 4.15. There have been amdgpu features implemented over time
+warned, I have tested it with only 4.15 and 5.0.0.31. There have been amdgpu features implemented over time
 that span many releases of the kernel, so your experience in using these utilities with older 
 kernels might not be ideal.
 
@@ -63,7 +63,7 @@ pip install --no-cache-dir -r requirements-venv.txt
 ```
 Use the deactivate command to leave the venv.
 
-The amdgpu-util package can by run without a venv by pip installing the requirements.txt file:
+The amdgpu-util package can be run without a venv by pip installing the requirements.txt file:
 ```
 sudo -H pip3 install --no-cache-dir -r requirements.txt
 ```
@@ -190,7 +190,7 @@ Power Performance Mode: manual
 AMD GPU's compatible with the amdgpu open source drivers are of three different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
 the clock frequency and voltage.  The GPU will operate only at the specific Frequency/Voltage states that are defined, 
-and move between states based on power, temperature, and loading.  These GPU's are of type 1, if the p-state table
+and move between states based on power, temperature, and loading.  These GPU's are of type 1, if the P-state table
 is readable and type 0 if it is not.  For GPUs of Vega20 architecture or newer, it appears that Voltage/Frequency curves
 are defined with three points on a Voltage vs. Frequency curve.  These GPU's are classified as type 2.
 
@@ -208,9 +208,9 @@ GPU Frequency/Voltage Control Type: 2
 ```
 
 Monitor and Control utilities will differ between the three types.
-* For type 0, you can monitor the p-state details with monitor utilities, but you can NOT define p-states or set p-state masks.
-* For type 1, you can monitor the p-state details with monitor utilities, and you can define p-states and set p-state masks.
-* For Type 2, you can monitor current Clocks frequency and p-states, with latest amdgpu drivers.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as p-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
+* For type 0, you can monitor the P-state details with monitor utilities, but you can NOT define P-states or set P-state masks.
+* For type 1, you can monitor the P-state details with monitor utilities, and you can define P-states and set P-state masks.
+* For Type 2, you can monitor current Clocks frequency and P-states, with latest amdgpu drivers.  The SCLK and MCLK curve end points can be controlled, which has the equivalent effect as P-state masking for Type 1 cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
@@ -244,7 +244,7 @@ The fields are the same as the GUI version of the display, available with the *-
 
 The first row gives the card number for each GPU.  This number is the integer used by the driver for each GPU.  Most fields are self describing.  The Power Cap field is especially useful in managing compute power efficiency, and lowering the cap can result in more level loading and overall lower power usage for little compromise in performance.  The Energy field is a derived metric that accumulates GPU energy usage, in kWh, consumed since the monitor started. Note that total card power usage may be more than reported GPU power usage.  Energy is calculated as the product of the latest power reading and the elapsed time since the last power reading. 
 
-You will notice no clock frequencies or valid p-states for the Vega 20 card.  This is because of a limitation in the first drivers that supported Vega 20 which have a change in the way frequency vs voltage is managed. In later version of the drivers, actual clock frequency and p-states are readable. The p-state table for Vega 20 is a definition of frequency vs. voltage curves, so setting p-states to control the GPU is no longer relevant, but these concepts are used in reading current states.
+You will notice no clock frequencies or valid P-states for the Vega 20 card.  This is because of a limitation in the first drivers that supported Vega 20 which have a change in the way frequency vs voltage is managed. In later version of the drivers, actual clock frequency and P-states are readable. The P-state table for Vega 20 is a definition of frequency vs. voltage curves, so setting P-states to control the GPU is no longer relevant, but these concepts are used in reading current states.
 
 The Perf Mode field gives the current power performance mode, which may be modified in with *amdgpu-pac*.  These modes affect the how frequency and voltage are managed versus loading.  This is a very important parameter when managing compute performance.
 
@@ -255,7 +255,7 @@ Having an *amdgpu-monitor* Gtx window open at startup may be useful if you run G
 ```
 /usr/bin/python3 /home/<user>/Desktop/amdgpu-utils/amdgpu-monitor --gui
 ```
-where `/amdgpu-utils` may be a soft link to your current distribution directory. At the moment, this startup approach does not work for the default Terminal text execution of *amdgpu-monitor*. 
+where `/amdgpu-utils` may be a soft link to your current distribution directory. This startup approach does not work for the default Terminal text execution of *amdgpu-monitor*. 
 
 ## Using amdgpu-plot
 In addition to being called from *amdgpu-monitor* with the *--plot* option, *amdgpu-plot* may be ran as a standalone utility.  Just execute *amdgpu-plot --sleep N* and the plot will update at the defined interval.  It is not recommended to run both the monitor with an independently executed plot, as it will result in twice as many reads from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the named button on the plot display.
@@ -348,13 +348,13 @@ The command line option *--force_write* will result in all configuration paramet
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In most cases, the values in these fields will be the current values, but in the case of P-state masks, it will show the default value instead of the current value.  If you know how to obtain the current value, please let me know!
 
-Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  Such changes to fan PWM can occur even though you did not specifically change Fan PWM or if Fan PWM was previously set to dynamic (automatic, default) mode.  The direction and magnitude of differences between expected and realized fan speeds can depend on card model.  You will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  If you know the cause of the differences between entered and final fan PWM values, let me know. 
+Note that when a PAC bash file is executed either manually or automatically, the resulting fan PWM (% speed) may be slightly different from what you see in the Fan PWM entry field.  The direction and magnitude of differences between expected and realized fan speeds can depend on card model.  You will need to experiment with different settings to determine how it works with your card.  I recommend running these experimental settings when the GPU is not under load.  If you know the cause of the differences between entered and final fan PWM values, let me know. 
 
 Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file. *Amdgpu-pac* bash files must retain their originally assigned file name to run properly. See [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup) for how to run PAC bash scripts automatically at system startup.
 
-For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, for *amdgpu-pac* to work properly, other changes may require that the GPU not be under load, *i.e.*, that sclk p-state and mclk p-state are 0. Possible consequences with making changes under load is that the GPU become stuck in a 0 p-state or that the entire system becomes slow to respond, where a reboot will be needed to restore full GPU functions. Note that when you change a p-state mask, default mask values will reappear in the field after Save, but will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not persist when a card has a connected display. 
+For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, for *amdgpu-pac* to work properly, other changes may require that the GPU not be under load, *i.e.*, that sclk P-state and mclk P-state are 0. Possible consequences with making changes under load is that the GPU become stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot will be needed to restore full GPU functions. Note that when you change a P-state mask, default mask values will reappear in the field after Save, but your specified changes will have been implemented on the card and show up in *amdgpu-monitor*. Some changes may not persist when a card has a connected display. 
 
-Some basic error checking done before writing, but I suggest you be very certain of all entries before you save changes to the GPU.
+Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save changes to the GPU.
 
 ## Updating the pci.id decode file
 Starting in v2.7.0, the system PCI ID file is used, making the *amdgpu-pciid* command obsolete. It will be removed in
@@ -424,4 +424,4 @@ The last command should produce a terminal stdout like this:
 
 On the next reboot or restart, the GPU(s) will be set with the PAC run parameters. If you want to test the bash script(s) before rebooting, run: `~$ sudo systemctl start amdgpu-pac-startup.service`. 
 
-One or more of your cards' numbers that are assigned by amdgpu drivers may change following a system update and restart. With subsequent updates or restarts, a card can switch back to its original number. When a switch occurs, the bash file written for a previous card number will still be read at startup, but will have no effect, causing the renumbered card to run at its default settings. To deal with this possibility, whether using crontab or systemd, you can create an alternative PAC bash file after a renumbering event and add these alternative files in your crontab or systemd service. You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and *amdgpu-plot*. Card reindexing does not affect a card's PCI ID number, which corresponds to its PCIe slot number on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.  
+One or more of your cards' numbers that are assigned by amdgpu drivers may change following a system or driver update and restart. With subsequent updates or restarts, a card can switch back to its original number. When a switch occurs, the bash file written for a previous card number will still be read at startup, but will have no effect, causing the renumbered card to run at its default settings. To deal with this possibility, whether using crontab or systemd, you can create an alternative PAC bash file after a renumbering event and add these alternative files in your crontab or systemd service. You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and *amdgpu-plot*. Card reindexing does not affect a card's PCI ID number, which corresponds to its PCIe slot number on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.  
