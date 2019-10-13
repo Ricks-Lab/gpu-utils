@@ -9,7 +9,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
+Download latest official release: [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
 Or use this development version from master branch.
 
 ## amdgpu-chk
@@ -78,10 +78,11 @@ a local version of the file, which will override the preferred system file resul
 If your GPU model is missing from the pci.ids file, you can use the device id of your card found with 
 *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
-## New under Development  -  [v2.7.0]
+## New in this Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
 * Initial release of man pages
 * Modifications to work with distribution installation
 * Use system pci.ids file and make *amdgpy-pciid* obsolete
+* Update setup.py file for successful installation.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
