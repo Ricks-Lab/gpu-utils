@@ -360,11 +360,11 @@ Some basic error checking is done before writing, but I suggest you be very cert
 Starting in v2.7.0, the system PCI ID file is used, making the *amdgpu-pciid* command obsolete. It will be removed in
 the next major release.
 
-In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lscpi -k -s nn:nn.n* is
+In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lspci -k -s nn:nn.n* is
 used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver files, a
 set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID are read and used
 to extract a GPU model name from system pci.ids file which is sourced from
-[https://pci-ids.ucw.cz/]( https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  The system file can
+[https://pci-ids.ucw.cz/](https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  The system file can
 be updated from the original source with the command:
 ```
 sudo update-pciids
