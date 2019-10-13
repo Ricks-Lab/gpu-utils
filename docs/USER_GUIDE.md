@@ -8,7 +8,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-monitor](#using-amdgpu-monitor)
  - [Using amdgpu-plot](#using-amdgpu-plot)
  - [Using amdgpu-pac](#using-amdgpu-pac)
- - [Updating the pci.id decode file](#Updating the pci.id decode file)
+ - [Updating the PDI ID decode file](#Updating-the-PCI-ID-decode-file)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
  - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
 
@@ -356,7 +356,7 @@ For Type 1 cards, while changes to power caps and fan speeds can be made while t
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save changes to the GPU.
 
-## Updating the pci.id decode file
+## Updating the PCI ID decode file
 Starting in v2.7.0, the system PCI ID file is used, making the *amdgpu-pciid* command obsolete. It will be removed in
 the next major release.
 
