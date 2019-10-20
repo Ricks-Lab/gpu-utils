@@ -81,7 +81,7 @@ If your GPU model is missing from the pci.ids file, you can use the device id of
 ## New in this Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
 * Initial release of man pages
 * Modifications to work with distribution installation
-* Use system pci.ids file and make *amdgpy-pciid* obsolete
+* Use system pci.ids file and make *amdgpu-pciid* obsolete
 * Update setup.py file for successful installation.
 
 ## Development Plans
