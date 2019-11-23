@@ -118,7 +118,15 @@ class GPU_ITEM:
         self.ppm_modes = {}         # {'1': ['Name', 'Description']}
 
     def set_params_value(self, name, value):
-        # update params dictionary
+        """
+        Set param values in GPU item dictionary.
+        :param name: parameter name
+        :type name: str
+        :param value:  parameter value
+        :type value: Union[int, str, list]
+        :return: None
+        :rtype: None
+        """
         self.params[name] = value
         if name == 'driver' and value != 'amdgpu':
             self.compatible = False
@@ -130,24 +138,55 @@ class GPU_ITEM:
             self.hwmon_path = value
 
     def get_params_value(self, name):
-        # reads params dictionary
+        """
+        Get parameter value for give name.
+        :param name:  Parameter name
+        :type name: str
+        :return: Parameter value
+        :rtype: Union[int, str, list]
+        """
         return self.params[name]
 
     def set_clinfo_value(self, name, value):
-        # update clinfo dictionary
+        """
+        Set clinfo values in GPU item dictionary.
+        :param name: clinfo parameter name
+        :type name: str
+        :param value:  parameter value
+        :type value: Union[int, str, list]
+        :return: None
+        :rtype: None
+        """
         self.clinfo[name] = value
 
     def get_clinfo_value(self, name):
-        # reads clinfo dictionary
+        """
+        Get clinfo parameter value for give name.
+        :param name:  clinfo Parameter name
+        :type name: str
+        :return: clinfo Parameter value
+        :rtype: Union[int, str, list]
+        """
         return self.clinfo[name]
 
     def copy_clinfo_values(self, gpu_item):
+        """
+        Copy values of one gpu_item to another.
+        :param gpu_item:
+        :type gpu_item: GPU_ITEM
+        :return: None
+        :rtype: None
+        """
         for k, v in gpu_item.clinfo.items():
             self.clinfo[k] = v
 
     @staticmethod
     def get_all_params_labels():
-        # Human friendly labels for params keys
+        """
+        Get human friendly labels for params keys.
+        :return: Dictionary of label names and Labels
+        :rtype: dict
+        """
         GPU_Param_Labels = {'uuid': 'UUID',
                             'id': 'Device ID',
                             'gpu_type': 'GPU Frequency/Voltage Control Type',
@@ -190,7 +229,11 @@ class GPU_ITEM:
         return GPU_Param_Labels
 
     def get_all_clinfo_labels(self):
-        # Human friendly labels for clinfo keys
+        """
+        Get human friendly labels for clinfo keys.
+        :return: Dictionary of label names and labels
+        :rtype: dict
+        """
         GPU_CLINFO_Labels = {'device_name': 'Device Name',
                              'device_version': 'Device Version',
                              'driver_version': 'Driver Version',
@@ -207,6 +250,13 @@ class GPU_ITEM:
         return GPU_CLINFO_Labels
 
     def is_valid_power_cap(self, power_cap):
+        """
+        Check if a given power_cap value is valid.
+        :param power_cap: Target power cap value to be tested.
+        :type power_cap: int
+        :return: True if valid
+        :rtype: bool
+        """
         power_cap_range = self.get_params_value('power_cap_range')
         # if power_cap >= power_cap_range[0] and power_cap <= power_cap_range[1]:
         if power_cap_range[0] <= power_cap <= power_cap_range[1]:
@@ -218,6 +268,13 @@ class GPU_ITEM:
             return False
 
     def is_valid_fan_pwm(self, pwm_value):
+        """
+        Check if a given fan_pwm value is valid.
+        :param pwm_value: Target fan_pwm value to be tested.
+        :type pwm_value: int
+        :return: True if valid
+        :rtype: bool
+        """
         pwm_range = self.get_params_value('fan_pwm_range')
         # if pwm_value >= pwm_range[0] and pwm_value <= pwm_range[1]:
         if pwm_range[0] <= pwm_value <= pwm_range[1]:
@@ -229,6 +286,14 @@ class GPU_ITEM:
             return False
 
     def is_valid_mclk_pstate(self, pstate):
+        """
+        Check if given mclk pstate value is valid.
+            pstate = [pstate_number, clk_value, vddc_value]
+        :param pstate:
+        :type pstate: list[int]
+        :return: Return True if valid
+        :rtype: bool
+        """
         mclk_range = self.get_params_value('mclk_f_range')
         mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
         mclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[1])))
@@ -243,6 +308,14 @@ class GPU_ITEM:
         return True
 
     def is_valid_sclk_pstate(self, pstate):
+        """
+        Check if given sclk pstate value is valid.
+            pstate = [pstate_number, clk_value, vddc_value]
+        :param pstate:
+        :type pstate: list[int]
+        :return: Return True if valid
+        :rtype: bool
+        """
         sclk_range = self.get_params_value('sclk_f_range')
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[0])))
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[1])))
@@ -257,6 +330,14 @@ class GPU_ITEM:
         return True
 
     def is_changed_sclk_pstate(self, pstate):
+        """
+        Check if given sclk pstate value different from current.
+            pstate = [pstate_number, clk_value, vddc_value]
+        :param pstate:
+        :type pstate: list[int]
+        :return: Return True if changed
+        :rtype: bool
+        """
         if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][0])) != pstate[1]:
             return True
         if self.get_params_value('gpu_type') != 2:
@@ -265,6 +346,14 @@ class GPU_ITEM:
         return False
 
     def is_changed_mclk_pstate(self, pstate):
+        """
+        Check if given mclk pstate value different from current.
+            pstate = [pstate_number, clk_value, vddc_value]
+        :param pstate:
+        :type pstate: list[int]
+        :return: Return True if changed
+        :rtype: bool
+        """
         if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][0])) != pstate[1]:
             return True
         if self.get_params_value('gpu_type') != 2:
@@ -273,6 +362,14 @@ class GPU_ITEM:
         return False
 
     def is_changed_vddc_curve_pt(self, pstate):
+        """
+        Check if given vddc curve point value different from current.
+            curve_point = [point_number, clk_value, vddc_value]
+        :param pstate:
+        :type pstate: list[int]
+        :return: Return True if changed
+        :rtype: bool
+        """
         if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
             return True
         if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][1])) != pstate[2]:
@@ -280,6 +377,14 @@ class GPU_ITEM:
         return False
 
     def is_valid_vddc_curve_pts(self, curve_pts):
+        """
+        Check if given sclk pstate value is valid.
+            curve_point = [point_number, clk_value, vddc_value]
+        :param curve_pts:
+        :type curve_pts: list[int]
+        :return: Return True if valid
+        :rtype: bool
+        """
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][0])))
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][1])))
         if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
@@ -292,6 +397,15 @@ class GPU_ITEM:
         return True
 
     def is_valid_pstate_list_str(self, ps_str, clk_name):
+        """
+
+        :param ps_str: String of comma separated pstate numbers
+        :type ps_str: str
+        :param clk_name: The target clock name
+        :type clk_name: str
+        :return: True if valid
+        :rtype: bool
+        """
         if ps_str == '':
             return True
         for ps in ps_str.split():
