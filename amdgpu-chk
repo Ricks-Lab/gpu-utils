@@ -92,7 +92,8 @@ class GUT_CONST:
                 lineitems = lshw_line.split(sep=':')
                 driver_str = lineitems[1].strip()
                 searchObj = re.search(required_aversion, driver_str)
-                break
+                if searchObj:
+                    break
         if not config_found:
             driver_str = 'not detected'
             print('AMD GPU driver not detected')
