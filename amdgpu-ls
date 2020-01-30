@@ -124,7 +124,7 @@ def main():
 
     # Read report specific details
     if args.clinfo:
-        if gpu_list.read_gpu_opencl_data() < 0:
+        if not gpu_list.read_gpu_opencl_data():
             args.clinfo = False
     gpu_list.read_gpu_pstates()
     gpu_list.read_gpu_ppm_table()
