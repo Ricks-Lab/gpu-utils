@@ -66,7 +66,11 @@ class GUT_CONST:
         self.amdfeaturemask = ''
         self.USELTZ = False
         self.LTZ = datetime.utcnow().astimezone().tzinfo
-        if self.DEBUG: print('Local TZ: %s' % str(self.LTZ))
+        if self.DEBUG: print('Local TZ: {}'.format(self.LTZ))
+        self.cmd_lspci = None
+        self.cmd_lshw = None
+        self.cmd_clinfo = None
+        self.cmd_dpkg = None
 
     @staticmethod
     def now(ltz=False):
@@ -115,8 +119,29 @@ class GUT_CONST:
                   str(required_kversion[0]) + '.' + str(required_kversion[1]), file=sys.stderr)
             return -2
 
+        # Check access/paths to system commands
+        command_access_fail = False
+        self.cmd_lspci = shutil.which('lspci')
+        if not self.cmd_lspci:
+            print('OS command [lspci] executable not found.')
+            command_access_fail = True
+        self.cmd_lshw = shutil.which('lshw')
+        if not self.cmd_lshw:
+            print('OS command [lshw] executable not found.')
+            command_access_fail = True
+        self.cmd_clinfo = shutil.which('clinfo')
+        if not self.cmd_clinfo:
+            print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
+            command_access_fail = True
+        self.cmd_dpkg = shutil.which('dpkg')
+        if not self.cmd_dpkg:
+            print('OS command [dpkg] executable not found.')
+            command_access_fail = True
+        if command_access_fail:
+            return -3
+
         # Check AMD GPU Driver Version
-        lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
+        lshw_out = subprocess.check_output(shlex.split('{} -c video'.format(self.cmd_lshw)), shell=False,
                                            stderr=subprocess.DEVNULL).decode().split('\n')
         for lshw_line in lshw_out:
             searchObj = re.search('configuration:', lshw_line)
@@ -127,19 +152,19 @@ class GUT_CONST:
                 if searchObj:
                     return 0
                 else:
-                    print(f'amdgpu-utils non-compatible driver: {driver_str}')
-                    print(f'amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
+                    print('amdgpu-utils non-compatible driver: {}'.format(driver_str))
+                    print('amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
                     return -3
         return 0
 
     def get_amd_driver_version(self):
-        if not shutil.which('/usr/bin/dpkg'):
-            print('can not determine amdgpu version')
+        if not self.cmd_dpkg:
+            print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
             return -1
         version_ok = False
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
             try:
-                dpkg_out = subprocess.check_output(shlex.split(f'dpkg -l {pkgname}'), shell=False,
+                dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)), shell=False,
                                                    stderr=subprocess.DEVNULL).decode().split('\n')
                 for dpkg_line in dpkg_out:
                     searchObj = re.search('amdgpu', dpkg_line)

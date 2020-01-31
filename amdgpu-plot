@@ -52,10 +52,9 @@ try:
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
     from matplotlib.figure import Figure
     import matplotlib.pyplot as plt
-    #import matplotlib.dates as mdates
 except ModuleNotFoundError as error:
     print('matplotlib import error: {}'.format(error))
-    print('matplotlib is required for %s', __program_name__)
+    print('matplotlib is required for {}'.format(__program_name__))
     print('Use \'sudo apt-get install python3-matplotlib\' to install')
     sys.exit(0)
 
@@ -63,7 +62,7 @@ try:
     import pandas as pd
 except ModuleNotFoundError as error:
     print('Pandas import error: {}'.format(error))
-    print('Pandas is required for %s', __program_name__)
+    print('Pandas is required for {}'.format(__program_name__))
     print('Install pip3 if needed: \'sudo apt install python3-pip\'')
     print('Then pip install pandas: \'pip3 install pandas\'')
     sys.exit(0)
@@ -74,14 +73,14 @@ try:
     import gi
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
-    print('gi is required for %s', __program_name__)
+    print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk
 
-from GPUmodules import GPUmodule as GPU
+from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
@@ -101,9 +100,10 @@ def hex_to_rgba(value):
 
 
 def get_stack_size():
-    """Get stack size for caller's frame.
-
-       Code copied from Stack Overflow
+    """
+    Get stack size for caller's frame. Code copied from Stack Overflow.
+    :return: Stack size
+    :rtype: int
     """
     size = 2  # current frame and caller's frame always exist
     while True:
@@ -127,7 +127,7 @@ class PlotData:
         self.consec_reader = 0
         self.gpu_list = ''
         self.num_gpus = 1
-        self.com_gpu_list = GPU.GPU_LIST()
+        self.com_gpu_list = gpu.GpuList()
 
     def set_gpus(self):
         self.num_gpus = self.df['Card#'].nunique()
@@ -761,13 +761,13 @@ def main():
         env.gut_const.get_amd_driver_version()
     
         # Get list of AMD GPUs and get basic non-driver details
-        gpu_list = GPU.GPU_LIST()
+        gpu_list = gpu.GpuList()
         gpu_list.get_gpu_list()
         gpu_list.read_allgpu_pci_info()
     
         # Check list of AMD GPUs
         num_amd_gpus = gpu_list.num_gpus()
-        num_com_gpus = gpu_list.num_compatible_gpus()
+        num_com_gpus = gpu_list.num_gpus(compatible=True)
         if num_amd_gpus == 0:
             print('No AMD GPUs detected, exiting...')
             sys.exit(-1)
@@ -786,7 +786,7 @@ def main():
         gpu_list.read_gpu_state_data()
     
         # Check number of compatible GPUs again
-        num_com_gpus = gpu_list.num_compatible_gpus()
+        num_com_gpus = gpu_list.num_gpus(compatible=True)
         if num_com_gpus == 0:
             print('None are compatible, exiting...')
             sys.exit(-1)
@@ -795,7 +795,7 @@ def main():
             print('')
     
         # Generate a new list of only compatible GPUs
-        plot_data.com_gpu_list = gpu_list.list_compatible_gpus()
+        plot_data.com_gpu_list = gpu_list.list_gpus(compatible=True)
         plot_data.num_gpus = num_com_gpus
     # end of if args.stdin == False
 

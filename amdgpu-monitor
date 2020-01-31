@@ -59,7 +59,7 @@ except ModuleNotFoundError as error:
 gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk
 
-from GPUmodules import GPUmodule as GPU
+from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
@@ -99,7 +99,7 @@ class MonitorWindow(Gtk.Window):
         row_labels = {'card_num': Gtk.Label()}
         row_labels['card_num'].set_markup('<b>Card #</b>')
         row_labels['card_num'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-        for k, v in gpu_list.table_param_labels.items():
+        for k, v in gpu_list.table_param_labels().items():
             row_labels[k] = Gtk.Label()
             row_labels[k].set_markup('<b>' + str(v) + '</b>')
             row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
@@ -120,7 +120,7 @@ class MonitorWindow(Gtk.Window):
             row += 1
         for k, v in gpu_list.list.items():
             devices[v.uuid] = {'card_num':  Gtk.Label(label='card' + v.get_params_value('card_num'))}
-            for cv in gpu_list.table_param_labels:
+            for cv in gpu_list.table_param_labels():
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
 
@@ -242,13 +242,13 @@ def main():
     env.gut_const.get_amd_driver_version()
 
     # Get list of AMD GPUs and get basic non-driver details
-    gpu_list = GPU.GPU_LIST()
+    gpu_list = gpu.GpuList()
     gpu_list.get_gpu_list()
     gpu_list.read_allgpu_pci_info()
 
     # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
-    num_com_gpus = gpu_list.num_compatible_gpus()
+    num_com_gpus = gpu_list.num_gpus(compatible=True)
     if num_amd_gpus == 0:
         print('No AMD GPUs detected, exiting...')
         sys.exit(-1)
@@ -266,7 +266,7 @@ def main():
     gpu_list.read_gpu_state_data()
 
     # Check number of compatible GPUs again
-    num_com_gpus = gpu_list.num_compatible_gpus()
+    num_com_gpus = gpu_list.num_gpus(compatible=True)
     if num_com_gpus == 0:
         print('None are compatible, exiting...')
         sys.exit(-1)
@@ -275,7 +275,7 @@ def main():
         print('')
 
     # Generate a new list of only compatible GPUs
-    com_gpu_list = gpu_list.list_compatible_gpus()
+    com_gpu_list = gpu_list.list_gpus(compatible=True)
 
     if args.log:
         env.gut_const.LOG = True
@@ -290,7 +290,6 @@ def main():
         # Display Gtk style Monitor
         devices = {}
         gmonitor = MonitorWindow(com_gpu_list, devices)
-        #gmonitor.connect('delete-event', Gtk.main_quit)
         gmonitor.connect('delete-event', gmonitor.set_quit)
         gmonitor.show_all()
 

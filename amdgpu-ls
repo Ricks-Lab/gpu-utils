@@ -34,7 +34,7 @@ __status__ = 'Stable Release'
 
 import argparse
 import sys
-from GPUmodules import GPUmodule as GPU
+from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
@@ -89,13 +89,13 @@ def main():
     env.gut_const.get_amd_driver_version()
 
     # Get list of AMD GPUs and get basic non-driver details
-    gpu_list = GPU.GPU_LIST()
+    gpu_list = gpu.GpuList()
     gpu_list.get_gpu_list()
     gpu_list.read_allgpu_pci_info()
 
     # Check list of AMD GPUs
     num_amd_gpus = gpu_list.num_gpus()
-    num_com_gpus = gpu_list.num_compatible_gpus()
+    num_com_gpus = gpu_list.num_gpus(compatible=True)
     if num_amd_gpus == 0:
         print('No AMD GPUs detected, exiting...')
         sys.exit(-1)
@@ -114,7 +114,7 @@ def main():
     gpu_list.read_gpu_state_data()
 
     # Check number of compatible GPUs again
-    num_com_gpus = gpu_list.num_compatible_gpus()
+    num_com_gpus = gpu_list.num_gpus(compatible=True)
     if num_com_gpus == 0:
         print('None are compatible, exiting...')
         sys.exit(-1)
