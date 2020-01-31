@@ -23,9 +23,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-chk'
-__version__ = 'v2.7.0'
+__version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+#__status__ = 'Stable Release'
+__status__ = 'Complete rewrite under development - Please use an official release.'
+__docformat__ = 'reStructuredText'
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
 
 import argparse
 import re
@@ -39,7 +43,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class GUT_CONST:
+class GutConst:
     def __init__(self):
         self.DEBUG = False
 
@@ -111,7 +115,7 @@ class GUT_CONST:
         return ret_val
 
 
-gut_const = GUT_CONST()
+GUT_CONST = GutConst()
 
 
 def is_venv_installed():
@@ -144,6 +148,7 @@ def does_amdgpu_utils_env_exist():
     print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be configured per User Guide. ' + '\x1b[0m')
     return False
 
+
 def is_in_venv():
     python_path = shutil.which('python')
 
@@ -174,9 +179,9 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    gut_const.DEBUG = args.debug
+    GUT_CONST.DEBUG = args.debug
 
-    if gut_const.check_env() != [0, 0, 0]:
+    if GUT_CONST.check_env() != [0, 0, 0]:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 

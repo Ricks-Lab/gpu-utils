@@ -21,9 +21,11 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v2.7.0'
+__version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Complete rewrite under development - Please use an official release.'
+#__status__ = 'Stable Release'
+__docformat__ = 'reStructuredText'
 
 import re
 import os
@@ -45,9 +47,9 @@ class PCI_ID:
         self.pciid_file = 'pci.ids'    # base of name for downloaded file
 
         # Possible locations of PCI ID files
-        self.pciid_file_system = env.gut_const.sys_pciid
-        self.pciid_file_local = os.path.join(env.gut_const.config_dir, file_name)
-        # self.pciid_file_distribution = os.path.join(env.gut_const.dist_share, file_name)
+        self.pciid_file_system = env.GUT_CONST.sys_pciid
+        self.pciid_file_local = os.path.join(env.GUT_CONST.config_dir, file_name)
+        # self.pciid_file_distribution = os.path.join(env.GUT_CONST.dist_share, file_name)
         self.pciid_file_repository = os.path.join(os.path.dirname(str(Path(__file__).resolve())), file_name)
 
         # Details on PCI-ID file in use
@@ -56,7 +58,7 @@ class PCI_ID:
         self.pci_id_file_ptr = None
 
         for try_filename in [self.pciid_file_local, self.pciid_file_system, self.pciid_file_repository]:
-            if env.gut_const.DEBUG: print('Trying pci-id file [{}].'.format(try_filename))
+            if env.GUT_CONST.DEBUG: print('Trying pci-id file [{}].'.format(try_filename))
             self.amdgpu_utils_file = try_filename
             if not os.path.isfile(self.amdgpu_utils_file):
                 continue
@@ -125,10 +127,10 @@ class PCI_ID:
     def update_pci_id(self, in_file_name, target=None):
         if not target:
             target = self.pciid_file_local
-        if not os.path.isdir(env.gut_const.config_dir):
-            os.mkdir(env.gut_const.config_dir)
-        if not os.path.isdir(env.gut_const.config_dir):
-            print('ERROR: could not create amdgpu-utils config directory: [{}]'.format(env.gut_const.config_dir))
+        if not os.path.isdir(env.GUT_CONST.config_dir):
+            os.mkdir(env.GUT_CONST.config_dir)
+        if not os.path.isdir(env.GUT_CONST.config_dir):
+            print('ERROR: could not create amdgpu-utils config directory: [{}]'.format(env.GUT_CONST.config_dir))
             sys.exit(-1)
         self.pci_id_file_ptr.close()
         # self.extract_vendor_from_pci_id('0x1002', in_file_name, self.amdgpu_utils_file)

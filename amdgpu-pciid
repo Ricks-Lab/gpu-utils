@@ -73,9 +73,9 @@ def main():
         print('   amdgpu-utils now uses the PCI-ID file used by lspci and can be updated with sudo update-pciids.')
         sys.exit(0)
 
-    env.gut_const.DEBUG = args.debug
+    env.GUT_CONST.DEBUG = args.debug
 
-    if env.gut_const.check_env() < 0:
+    if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
@@ -112,7 +112,7 @@ def main():
             target = pciid.pciid_file_repository
         else:
             target = pciid.pciid_file_local
-        original_amd_file = os.path.join(env.gut_const.repository_module_path, pciid.amdgpu_utils_file)
+        original_amd_file = os.path.join(env.GUT_CONST.repository_module_path, pciid.amdgpu_utils_file)
         original_file_version = pciid.get_pciid_version()
         print('    Original %s : %s' % (original_file_version, original_amd_file))
         if original_file_version == new_file_version and not args.force:

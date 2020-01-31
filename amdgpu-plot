@@ -34,9 +34,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-plot'
-__version__ = 'v2.7.0'
+__version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+#__status__ = 'Stable Release'
+__status__ = 'Complete rewrite under development - Please use an official release.'
+__docformat__ = 'reStructuredText'
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
 
 import sys
 import gc as garbcollect
@@ -228,7 +232,7 @@ class GPUPlotWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title='amdgpu-plot')
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.icon_path, 'amdgpu-plot.icon.png')
+        icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-plot.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -540,21 +544,21 @@ def read_from_stdin(refreshtime, plot_data):
     header = True
     sync_add = 0
     while not plot_data.quit:
-        if env.gut_const.SIMLOG: time.sleep(refreshtime/4.0)
+        if env.GUT_CONST.SIMLOG: time.sleep(refreshtime/4.0)
         ndf = pd.DataFrame()
 
         # Process a set of GPUs at a time
         skip_update = False
         read_time = 0.0
         for gpu_index in range(0, plot_data.num_gpus + sync_add):
-            tb = env.gut_const.now(env.gut_const.USELTZ)
+            tb = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
             line = sys.stdin.readline()
-            tmp_read_time = (env.gut_const.now(env.gut_const.USELTZ) - tb).total_seconds()
+            tmp_read_time = (env.GUT_CONST.now(env.GUT_CONST.USELTZ) - tb).total_seconds()
             if tmp_read_time > read_time:
                 read_time = tmp_read_time
 
             if line == '':
-                if env.gut_const.DEBUG: print('Error: Null input line')
+                if env.GUT_CONST.DEBUG: print('Error: Null input line')
                 plot_data.kill_thread()
                 break
             if header:
@@ -584,14 +588,14 @@ def read_from_stdin(refreshtime, plot_data):
             else:
                 sync_add = 0
 
-        if env.gut_const.DEBUG:
-            print(env.gut_const.now(env.gut_const.USELTZ).strftime('%c'))
+        if env.GUT_CONST.DEBUG:
+            print(env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime('%c'))
             print(ndf)
 
-        if not env.gut_const.SIMLOG:
+        if not env.GUT_CONST.SIMLOG:
             if read_time < 0.003:
                 skip_update = True
-                if env.gut_const.DEBUG: print('skipping update')
+                if env.GUT_CONST.DEBUG: print('skipping update')
 
         # SEMAPHORE ############
         pd_sem.acquire()
@@ -632,7 +636,7 @@ def read_from_stdin(refreshtime, plot_data):
             pd_sem.release()
             ########################
             garbcollect.collect()
-        if env.gut_const.DEBUG: print('update stack size: ', get_stack_size())
+        if env.GUT_CONST.DEBUG: print('update stack size: ', get_stack_size())
 
     # Quit
     print('exit stack size: ', get_stack_size())
@@ -652,7 +656,7 @@ def read_from_gpus(refreshtime, plot_data):
         skip_update = False
         for k, v in plot_data.com_gpu_list.list.items():
             gpu_plot_data = v.get_plot_data(plot_data.com_gpu_list)
-            if env.gut_const.DEBUG: print('gpu_plot_data: ', gpu_plot_data)
+            if env.GUT_CONST.DEBUG: print('gpu_plot_data: ', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             rdf['datetime'] = pd.to_datetime(rdf['Time'])
@@ -699,7 +703,7 @@ def read_from_gpus(refreshtime, plot_data):
             pd_sem.release()
             ########################
             garbcollect.collect()
-        if env.gut_const.DEBUG: print('update stack size: ', get_stack_size())
+        if env.GUT_CONST.DEBUG: print('update stack size: ', get_stack_size())
         time.sleep(refreshtime)
 
     # Quit
@@ -733,12 +737,12 @@ def main():
         print('numpy version: ', np.__version__)
         sys.exit(0)
 
-    env.gut_const.DEBUG = args.debug
-    env.gut_const.SIMLOG = args.simlog
+    env.GUT_CONST.DEBUG = args.debug
+    env.GUT_CONST.SIMLOG = args.simlog
     if args.ltz:
-        env.gut_const.USELTZ = True
+        env.GUT_CONST.USELTZ = True
 
-    if env.gut_const.check_env() < 0:
+    if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
@@ -748,7 +752,7 @@ def main():
     if not args.stdin:
         # Check value of AMD Feature mask
         try:
-            featuremask = env.gut_const.read_amdfeaturemask()
+            featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             print('Cannot read ppfeaturemask. Exiting...')
             sys.exit(-1)
@@ -758,7 +762,7 @@ def main():
             print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
             sys.exit(-1)
     
-        env.gut_const.get_amd_driver_version()
+        env.GUT_CONST.read_amd_driver_version()
     
         # Get list of AMD GPUs and get basic non-driver details
         gpu_list = gpu.GpuList()

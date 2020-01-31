@@ -22,9 +22,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v2.7.0'
+__version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+#__status__ = 'Stable Release'
+__status__ = 'Complete rewrite under development - Please use an official release.'
+__docformat__ = 'reStructuredText'
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
 
 import re
 import subprocess
@@ -38,7 +42,10 @@ import time
 from datetime import datetime
 
 
-class GUT_CONST:
+class GutConst:
+    """
+    GPU Utils constants used throughout the project.
+    """
     def __init__(self):
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
         self.repository_path = os.path.join(self.repository_module_path, '..')
@@ -67,30 +74,61 @@ class GUT_CONST:
         self.USELTZ = False
         self.LTZ = datetime.utcnow().astimezone().tzinfo
         if self.DEBUG: print('Local TZ: {}'.format(self.LTZ))
+        # GPU platform capability
+        self.amd_read = None
+        self.amd_write = None
+        self.nv_read = None
+        self.nv_write = None
+        # Command access
         self.cmd_lspci = None
         self.cmd_lshw = None
         self.cmd_clinfo = None
         self.cmd_dpkg = None
+        self.cmd_nvidia_smi = None
 
     @staticmethod
     def now(ltz=False):
+        """
+        Get the current datetime object.
+        :param ltz: Flag to get local time instead of UTC
+        :type ltz: bool
+        :return:
+        :rtype: datetime
+        """
         if ltz:
             return datetime.now()
         return datetime.utcnow()
 
     @staticmethod
     def utc2local(utc):
-        # from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
+        """
+        Return local time for given UTC time.
+        :param utc:
+        :type utc: datetime
+        :return:
+        :rtype: datetime
+        .. note:: from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
+        """
         epoch = time.mktime(utc.timetuple())
         offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
         return utc + offset
 
     def read_amdfeaturemask(self):
-        with open(gut_const.featuremask) as fm_file:
+        """
+        Read and return the amdfeaturemask as an int.
+        :return:
+        :rtype: int
+        """
+        with open(self.featuremask) as fm_file:
             self.amdfeaturemask = int(fm_file.readline())
             return self.amdfeaturemask
 
     def check_env(self):
+        """
+        Check the compatibility of the user environment.
+        :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
+        :rtype: int
+        """
         # Check python version
         required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
@@ -137,38 +175,48 @@ class GUT_CONST:
         if not self.cmd_dpkg:
             print('OS command [dpkg] executable not found.')
             command_access_fail = True
+        self.cmd_nvidia_smi = shutil.which('nvidia_smi')
+        if not self.cmd_dpkg:
+            pass
+            #print('OS command [nvidia_smi] executable not found.')
+            #command_access_fail = True
         if command_access_fail:
             return -3
 
         # Check AMD GPU Driver Version
         lshw_out = subprocess.check_output(shlex.split('{} -c video'.format(self.cmd_lshw)), shell=False,
                                            stderr=subprocess.DEVNULL).decode().split('\n')
+        driver_str = ''
         for lshw_line in lshw_out:
-            searchObj = re.search('configuration:', lshw_line)
-            if searchObj:
+            search_obj = re.search('configuration:', lshw_line)
+            if search_obj:
                 lineitems = lshw_line.split(sep=':')
                 driver_str = lineitems[1].strip()
-                searchObj = re.search('driver=amdgpu', driver_str)
-                if searchObj:
+                search_obj = re.search('driver=amdgpu', driver_str)
+                if search_obj:
                     return 0
-                else:
-                    print('amdgpu-utils non-compatible driver: {}'.format(driver_str))
-                    print('amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
-                    return -3
-        return 0
+        print('amdgpu-utils no compatible driver found: {}'.format(driver_str))
+        print('amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
+        self.amd_read = self.amd_write = False
+        return -3
 
-    def get_amd_driver_version(self):
+    def read_amd_driver_version(self):
+        """
+        Read the AMD driver version and store in GutConst object.
+        :return: True if successful
+        :rtype: bool
+        """
         if not self.cmd_dpkg:
             print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
-            return -1
+            return False
         version_ok = False
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
             try:
-                dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)), shell=False,
-                                                   stderr=subprocess.DEVNULL).decode().split('\n')
+                dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
+                                                   shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
                 for dpkg_line in dpkg_out:
-                    searchObj = re.search('amdgpu', dpkg_line)
-                    if searchObj:
+                    search_obj = re.search('amdgpu', dpkg_line)
+                    if search_obj:
                         if self.DEBUG: print('Debug: {}'.format(dpkg_line))
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
@@ -180,20 +228,22 @@ class GUT_CONST:
                                 break
                 if version_ok:
                     break
-            except subprocess.CalledProcessError:
-                pass
-            except OSError:
-                pass
+            except (subprocess.CalledProcessError, OSError):
+                continue
         if not version_ok:
             print('amdgpu version: UNKNOWN')
-            return -1
-        return 0
+            return False
+        return True
 
 
-gut_const = GUT_CONST()
+GUT_CONST = GutConst()
 
 
 def about():
+    """
+    Display details of this module.
+    :return: None
+    """
     print(__doc__)
     print('Author: ', __author__)
     print('Copyright: ', __copyright__)

@@ -81,7 +81,7 @@ class GpuItem:
                          'power': 'Current Power (W)',
                          'power_cap': 'Power Cap (W)',
                          'power_cap_range': 'Power Cap Range (W)'}
-    if env.gut_const.show_fans:
+    if env.GUT_CONST.show_fans:
         _GPU_Param_Labels.update({'fan_enable': 'Fan Enable',
                                   'pwm_mode': 'Fan PWM Mode',
                                   'fan_pwm': 'Current Fan PWM (%)',
@@ -137,7 +137,7 @@ class GpuItem:
         self.compatible = True
         self.writeable = False
         self.readable = False
-        time_0 = env.gut_const.now(env.gut_const.USELTZ)
+        time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.hwmon_disabled = []
 
@@ -494,11 +494,11 @@ class GpuItem:
                 if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
                     linestr = re.sub(r'[ ]*[*]*:', ' ', linestr)
                     line_items = linestr.split()
-                    if env.gut_const.DEBUG: print('Debug: ppm line: {}'.format(linestr), file=sys.stderr)
+                    if env.GUT_CONST.DEBUG: print('Debug: ppm line: {}'.format(linestr), file=sys.stderr)
                     if len(line_items) < 2:
                         print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
                         continue
-                    if env.gut_const.DEBUG: print('Debug: valid ppm: {}'.format(linestr), file=sys.stderr)
+                    if env.GUT_CONST.DEBUG: print('Debug: valid ppm: {}'.format(linestr), file=sys.stderr)
                     self.ppm_modes[line_items[0]] = line_items[1:]
             self.ppm_modes['-1'] = ['AUTO', 'Auto']
 
@@ -581,7 +581,7 @@ class GpuItem:
                             index = re.sub(r'\].*', '', index)
                             param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
                             param = re.sub(r'\[[0-9]\]:', '', param)
-                            if env.gut_const.DEBUG:
+                            if env.GUT_CONST.DEBUG:
                                 print('Curve: index: {} param: {}, val1 {}, val2: {}'.format(index, param,
                                                                                              lineitems[1],
                                                                                              lineitems[2]))
@@ -623,7 +623,7 @@ class GpuItem:
                 self.compatible = False
 
             # Get fan data if --no_fan flag is not set
-            if env.gut_const.show_fans:
+            if env.GUT_CONST.show_fans:
                 file_path = os.path.join(self.hwmon_path, 'fan1_max')
                 if os.path.isfile(file_path):
                     with open(file_path) as hwmon_file:
@@ -674,7 +674,7 @@ class GpuItem:
             if os.path.isfile(file_path):
                 with open(file_path) as hwmon_file:
                     power_uw = int(hwmon_file.readline())
-                    time_n = env.gut_const.now(env.gut_const.USELTZ)
+                    time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
                     self.set_params_value('power', int(power_uw)/1000000)
                     delta_hrs = ((time_n - self.energy['tn']).total_seconds())/3600
                     self.energy['tn'] = time_n
@@ -697,7 +697,7 @@ class GpuItem:
             self.compatible = False
 
         # Get fan data if --no_fan flag is not set
-        if env.gut_const.show_fans:
+        if env.GUT_CONST.show_fans:
             # First non-critical fan data
             # On error will be disabled, but still compatible
             name_hwfile = ('fan1_enable', 'fan1_target', 'fan1_input')
@@ -820,9 +820,9 @@ class GpuItem:
             else:
                 print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.compatible = False
-        except:
-            print('Error: problem reading GPU driver information for Card Path: {}'.format(self.card_path),
-                  file=sys.stderr)
+        except OSError as except_err:
+            print('Error {}: problem reading GPU driver information for Card Path: {}'.format(self.card_path,
+                  except_err), file=sys.stderr)
             self.compatible = False
 
     def read_gpu_state_data(self):
@@ -984,7 +984,7 @@ class GpuList:
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
     """
     # Table parameters labels.
-    if env.gut_const.show_fans:
+    if env.GUT_CONST.show_fans:
         _table_parameters = ['model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
                              'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
         _table_param_labels = {'model_display': 'Model',
@@ -1045,12 +1045,12 @@ class GpuList:
         """ This method should be the first called to popultate the list with potentially compatible GPUs
             It doesn't read any driver files, just checks their existence and sets them in the GpuItem object.
         """
-        for card_name in glob.glob(env.gut_const.card_root + 'card?/device/pp_od_clk_voltage'):
+        for card_name in glob.glob(env.GUT_CONST.card_root + 'card?/device/pp_od_clk_voltage'):
             gpu_item = GpuItem(uuid4().hex)
             gpu_item.set_params_value('card_path', card_name.replace('pp_od_clk_voltage', ''))
             gpu_item.set_params_value('card_num', card_name.replace('/device/pp_od_clk_voltage', '').replace(
-                env.gut_const.card_root + 'card', ''))
-            hw_file_srch = glob.glob(os.path.join(gpu_item.card_path, env.gut_const.hwmon_sub) + '?')
+                env.GUT_CONST.card_root + 'card', ''))
+            hw_file_srch = glob.glob(os.path.join(gpu_item.card_path, env.GUT_CONST.hwmon_sub) + '?')
             if len(hw_file_srch) > 1:
                 print('More than one hwmon file found: ', hw_file_srch)
             gpu_item.set_params_value('hwmon_path', hw_file_srch[0] + '/')
@@ -1181,12 +1181,12 @@ class GpuList:
         pcie_ids = subprocess.check_output(
             'lspci | grep -E \'^.*(VGA|Display).*\[AMD\/ATI\].*$\' | grep -Eo \'^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\'',
             shell=True).decode().split()
-        if env.gut_const.DEBUG: print('Found %s GPUs' % len(pcie_ids))
+        if env.GUT_CONST.DEBUG: print('Found %s GPUs' % len(pcie_ids))
         for pcie_id in pcie_ids:
-            if env.gut_const.DEBUG: print('GPU: ', pcie_id)
-            lspci_items = subprocess.check_output('{} -k -s {}'.format(env.gut_const.cmd_lspci, pcie_id),
+            if env.GUT_CONST.DEBUG: print('GPU: ', pcie_id)
+            lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
                                                   shell=True).decode().split('\n')
-            if env.gut_const.DEBUG: print(lspci_items)
+            if env.GUT_CONST.DEBUG: print(lspci_items)
 
             # Get Long GPU Name
             gpu_name = ''
@@ -1216,7 +1216,7 @@ class GpuList:
                     gpu_name = gpu_name_0
                 else:
                     gpu_name = gpu_name_1
-            if env.gut_const.DEBUG: print('gpu_name: {}, 0: {}, 1: {}'.format(gpu_name,gpu_name_0, gpu_name_1))
+            if env.GUT_CONST.DEBUG: print('gpu_name: {}, 0: {}, 1: {}'.format(gpu_name,gpu_name_0, gpu_name_1))
 
             # Get Driver Name
             driver_module_items = lspci_items[2].split(':')
@@ -1226,13 +1226,13 @@ class GpuList:
                 driver_module = driver_module_items[1].strip()
 
             # Find matching card
-            device_dirs = glob.glob(env.gut_const.card_root + 'card?/device')
+            device_dirs = glob.glob(env.GUT_CONST.card_root + 'card?/device')
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
-                if env.gut_const.DEBUG: print('device_dir: {}'.format(device_dir))
-                if env.gut_const.DEBUG: print('sysfspath: {}'.format(sysfspath))
-                if env.gut_const.DEBUG: print('pcie_id: {}'.format(pcie_id))
-                if env.gut_const.DEBUG: print('sysfspath-7: {}'.format(sysfspath[-7:]))
+                if env.GUT_CONST.DEBUG: print('device_dir: {}'.format(device_dir))
+                if env.GUT_CONST.DEBUG: print('sysfspath: {}'.format(sysfspath))
+                if env.GUT_CONST.DEBUG: print('pcie_id: {}'.format(pcie_id))
+                if env.GUT_CONST.DEBUG: print('sysfspath-7: {}'.format(sysfspath[-7:]))
                 if pcie_id == sysfspath[-7:]:
                     for v in self.list.values():
                         if v.card_path == device_dir + '/':
@@ -1255,10 +1255,10 @@ class GpuList:
         :rtype: bool
         """
         # Check access to clinfo command
-        if not env.gut_const.cmd_clinfo:
+        if not env.GUT_CONST.cmd_clinfo:
             print('OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install', file=sys.stderr)
             return False
-        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.gut_const.cmd_clinfo)),
+        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
                                shell=False, stdout=subprocess.PIPE)
         for line in cmd.stdout:
             linestr = line.decode('utf-8').strip()
@@ -1295,7 +1295,7 @@ class GpuList:
             if srch_obj:
                 line_items = linestr.split(':-:')
                 pcie_id_str = (line_items[2].split()[1]).strip()
-                if env.gut_const.DEBUG: print('CL PCIE ID: [{}]'.format(pcie_id_str))
+                if env.GUT_CONST.DEBUG: print('CL PCIE ID: [{}]'.format(pcie_id_str))
                 tmp_gpu.set_clinfo_value('pcie_id', pcie_id_str)
                 continue
             srch_obj = re.search('CL_DEVICE_MAX_COMPUTE_UNITS', linestr)
@@ -1346,7 +1346,7 @@ class GpuList:
             srch_obj = re.search('CL_DEVICE_EXTENSIONS', linestr)
             if srch_obj:
                 # End of Device
-                if env.gut_const.DEBUG: print('finding gpu with pcie ID: ', tmp_gpu.get_clinfo_value('pcie_id'))
+                if env.GUT_CONST.DEBUG: print('finding gpu with pcie ID: ', tmp_gpu.get_clinfo_value('pcie_id'))
                 target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value('pcie_id'))
                 self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
         return True

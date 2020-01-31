@@ -35,9 +35,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-monitor'
-__version__ = 'v2.7.0'
+__version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+#__status__ = 'Stable Release'
+__status__ = 'Complete rewrite under development - Please use an official release.'
+__docformat__ = 'reStructuredText'
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
 
 import argparse
 import subprocess
@@ -69,8 +73,8 @@ class MonitorWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
-        icon_file = os.path.join(env.gut_const.icon_path, 'amdgpu-monitor.icon.png')
-        if env.gut_const.DEBUG: print('Icon file: [{}]'.format(icon_file))
+        icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
+        if env.GUT_CONST.DEBUG: print('Icon file: [{}]'.format(icon_file))
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -80,9 +84,9 @@ class MonitorWindow(Gtk.Window):
         col = 0
         row = 0
         num_amd_gpus = gpu_list.num_gpus()
-        if env.gut_const.LOG:
+        if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
-            log_label.set_markup('<big><b> Logging to:    </b>' + env.gut_const.log_file + '</big>')
+            log_label.set_markup('<big><b> Logging to:    </b>' + env.GUT_CONST.log_file + '</big>')
             log_label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60, .20, .20, 1.0))
@@ -151,14 +155,14 @@ class MonitorWindow(Gtk.Window):
 def updateData(gpu_list, devices, cmd):
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
-    if env.gut_const.LOG:
-        gpu_list.print_log(env.gut_const.log_file_ptr)
-    if env.gut_const.PLOT:
+    if env.GUT_CONST.LOG:
+        gpu_list.print_log(env.GUT_CONST.log_file_ptr)
+    if env.GUT_CONST.PLOT:
         try:
             gpu_list.print_plot(cmd.stdin)
         except:
             print('amdgpu-plot has closed')
-            env.gut_const.PLOT = False
+            env.GUT_CONST.PLOT = False
 
     # update gui
     for dk, dv in devices.items():
@@ -211,25 +215,25 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.gut_const.DEBUG = args.debug
-    env.gut_const.PDEBUG = args.pdebug
+    env.GUT_CONST.DEBUG = args.debug
+    env.GUT_CONST.PDEBUG = args.pdebug
     if args.ltz:
-        env.gut_const.USELTZ = True
+        env.GUT_CONST.USELTZ = True
     if args.no_fan:
-        env.gut_const.show_fans = False
+        env.GUT_CONST.show_fans = False
     if int(args.sleep) > 0:
-        env.gut_const.SLEEP = int(args.sleep)
+        env.GUT_CONST.SLEEP = int(args.sleep)
     else:
         print('Invalid value for sleep specified.  Must be an integer great than zero')
         sys.exit(-1)
 
-    if env.gut_const.check_env() < 0:
+    if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
     # Check value of AMD Feature mask
     try:
-        featuremask = env.gut_const.read_amdfeaturemask()
+        featuremask = env.GUT_CONST.read_amdfeaturemask()
     except FileNotFoundError:
         print('Cannot read ppfeaturemask. Exiting...')
         sys.exit(-1)
@@ -239,7 +243,7 @@ def main():
         print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
         sys.exit(-1)
 
-    env.gut_const.get_amd_driver_version()
+    env.GUT_CONST.read_amd_driver_version()
 
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
@@ -278,11 +282,11 @@ def main():
     com_gpu_list = gpu_list.list_gpus(compatible=True)
 
     if args.log:
-        env.gut_const.LOG = True
-        env.gut_const.log_file = './log_monitor_{}.txt'.format(
-            env.gut_const.now(ltz=env.gut_const.USELTZ).strftime('%m%d_%H%M%S'))
-        env.gut_const.log_file_ptr = open(env.gut_const.log_file, 'w', 1)
-        gpu_list.print_log_header(env.gut_const.log_file_ptr)
+        env.GUT_CONST.LOG = True
+        env.GUT_CONST.log_file = './log_monitor_{}.txt'.format(
+            env.GUT_CONST.now(ltz=env.GUT_CONST.USELTZ).strftime('%m%d_%H%M%S'))
+        env.GUT_CONST.log_file_ptr = open(env.GUT_CONST.log_file, 'w', 1)
+        gpu_list.print_log_header(env.GUT_CONST.log_file_ptr)
 
     if args.plot:
         args.gui = True
@@ -295,21 +299,21 @@ def main():
 
         cmd = None
         if args.plot:
-            env.gut_const.PLOT = True
+            env.GUT_CONST.PLOT = True
             if os.path.isfile('/usr/bin/amdgpu-plot'):
                 plot_util = '/usr/bin/amdgpu-plot'
             else:
-                plot_util = os.path.join(env.gut_const.repository_path, 'amdgpu-plot')
+                plot_util = os.path.join(env.GUT_CONST.repository_path, 'amdgpu-plot')
             if os.path.isfile(plot_util):
-                if env.gut_const.PDEBUG:
-                    cmd_str = plot_util + ' --debug --stdin --sleep ' + str(env.gut_const.SLEEP)
+                if env.GUT_CONST.PDEBUG:
+                    cmd_str = plot_util + ' --debug --stdin --sleep ' + str(env.GUT_CONST.SLEEP)
                 else:
-                    cmd_str = plot_util + ' --stdin --sleep ' + str(env.gut_const.SLEEP)
+                    cmd_str = plot_util + ' --stdin --sleep ' + str(env.GUT_CONST.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[env.gut_const.SLEEP,
+        monthread = threading.Thread(target=refresh, daemon=True, args=[env.GUT_CONST.SLEEP,
                                      updateData, gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
@@ -319,15 +323,15 @@ def main():
             while True:
                 com_gpu_list.read_gpu_sensor_data()
                 com_gpu_list.read_gpu_state_data()
-                if not env.gut_const.DEBUG: os.system('clear')
-                if env.gut_const.LOG:
-                    print('%sLogging to:  %s%s' % ('\033[31m \033[01m', env.gut_const.log_file, '\033[0m'))
-                    com_gpu_list.print_log(env.gut_const.log_file_ptr)
+                if not env.GUT_CONST.DEBUG: os.system('clear')
+                if env.GUT_CONST.LOG:
+                    print('%sLogging to:  %s%s' % ('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
+                    com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
-                time.sleep(env.gut_const.SLEEP)
+                time.sleep(env.GUT_CONST.SLEEP)
         except KeyboardInterrupt:
-            if env.gut_const.LOG:
-                env.gut_const.log_file_ptr.close()
+            if env.GUT_CONST.LOG:
+                env.GUT_CONST.log_file_ptr.close()
             sys.exit(0)
 
 
