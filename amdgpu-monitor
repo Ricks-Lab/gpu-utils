@@ -50,13 +50,14 @@ import os
 import sys
 import shlex
 import time
-#from pathlib import Path
+import signal
+from typing import Callable
 
 try:
     import gi
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
-    print('gi is required for %s', __program_name__)
+    print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
@@ -67,9 +68,21 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
+def keyboardInterruptHandler(signal, frame):
+    print('KeyboardInterrupt (ID: {}) has been caught. Setting quit flag...'.format(signal))
+    MonitorWindow.quit = True
+    
+    
+signal.signal(signal.SIGINT, keyboardInterruptHandler)
+
+
 class MonitorWindow(Gtk.Window):
+    """
+    Custom PAC Gtk window.
+    """
+    quit = False
+
     def __init__(self, gpu_list, devices):
-        self.quit = False
 
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
@@ -86,7 +99,7 @@ class MonitorWindow(Gtk.Window):
         num_amd_gpus = gpu_list.num_gpus()
         if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
-            log_label.set_markup('<big><b> Logging to:    </b>' + env.GUT_CONST.log_file + '</big>')
+            log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
             log_label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.60, .20, .20, 1.0))
@@ -105,7 +118,7 @@ class MonitorWindow(Gtk.Window):
         row_labels['card_num'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in gpu_list.table_param_labels().items():
             row_labels[k] = Gtk.Label()
-            row_labels[k].set_markup('<b>' + str(v) + '</b>')
+            row_labels[k].set_markup('<b>{}</b>'.format(v))
             row_labels[k].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         for k, v in row_labels.items():
             lbox = Gtk.Box(spacing=6)
@@ -122,16 +135,16 @@ class MonitorWindow(Gtk.Window):
             grid.attach(lbox, col, row, 1, 1)
             v.set_alignment(0, 0.5)
             row += 1
-        for k, v in gpu_list.list.items():
-            devices[v.uuid] = {'card_num':  Gtk.Label(label='card' + v.get_params_value('card_num'))}
+        for v in gpu_list.list.values():
+            devices[v.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')))}
             for cv in gpu_list.table_param_labels():
                 devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
                 devices[v.uuid][cv].set_width_chars(10)
 
-        for dk, dv in devices.items():
+        for dv in devices.values():
             col += 1
             row = row_start
-            for lk, lv in dv.items():
+            for lv in dv.values():
                 lv.set_text('')
                 lbox = Gtk.Box(spacing=6)
                 lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
@@ -149,10 +162,26 @@ class MonitorWindow(Gtk.Window):
                 row += 1
 
     def set_quit(self, _arg2, _arg3):
+        """
+        Set quit flag when Gtk quit is selected.
+        :param _arg2:
+        :param _arg3:
+        :return: None
+        """
         self.quit = True
 
 
-def updateData(gpu_list, devices, cmd):
+def update_data(gpu_list, devices, cmd):
+    """
+    Update monitor data with data read from GPUs.
+    :param gpu_list: A gpuList object with all gpuItems
+    :type gpu_list: gpuList
+    :param devices: A dictionary linking Gui items with data.
+    :type devices: dict
+    :param cmd: Subprocess return from running plot.
+    :type cmd: subprocess.Popen
+    :return: None
+    """
     gpu_list.read_gpu_sensor_data()
     gpu_list.read_gpu_state_data()
     if env.GUT_CONST.LOG:
@@ -160,15 +189,15 @@ def updateData(gpu_list, devices, cmd):
     if env.GUT_CONST.PLOT:
         try:
             gpu_list.print_plot(cmd.stdin)
-        except:
-            print('amdgpu-plot has closed')
+        except (OSError, KeyboardInterrupt) as except_err:
+            print('amdgpu-plot has closed {}'.format(except_err))
             env.GUT_CONST.PLOT = False
 
     # update gui
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == 'card_num':
-                data_value = 'card'+gpu_list.list[dk].get_params_value('card_num')[:16]
+                data_value = 'card{}'.format(gpu_list.list[dk].get_params_value('card_num'))[:16]
             else:
                 data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
                 if data_value == '-1':
@@ -180,17 +209,40 @@ def updateData(gpu_list, devices, cmd):
         Gtk.main_iteration_do(True)
 
 
-def refresh(refreshtime, updateData, gpu_list, devices, cmd, gmonitor):
+def refresh(refreshtime, update_data, gpu_list, devices, cmd, gmonitor):
+    """
+    Method called for monitor refresh.
+    :param refreshtime:  Amount of seconds to sleep after refresh.
+    :type refreshtime: int
+    :param update_data: Function that does actual data update.
+    :type update_data: Callable
+    :param gpu_list: A gpuList object with all gpuItems
+    :type gpu_list: gpuList
+    :param devices: A dictionary linking Gui items with data.
+    :type devices: dict
+    :param cmd: Subprocess return from running plot.
+    :type cmd: subprocess.Popen
+    :param gmonitor:
+    :type gmonitor: Gtk
+    :return:
+    """
     while True:
         if gmonitor.quit:
             print('Quitting...')
             Gtk.main_quit()
             sys.exit(0)
-        GLib.idle_add(updateData, gpu_list, devices, cmd)
-        time.sleep(refreshtime)
+        GLib.idle_add(update_data, gpu_list, devices, cmd)
+        tst = 0.0
+        sleep_interval = 0.1
+        while tst < refreshtime:
+            time.sleep(sleep_interval)
+            tst += sleep_interval
 
 
 def main():
+    """
+    Flow for amdgpu-monitor.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
     parser.add_argument('--gui', help='Display GTK Version of Monitor', action='store_true', default=False)
@@ -237,10 +289,10 @@ def main():
     except FileNotFoundError:
         print('Cannot read ppfeaturemask. Exiting...')
         sys.exit(-1)
-    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff) :
-        print('AMD Wattman features enabled: %s' % hex(featuremask))
+    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
+        print('AMD Wattman features enabled: {}'.format(hex(featuremask)))
     else:
-        print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
+        print('AMD Wattman features not enabled: {}, See README file.'.format(hex(featuremask)))
         sys.exit(-1)
 
     env.GUT_CONST.read_amd_driver_version()
@@ -260,7 +312,7 @@ def main():
         if num_com_gpus == 0:
             print('None are compatible, exiting...')
             sys.exit(-1)
-        print(f'{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...')
+        print('{} AMD GPUs detected, {} may be compatible, checking...'.format(num_amd_gpus, num_com_gpus))
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
@@ -275,8 +327,7 @@ def main():
         print('None are compatible, exiting...')
         sys.exit(-1)
     else:
-        print(f'{num_com_gpus} are confirmed compatible.')
-        print('')
+        print('{} are confirmed compatible.\n'.format(num_com_gpus))
 
     # Generate a new list of only compatible GPUs
     com_gpu_list = gpu_list.list_gpus(compatible=True)
@@ -306,15 +357,15 @@ def main():
                 plot_util = os.path.join(env.GUT_CONST.repository_path, 'amdgpu-plot')
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
-                    cmd_str = plot_util + ' --debug --stdin --sleep ' + str(env.GUT_CONST.SLEEP)
+                    cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
                 else:
-                    cmd_str = plot_util + ' --stdin --sleep ' + str(env.GUT_CONST.SLEEP)
+                    cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 gpu_list.print_plot_header(cmd.stdin)
 
         # Start thread to update Monitor
-        monthread = threading.Thread(target=refresh, daemon=True, args=[env.GUT_CONST.SLEEP,
-                                     updateData, gpu_list, devices, cmd, gmonitor]).start()
+        _ = threading.Thread(target=refresh, daemon=True, args=[env.GUT_CONST.SLEEP,
+                             update_data, gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:
@@ -325,7 +376,7 @@ def main():
                 com_gpu_list.read_gpu_state_data()
                 if not env.GUT_CONST.DEBUG: os.system('clear')
                 if env.GUT_CONST.LOG:
-                    print('%sLogging to:  %s%s' % ('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
+                    print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
                 time.sleep(env.GUT_CONST.SLEEP)
