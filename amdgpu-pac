@@ -50,7 +50,7 @@ try:
     import gi
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
-    print('gi is required for %s', __program_name__)
+    print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
@@ -59,6 +59,9 @@ from gi.repository import GLib, Gtk, Gdk
 
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
+
+MAX_CHAR = 54
+CHAR_WIDTH = 8
 
 
 class PACWindow(Gtk.Window):
@@ -71,9 +74,6 @@ class PACWindow(Gtk.Window):
         grid = Gtk.Grid()
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1))
         self.add(grid)
-
-        MAX_CHAR = 54
-        CHAR_WIDTH = 8
 
         num_com_amd_gpus = gpu_list.num_gpus(compatible=True)
         max_rows = 0

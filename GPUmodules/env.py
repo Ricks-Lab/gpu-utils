@@ -132,29 +132,34 @@ class GutConst:
         # Check python version
         required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        if self.DEBUG: print('Using python ' + python_major + '.' + python_minor + '.' + python_patch)
+        if self.DEBUG: print('Using python: {}.{}.{}'.format(python_major, python_minor, python_patch))
         if int(python_major) < required_pversion[0]:
-            print('Using python' + python_major + ', but ' + __program_name__ +
-                  ' requires python ' + str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or higher.',
+            print('Using python {}, but {} requires python {}.{} or higher.'.format(python_major, __program_name__,
+                                                                                    required_pversion[0],
+                                                                                    required_pversion[1]),
                   file=sys.stderr)
             return -1
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
-            print('Using python ' + python_major + '.' + python_minor + '.' + python_patch + ', but ' +
-                  __program_name__ + ' requires python ' + str(required_pversion[0]) + '.' +
-                  str(required_pversion[1]) + ' or higher.', file=sys.stderr)
+            print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(python_major, python_minor,
+                                                                                          python_patch,
+                                                                                          __program_name__,
+                                                                                          required_pversion[0],
+                                                                                          required_pversion[1]),
+                  file=sys.stderr)
             return -1
 
         # Check Linux Kernel version
         required_kversion = [4, 8]
         linux_version = platform.release()
+        if self.DEBUG: print('Using Linux Kernel: {}'.format(linux_version))
         if int(linux_version.split('.')[0]) < required_kversion[0]:
-            print('Using Linux Kernel ' + linux_version + ', but ' + __program_name__ + ' requires > ' +
-                  str(required_kversion[0]) + '.' + str(required_kversion[1]), file=sys.stderr)
+            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
+                  required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
         elif int(linux_version.split('.')[0]) == required_kversion[0] and \
-                                                 int(linux_version.split('.')[1]) < required_kversion[1]:
-            print('Using Linux Kernel ' + linux_version + ', but ' + __program_name__ + ' requires > ' +
-                  str(required_kversion[0]) + '.' + str(required_kversion[1]), file=sys.stderr)
+                int(linux_version.split('.')[1]) < required_kversion[1]:
+            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
+                  required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
 
         # Check access/paths to system commands
