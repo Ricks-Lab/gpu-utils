@@ -68,12 +68,19 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
-def keyboardInterruptHandler(signal, frame):
-    print('KeyboardInterrupt (ID: {}) has been caught. Setting quit flag...'.format(signal))
+def ctrl_c_handler(target_signal):
+    """
+    Signal catcher for ctrl-c to exit monitor loop.
+    :param target_signal:
+    :type target_signal: Signals
+    :param frame:
+    :return: None
+    """
+    print('ctrl_c_handler (ID: {}) has been caught. Setting quit flag...'.format(target_signal))
     MonitorWindow.quit = True
     
     
-signal.signal(signal.SIGINT, keyboardInterruptHandler)
+signal.signal(signal.SIGINT, ctrl_c_handler)
 
 
 class MonitorWindow(Gtk.Window):
@@ -380,6 +387,8 @@ def main():
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
                 time.sleep(env.GUT_CONST.SLEEP)
+                if MonitorWindow.quit:
+                    sys.exit(-1)
         except KeyboardInterrupt:
             if env.GUT_CONST.LOG:
                 env.GUT_CONST.log_file_ptr.close()
