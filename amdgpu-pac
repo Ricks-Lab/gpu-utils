@@ -1378,9 +1378,9 @@ class PACWindow(Gtk.Window):
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()
         os.chmod(out_filename, 0o744)
-        print('Batch file completed: %s' % out_filename)
+        print('Batch file completed: {}'.format(out_filename))
         if env.GUT_CONST.execute_pac:
-            print('Writing changes to GPU %s' % v.card_path)
+            print('Writing changes to GPU {}'.format(v.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print('')
@@ -1391,17 +1391,22 @@ class PACWindow(Gtk.Window):
             self.refresh_PAC(gpu_list, devices)
             os.remove(out_filename)
         else:
-            print('Execute to write changes to GPU %s' % v.card_path)
-            print('')
+            print('Execute to write changes to GPU {}.\n'.format(v.card_path))
             if refresh:
-                # dismiss execute_pac message
+                # Dismiss execute_pac message
                 message = 'Write reset commands to bash file complete.\nRun bash file with sudo to execute changes.'
                 self.update_message(devices, message, 'yellow')
-
         return
 
 
-def ppm_select(self, device):
+def ppm_select(_, device):
+    """
+    Update device data for ppm selection and update active selected item in Gui.
+    :param _: self
+    :param device:  The device dictionary
+    :type device: dict
+    :return: None
+    """
     tree_iter = device['ppm_modes_combo'].get_active_iter()
     if tree_iter is not None:
         model = device['ppm_modes_combo'].get_model()
@@ -1453,9 +1458,9 @@ def main():
         print('Cannot read ppfeaturemask. Exiting...')
         sys.exit(-1)
     if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
-        print('AMD Wattman features enabled: %s' % hex(featuremask))
+        print('AMD Wattman features enabled: {}'.format(hex(featuremask)))
     else:
-        print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
+        print('AMD Wattman features not enabled: {}, See README file.'.format(hex(featuremask)))
         sys.exit(-1)
 
     env.GUT_CONST.read_amd_driver_version()
@@ -1475,7 +1480,7 @@ def main():
         if num_com_gpus == 0:
             print('None are compatible, exiting...')
             sys.exit(-1)
-        print(f'{num_amd_gpus} AMD GPUs detected, {num_com_gpus} may be compatible, checking...')
+        print('{} AMD GPUs detected, {} may be compatible, checking...'.format(num_amd_gpus, num_com_gpus))
 
     # Read data static driver information for GPUs
     gpu_list.read_gpu_driver_info()
@@ -1493,8 +1498,7 @@ def main():
         print('None are compatible, exiting...')
         sys.exit(-1)
     else:
-        print(f'{num_com_gpus} are confirmed compatible.')
-        print('')
+        print('{} are confirmed compatible.\n'.format(num_com_gpus))
 
     # Generate a new list of only compatible GPUs
     com_gpu_list = gpu_list.list_gpus(compatible=True)
