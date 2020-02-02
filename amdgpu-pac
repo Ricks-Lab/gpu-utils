@@ -81,7 +81,7 @@ class PACWindow(Gtk.Window):
         num_com_amd_gpus = gpu_list.num_gpus(compatible=True)
         max_rows = 0
         col = 0
-        for k, v in gpu_list.list.items():
+        for v in gpu_list.list.values():
             row = 0
             # Card Number in top center of box
             devices[v.uuid] = {'card_num':  Gtk.Label()}
@@ -901,8 +901,7 @@ class PACWindow(Gtk.Window):
             # SCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    ' + (str(ps)+':  ' +
-                                                                               str(psd[0]) + ', ' + str(psd[1])))
+                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
@@ -911,12 +910,12 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                     devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: ' +
-                                                              v.get_pstate_list_str('SCLK') + '    Set Mask: ')
+                devices[v.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: {}    Set Mask: '.format(
+                                                              v.get_pstate_list_str('SCLK')))
                 devices[v.uuid]['sclk_pst_mask_ent'].set_text(v.get_pstate_list_str('SCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    ' + (str(ps) + ':  ' + str(psd[0])))
+                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
@@ -924,8 +923,7 @@ class PACWindow(Gtk.Window):
             # MCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    ' + (str(ps) + ':  ' +
-                                                                               str(psd[0]) + ', ' + str(psd[1])))
+                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
@@ -934,21 +932,20 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                     devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: ' +
-                                                              v.get_pstate_list_str('MCLK') + '    Set Mask: ')
+                devices[v.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: {}    Set Mask: '.format(
+                                                              v.get_pstate_list_str('MCLK')))
                 devices[v.uuid]['mclk_pst_mask_ent'].set_text(v.get_pstate_list_str('MCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    ' + (str(ps) + ':  ' + str(psd[0])))
+                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-            #VDDC CURVE
+            # VDDC CURVE
             if v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.vddc_curve.items():
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    ' + (str(ps) + ':  ' +
-                                                                                 str(psd[0]) + ', ' + str(psd[1])))
+                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
@@ -997,14 +994,14 @@ class PACWindow(Gtk.Window):
         time.sleep(1.0)
         if env.GUT_CONST.execute_pac:
             if changed:
-                message = ('Write ' + str(changed) +
-                           ' PAC commands to card complete.\nConfirm changes with amdgpu-monitor.')
+                message = ('Write {} PAC commands to card complete.\n'.format(changed) +
+                           'Confirm changes with amdgpu-monitor.')
             else:
                 message = 'No PAC commands to write to card.\nNo changes specified.'
         else:
             if changed:
-                message = ('Writing ' + str(changed) +
-                           ' PAC commands to bash file complete.\nRun bash file with sudo to execute changes.')
+                message = ('Writing {} PAC commands to bash file complete.\n'.format(changed) +
+                           'Run bash file with sudo to execute changes.')
             else:
                 message = 'No PAC commands to write to bash file.\nNo changes specified.'
         self.update_message(devices, message, 'yellow')
@@ -1023,10 +1020,10 @@ class PACWindow(Gtk.Window):
                 message = 'Writing PAC commands to bash file.\n'
             self.update_message(devices, message, 'red')
 
-        # specify output batch file name
-        out_filename = os.getcwd() + '/' + 'pac_writer_' + str(uuid4().hex) + '.sh'
+        # Specify output batch file name
+        out_filename = os.path.join(os.getcwd(), 'pac_writer_{}.sh'.format(uuid4().hex))
         fileptr = open(out_filename, 'x')
-        # output header
+        # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('## amdgpu-pac generated script to modify GPU configuration/settings', file=fileptr)
@@ -1034,7 +1031,7 @@ class PACWindow(Gtk.Window):
         print('', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('## WARNING - Do not execute this script without completely', file=fileptr)
-        print('## understanding appropriate value to write to your specific GPUs', file=fileptr)
+        print('## understanding appropriate values to write to your specific GPUs', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('#', file=fileptr)
         print('#    Copyright (C) 2019  RueiKe', file=fileptr)
@@ -1056,8 +1053,8 @@ class PACWindow(Gtk.Window):
         changed = 0
         v = gpu_list.list[uuid]
         print('# ', file=fileptr)
-        print('# Card' + v.card_num + '  ' + v.get_params_value('model'), file=fileptr)
-        print('# ' + v.card_path, file=fileptr)
+        print('# Card{}  {}'.format(v.card_num, v.get_params_value('model')), file=fileptr)
+        print('# {}'.format(v.card_path), file=fileptr)
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
 
@@ -1070,14 +1067,13 @@ class PACWindow(Gtk.Window):
         else:
             new_power_cap = old_power_cap
         if new_power_cap < 0:
-            print('# Powercap Old: %s, Resetting to default' % str(old_power_cap), file=fileptr)
+            print('# Powercap Old: {}, Resetting to default'.format(old_power_cap), file=fileptr)
         else:
             power_cap_range = v.get_params_value('power_cap_range')
-            print('# Powercap Old: ', str(old_power_cap), end='', file=fileptr)
-            print(' New: ', str(new_power_cap), end='', file=fileptr)
-            print(' Min: %d' % power_cap_range[0], end='', file=fileptr)
-            print(' Max: %d' % power_cap_range[1], end='', file=fileptr)
-            print('', file=fileptr)
+            print('# Powercap Old: {}'.format(old_power_cap), end='', file=fileptr)
+            print(' New: {}'.format(new_power_cap), end='', file=fileptr)
+            print(' Min: {}'.format(power_cap_range[0]), end='', file=fileptr)
+            print(' Max: {}\n'.format(power_cap_range[1]), end='', file=fileptr)
 
         if new_power_cap == old_power_cap and env.GUT_CONST.write_delta_only:
             print('# No changes, skipped', file=fileptr)
@@ -1087,9 +1083,9 @@ class PACWindow(Gtk.Window):
                 if new_power_cap < 0:
                     # reset
                     print('# Resetting Power Cap to default', file=fileptr)
-                    print("sudo sh -c \"echo \'0\' >  %s\"" % power_cap_file, file=fileptr)
+                    print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
                 else:
-                    print("sudo sh -c \"echo \'%d\' >  %s\"" % ((int(1000000 * new_power_cap)), power_cap_file),
+                    print("sudo sh -c \"echo \'{}\' >  {}\"".format((int(1000000 * new_power_cap)), power_cap_file),
                           file=fileptr)
             else:
                 print('# Invalid parameter values', file=fileptr)
@@ -1105,7 +1101,7 @@ class PACWindow(Gtk.Window):
             else:
                 new_pwm = old_pwm
             if new_power_cap < 0:
-                print('# Fan PWM Old: %s, Resetting to default' % str(old_pwm), file=fileptr)
+                print('# Fan PWM Old: {}, Resetting to default'.format(old_pwm), file=fileptr)
             else:
                 print('# Fan PWM Old: ', str(old_pwm), end='', file=fileptr)
                 print(' New: ', str(new_pwm), end='', file=fileptr)
