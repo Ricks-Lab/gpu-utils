@@ -763,6 +763,7 @@ class PACWindow(Gtk.Window):
         # Setup the Save_ALL and Reset_ALL buttons
         if num_com_amd_gpus > 1:
             # Save/Reset/Update ALL Card Buttons
+            devices['all_buttons'] = {}
             devices['all_buttons']['save_all_button'] = Gtk.Button('')
             for child in devices['all_buttons']['save_all_button'].get_children():
                 child.set_label('<big><b>Save All</b></big>')
