@@ -962,7 +962,7 @@ class PACWindow(Gtk.Window):
                 devices[v.uuid]['ppm_mode_items'][v.get_current_ppm_mode()[0]])
 
         if refresh_message:
-            self.update_message(devices, 'Refresh complete.', 'gray')
+            self.update_message(devices, 'Refresh complete.\n', 'gray')
         while Gtk.events_pending():
             Gtk.main_iteration_do(True)
         return
