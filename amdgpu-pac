@@ -875,14 +875,14 @@ class PACWindow(Gtk.Window):
         self.refresh_pac(gpu_list, devices, reset_message)
         return
 
-    def refresh_pac(self, gpu_list, devices, reset_message=False):
+    def refresh_pac(self, gpu_list, devices, refresh_message=False):
         """
         Update device data from gpuList data
         :param gpu_list: gpuList of all gpuItems
         :type gpu_list: gpuList
         :param devices:  Dictionary of GUI items and GPU data.
         :type devices: dict
-        :param reset_message:
+        :param refresh_message:
         :return:
         """
         # Read dynamic sensor and state data from GPUs
@@ -961,8 +961,8 @@ class PACWindow(Gtk.Window):
             devices[v.uuid]['ppm_modes_combo'].set_active(
                 devices[v.uuid]['ppm_mode_items'][v.get_current_ppm_mode()[0]])
 
-        if reset_message:
-            self.update_message(devices, '', 'gray')
+        if refresh_message:
+            self.update_message(devices, 'Refresh complete.', 'gray')
         while Gtk.events_pending():
             Gtk.main_iteration_do(True)
         return
