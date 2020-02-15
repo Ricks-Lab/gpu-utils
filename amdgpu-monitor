@@ -68,7 +68,7 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
-def ctrl_c_handler(target_signal):
+def ctrl_c_handler(target_signal, frame):
     """
     Signal catcher for ctrl-c to exit monitor loop.
     :param target_signal:
