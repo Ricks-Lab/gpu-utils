@@ -27,6 +27,9 @@ __maintainer__ = 'RueiKe'
 __status__ = 'Complete rewrite under development - Please use an official release.'
 __docformat__ = 'reStructuredText'
 
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
+
 import re
 import subprocess
 import shlex
@@ -35,7 +38,6 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 import glob
-import shutil
 try:
     from GPUmodules import env
 except ImportError:
@@ -50,6 +52,7 @@ class GpuItem:
     """An object to store GPU details.
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
+    _GPU_NC_Param_List = ['uuid', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'device_name': 'Device Name',
                           'device_version': 'Device Version',
@@ -66,6 +69,7 @@ class GpuItem:
                           'prf_wg_multiple': 'Preferred Work Group Multiple'}
 
     _GPU_Param_Labels = {'uuid': 'UUID',
+                         'vendor': 'Vendor',
                          'id': 'Device ID',
                          'gpu_type': 'GPU Frequency/Voltage Control Type',
                          'model_device_decode': 'Decoded Device ID',
@@ -137,6 +141,7 @@ class GpuItem:
         self.compatible = True
         self.writeable = False
         self.readable = False
+        self.compute = False
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.hwmon_disabled = []
@@ -145,6 +150,7 @@ class GpuItem:
                        'card_num': '',
                        'pcie_id': '',
                        'driver': '',
+                       'vendor': '',
                        'gpu_type': 0,
                        'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                        'model_device_decode': 'UNDETERMINED',
@@ -230,6 +236,52 @@ class GpuItem:
         """
         return self.params[name]
 
+    def populate(self, pcie_id, gpu_name, vendor, driver_module, card_path, hwmon_path,
+                 readable, writeable, compute, ocl_dev, ocl_ver, ocl_index):
+        """
+        Populate elements of a GpuItem.
+        :param pcie_id: The pcid ID of the GPU.
+        :type pcie_id: str
+        :param gpu_name:  Model name of the GPU
+        :type gpu_name: str
+        :param vendor:  The make of the GPU (AMD, NVIDIA, ...)
+        :type vendor: str
+        :param driver_module: The name of the driver.
+        :type driver_module: str
+        :param card_path: The path to the GPU.
+        :type card_path: str
+        :param hwmon_path: Path to the hardware monitor files.
+        :type hwmon_path: str
+        :param readable: readable compatibility flag
+        :type readable: bool
+        :param writeable: writeable compatibility flag
+        :type writeable: bool
+        :param compute: Compute compatibility flag
+        :type compute: bool
+        :param ocl_dev:  openCL device
+        :type ocl_dev: str
+        :param ocl_ver: openCL version
+        :type ocl_ver: str
+        :param ocl_index: openCL index
+        :type ocl_index: str
+        :return: None
+        :rtype: None
+        """
+        self.set_params_value('pcie_id', pcie_id)
+        self.set_params_value('model', gpu_name)
+        self.set_params_value('vendor', vendor)
+        self.set_params_value('driver', driver_module)
+        self.set_params_value('card_path', card_path)
+        self.set_params_value('card_num',
+                              int(card_path.replace('{}card'.format(
+                                  env.GUT_CONST.card_root), '').replace('/device', '')))
+        self.set_params_value('hwmon_path', hwmon_path)
+        self.readable = readable
+        self.writeable = writeable
+        self.compute = compute
+        #self.ocl_device_name = ocl_dev
+        #self.ocl_device_version = ocl_ver
+
     def set_clinfo_value(self, name, value):
         """
         Set clinfo values in GPU item dictionary.
@@ -262,6 +314,14 @@ class GpuItem:
         """
         for k, v in gpu_item.clinfo.items():
             self.clinfo[k] = v
+
+    def get_nc_params_list(self):
+        """
+        Get list of parameter names for use with non-compatible cards.
+        :return: List of parameter names
+        :rtype: list
+        """
+        return self._GPU_NC_Param_List
 
     def get_all_params_labels(self):
         """
@@ -437,8 +497,8 @@ class GpuItem:
             ps_list = self.get_pstate_list(clk_name)
             try:
                 ps_list.index(int(ps))
-            except ValueError:
-                print('Error: Invalid pstate {} for {}.'.format(ps, clk_name), file=sys.stderr)
+            except ValueError as except_err:
+                print('Error [{}]: Invalid pstate {} for {}.'.format(except_err, ps, clk_name), file=sys.stderr)
                 return False
         return True
 
@@ -652,8 +712,9 @@ class GpuItem:
                 else:
                     print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
                     self.compatible = False
-        except:
-            print('Error: problem reading static data from GPU HWMON: {}'.format(self.hwmon_path), file=sys.stderr)
+        except (FileNotFoundError, OSError) as except_err:
+            print('Error [{}]: Problem reading static data from GPU HWMON: {}'.format(except_err, self.hwmon_path),
+                  file=sys.stderr)
             self.compatible = False
 
     def read_gpu_sensor_data(self):
@@ -691,9 +752,9 @@ class GpuItem:
             else:
                 print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.compatible = False
-        except:
-            print('Error: Problem reading sensor [power/temp] from GPU HWMON: {}'.format(self.hwmon_path),
-                  file=sys.stderr)
+        except (FileNotFoundError, OSError) as except_err:
+            print('Error [{}]: Problem reading sensor [power/temp] from GPU HWMON: {}'.format(except_err,
+                  self.hwmon_path), file=sys.stderr)
             self.compatible = False
 
         # Get fan data if --no_fan flag is not set
@@ -709,9 +770,9 @@ class GpuItem:
                         try:
                             with open(file_path) as hwmon_file:
                                 self.set_params_value(np, hwmon_file.readline().strip())
-                        except:
-                            print('Warning: problem reading sensor [{}] data from GPU HWMON: {}'.format(
-                                nh, self.hwmon_path), file=sys.stderr)
+                        except (FileNotFoundError, OSError) as except_err:
+                            print('Warning [{}]: Problem reading sensor [{}] data from GPU HWMON: {}'.format(except_err,
+                                  nh, self.hwmon_path), file=sys.stderr)
                             self.hwmon_disabled.append(nh)
                     else:
                         print('Warning: HW file does not exist: {}'.format(file_path), file=sys.stderr)
@@ -741,9 +802,9 @@ class GpuItem:
                 else:
                     print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
                     self.compatible = False
-            except:
-                print('Error: problem reading sensor [pwm] data from GPU HWMON: {}'.format(self.hwmon_path),
-                      file=sys.stderr)
+            except (FileNotFoundError, OSError) as except_err:
+                print('Error [{}]: Problem reading sensor [pwm] data from GPU HWMON: {}'.format(except_err,
+                      self.hwmon_path), file=sys.stderr)
                 print('Try running with --no_fan option', file=sys.stderr)
                 self.compatible = False
 
@@ -757,9 +818,9 @@ class GpuItem:
             else:
                 print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.compatible = False
-        except:
-            print('Error: problem reading sensor [in0_label] data from GPU HWMON: {}'.format(self.hwmon_path),
-                  file=sys.stderr)
+        except (FileNotFoundError, OSError) as except_err:
+            print('Error [{}]: Problem reading sensor [in0_label] data from GPU HWMON: {}'.format(except_err,
+                  self.hwmon_path), file=sys.stderr)
             self.compatible = False
 
     def read_gpu_driver_info(self):
@@ -820,9 +881,9 @@ class GpuItem:
             else:
                 print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.compatible = False
-        except OSError as except_err:
-            print('Error {}: problem reading GPU driver information for Card Path: {}'.format(self.card_path,
-                  except_err), file=sys.stderr)
+        except (FileNotFoundError, OSError) as except_err:
+            print('Error [{}]: Problem reading GPU driver information for Card Path: {}'.format(except_err,
+                  self.card_path), file=sys.stderr)
             self.compatible = False
 
     def read_gpu_state_data(self):
@@ -902,8 +963,8 @@ class GpuItem:
             else:
                 print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.compatible = False
-        except:
-            print('Error: getting data from GPU Card Path: {}'.format(self.card_path), file=sys.stderr)
+        except (FileNotFoundError, OSError) as except_err:
+            print('Error [{}]: getting data from GPU Card Path: {}'.format(except_err, self.card_path), file=sys.stderr)
             self.compatible = False
 
     def print_ppm_table(self):
@@ -911,6 +972,8 @@ class GpuItem:
         Print human friendly table of ppm parameters.
         :return: None
         """
+        if not self.compatible:
+            return
         print('Card: {}'.format(self.card_path))
         print('Power Performance Mode: {}'.format(self.get_params_value('power_dpm_force')))
         for k, v in self.ppm_modes.items():
@@ -925,6 +988,8 @@ class GpuItem:
         Print human friendly table of p-states.
         :return: None
         """
+        if not self.compatible:
+            return
         print('Card: {}'.format(self.card_path))
         print('SCLK: {:<17} MCLK:'.format(' '))
         for k, v in self.sclk_state.items():
@@ -950,6 +1015,9 @@ class GpuItem:
                     print('{} Compatibility: Yes'.format(__program_name__))
                 else:
                     print('{} Compatibility: NO'.format(__program_name__))
+            if not self.compatible:
+                if k not in self.get_nc_params_list():
+                    continue
             print('{}: {}'.format(v, self.get_params_value(k)))
         if clflag:
             for k, v in self.get_all_clinfo_labels().items():
@@ -1024,6 +1092,16 @@ class GpuList:
 
     def __init__(self):
         self.list = {}
+        self.opencl_map = {}
+
+    def add(self, gpu_item):
+        """
+        Add given GpuItem to the GpuList
+        :param gpu_item:  Item to be added
+        :type gpu_item: GpuItem
+        :return: None
+        """
+        self.list[gpu_item.uuid] = gpu_item
 
     def table_param_labels(self):
         """
@@ -1041,25 +1119,226 @@ class GpuList:
         """
         return self._table_parameters
 
-    def get_gpu_list(self):
-        """ This method should be the first called to popultate the list with potentially compatible GPUs
-            It doesn't read any driver files, just checks their existence and sets them in the GpuItem object.
+    def set_gpu_list(self):
         """
-        for card_name in glob.glob(env.GUT_CONST.card_root + 'card?/device/pp_od_clk_voltage'):
-            gpu_item = GpuItem(uuid4().hex)
-            gpu_item.set_params_value('card_path', card_name.replace('pp_od_clk_voltage', ''))
-            gpu_item.set_params_value('card_num', card_name.replace('/device/pp_od_clk_voltage', '').replace(
-                env.GUT_CONST.card_root + 'card', ''))
-            hw_file_srch = glob.glob(os.path.join(gpu_item.card_path, env.GUT_CONST.hwmon_sub) + '?')
+        Use lspci to populate list of all installed GPUs.
+        :return: True on success
+        :rtype: bool
+        """
+        if not env.GUT_CONST.cmd_lspci:
+            return False
+        self.read_gpu_opencl_data()
+        if env.GUT_CONST.DEBUG: print('openCL map: {}'.format(self.opencl_map))
+
+        try:
+            pcie_ids = subprocess.check_output('{} | grep -E \"^.*(VGA|3D|Display).*$\" | grep -Eo \
+                                               \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"'.format(
+                                               env.GUT_CONST.cmd_lspci), shell=True).decode().split()
+        except (subprocess.CalledProcessError, OSError) as except_err:
+            print('Error [{}]: lspci failed to find GPUs'.format(except_err))
+            return False
+
+        if env.GUT_CONST.DEBUG: print('Found {} GPUs'.format(len(pcie_ids)))
+        for pcie_id in pcie_ids:
+            gpu_uuid = uuid4().hex
+            self.add(GpuItem(gpu_uuid))
+            if env.GUT_CONST.DEBUG: print('GPU: {}'.format(pcie_id))
+            readable = writeable = compatible = compute = False
+            try:
+                lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
+                                                      shell=True).decode().split('\n')
+            except (subprocess.CalledProcessError, OSError) as except_err:
+                print('Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err))
+                sys.exit(-1)
+            if env.GUT_CONST.DEBUG: print(lspci_items)
+
+            # Get Long GPU Name
+            gpu_name = 'UNKNOWN'
+            gpu_name_items = lspci_items[0].split(': ', maxsplit=1)
+            if len(gpu_name_items) >= 2:
+                gpu_name = gpu_name_items[1]
+            # Check for Fiji ProDuo
+            srch_obj = re.search('Fiji', gpu_name)
+            if srch_obj:
+                srch_obj = re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1])
+                if srch_obj:
+                    gpu_name = 'Radeon Fiji Pro Duo'
+
+            # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
+            vendor = 'UNKNOWN'
+            opencl_device_name = None
+            opencl_device_version = None
+            opencl_device_index = None
+            srch_obj = re.search(r'(AMD|amd|ATI|ati)', gpu_name)
+            if srch_obj:
+                vendor = 'AMD'
+                compute = False
+                if self.opencl_map:
+                    if pcie_id in self.opencl_map.keys():
+                        opencl_device_name = self.opencl_map[pcie_id][0]
+                        opencl_device_version = self.opencl_map[pcie_id][1]
+                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        compute = True
+                else:
+                    compute = True
+            srch_obj = re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name)
+            if srch_obj:
+                vendor = 'NVIDIA'
+                compute = False
+                if self.opencl_map:
+                    if pcie_id in self.opencl_map.keys():
+                        opencl_device_name = self.opencl_map[pcie_id][0]
+                        opencl_device_version = self.opencl_map[pcie_id][1]
+                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        compute = True
+                else:
+                    compute = True
+            srch_obj = re.search(r'(INTEL|intel|Intel)', gpu_name)
+            if srch_obj:
+                vendor = 'INTEL'
+                compute = False
+                if self.opencl_map:
+                    if pcie_id in self.opencl_map.keys():
+                        opencl_device_name = self.opencl_map[pcie_id][0]
+                        opencl_device_version = self.opencl_map[pcie_id][1]
+                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        compute = True
+                else:
+                    srch_obj = re.search(r' 530', gpu_name)
+                    if srch_obj:
+                        compute = False
+                    else:
+                        compute = True
+            srch_obj = re.search(r'(ASPEED|aspeed|Aspeed)', gpu_name)
+            if srch_obj:
+                vendor = 'ASPEED'
+                compute = False
+            srch_obj = re.search(r'(MATROX|matrox|Matrox)', gpu_name)
+            if srch_obj:
+                vendor = 'MATROX'
+                compute = False
+
+            # Get Driver Name
+            driver_module = 'UNKNOWN'
+            for lspci_line in lspci_items:
+                srch_obj = re.search(r'(Kernel|kernel)', lspci_line)
+                if srch_obj:
+                    driver_module_items = lspci_line.split(': ')
+                    if len(driver_module_items) >= 2:
+                        driver_module = driver_module_items[1].strip()
+
+            # Get full card path
+            card_path = None
+            device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
+            for device_dir in device_dirs:
+                sysfspath = str(Path(device_dir).resolve())
+                if pcie_id == sysfspath[-7:]:
+                    card_path = device_dir
+
+            # Get full hwmon path
+            hwmon_path = None
+            hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
+            if env.GUT_CONST.DEBUG: print('hw_file_search: ', hw_file_srch)
             if len(hw_file_srch) > 1:
                 print('More than one hwmon file found: ', hw_file_srch)
-            gpu_item.set_params_value('hwmon_path', hw_file_srch[0] + '/')
-            self.list[gpu_item.uuid] = gpu_item
+            elif len(hw_file_srch) == 1:
+                hwmon_path = hw_file_srch[0]
 
-    def num_gpus(self, compatible=False, readable=False, writeable=False):
+            self.list[gpu_uuid].populate(pcie_id, gpu_name, vendor, driver_module,
+                                         card_path, hwmon_path, readable, writeable, compute,
+                                         opencl_device_name, opencl_device_version, opencl_device_index)
+
+            # Set energy compatibility TODO need to set read compatibility instead
+            #self.list[gpu_uuid].get_power(set_energy_compatibility=True)
+        return True
+
+    def read_gpu_opencl_data(self):
+        """
+        Use clinfo system call to get openCL details for relevant GPUs.
+        :return:  Returns True if successful
+        :rtype:  bool
+        .. todo:: Read of Intel pcie_id is not working.
+        """
+        # Check access to clinfo command
+        if not env.GUT_CONST.cmd_clinfo:
+            print('OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install', file=sys.stderr)
+            return False
+        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)), shell=False,
+                               stdout=subprocess.PIPE)
+        ocl_pcie_id = ''
+        ocl_device_name = ''
+        ocl_device_version = ''
+        ocl_index = ''
+        ocl_pcie_slot_id = ocl_pcie_bus_id = None
+        for line in cmd.stdout:
+            linestr = line.decode('utf-8').strip()
+            if len(linestr) < 1:
+                continue
+            if linestr[0] != '[':
+                continue
+            line_items = linestr.split(maxsplit=2)
+            if len(line_items) != 3:
+                continue
+            cl_vender, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
+            if cl_index == '*':
+                continue
+            if ocl_index == '':
+                ocl_index = cl_index
+                ocl_pcie_slot_id = ocl_pcie_bus_id = None
+
+            # If new cl_index, then update opencl_map
+            if cl_index != ocl_index:
+                self.opencl_map.update({ocl_pcie_id: [ocl_device_name, ocl_device_version, ocl_index]})
+                if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
+                ocl_index = cl_index
+                ocl_pcie_id = ''
+                ocl_device_name = ''
+                ocl_device_version = ''
+                ocl_pcie_slot_id = ocl_pcie_bus_id = None
+
+            param_str = line_items[1]
+            srch_obj = re.search('CL_DEVICE_NAME', param_str)
+            if srch_obj:
+                ocl_device_name = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_device_name [{}]'.format(ocl_device_name))
+                continue
+            srch_obj = re.search('CL_DEVICE_VERSION', param_str)
+            if srch_obj:
+                ocl_device_version = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_device_version [{}]'.format(ocl_device_version))
+                continue
+            srch_obj = re.search('CL_DEVICE_TOPOLOGY', param_str)
+            if srch_obj:
+                ocl_pcie_id = (line_items[2].split()[1]).strip()
+                if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
+                continue
+            srch_obj = re.search('CL_DEVICE_PCI_BUS_ID_NV', param_str)
+            if srch_obj:
+                ocl_pcie_bus_id = hex(int(line_items[2].strip()))
+                if ocl_pcie_slot_id is not None:
+                    ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
+                    ocl_pcie_slot_id = ocl_pcie_bus_id = None
+                    if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
+                continue
+            srch_obj = re.search('CL_DEVICE_PCI_SLOT_ID_NV', param_str)
+            if srch_obj:
+                ocl_pcie_slot_id = hex(int(line_items[2].strip()))
+                if ocl_pcie_bus_id is not None:
+                    ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
+                    ocl_pcie_slot_id = ocl_pcie_bus_id = None
+                    if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
+                continue
+
+        self.opencl_map.update({ocl_pcie_id: [ocl_device_name, ocl_device_version, ocl_index]})
+        if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
+        return True
+
+    def num_gpus(self, vendor=None, compatible=False, readable=False, writeable=False):
         """
         Return the count of GPUs.  Counts all by default, but can also count compatible, readable or writeable.
         Only one flag should be set.
+        :param vendor: Only count vendor GPUs if True.
+        :type vendor: str
         :param compatible: Only count compatible GPUs if True.
         :type compatible: bool
         :param readable: Only count readable GPUs if True.
@@ -1071,6 +1350,9 @@ class GpuList:
         """
         cnt = 0
         for v in self.list.values():
+            if vendor:
+                if vendor != v.get_params_value('vendor'):
+                    continue
             if compatible:
                 if v.compatible:
                     cnt += 1
@@ -1169,200 +1451,6 @@ class GpuList:
         for v in self.list.values():
             if v.compatible:
                 v.read_gpu_driver_info()
-
-    def read_allgpu_pci_info(self):
-        """ This function uses lspci to get details for GPUs in the current list and populates the data
-            structure of each GpuItem in the list.
-
-            It gets GPU name variants and gets the pcie slot ID for each card ID.
-            Special incompatible cases are determined here, like the Fiji Pro Duo.
-            This is the first function that should be called after the intial list is populated.
-        """
-        pcie_ids = subprocess.check_output(
-            'lspci | grep -E \'^.*(VGA|Display).*\[AMD\/ATI\].*$\' | grep -Eo \'^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\'',
-            shell=True).decode().split()
-        if env.GUT_CONST.DEBUG: print('Found %s GPUs' % len(pcie_ids))
-        for pcie_id in pcie_ids:
-            if env.GUT_CONST.DEBUG: print('GPU: ', pcie_id)
-            lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
-                                                  shell=True).decode().split('\n')
-            if env.GUT_CONST.DEBUG: print(lspci_items)
-
-            # Get Long GPU Name
-            gpu_name = ''
-            # Line 0 name
-            gpu_name_items = lspci_items[0].split('[AMD/ATI]')
-            if len(gpu_name_items) < 2:
-                gpu_name_0 = 'UNKNOWN'
-            else:
-                gpu_name_0 = gpu_name_items[1]
-            # Line 1 name
-            gpu_name_1 = ''
-            gpu_name_items = lspci_items[1].split('[AMD/ATI]')
-            if len(gpu_name_items) < 2:
-                gpu_name_1 = 'UNKNOWN'
-            else:
-                gpu_name_1 = gpu_name_items[1]
-
-            # Check for Fiji ProDuo
-            srch_obj = re.search('Fiji', gpu_name_0)
-            if srch_obj:
-                srch_obj = re.search('Radeon Pro Duo', gpu_name_1)
-                if srch_obj:
-                    gpu_name = 'Radeon Fiji Pro Duo'
-
-            if len(gpu_name) == 0:
-                if len(gpu_name_0) > len(gpu_name_1):
-                    gpu_name = gpu_name_0
-                else:
-                    gpu_name = gpu_name_1
-            if env.GUT_CONST.DEBUG: print('gpu_name: {}, 0: {}, 1: {}'.format(gpu_name,gpu_name_0, gpu_name_1))
-
-            # Get Driver Name
-            driver_module_items = lspci_items[2].split(':')
-            if len(driver_module_items) < 2:
-                driver_module = 'UNKNOWN'
-            else:
-                driver_module = driver_module_items[1].strip()
-
-            # Find matching card
-            device_dirs = glob.glob(env.GUT_CONST.card_root + 'card?/device')
-            for device_dir in device_dirs:
-                sysfspath = str(Path(device_dir).resolve())
-                if env.GUT_CONST.DEBUG: print('device_dir: {}'.format(device_dir))
-                if env.GUT_CONST.DEBUG: print('sysfspath: {}'.format(sysfspath))
-                if env.GUT_CONST.DEBUG: print('pcie_id: {}'.format(pcie_id))
-                if env.GUT_CONST.DEBUG: print('sysfspath-7: {}'.format(sysfspath[-7:]))
-                if pcie_id == sysfspath[-7:]:
-                    for v in self.list.values():
-                        if v.card_path == device_dir + '/':
-                            if gpu_name == 'Radeon Fiji Pro Duo':
-                                v.compatible = False
-                            v.set_params_value('pcie_id', pcie_id)
-                            v.set_params_value('driver', driver_module)
-                            v.set_params_value('model', gpu_name)
-                            model_short = re.sub(r'^.*\[', '', gpu_name)
-                            model_short = re.sub(r'\].*$', '', model_short)
-                            model_short = re.sub(r'.*Radeon', '', model_short)
-                            v.set_params_value('model_short', model_short)
-                            break
-                    break
-
-    def read_gpu_opencl_data(self):
-        """
-        Use call to clinfo to read opencl details for all GPUs.
-        :return: True on success
-        :rtype: bool
-        """
-        # Check access to clinfo command
-        if not env.GUT_CONST.cmd_clinfo:
-            print('OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install', file=sys.stderr)
-            return False
-        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
-                               shell=False, stdout=subprocess.PIPE)
-        for line in cmd.stdout:
-            linestr = line.decode('utf-8').strip()
-            if len(linestr) < 1:
-                continue
-            if linestr[0] != '[':
-                continue
-            linestr = re.sub(r'   [ ]*', ':-:', linestr)
-            srch_obj = re.search('CL_DEVICE_NAME', linestr)
-            if srch_obj:
-                # Found a new device
-                tmp_gpu = GpuItem(uuid4().hex)
-                line_items = linestr.split(':-:')
-                #dev_str = line_items[0].split('/')[1]
-                #dev_num = int(re.sub(']', '', dev_str))
-                tmp_gpu.set_clinfo_value('device_name', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_VERSION', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('device_version', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DRIVER_VERSION', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('driver_version', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_OPENCL_C_VERSION', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('opencl_version', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_TOPOLOGY_AMD', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                pcie_id_str = (line_items[2].split()[1]).strip()
-                if env.GUT_CONST.DEBUG: print('CL PCIE ID: [{}]'.format(pcie_id_str))
-                tmp_gpu.set_clinfo_value('pcie_id', pcie_id_str)
-                continue
-            srch_obj = re.search('CL_DEVICE_MAX_COMPUTE_UNITS', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('max_cu', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('simd_per_cu', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_SIMD_WIDTH_AMD', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('simd_width', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('simd_ins_width', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_MAX_MEM_ALLOC_SIZE', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('max_mem_allocation', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('max_wi_dim', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_MAX_WORK_ITEM_SIZES', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('max_wi_sizes', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_MAX_WORK_GROUP_SIZE', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('max_wg_size', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE', linestr)
-            if srch_obj:
-                line_items = linestr.split(':-:')
-                tmp_gpu.set_clinfo_value('prf_wg_multiple', line_items[2].strip())
-                continue
-            srch_obj = re.search('CL_DEVICE_EXTENSIONS', linestr)
-            if srch_obj:
-                # End of Device
-                if env.GUT_CONST.DEBUG: print('finding gpu with pcie ID: ', tmp_gpu.get_clinfo_value('pcie_id'))
-                target_gpu_uuid = self.find_gpu_by_pcie_id(tmp_gpu.get_clinfo_value('pcie_id'))
-                self.list[target_gpu_uuid].copy_clinfo_values(tmp_gpu)
-        return True
-
-    def find_gpu_by_pcie_id(self, pcie_id):
-        """
-        Find the GPU with the specified pcie_id.
-        :param pcie_id: The pcie ID of the target GPU
-        :type pcie_id: str
-        :return: The GPU uuid or None
-        :rtype: Union([str, None])
-        """
-        for v in self.list.values():
-            if v.get_params_value('pcie_id') == pcie_id:
-                return v.uuid
-        return None
 
     # Printing Methods follow.
     def print(self, clflag=False):
