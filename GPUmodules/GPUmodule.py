@@ -73,6 +73,7 @@ class GpuItem:
     """An object to store GPU details.
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
+    # pylint: disable=attribute-defined-outside-init
     _GPU_NC_Param_List = ['uuid', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'device_name': 'Device Name',
@@ -147,7 +148,7 @@ class GpuItem:
         :return:
         :rtype: str
         """
-        return 'GPU_Item: uuid={}'.format(self.uuid)
+        return 'GPU_Item: uuid={}'.format(self.prm.uuid)
 
     def __init__(self, item_id):
         """
@@ -163,7 +164,7 @@ class GpuItem:
                             'pcie_id': '',
                             'driver': '',
                             'vendor': '',
-                            'compatible': True,
+                            'compatible': False,
                             'readable': False,
                             'writable': False,
                             'compute': False,
@@ -244,7 +245,7 @@ class GpuItem:
         """
         return self.prm[name]
 
-    def populate(self, pcie_id, gpu_name, vendor, driver_module, card_path, hwmon_path,
+    def populate(self, pcie_id, gpu_name, short_gpu_name, vendor, driver_module, card_path, hwmon_path,
                  readable, writeable, compute, compatible, ocl_dev, ocl_ver, ocl_index):
         """
         Populate elements of a GpuItem.
@@ -252,6 +253,8 @@ class GpuItem:
         :type pcie_id: str
         :param gpu_name:  Model name of the GPU
         :type gpu_name: str
+        :param short_gpu_name:  Short Model name of the GPU
+        :type short_gpu_name: str
         :param vendor:  The make of the GPU (AMD, NVIDIA, ...)
         :type vendor: str
         :param driver_module: The name of the driver.
@@ -279,6 +282,7 @@ class GpuItem:
         """
         self.prm.pcie_id = pcie_id
         self.prm.model = gpu_name
+        self.prm.model_short = short_gpu_name
         self.prm.vendor = vendor
         self.prm.driver = driver_module
         self.prm.card_path = card_path
@@ -1168,6 +1172,10 @@ class GpuList:
             gpu_name_items = lspci_items[0].split(': ', maxsplit=1)
             if len(gpu_name_items) >= 2:
                 gpu_name = gpu_name_items[1]
+            try:
+                short_gpu_name = gpu_name.split('[AMD/ATI]')[1]
+            except:
+                short_gpu_name = 'UNKNOWN'
             # Check for Fiji ProDuo
             srch_obj = re.search('Fiji', gpu_name)
             if srch_obj:
@@ -1260,7 +1268,7 @@ class GpuList:
             elif len(hw_file_srch) == 1:
                 hwmon_path = hw_file_srch[0]
 
-            self.list[gpu_uuid].populate(pcie_id, gpu_name, vendor, driver_module,
+            self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                          card_path, hwmon_path, readable, writeable, compute, compatible,
                                          opencl_device_name, opencl_device_version, opencl_device_index)
 

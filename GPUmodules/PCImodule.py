@@ -57,7 +57,8 @@ class PCI_ID:
         self.amdgpu_utils_file = None
         self.pci_id_file_ptr = None
 
-        for try_filename in [self.pciid_file_local, self.pciid_file_system, self.pciid_file_repository]:
+        # for try_filename in [self.pciid_file_local, self.pciid_file_system, self.pciid_file_repository]:
+        for try_filename in [self.pciid_file_system]:
             if env.GUT_CONST.DEBUG: print('Trying pci-id file [{}].'.format(try_filename))
             self.amdgpu_utils_file = try_filename
             if not os.path.isfile(self.amdgpu_utils_file):

@@ -201,7 +201,7 @@ class GutConst:
                 if search_obj:
                     return 0
         print('amdgpu-utils no compatible driver found: {}'.format(driver_str))
-        print('amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
+        print('amdgpu-utils requires AMD \'amdgpu\' driver package or \'ROCm\' in order to function.')
         self.amd_read = self.amd_write = False
         return -3
 
@@ -215,28 +215,29 @@ class GutConst:
             print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
             return False
         version_ok = False
-        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
+        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
                 for dpkg_line in dpkg_out:
-                    search_obj = re.search('amdgpu', dpkg_line)
-                    if search_obj:
-                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
-                        dpkg_items = dpkg_line.split()
-                        if len(dpkg_items) > 2:
-                            if re.fullmatch(r'.*none.*', dpkg_items[2]):
-                                continue
-                            else:
-                                print(f'amdgpu version: {dpkg_items[2]}')
-                                version_ok = True
-                                break
+                    for driverpkg in ['amdgpu', 'rocm']:
+                        search_obj = re.search(driverpkg, dpkg_line)
+                        if search_obj:
+                            if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                            dpkg_items = dpkg_line.split()
+                            if len(dpkg_items) > 2:
+                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
+                                    continue
+                                else:
+                                    print('{} version: {}'.format(driverpkg, dpkg_items[2]))
+                                    version_ok = True
+                                    break
                 if version_ok:
                     break
             except (subprocess.CalledProcessError, OSError):
                 continue
         if not version_ok:
-            print('amdgpu version: UNKNOWN')
+            print('amdgpu/rocm version: UNKNOWN')
             return False
         return True
 
