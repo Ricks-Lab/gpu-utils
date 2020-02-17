@@ -235,8 +235,11 @@ class GpuItem:
         """
         if isinstance(value, tuple):
             self.prm[name] = list(value)
-            #for index, item in enumerate(value):
-                #self.prm[name][index] = item
+        elif name == 'pwm_mode':
+            self.prm[name][0] = value
+            if value == 0: self.prm[name][1] = 'None'
+            elif value == 1: self.prm[name][1] = 'Manual'
+            else: self.prm[name][1] = 'Dynamic'
         else:
             self.prm[name] = value
 
@@ -751,7 +754,7 @@ class GpuItem:
     def read_gpu_sensor_static_data(self):
         self.read_gpu_sensor_data()
         
-    def read_gpu_sensor_data(self, static=True):
+    def read_gpu_sensor_data(self, static=False, dynamic=False, test=False):
         """
         Read GPU static data from HWMON path.
         :return: None
@@ -761,14 +764,25 @@ class GpuItem:
             if env.GUT_CONST.show_fans:
                 for aparam in ['fan_speed_range', 'fan_pwm_range']:
                     param_list.append(aparam)
-        else:
+        elif dynamic:
             param_list = ['power', 'temp', 'vddgfx']
             if env.GUT_CONST.show_fans:
                 for aparam in ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']:
                     param_list.append(aparam)
+        elif test:
+            param_list = ['power']
+        else:
+            return None
+
         for param in param_list:
             print('Processing parameter: {}'.format(param))
             rdata = self.read_hwmon_sensor(param)
+            if test:
+                if rdata:
+                    self.prm.readability = True
+                else:
+                    self.prm.readability = False
+                return rdata
             if rdata is False:
                 self.prm.compatible = False
                 print('Error reading parameter: {}'.format(param))
