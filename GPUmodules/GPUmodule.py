@@ -158,7 +158,8 @@ class GpuItem:
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
-        self.hwmon_disabled = []
+        self.read_disabled = []    # List of parameters that failed during read.
+        self.write_disabled = []   # List of parameters that failed during write.
         self.prm = ObjDict({'uuid': item_id,
                             'card_num': '',
                             'pcie_id': '',
@@ -225,15 +226,19 @@ class GpuItem:
 
     def set_params_value(self, name, value):
         """
-        Get parameter value for give name.
+        Set parameter value for give name.
         :param name:  Parameter name
         :type name: str
         :param value:  parameter value
         :type value: Union[int, str, list]
-        :return: Parameter value
-        :rtype: Union[int, str, list]
+        :return: None
         """
-        self.prm[name] = value
+        if isinstance(value, tuple):
+            self.prm[name] = list(value)
+            #for index, item in enumerate(value):
+                #self.prm[name][index] = item
+        else:
+            self.prm[name] = value
 
     def get_params_value(self, name):
         """
@@ -279,6 +284,7 @@ class GpuItem:
         :type ocl_index: str
         :return: None
         :rtype: None
+        .. todo:: Determine if compute capability can be set and send that instead of ocl details.
         """
         self.prm.pcie_id = pcie_id
         self.prm.model = gpu_name
@@ -304,6 +310,7 @@ class GpuItem:
         :type value: Union[int, str, list]
         :return: None
         :rtype: None
+        .. note: Maybe not needed
         """
         self.clinfo.name = value
 
@@ -314,6 +321,7 @@ class GpuItem:
         :type name: str
         :return: clinfo Parameter value
         :rtype: Union[int, str, list]
+        .. note: Maybe not needed
         """
         return self.clinfo.name
 
@@ -667,69 +675,108 @@ class GpuItem:
                         else:
                             print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
 
+    def read_hwmon_sensor(self, parameter):
+        """
+
+        :param parameter: GpuItem parameter name
+        :type parameter: str
+        :return:
+        """
+        sensor_details_amd = {'power': {'type': 'sp', 'cf': 0.000001, 'dynamic': True, 'sensor': ['power1_average']},
+                              'power_cap': {'type': 'sp', 'cf': 0.000001, 'dynamic': True, 'sensor': ['power1_cap']},
+                              'power_cap_range': {'type': 'mm', 'cf': 0.000001, 'dynamic': False, 'sensor': ['power1_cap_min', 'power1_cap_max']},
+                              'fan_enable': {'type': 'sp', 'cf': 1, 'dynamic': True, 'sensor': ['fan1_enable']},
+                              'fan_target': {'type': 'sp', 'cf': 1, 'dynamic': True, 'sensor': ['fan1_target']},
+                              'fan_speed': {'type': 'sp', 'cf': 1, 'dynamic': True, 'sensor': ['fan1_speed']},
+                              'fan_speed_range': {'type': 'mm', 'cf': 1, 'dynamic': False, 'sensor': ['fan1_min', 'fan1_max']},
+                              'pwm_mode': {'type': 'sp', 'cf': 1, 'dynamic': True, 'sensor': ['pwm1_enable']},
+                              'fan_pwm': {'type': 'sp', 'cf': 1, 'dynamic': True, 'sensor': ['pwm1']},
+                              'fan_pwm_range': {'type': 'mm', 'cf': 1, 'dynamic': False, 'sensor': ['pwm1_min', 'pwm1_max']},
+                              'temp': {'type': 'sp', 'cf': 0.001, 'dynamic': True, 'sensor': ['temp1_input']},
+                              'temp_crit': {'type': 'sp', 'cf': 0.001, 'dynamic': False, 'sensor': ['temp1_crit']},
+                              'freq1': {'type': 'sl', 'cf': 0.001, 'dynamic': True, 'sensor': ['freq1_input', 'freq1_label']},
+                              'freq2': {'type': 'sl', 'cf': 0.001, 'dynamic': True, 'sensor': ['freq2_input', 'freq2_label']},
+                              'vddgfx': {'type': 'sl', 'cf': 0.001, 'dynamic': True, 'sensor': ['in0_input', 'in0_label']}}
+
+        if parameter not in sensor_details_amd.keys():
+            return None
+        if parameter in self._GPU_NC_Param_List:
+            return None
+
+        values = []
+        ret_value = []
+        for sensor_file in sensor_details_amd[parameter]['sensor']:
+            file_path = os.path.join(self.prm.hwmon_path, sensor_file)
+            if os.path.isfile(file_path):
+                try:
+                    with open(file_path) as hwmon_file:
+                        values.append(hwmon_file.readline())
+                except OSError as err:
+                    print('Error [{}]: Can not read HW file: {}'.format(err, file_path), file=sys.stderr)
+                    self._GPU_NC_Param_List.append(parameter)
+                    return False
+            else:
+                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
+                self._GPU_NC_Param_List.append(parameter)
+                return False
+
+        if sensor_details_amd[parameter]['type'] == 'sp':
+            if sensor_details_amd[parameter]['cf'] == 1:
+                return int(values[0])
+            else:
+                return int(values[0])*sensor_details_amd[parameter]['cf']
+        elif sensor_details_amd[parameter]['type'] == 'sl':
+            ret_value.append(values[0])
+            ret_value.append(int(values[1])*sensor_details_amd[parameter]['cf'])
+            return tuple(ret_value)
+        else:     # mm
+            ret_value.append(int(values[0])*sensor_details_amd[parameter]['cf'])
+            ret_value.append(int(values[1])*sensor_details_amd[parameter]['cf'])
+            return tuple(ret_value)
+
+    def read_device_data(self, parameter):
+        pass
+        # 'loading': 'Current Loading (%)',
+        # 'link_spd': 'Link Speed',
+        # 'link_wth': 'Link Width',
+        # 'sclk_ps': 'Current SCLK P-State',
+        # 'sclk_f': 'Current SCLK',
+        # 'sclk_f_range': 'SCLK Range',
+        # 'mclk_ps': 'Current MCLK P-State',
+        # 'mclk_f': 'Current MCLK',
+        # 'mclk_f_range': 'MCLK Range',
+        # 'ppm': 'Power Performance Mode',
+        # 'power_dpm_force': 'Power Force Performance Level'
+
     def read_gpu_sensor_static_data(self):
+        self.read_gpu_sensor_data()
+        
+    def read_gpu_sensor_data(self, static=True):
         """
         Read GPU static data from HWMON path.
         :return: None
         """
-        try:
-            file_path = os.path.join(self.prm.hwmon_path, 'power1_cap_max')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    power1_cap_max_value = int(int(hwmon_file.readline())/1000000)
-                file_path = os.path.join(self.prm.hwmon_path, 'power1_cap_min')
-                if os.path.isfile(file_path):
-                    with open(file_path) as hwmon_file:
-                        power1_cap_min_value = int(int(hwmon_file.readline())/1000000)
-                    self.prm.power_cap_range = [power1_cap_min_value, power1_cap_max_value]
-                else:
-                    print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-
-            file_path = os.path.join(self.prm.hwmon_path, 'temp1_crit')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    self.prm.temp_crit = int(hwmon_file.readline())/1000
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-
-            # Get fan data if --no_fan flag is not set
+        if static:
+            param_list = ['power_cap_range', 'temp_crit']
             if env.GUT_CONST.show_fans:
-                file_path = os.path.join(self.prm.hwmon_path, 'fan1_max')
-                if os.path.isfile(file_path):
-                    with open(file_path) as hwmon_file:
-                        fan1_max_value = int(hwmon_file.readline())
-                    file_path = os.path.join(self.prm.hwmon_path, 'fan1_min')
-                    if os.path.isfile(file_path):
-                        with open(file_path) as hwmon_file:
-                            fan1_min_value = int(hwmon_file.readline())
-                        self.prm.fan_speed_range = [fan1_min_value, fan1_max_value]
-                    else:
-                        print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                else:
-                    print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-
-                file_path = os.path.join(self.prm.hwmon_path, 'pwm1_max')
-                if os.path.isfile(file_path):
-                    with open(file_path) as hwmon_file:
-                        pwm1_max_value = int(100*(int(hwmon_file.readline())/255))
-                    file_path = os.path.join(self.prm.hwmon_path, 'pwm1_min')
-                    if os.path.isfile(file_path):
-                        with open(file_path) as hwmon_file:
-                            pwm1_pmin_value = int(100*(int(hwmon_file.readline())/255))
-                        self.prm.fan_pwm_range = [pwm1_pmin_value, pwm1_max_value]
-                    else:
-                        print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                else:
-                    print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                    self.prm.compatible = False
-        except (FileNotFoundError, OSError) as except_err:
-            print('Error [{}]: Problem reading static data from GPU HWMON: {}'.format(except_err, self.prm.hwmon_path),
-                  file=sys.stderr)
-            self.prm.compatible = False
+                for aparam in ['fan_speed_range', 'fan_pwm_range']:
+                    param_list.append(aparam)
+        else:
+            param_list = ['power', 'temp', 'vddgfx']
+            if env.GUT_CONST.show_fans:
+                for aparam in ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']:
+                    param_list.append(aparam)
+        for param in param_list:
+            print('Processing parameter: {}'.format(param))
+            rdata = self.read_hwmon_sensor(param)
+            if rdata is False:
+                self.prm.compatible = False
+                print('Error reading parameter: {}'.format(param))
+            elif rdata is None:
+                print('Invalid or disabled parameter: {}'.format(param))
+            else:
+                print('Valid data [{}] for parameter: {}'.format(rdata, param))
+                self.set_params_value(param, rdata)
 
     def read_gpu_sensor_data(self):
         """
@@ -778,7 +825,7 @@ class GpuItem:
             name_hwfile = ('fan1_enable', 'fan1_target', 'fan1_input')
             name_param = ('fan_enable', 'fan_target', 'fan_speed')
             for nh, np in zip(name_hwfile, name_param):
-                if nh not in self.hwmon_disabled:
+                if nh not in self.read_disabled:
                     file_path = os.path.join(self.prm.hwmon_path, nh)
                     if os.path.isfile(file_path):
                         try:
@@ -787,10 +834,10 @@ class GpuItem:
                         except (FileNotFoundError, OSError) as except_err:
                             print('Warning [{}]: Problem reading sensor [{}] data from GPU HWMON: {}'.format(except_err,
                                   nh, self.prm.hwmon_path), file=sys.stderr)
-                            self.hwmon_disabled.append(nh)
+                            self.read_disabled.append(nh)
                     else:
                         print('Warning: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                        self.hwmon_disabled.append(nh)
+                        self.read_disabled.append(nh)
 
             # Now critical fan data
             try:

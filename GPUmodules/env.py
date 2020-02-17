@@ -181,7 +181,7 @@ class GutConst:
             print('OS command [dpkg] executable not found.')
             command_access_fail = True
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
-        if not self.cmd_dpkg:
+        if not self.cmd_nvidia_smi:
             pass
             #print('OS command [nvidia_smi] executable not found.')
             #command_access_fail = True

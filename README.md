@@ -78,11 +78,15 @@ a local version of the file, which will override the preferred system file resul
 If your GPU model is missing from the pci.ids file, you can use the device id of your card found with 
 *amdgpu-ls* and make a request for the addition on the pci.ids website.
 
-## New in this Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
-* Initial release of man pages
-* Modifications to work with distribution installation
-* Use system pci.ids file and make *amdgpu-pciid* obsolete
-* Update setup.py file for successful installation.
+## New in this Development -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/tree/v3.0)
+* Style and code robustness improvements
+* Deprecated  *amdgpu-pciid* 
+* Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
+class variables for generic behavior parameters.
+* Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability, and
+compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
+* Test for readability and writability of all GPUs and apply utilities as appropriate.
+* Add assessment of compute capability.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -103,6 +107,12 @@ If your GPU model is missing from the pci.ids file, you can use the device id of
 * Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
 
 ## History
+## New in Previous Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
+* Initial release of man pages
+* Modifications to work with distribution installation
+* Use system pci.ids file and make *amdgpu-pciid* obsolete
+* Update setup.py file for successful installation.
+
 #### New in Previous Release  -  [v2.6.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.6.0)
 * PEP8 style modifications
 * Fixed a bug in monitor display.
