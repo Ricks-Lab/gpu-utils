@@ -131,7 +131,8 @@ class GpuItem:
                               'power_dpm_force': 'Power Force Performance Level'})
 
     # HWMON sensor reading details
-    _sensor_details = {'AMD': {'power': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
+    _sensor_details = {'AMD': {'HWMON': {
+                               'power': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
                                'power_cap': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
                                'power_cap_range': {'type': 'mm', 'cf': 0.000001,
                                                    'sensor': ['power1_cap_min', 'power1_cap_max']},
@@ -149,7 +150,7 @@ class GpuItem:
                                'frequencies': {'type': 'sl*', 'cf': 0.000001, 'sensor': ['freq*_input']},
                                'voltages': {'type': 'sl*', 'cf': 0.001, 'sensor': ['in*_input']},
                                'temperatures': {'type': 'sl*', 'cf': 0.001, 'sensor': ['temp*_input']},
-                               'vddgfx': {'type': 'sl', 'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}}}
+                               'vddgfx': {'type': 'sl', 'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}}}}
 
     def __repr__(self):
         """
@@ -710,16 +711,19 @@ class GpuItem:
                         else:
                             print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
 
-    def read_hwmon_sensor(self, parameter, vendor='AMD'):
+    def read_gpu_sensor(self, parameter, vendor='AMD', sensor_type='HWMON'):
         """
 
-        :param parameter: GpuItem parameter name
+        :param parameter: GpuItem parameter name (AMD)
         :type parameter: str
         :param vendor: GPU vendor name
         :type vendor: str
+        :param sensor_type: GPU sensor name (HWMON or DEVICE)
+        :type sensor_type: str
         :return:
         """
-        if parameter not in self._sensor_details['AMD'].keys():
+        sensor_dict = self._sensor_details[vendor][sensor_type]
+        if parameter not in sensor_dict.keys():
             return None
         if parameter in self.read_disabled:
             return None
@@ -727,18 +731,18 @@ class GpuItem:
         values = []
         ret_value = []
         ret_dict = {}
-        if self._sensor_details[vendor][parameter]['type'] == 'sl*':
+        if sensor_dict[parameter]['type'] == 'sl*':
             sensor_files = glob.glob(os.path.join(self.prm.hwmon_path,
-                                                  self._sensor_details[vendor][parameter]['sensor'][0]))
+                                                  sensor_dict[parameter]['sensor'][0]))
         else:
-            sensor_files = self._sensor_details[vendor][parameter]['sensor']
+            sensor_files = sensor_dict[parameter]['sensor']
         for sensor_file in sensor_files:
             file_path = os.path.join(self.prm.hwmon_path, sensor_file)
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
                         values.append(hwmon_file.readline().strip())
-                    if self._sensor_details[vendor][parameter]['type'] == 'sl*':
+                    if sensor_dict[parameter]['type'] == 'sl*':
                         with open(file_path.replace('input', 'label')) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
                 except OSError as err:
@@ -750,22 +754,22 @@ class GpuItem:
                 self.read_disabled.append(parameter)
                 return False
 
-        if self._sensor_details[vendor][parameter]['type'] == 'sp':
-            if self._sensor_details[vendor][parameter]['cf'] == 1:
+        if sensor_dict[parameter]['type'] == 'sp':
+            if sensor_dict[parameter]['cf'] == 1:
                 return int(values[0])
             else:
-                return int(values[0])*self._sensor_details[vendor][parameter]['cf']
-        elif self._sensor_details[vendor][parameter]['type'] == 'sl':
-            ret_value.append(int(values[0])*self._sensor_details[vendor][parameter]['cf'])
+                return int(values[0])*sensor_dict[parameter]['cf']
+        elif sensor_dict[parameter]['type'] == 'sl':
+            ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
-        elif self._sensor_details[vendor][parameter]['type'] == 'mm':
-            ret_value.append(int(values[0])*self._sensor_details[vendor][parameter]['cf'])
-            ret_value.append(int(values[1])*self._sensor_details[vendor][parameter]['cf'])
+        elif sensor_dict[parameter]['type'] == 'mm':
+            ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
+            ret_value.append(int(values[1])*sensor_dict[parameter]['cf'])
             return tuple(ret_value)
         else:  # 'sl*'
             for i in range(0, len(values), 2):
-                ret_dict.update({values[i+1]: int(values[i])*self._sensor_details[vendor][parameter]['cf']})
+                ret_dict.update({values[i+1]: int(values[i])*sensor_dict[parameter]['cf']})
             return ret_dict
 
     def read_device_data(self, parameter):
@@ -804,7 +808,7 @@ class GpuItem:
 
         for param in param_list:
             if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
-            rdata = self.read_hwmon_sensor(param)
+            rdata = self.read_gpu_sensor(param)
             if test:
                 if rdata:
                     self.prm.readability = True
