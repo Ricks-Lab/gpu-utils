@@ -57,7 +57,7 @@ class ObjDict(dict):
         if name in self:
             return self[name]
         else:
-            raise AttributeError("No such attribute: " + name)
+            raise AttributeError('No such attribute: ' + name)
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -66,7 +66,7 @@ class ObjDict(dict):
         if name in self:
             del self[name]
         else:
-            raise AttributeError("No such attribute: " + name)
+            raise AttributeError('No such attribute: ' + name)
 
 
 class GpuItem:
@@ -89,7 +89,6 @@ class GpuItem:
                           'max_wi_sizes': 'Max Work Item Sizes',
                           'max_wg_size': 'Max Work Group Size',
                           'prf_wg_multiple': 'Preferred Work Group Multiple'}
-
     _GPU_Param_Labels = {'uuid': 'UUID',
                          'vendor': 'Vendor',
                          'id': 'Device ID',
@@ -131,6 +130,7 @@ class GpuItem:
                               'ppm': 'Power Performance Mode',
                               'power_dpm_force': 'Power Force Performance Level'})
 
+    # HWMON sensor reading details
     _sensor_details = {'AMD': {'power': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
                                'power_cap': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
                                'power_cap_range': {'type': 'mm', 'cf': 0.000001,
@@ -263,6 +263,15 @@ class GpuItem:
             if value == 0: self.prm[name][1] = 'None'
             elif value == 1: self.prm[name][1] = 'Manual'
             else: self.prm[name][1] = 'Dynamic'
+        elif name == 'power':
+            time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+            self.prm[name] = value
+            delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
+            self.energy['tn'] = time_n
+            self.energy['cumulative'] += delta_hrs * value / 1000
+            self.prm['energy'] = round(self.energy['cumulative'], 6)
+        elif name == 'fan_pwm':
+            self.prm.fan_pwm = int(100 * (int(value) / 255))
         else:
             self.prm[name] = value
 
@@ -706,6 +715,8 @@ class GpuItem:
 
         :param parameter: GpuItem parameter name
         :type parameter: str
+        :param vendor: GPU vendor name
+        :type vendor: str
         :return:
         """
         if parameter not in self._sensor_details['AMD'].keys():
@@ -717,7 +728,8 @@ class GpuItem:
         ret_value = []
         ret_dict = {}
         if self._sensor_details[vendor][parameter]['type'] == 'sl*':
-            sensor_files = glob.glob(os.path.join(self.prm.hwmon_path, self._sensor_details[vendor][parameter]['sensor'][0]))
+            sensor_files = glob.glob(os.path.join(self.prm.hwmon_path,
+                                                  self._sensor_details[vendor][parameter]['sensor'][0]))
         else:
             sensor_files = self._sensor_details[vendor][parameter]['sensor']
         for sensor_file in sensor_files:
@@ -800,6 +812,7 @@ class GpuItem:
                     self.prm.readability = False
                 return rdata
             if rdata is False:
+                # TODO this probably should not trigger incompatibility
                 self.prm.compatible = False
                 print('Error reading parameter: {}'.format(param))
             elif rdata is None:
@@ -807,112 +820,6 @@ class GpuItem:
             else:
                 if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
                 self.set_params_value(param, rdata)
-
-    def read_gpu_sensor_data_old(self):
-        """
-        Read GPU sensor data from HWMON path.
-        :return: None
-        """
-        try:
-            file_path = os.path.join(self.prm.hwmon_path, 'power1_cap')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    self.prm.power_cap = int(hwmon_file.readline())/1000000
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-
-            file_path = os.path.join(self.prm.hwmon_path, 'power1_average')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    power_uw = int(hwmon_file.readline())
-                    time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
-                    self.prm.power = int(power_uw)/1000000
-                    delta_hrs = ((time_n - self.energy['tn']).total_seconds())/3600
-                    self.energy['tn'] = time_n
-                    self.energy['cumulative'] += delta_hrs * power_uw/1000000000
-                    self.prm.energy = round(self.energy['cumulative'], 6)
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-
-            file_path = os.path.join(self.prm.hwmon_path, 'temp1_input')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    self.prm.temp = int(hwmon_file.readline())/1000
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-        except (FileNotFoundError, OSError) as except_err:
-            print('Error [{}]: Problem reading sensor [power/temp] from GPU HWMON: {}'.format(except_err,
-                  self.prm.hwmon_path), file=sys.stderr)
-            self.prm.compatible = False
-
-        # Get fan data if --no_fan flag is not set
-        if env.GUT_CONST.show_fans:
-            # First non-critical fan data
-            # On error will be disabled, but still compatible
-            name_hwfile = ('fan1_enable', 'fan1_target', 'fan1_input')
-            name_param = ('fan_enable', 'fan_target', 'fan_speed')
-            for nh, np in zip(name_hwfile, name_param):
-                if nh not in self.read_disabled:
-                    file_path = os.path.join(self.prm.hwmon_path, nh)
-                    if os.path.isfile(file_path):
-                        try:
-                            with open(file_path) as hwmon_file:
-                                self.set_params_value(np, hwmon_file.readline().strip())
-                        except (FileNotFoundError, OSError) as except_err:
-                            print('Warning [{}]: Problem reading sensor [{}] data from GPU HWMON: {}'.format(except_err,
-                                  nh, self.prm.hwmon_path), file=sys.stderr)
-                            self.read_disabled.append(nh)
-                    else:
-                        print('Warning: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                        self.read_disabled.append(nh)
-
-            # Now critical fan data
-            try:
-                file_path = os.path.join(self.prm.hwmon_path, 'pwm1_enable')
-                if os.path.isfile(file_path):
-                    with open(file_path) as hwmon_file:
-                        pwm_mode_value = int(hwmon_file.readline().strip())
-                        if pwm_mode_value == 0:
-                            pwm_mode_name = 'None'
-                        elif pwm_mode_value == 1:
-                            pwm_mode_name = 'Manual'
-                        elif pwm_mode_value == 2:
-                            pwm_mode_name = 'Dynamic'
-                        self.prm.pwm_mode = [pwm_mode_value, pwm_mode_name]
-                else:
-                    print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                    self.prm.compatible = False
-
-                file_path = os.path.join(self.prm.hwmon_path, 'pwm1')
-                if os.path.isfile(file_path):
-                    with open(file_path) as hwmon_file:
-                        self.prm.fan_pwm = int(100*(int(hwmon_file.readline())/255))
-                else:
-                    print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                    self.prm.compatible = False
-            except (FileNotFoundError, OSError) as except_err:
-                print('Error [{}]: Problem reading sensor [pwm] data from GPU HWMON: {}'.format(except_err,
-                      self.prm.hwmon_path), file=sys.stderr)
-                print('Try running with --no_fan option', file=sys.stderr)
-                self.prm.compatible = False
-
-        try:
-            file_path = os.path.join(self.prm.hwmon_path, 'in0_label')
-            if os.path.isfile(file_path):
-                with open(file_path) as hwmon_file:
-                    if hwmon_file.readline().rstrip() == 'vddgfx':
-                        with open(os.path.join(self.prm.hwmon_path, 'in0_input')) as hwmon_file2:
-                            self.prm.vddgfx = int(hwmon_file2.readline())
-            else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
-                self.prm.compatible = False
-        except (FileNotFoundError, OSError) as except_err:
-            print('Error [{}]: Problem reading sensor [in0_label] data from GPU HWMON: {}'.format(except_err,
-                  self.prm.hwmon_path), file=sys.stderr)
-            self.prm.compatible = False
 
     def read_gpu_driver_info(self):
         """

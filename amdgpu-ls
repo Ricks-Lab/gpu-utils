@@ -92,6 +92,7 @@ def main():
         print('AMD Wattman features enabled: %s' % hex(featuremask))
     else:
         print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
+        # TODO set flag for read only
         sys.exit(-1)
 
     env.GUT_CONST.read_amd_driver_version()
@@ -99,7 +100,6 @@ def main():
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
     gpu_list.set_gpu_list()
-    #gpu_list.read_allgpu_pci_info()
 
     # Check list of AMD GPUs
     num_gpus = gpu_list.num_gpus()
