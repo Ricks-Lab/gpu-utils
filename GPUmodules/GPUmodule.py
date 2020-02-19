@@ -116,7 +116,7 @@ class GpuItem:
     _GPU_Param_Labels.update({'temperatures': 'Current Temps (C)',
                               'temp_crit': 'Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
-                              #'vddc_range': 'Vddc Range',
+                              'vddc_range': 'Vddc Range',
                               'loading': 'Current Loading (%)',
                               'frequencies': 'Current Clk Frequencies (MHz)',
                               'sclk_ps': 'Current SCLK P-State',
@@ -891,6 +891,7 @@ class GpuItem:
         """
         if not self.prm.compatible:
             return
+        print('Card Model: {}'.format(self.prm.model_display))
         print('Card: {}'.format(self.prm.card_path))
         print('Power Performance Mode: {}'.format(self.prm.power_dpm_force))
         for k, v in self.ppm_modes.items():
@@ -907,6 +908,7 @@ class GpuItem:
         """
         if not self.prm.compatible:
             return
+        print('Card Model: {}'.format(self.prm.model_display))
         print('Card: {}'.format(self.prm.card_path))
         print('SCLK: {:<17} MCLK:'.format(' '))
         for k, v in self.sclk_state.items():
@@ -927,6 +929,8 @@ class GpuItem:
         :return: None
         """
         for i, (k, v) in enumerate(self.get_all_params_labels().items()):
+            if self.prm.gpu_type == 2 and k == 'vddc_range':
+                continue
             if i == 1:
                 if self.prm.compatible:
                     print('{} Compatibility: Yes'.format(__program_name__))
