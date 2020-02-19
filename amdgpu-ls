@@ -112,23 +112,15 @@ def main():
         if num_com_gpus == 0:
             print('None are compatible, exiting...')
             sys.exit(-1)
-        print('{} detected GPUs, {} are AMD, {} may be compatible, checking...'.format(num_gpus, num_amd_gpus, num_com_gpus))
+        print('{} detected GPUs, {} are AMD, {} may be compatible, checking...'.format(num_gpus, num_amd_gpus,
+                                                                                       num_com_gpus))
 
-    # Read data static driver information for GPUs
-    # gpu_list.read_gpu_driver_info()
+    # Read data static/dynamic/info/state driver information for GPUs
     gpu_list.read_gpu_sensor_data(data_type='All')
-
-    # Read dynamic sensor and state data from GPUs
-    # gpu_list.read_gpu_sensor_data(data_type='Dynamic')
-    gpu_list.read_gpu_state_data()
 
     # Check number of compatible GPUs again
     num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_com_gpus == 0:
-        print('None are compatible, exiting...')
-        sys.exit(-1)
-    else:
-        print('{} are confirmed compatible.\n'.format(num_com_gpus))
+    print('{} are confirmed compatible.\n'.format(num_com_gpus))
 
     # Read report specific details
     if args.clinfo:
