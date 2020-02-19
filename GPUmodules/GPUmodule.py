@@ -139,8 +139,8 @@ class GpuItem:
                                    'fan_speed': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_input']},
                                    'fan_speed_range': {'type': 'mm', 'cf': 1, 'sensor': ['fan1_min', 'fan1_max']},
                                    'pwm_mode': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1_enable']},
-                                   'fan_pwm': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1']},
-                                   'fan_pwm_range': {'type': 'mm', 'cf': 1, 'sensor': ['pwm1_min', 'pwm1_max']},
+                                   'fan_pwm': {'type': 'sp', 'cf': 0.39216, 'sensor': ['pwm1']},
+                                   'fan_pwm_range': {'type': 'mm', 'cf': 0.39216, 'sensor': ['pwm1_min', 'pwm1_max']},
                                    'temp': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_input']},
                                    'temp_crit': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_crit']},
                                    'freq1': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
@@ -193,6 +193,7 @@ class GpuItem:
         self.read_disabled = []    # List of parameters that failed during read.
         self.write_disabled = []   # List of parameters that failed during write.
         self.prm = ObjDict({'uuid': item_id,
+                            'unique_id': '',
                             'card_num': '',
                             'pcie_id': '',
                             'driver': '',
@@ -228,11 +229,9 @@ class GpuItem:
                             'voltages': None,
                             'frequencies': None,
                             'loading': None,
-                            'mclk_ps': None,
-                            'mclk_f': '',
+                            'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
-                            'sclk_ps': None,
-                            'sclk_f': '',
+                            'sclk_ps': ['', ''],
                             'sclk_f_range': ['', ''],
                             'link_spd': '',
                             'link_wth': '',
@@ -292,7 +291,7 @@ class GpuItem:
             self.prm.mclk_ps = value.strip('*').strip().split(': ')
             self.prm.mclk_ps[0] = int(self.prm.mclk_ps[0])
         elif name == 'fan_pwm':
-            self.prm.fan_pwm = int(100 * (int(value) / 255))
+            self.prm.fan_pwm = int(value)
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
             pcid = PCImodule.PCI_ID()
@@ -802,8 +801,8 @@ class GpuItem:
         elif sensor_dict[parameter]['type'] == 'mt':
             return values
         elif sensor_dict[parameter]['type'] == 'mm':
-            ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
-            ret_value.append(int(values[1])*sensor_dict[parameter]['cf'])
+            ret_value.append(int(int(values[0])*sensor_dict[parameter]['cf']))
+            ret_value.append(int(int(values[1])*sensor_dict[parameter]['cf']))
             return tuple(ret_value)
         elif sensor_dict[parameter]['type'] == 'sl*':
             for i in range(0, len(values), 2):
