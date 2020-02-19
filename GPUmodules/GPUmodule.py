@@ -875,9 +875,7 @@ class GpuItem:
                         self.prm.readability = False
                     return rdata
                 if rdata is False:
-                    # TODO this probably should not trigger incompatibility
-                    self.prm.compatible = False
-                    print('Error reading parameter: {}'.format(param))
+                    print('Error reading parameter: {}, disabling for this GPU'.format(param))
                 elif rdata is None:
                     print('Invalid or disabled parameter: {}'.format(param))
                 else:
