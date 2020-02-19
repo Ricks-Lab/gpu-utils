@@ -115,11 +115,11 @@ def main():
         print('{} detected GPUs, {} are AMD, {} may be compatible, checking...'.format(num_gpus, num_amd_gpus, num_com_gpus))
 
     # Read data static driver information for GPUs
-    gpu_list.read_gpu_driver_info()
-    gpu_list.read_gpu_sensor_data(static=True)
+    # gpu_list.read_gpu_driver_info()
+    gpu_list.read_gpu_sensor_data(data_type='All')
 
     # Read dynamic sensor and state data from GPUs
-    gpu_list.read_gpu_sensor_data(dynamic=True)
+    # gpu_list.read_gpu_sensor_data(data_type='Dynamic')
     gpu_list.read_gpu_state_data()
 
     # Check number of compatible GPUs again

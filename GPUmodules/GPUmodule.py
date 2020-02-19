@@ -132,25 +132,35 @@ class GpuItem:
 
     # HWMON sensor reading details
     _sensor_details = {'AMD': {'HWMON': {
-                               'power': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
-                               'power_cap': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
-                               'power_cap_range': {'type': 'mm', 'cf': 0.000001,
-                                                   'sensor': ['power1_cap_min', 'power1_cap_max']},
-                               'fan_enable': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_enable']},
-                               'fan_target': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_target']},
-                               'fan_speed': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_input']},
-                               'fan_speed_range': {'type': 'mm', 'cf': 1, 'sensor': ['fan1_min', 'fan1_max']},
-                               'pwm_mode': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1_enable']},
-                               'fan_pwm': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1']},
-                               'fan_pwm_range': {'type': 'mm', 'cf': 1, 'sensor': ['pwm1_min', 'pwm1_max']},
-                               'temp': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_input']},
-                               'temp_crit': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_crit']},
-                               'freq1': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
-                               'freq2': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq2_input', 'freq2_label']},
-                               'frequencies': {'type': 'sl*', 'cf': 0.000001, 'sensor': ['freq*_input']},
-                               'voltages': {'type': 'sl*', 'cf': 0.001, 'sensor': ['in*_input']},
-                               'temperatures': {'type': 'sl*', 'cf': 0.001, 'sensor': ['temp*_input']},
-                               'vddgfx': {'type': 'sl', 'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}}}}
+                                   'power': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
+                                   'power_cap': {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
+                                   'power_cap_range': {'type': 'mm', 'cf': 0.000001,
+                                                       'sensor': ['power1_cap_min', 'power1_cap_max']},
+                                   'fan_enable': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_enable']},
+                                   'fan_target': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_target']},
+                                   'fan_speed': {'type': 'sp', 'cf': 1, 'sensor': ['fan1_input']},
+                                   'fan_speed_range': {'type': 'mm', 'cf': 1, 'sensor': ['fan1_min', 'fan1_max']},
+                                   'pwm_mode': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1_enable']},
+                                   'fan_pwm': {'type': 'sp', 'cf': 1, 'sensor': ['pwm1']},
+                                   'fan_pwm_range': {'type': 'mm', 'cf': 1, 'sensor': ['pwm1_min', 'pwm1_max']},
+                                   'temp': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_input']},
+                                   'temp_crit': {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_crit']},
+                                   'freq1': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
+                                   'freq2': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq2_input', 'freq2_label']},
+                                   'frequencies': {'type': 'sl*', 'cf': 0.000001, 'sensor': ['freq*_input']},
+                                   'voltages': {'type': 'sl*', 'cf': 0.001, 'sensor': ['in*_input']},
+                                   'temperatures': {'type': 'sl*', 'cf': 0.001, 'sensor': ['temp*_input']},
+                                   'vddgfx': {'type': 'sl', 'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}},
+                               'DEVICE': {
+                                   'id': {'type': 'mt', 'cf': None,
+                                          'sensor': ['device', 'vendor', 'subsystem_device', 'subsystem_vendor']},
+                                   'unique_id': {'type': 'st', 'cf': None, 'sensor': ['unique_id']},
+                                   'loading': {'type': 'st', 'cf': None, 'sensor': ['gpu_busy_percent']},
+                                   'link_spd': {'type': 'st', 'cf': None, 'sensor': ['current_link_speed']},
+                                   'link_wth': {'type': 'st', 'cf': None, 'sensor': ['current_link_width']},
+                                   'sclk_ps': {'type': 'st*', 'cf': None, 'sensor': ['pp_dpm_sclk']},
+                                   'mclk_ps': {'type': 'st*', 'cf': None, 'sensor': ['pp_dpm_mclk']},
+                                   'vbios': {'type': 'st', 'cf': None, 'sensor': ['vbios_version']}}}}
 
     def __repr__(self):
         """
@@ -722,26 +732,35 @@ class GpuItem:
         :type sensor_type: str
         :return:
         """
+        if sensor_type not in self._sensor_details[vendor].keys():
+            print('Error: Invalid sensor_type [{}]'.format(sensor_type))
+            return None
         sensor_dict = self._sensor_details[vendor][sensor_type]
         if parameter not in sensor_dict.keys():
+            print('Error: Invalid parameter [{}]'.format(parameter))
             return None
         if parameter in self.read_disabled:
             return None
 
+        sensor_path = self.prm.hwmon_path if sensor_type == 'HWMON' else self.prm.card_path
         values = []
         ret_value = []
         ret_dict = {}
         if sensor_dict[parameter]['type'] == 'sl*':
-            sensor_files = glob.glob(os.path.join(self.prm.hwmon_path,
-                                                  sensor_dict[parameter]['sensor'][0]))
+            sensor_files = glob.glob(os.path.join(sensor_path, sensor_dict[parameter]['sensor'][0]))
         else:
             sensor_files = sensor_dict[parameter]['sensor']
         for sensor_file in sensor_files:
-            file_path = os.path.join(self.prm.hwmon_path, sensor_file)
+            file_path = os.path.join(sensor_path, sensor_file)
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
-                        values.append(hwmon_file.readline().strip())
+                        if sensor_dict[parameter]['type'] == 'st*':
+                            lines = hwmon_file.readlines()
+                            for line in lines:
+                                values.append(line.strip())
+                        else:
+                            values.append(hwmon_file.readline().strip())
                     if sensor_dict[parameter]['type'] == 'sl*':
                         with open(file_path.replace('input', 'label')) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
@@ -763,73 +782,96 @@ class GpuItem:
             ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
+        elif sensor_dict[parameter]['type'] == 'mt':
+            # TODO need to process Device ID items
+            pass
         elif sensor_dict[parameter]['type'] == 'mm':
             ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
             ret_value.append(int(values[1])*sensor_dict[parameter]['cf'])
             return tuple(ret_value)
-        else:  # 'sl*'
+        elif sensor_dict[parameter]['type'] == 'sl*':
             for i in range(0, len(values), 2):
                 ret_dict.update({values[i+1]: int(values[i])*sensor_dict[parameter]['cf']})
             return ret_dict
+        elif sensor_dict[parameter]['type'] == 'st*':
+            for item in values:
+                if re.search(r'\*', item):
+                    return item
+            return None
+        else:  # 'st or st*'
+            return values[0]
 
-    def read_device_data(self, parameter):
-        pass
-        # 'loading': 'Current Loading (%)',
-        # 'link_spd': 'Link Speed',
-        # 'link_wth': 'Link Width',
-        # 'sclk_ps': 'Current SCLK P-State',
-        # 'sclk_f': 'Current SCLK',
-        # 'sclk_f_range': 'SCLK Range',
-        # 'mclk_ps': 'Current MCLK P-State',
-        # 'mclk_f': 'Current MCLK',
-        # 'mclk_f_range': 'MCLK Range',
-        # 'ppm': 'Power Performance Mode',
-        # 'power_dpm_force': 'Power Force Performance Level'
-
-    def read_gpu_sensor_data(self, static=False, dynamic=False, test=False):
+    def read_gpu_sensor_data(self, data_type='All'):
         """
         Read GPU static data from HWMON path.
+        :param data_type: Test, Static, Dynamic, Info, State, or All
+        :type data_type: str
         :return: None
         """
-        if static:
-            param_list = ['power_cap_range', 'temp_crit']
-            if env.GUT_CONST.show_fans:
-                for aparam in ['fan_speed_range', 'fan_pwm_range']:
-                    param_list.append(aparam)
-        elif dynamic:
-            param_list = ['power', 'temperatures', 'voltages', 'frequencies']
-            if env.GUT_CONST.show_fans:
-                for aparam in ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']:
-                    param_list.append(aparam)
-        elif test:
-            param_list = ['power']
-        else:
-            return None
-
-        for param in param_list:
-            if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
-            rdata = self.read_gpu_sensor(param)
-            if test:
-                if rdata:
-                    self.prm.readability = True
+        def concat_sensor_dicts(dict1, dict2):
+            for st in dict2.keys():
+                if st in dict1.keys():
+                    dict1[st] += dict2[st]
                 else:
-                    self.prm.readability = False
-                return rdata
-            if rdata is False:
-                # TODO this probably should not trigger incompatibility
-                self.prm.compatible = False
-                print('Error reading parameter: {}'.format(param))
-            elif rdata is None:
-                print('Invalid or disabled parameter: {}'.format(param))
-            else:
-                if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
-                self.set_params_value(param, rdata)
+                    dict1.update({st: dict2[st]})
+
+        param_list_static = {'HWMON': ['power_cap_range', 'temp_crit']}
+        param_list_static_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range']}
+        param_list_dynamic = {'HWMON': ['power', 'temperatures', 'voltages', 'frequencies']}
+        param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
+        param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios']}
+        param_list_state = {'DEVICE': ['loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps']}
+        param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps'],
+                          'HWMON': ['power_cap_range', 'temp_crit', 'power', 'temperatures', 'voltages', 'frequencies']}
+        param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
+        param_list_test = {'HWMON': ['power']}
+
+        if data_type == 'Static':
+            param_list = param_list_static.copy()
+            if env.GUT_CONST.show_fans:
+                concat_sensor_dicts(param_list, param_list_static_fan)
+        elif data_type == 'Dynamic':
+            param_list = param_list_dynamic.copy()
+            if env.GUT_CONST.show_fans:
+                concat_sensor_dicts(param_list, param_list_dynamic_fan)
+        elif data_type == 'Info':
+            param_list = param_list_info
+        elif data_type == 'State':
+            param_list = param_list_state
+        elif data_type == 'Test':
+            param_list = param_list_test
+        else:   # '== All'
+            param_list = param_list_all.copy()
+            if env.GUT_CONST.show_fans:
+                concat_sensor_dicts(param_list, param_list_static_fan)
+                concat_sensor_dicts(param_list, param_list_dynamic_fan)
+
+        for sensor_type, param_names in param_list.items():
+            for param in param_names:
+                if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
+                rdata = self.read_gpu_sensor(param, sensor_type=sensor_type)
+                if data_type == 'Test':
+                    if rdata:
+                        self.prm.readability = True
+                    else:
+                        self.prm.readability = False
+                    return rdata
+                if rdata is False:
+                    # TODO this probably should not trigger incompatibility
+                    self.prm.compatible = False
+                    print('Error reading parameter: {}'.format(param))
+                elif rdata is None:
+                    print('Invalid or disabled parameter: {}'.format(param))
+                else:
+                    if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
+                    self.set_params_value(param, rdata)
 
     def read_gpu_driver_info(self):
         """
         Read GPU current driver information from card path directory.
         :return: None
         """
+        param_list = ['id', 'unique_id', 'vbios']
         try:
             # get all device ID information
             file_path = os.path.join(self.prm.card_path, 'device')
@@ -1451,11 +1493,11 @@ class GpuList:
             if v.prm.compatible:
                 v.read_gpu_state_data()
 
-    def read_gpu_sensor_data(self, static=False, dynamic=False, test=False):
+    def read_gpu_sensor_data(self, data_type='All'):
         """Read sensor data from GPUs"""
         for v in self.list.values():
             if v.prm.compatible:
-                v.read_gpu_sensor_data(static, dynamic, test)
+                v.read_gpu_sensor_data(data_type)
 
     def read_gpu_driver_info(self):
         """Read data static driver information for GPUs"""
