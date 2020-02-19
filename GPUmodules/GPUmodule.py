@@ -275,7 +275,7 @@ class GpuItem:
             elif value == 1: self.prm[name][1] = 'Manual'
             else: self.prm[name][1] = 'Dynamic'
         elif name == 'ppm':
-            self.prm[name] = re.sub(r'[*].*', '', value)
+            self.prm[name] = re.sub(r'[*].*', '', value).strip()
             self.prm[name] = re.sub(r'[ ]+', '-', self.prm[name])
         elif name == 'power':
             time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
