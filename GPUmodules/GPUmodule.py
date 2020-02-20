@@ -122,7 +122,8 @@ class GpuItem:
                                   'fan_speed_range': 'Fan Speed Range (rpm)',
                                   'fan_pwm_range': 'Fan PWM Range (%)'})
     _GPU_Param_Labels.update({'sep3': '#',
-                              'loading': 'Current Loading (%)',
+                              'loading': 'Current GPU Loading (%)',
+                              'mem_loading': 'Current Memory Loading (%)',
                               'temperatures': 'Current Temps (C)',
                               'temp_crit': 'Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
@@ -161,6 +162,7 @@ class GpuItem:
                                           'sensor': ['vendor', 'device', 'subsystem_vendor', 'subsystem_device']},
                                    'unique_id': {'type': 'st', 'cf': None, 'sensor': ['unique_id']},
                                    'loading': {'type': 'st', 'cf': None, 'sensor': ['gpu_busy_percent']},
+                                   'mem_loading': {'type': 'st', 'cf': None, 'sensor': ['mem_busy_percent']},
                                    'link_spd': {'type': 'st', 'cf': None, 'sensor': ['current_link_speed']},
                                    'link_wth': {'type': 'st', 'cf': None, 'sensor': ['current_link_width']},
                                    'sclk_ps': {'type': 'st*', 'cf': None, 'sensor': ['pp_dpm_sclk']},
@@ -237,6 +239,7 @@ class GpuItem:
                             'voltages': None,
                             'frequencies': None,
                             'loading': None,
+                            'mem_loading': None,
                             'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
                             'sclk_ps': ['', ''],
@@ -852,9 +855,9 @@ class GpuItem:
         param_list_dynamic = {'HWMON': ['power', 'temperatures', 'voltages', 'frequencies']}
         param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
         param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios']}
-        param_list_state = {'DEVICE': ['loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
+        param_list_state = {'DEVICE': ['loading', 'mem_loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
                                        'power_dpm_force']}
-        param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'link_spd', 'link_wth',
+        param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
                                      'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force'],
                           'HWMON': ['power_cap_range', 'temp_crit', 'power', 'temperatures', 'voltages', 'frequencies']}
         param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
@@ -1200,9 +1203,8 @@ class GpuList:
 
             # Check AMD write capability
             if vendor == 'AMD':
-                power_dpm_state_file = os.path.join(card_path, 'power_dpm_state')
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
-                if os.path.isfile(pp_od_clk_voltage_file) and os.path.isfile(power_dpm_state_file):
+                if os.path.isfile(pp_od_clk_voltage_file):
                     readable = True
                     if self.amd_writable:
                         writeable = True
