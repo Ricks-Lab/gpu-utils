@@ -757,6 +757,9 @@ class GpuItem:
         :type sensor_type: str
         :return:
         """
+        if vendor not in self._sensor_details.keys():
+            print('Error: Invalid vendor [{}]'.format(vendor))
+            return None
         if sensor_type not in self._sensor_details[vendor].keys():
             print('Error: Invalid sensor_type [{}]'.format(sensor_type))
             return None
@@ -883,7 +886,7 @@ class GpuItem:
         for sensor_type, param_names in param_list.items():
             for param in param_names:
                 if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
-                rdata = self.read_gpu_sensor(param, sensor_type=sensor_type)
+                rdata = self.read_gpu_sensor(param, vendor=self.prm.vendor, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
                         print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
