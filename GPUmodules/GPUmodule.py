@@ -122,11 +122,11 @@ class GpuItem:
                                   'fan_speed_range': 'Fan Speed Range (rpm)',
                                   'fan_pwm_range': 'Fan PWM Range (%)'})
     _GPU_Param_Labels.update({'sep3': '#',
+                              'loading': 'Current Loading (%)',
                               'temperatures': 'Current Temps (C)',
                               'temp_crit': 'Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
                               'vddc_range': 'Vddc Range',
-                              'loading': 'Current Loading (%)',
                               'frequencies': 'Current Clk Frequencies (MHz)',
                               'sclk_ps': 'Current SCLK P-State',
                               'sclk_f_range': 'SCLK Range',
