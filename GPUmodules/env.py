@@ -175,11 +175,11 @@ class GutConst:
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
             print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
-            command_access_fail = True
+            #command_access_fail = True
         self.cmd_dpkg = shutil.which('dpkg')
         if not self.cmd_dpkg:
             print('OS command [dpkg] executable not found.')
-            command_access_fail = True
+            #command_access_fail = True
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
             pass
@@ -187,23 +187,7 @@ class GutConst:
             #command_access_fail = True
         if command_access_fail:
             return -3
-
-        # Check AMD GPU Driver Version
-        lshw_out = subprocess.check_output(shlex.split('{} -c video'.format(self.cmd_lshw)), shell=False,
-                                           stderr=subprocess.DEVNULL).decode().split('\n')
-        driver_str = ''
-        for lshw_line in lshw_out:
-            search_obj = re.search('configuration:', lshw_line)
-            if search_obj:
-                lineitems = lshw_line.split(sep=':')
-                driver_str = lineitems[1].strip()
-                search_obj = re.search('driver=amdgpu', driver_str)
-                if search_obj:
-                    return 0
-        print('amdgpu-utils no compatible driver found: {}'.format(driver_str))
-        print('amdgpu-utils requires AMD \'amdgpu\' driver package or \'ROCm\' in order to function.')
-        self.amd_read = self.amd_write = False
-        return -3
+        return 0
 
     def read_amd_driver_version(self):
         """
