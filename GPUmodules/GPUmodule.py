@@ -831,6 +831,9 @@ class GpuItem:
         :type data_type: str
         :return: None
         """
+        if not self.prm.readable:
+            return None
+
         def concat_sensor_dicts(dict1, dict2):
             """
             Concatenate dict2 onto dict1
@@ -882,7 +885,8 @@ class GpuItem:
                 rdata = self.read_gpu_sensor(param, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
-                        print('Warning: Error reading parameter: {}, disabling for this GPU'.format(param))
+                        print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
+                              self.prm.card_num))
                 elif rdata is None:
                     print('Warning: Invalid or disabled parameter: {}'.format(param))
                 else:
@@ -1197,11 +1201,12 @@ class GpuList:
                 hwmon_path = hw_file_srch[0]
 
             # Check AMD write capability
-            pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
-            if os.path.isfile(pp_od_clk_voltage_file):
-                readable = True
-                if self.amd_writable:
-                    writeable = True
+            if vendor == 'AMD':
+                pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
+                if os.path.isfile(pp_od_clk_voltage_file):
+                    readable = True
+                    if self.amd_writable:
+                        writeable = True
 
             self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                          card_path, hwmon_path, readable, writeable, compute, compatible,
@@ -1393,7 +1398,7 @@ class GpuList:
     def read_gpu_sensor_data(self, data_type='All'):
         """Read sensor data from GPUs"""
         for v in self.list.values():
-            if v.prm.compatible:
+            if v.prm.readable:
                 v.read_gpu_sensor_data(data_type)
 
     # Printing Methods follow.
