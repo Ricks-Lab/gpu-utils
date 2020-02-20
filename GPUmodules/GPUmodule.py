@@ -91,21 +91,25 @@ class GpuItem:
                           'prf_wg_multiple': 'Preferred Work Group Multiple'}
     _GPU_Param_Labels = {'card_num': 'Card Number',
                          'vendor': 'Vendor',
-                         'unique_id': 'GPU UID',
                          'compatible': '{} Compatibility'.format(__program_name__),
                          'readable': 'Readable',
                          'writeable': 'Writeable',
+                         'unique_id': 'GPU UID',
                          'id': 'Device ID',
-                         'gpu_type': 'GPU Frequency/Voltage Control Type',
                          'model_device_decode': 'Decoded Device ID',
                          'model': 'Card Model',
                          'model_display': 'Display Card Model',
-                         'compute_platform': 'Compute Platform',
                          'pcie_id': 'PCIe ID',
+                         'link_spd': 'Link Speed',
+                         'link_wth': 'Link Width',
+                         'sep1': '#',
                          'driver': 'Driver',
                          'vbios': 'vBIOS Version',
+                         'compute_platform': 'Compute Platform',
+                         'gpu_type': 'GPU Frequency/Voltage Control Type',
                          'hwmon_path': 'HWmon',
                          'card_path': 'Card Path',
+                         'sep2': '#',
                          'power': 'Current Power (W)',
                          'power_cap': 'Power Cap (W)',
                          'power_cap_range': 'Power Cap Range (W)'}
@@ -117,7 +121,8 @@ class GpuItem:
                                   'fan_target': 'Fan Target Speed (rpm)',
                                   'fan_speed_range': 'Fan Speed Range (rpm)',
                                   'fan_pwm_range': 'Fan PWM Range (%)'})
-    _GPU_Param_Labels.update({'temperatures': 'Current Temps (C)',
+    _GPU_Param_Labels.update({'sep3': '#',
+                              'temperatures': 'Current Temps (C)',
                               'temp_crit': 'Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
                               'vddc_range': 'Vddc Range',
@@ -127,8 +132,6 @@ class GpuItem:
                               'sclk_f_range': 'SCLK Range',
                               'mclk_ps': 'Current MCLK P-State',
                               'mclk_f_range': 'MCLK Range',
-                              'link_spd': 'Link Speed',
-                              'link_wth': 'Link Width',
                               'ppm': 'Power Performance Mode',
                               'power_dpm_force': 'Power Force Performance Level'})
 
@@ -284,7 +287,7 @@ class GpuItem:
             self.prm[name] = re.sub(r'[ ]+', '-', self.prm[name])
         elif name == 'power':
             time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
-            self.prm[name] = value
+            self.prm[name] = round(value, 1)
             delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
             self.energy['tn'] = time_n
             self.energy['cumulative'] += delta_hrs * value / 1000
@@ -855,7 +858,6 @@ class GpuItem:
                           'HWMON': ['power_cap_range', 'temp_crit', 'power', 'temperatures', 'voltages', 'frequencies']}
         param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
                                         'pwm_mode', 'fan_pwm']}
-        param_list_test = {'HWMON': ['power']}
 
         if data_type == 'Static':
             param_list = param_list_static.copy()
@@ -869,8 +871,6 @@ class GpuItem:
             param_list = param_list_info
         elif data_type == 'State':
             param_list = param_list_state
-        elif data_type == 'Test':
-            param_list = param_list_test
         else:   # '== All'
             param_list = param_list_all.copy()
             if env.GUT_CONST.show_fans:
@@ -880,12 +880,11 @@ class GpuItem:
             for param in param_names:
                 if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
                 rdata = self.read_gpu_sensor(param, sensor_type=sensor_type)
-                if data_type == 'Test':
-                    self.prm.readability = True if rdata else False
                 if rdata is False:
-                    print('Error reading parameter: {}, disabling for this GPU'.format(param))
+                    if param != 'unique_id':
+                        print('Warning: Error reading parameter: {}, disabling for this GPU'.format(param))
                 elif rdata is None:
-                    print('Invalid or disabled parameter: {}'.format(param))
+                    print('Warning: Invalid or disabled parameter: {}'.format(param))
                 else:
                     if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
                     self.set_params_value(param, rdata)
@@ -937,12 +936,20 @@ class GpuItem:
         :return: None
         """
         for k, v in self.get_all_params_labels().items():
-            if self.prm.gpu_type == 2 and k == 'vddc_range':
-                continue
             if not self.prm.compatible:
                 if k not in self.get_nc_params_list():
                     continue
-            print('{}: {}'.format(v, self.get_params_value(k)))
+            pre = '' if k == 'card_num' else '   '
+
+            if re.search(r'sep[0-9]', k):
+                print('{}{}'.format(pre, v.ljust(50, v)))
+                continue
+            if k == 'unique_id':
+                if self.prm.unique_id is None:
+                    continue
+            if self.prm.gpu_type == 2 and k == 'vddc_range':
+                continue
+            print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
         if clflag:
             for k, v in self.get_all_clinfo_labels().items():
                 print('{}: {}'.format(v, self.get_clinfo_value(k)))
@@ -1383,23 +1390,11 @@ class GpuList:
         for v in self.list.values():
             v.print_pstates()
 
-    def read_gpu_state_data(self):
-        """Read dynamic state data from GPUs"""
-        for v in self.list.values():
-            if v.prm.compatible:
-                v.read_gpu_state_data()
-
     def read_gpu_sensor_data(self, data_type='All'):
         """Read sensor data from GPUs"""
         for v in self.list.values():
             if v.prm.compatible:
                 v.read_gpu_sensor_data(data_type)
-
-    def read_gpu_driver_info(self):
-        """Read data static driver information for GPUs"""
-        for v in self.list.values():
-            if v.prm.compatible:
-                v.read_gpu_driver_info()
 
     # Printing Methods follow.
     def print(self, clflag=False):
