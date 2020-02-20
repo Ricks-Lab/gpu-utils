@@ -653,13 +653,12 @@ class GpuItem:
                     self.ppm_modes[line_items[0]] = line_items[1:]
             self.ppm_modes['-1'] = ['AUTO', 'Auto']
 
-        file_path = os.path.join(self.prm.card_path, 'power_dpm_force_performance_level')
-        if os.path.isfile(file_path):
-            with open(file_path) as card_file:
-                self.prm.power_dpm_force = card_file.readline().strip()
-        else:
+        rdata = self.read_gpu_sensor('power_dpm_force', vendor='AMD', sensor_type='DEVICE')
+        if rdata is False:
             print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
             self.prm.compatible = False
+        else:
+            self.set_params_value('power_dpm_force', rdata)
 
     def read_gpu_pstates(self):
         """
@@ -670,11 +669,6 @@ class GpuItem:
         range_mode = False
         type_unknown = True
 
-        file_path = os.path.join(self.prm.card_path, 'power_dpm_state')
-        if not os.path.isfile(file_path):
-            print('Error: Looks like DPM is not enabled: {} does not exist'.format(file_path), file=sys.stderr)
-            self.prm.compatible = False
-            return
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
@@ -1206,8 +1200,9 @@ class GpuList:
 
             # Check AMD write capability
             if vendor == 'AMD':
+                power_dpm_state_file = os.path.join(card_path, 'power_dpm_state')
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
-                if os.path.isfile(pp_od_clk_voltage_file):
+                if os.path.isfile(pp_od_clk_voltage_file) and os.path.isfile(power_dpm_state_file):
                     readable = True
                     if self.amd_writable:
                         writeable = True
