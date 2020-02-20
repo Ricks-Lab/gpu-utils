@@ -74,7 +74,7 @@ class GpuItem:
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
-    _GPU_NC_Param_List = ['uuid', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
+    _GPU_NC_Param_List = ['compatible', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'device_name': 'Device Name',
                           'device_version': 'Device Version',
@@ -89,14 +89,18 @@ class GpuItem:
                           'max_wi_sizes': 'Max Work Item Sizes',
                           'max_wg_size': 'Max Work Group Size',
                           'prf_wg_multiple': 'Preferred Work Group Multiple'}
-    _GPU_Param_Labels = {'vendor': 'Vendor',
+    _GPU_Param_Labels = {'card_num': 'Card Number',
+                         'vendor': 'Vendor',
                          'unique_id': 'GPU UID',
+                         'compatible': '{} Compatibility'.format(__program_name__),
+                         'readable': 'Readable',
+                         'writeable': 'Writeable',
                          'id': 'Device ID',
                          'gpu_type': 'GPU Frequency/Voltage Control Type',
                          'model_device_decode': 'Decoded Device ID',
                          'model': 'Card Model',
                          'model_display': 'Display Card Model',
-                         'card_num': 'Card Number',
+                         'compute_platform': 'Compute Platform',
                          'pcie_id': 'PCIe ID',
                          'driver': 'Driver',
                          'vbios': 'vBIOS Version',
@@ -202,6 +206,7 @@ class GpuItem:
                             'readable': False,
                             'writable': False,
                             'compute': False,
+                            'compute_platform': None,
                             'gpu_type': 0,
                             'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                             'model_device_decode': 'UNDETERMINED',
@@ -346,7 +351,6 @@ class GpuItem:
         :type ocl_index: str
         :return: None
         :rtype: None
-        .. todo:: Determine if compute capability can be set and send that instead of ocl details.
         """
         self.prm.pcie_id = pcie_id
         self.prm.model = gpu_name
@@ -359,6 +363,7 @@ class GpuItem:
         self.prm.readable = readable
         self.prm.writeable = writeable
         self.prm.compute = compute
+        self.prm.compute_platform = ocl_ver if compute else 'None'
         self.prm.compatible = compatible
         #self.ocl_device_name = ocl_dev
         #self.ocl_device_version = ocl_ver
@@ -374,7 +379,7 @@ class GpuItem:
         :rtype: None
         .. note: Maybe not needed
         """
-        self.clinfo.name = value
+        self.clinfo[name] = value
 
     def get_clinfo_value(self, name):
         """
@@ -385,7 +390,7 @@ class GpuItem:
         :rtype: Union[int, str, list]
         .. note: Maybe not needed
         """
-        return self.clinfo.name
+        return self.clinfo[name]
 
     def copy_clinfo_values(self, gpu_item):
         """
@@ -739,7 +744,8 @@ class GpuItem:
 
     def read_gpu_sensor(self, parameter, vendor='AMD', sensor_type='HWMON'):
         """
-
+        Read sensor for the given parameter name.  Process per sensor_details dict using the specified
+        vendor name and sensor_type.
         :param parameter: GpuItem parameter name (AMD)
         :type parameter: str
         :param vendor: GPU vendor name
@@ -792,8 +798,7 @@ class GpuItem:
         if sensor_dict[parameter]['type'] == 'sp':
             if sensor_dict[parameter]['cf'] == 1:
                 return int(values[0])
-            else:
-                return int(values[0])*sensor_dict[parameter]['cf']
+            return int(values[0])*sensor_dict[parameter]['cf']
         elif sensor_dict[parameter]['type'] == 'sl':
             ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
             ret_value.append(values[1])
@@ -824,6 +829,14 @@ class GpuItem:
         :return: None
         """
         def concat_sensor_dicts(dict1, dict2):
+            """
+            Concatenate dict2 onto dict1
+            :param dict1:
+            :type dict1: dict
+            :param dict2:
+            :type dict2: dict
+            :return:
+            """
             for st in dict2.keys():
                 if st in dict1.keys():
                     dict1[st] += dict2[st]
@@ -868,11 +881,7 @@ class GpuItem:
                 if env.GUT_CONST.DEBUG: print('Processing parameter: {}'.format(param))
                 rdata = self.read_gpu_sensor(param, sensor_type=sensor_type)
                 if data_type == 'Test':
-                    if rdata:
-                        self.prm.readability = True
-                    else:
-                        self.prm.readability = False
-                    return rdata
+                    self.prm.readability = True if rdata else False
                 if rdata is False:
                     print('Error reading parameter: {}, disabling for this GPU'.format(param))
                 elif rdata is None:
@@ -923,16 +932,13 @@ class GpuItem:
     def print(self, clflag=False):
         """
         Display ls like listing function for GPU parameters.
+        :param clflag:  Display clinfo data if True
+        :type clflag: bool
         :return: None
         """
-        for i, (k, v) in enumerate(self.get_all_params_labels().items()):
+        for k, v in self.get_all_params_labels().items():
             if self.prm.gpu_type == 2 and k == 'vddc_range':
                 continue
-            if i == 1:
-                if self.prm.compatible:
-                    print('{} Compatibility: Yes'.format(__program_name__))
-                else:
-                    print('{} Compatibility: NO'.format(__program_name__))
             if not self.prm.compatible:
                 if k not in self.get_nc_params_list():
                     continue
@@ -1011,6 +1017,9 @@ class GpuList:
     def __init__(self):
         self.list = {}
         self.opencl_map = {}
+        self.amd_featuremask = None
+        self.amd_writable = False
+        self.nv_writable = False
 
     def add(self, gpu_item):
         """
@@ -1048,6 +1057,24 @@ class GpuList:
         self.read_gpu_opencl_data()
         if env.GUT_CONST.DEBUG: print('openCL map: {}'.format(self.opencl_map))
 
+        # Check AMD writability
+        try:
+            self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
+        except FileNotFoundError:
+            print('Cannot read ppfeaturemask. AMD writability not possible...')
+            self.amd_writable = False
+        if (self.amd_featuremask == int(0xffff7fff) or self.amd_featuremask == int(0xffffffff) or
+                                                       self.amd_featuremask == int(0xfffd7fff)):
+            print('AMD Wattman features enabled: {}'.format(hex(self.amd_featuremask)))
+            self.amd_writable = True
+        else:
+            print('AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask)))
+            self.amd_writable = False
+
+        # Check NV writability
+        if env.GUT_CONST.cmd_nvidia_smi:
+            self.nv_writable = True
+
         try:
             pcie_ids = subprocess.check_output('{} | grep -E \"^.*(VGA|3D|Display).*$\" | grep -Eo \
                                                \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"'.format(
@@ -1077,7 +1104,7 @@ class GpuList:
                 gpu_name = gpu_name_items[1]
             try:
                 short_gpu_name = gpu_name.split('[AMD/ATI]')[1]
-            except:
+            except IndexError:
                 short_gpu_name = 'UNKNOWN'
             # Check for Fiji ProDuo
             srch_obj = re.search('Fiji', gpu_name)
@@ -1095,7 +1122,6 @@ class GpuList:
             if srch_obj:
                 vendor = 'AMD'
                 compatible = True
-                compute = False
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         opencl_device_name = self.opencl_map[pcie_id][0]
@@ -1107,8 +1133,6 @@ class GpuList:
             srch_obj = re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name)
             if srch_obj:
                 vendor = 'NVIDIA'
-                compatible = False
-                compute = False
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         opencl_device_name = self.opencl_map[pcie_id][0]
@@ -1120,8 +1144,6 @@ class GpuList:
             srch_obj = re.search(r'(INTEL|intel|Intel)', gpu_name)
             if srch_obj:
                 vendor = 'INTEL'
-                compatible = False
-                compute = False
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         opencl_device_name = self.opencl_map[pcie_id][0]
@@ -1137,13 +1159,9 @@ class GpuList:
             srch_obj = re.search(r'(ASPEED|aspeed|Aspeed)', gpu_name)
             if srch_obj:
                 vendor = 'ASPEED'
-                compute = False
-                compatible = False
             srch_obj = re.search(r'(MATROX|matrox|Matrox)', gpu_name)
             if srch_obj:
                 vendor = 'MATROX'
-                compute = False
-                compatible = False
 
             # Get Driver Name
             driver_module = 'UNKNOWN'
@@ -1171,12 +1189,17 @@ class GpuList:
             elif len(hw_file_srch) == 1:
                 hwmon_path = hw_file_srch[0]
 
+            # Check AMD write capability
+            pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
+            if os.path.isfile(pp_od_clk_voltage_file):
+                readable = True
+                if self.amd_writable:
+                    writeable = True
+
             self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                          card_path, hwmon_path, readable, writeable, compute, compatible,
                                          opencl_device_name, opencl_device_version, opencl_device_index)
 
-            # Set energy compatibility TODO need to set read compatibility instead
-            #self.list[gpu_uuid].get_power(set_energy_compatibility=True)
         return True
 
     def read_gpu_opencl_data(self):

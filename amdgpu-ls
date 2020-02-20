@@ -82,19 +82,6 @@ def main():
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    # Check value of AMD Feature mask
-    try:
-        featuremask = env.GUT_CONST.read_amdfeaturemask()
-    except FileNotFoundError:
-        print('Cannot read ppfeaturemask. Exiting...')
-        sys.exit(-1)
-    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
-        print('AMD Wattman features enabled: %s' % hex(featuremask))
-    else:
-        print('AMD Wattman features not enabled: %s, See README file.' % hex(featuremask))
-        # TODO set flag for read only
-        sys.exit(-1)
-
     env.GUT_CONST.read_amd_driver_version()
 
     # Get list of AMD GPUs and get basic non-driver details
