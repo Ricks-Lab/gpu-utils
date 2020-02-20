@@ -790,11 +790,12 @@ class GpuItem:
                         with open(file_path.replace('input', 'label')) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
                 except OSError as err:
-                    print('Error [{}]: Can not read HW file: {}'.format(err, file_path), file=sys.stderr)
+                    if env.GUT_CONST.DEBUG:
+                        print('Error [{}]: Can not read HW file: {}'.format(err, file_path), file=sys.stderr)
                     self.read_disabled.append(parameter)
                     return False
             else:
-                print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
+                if env.GUT_CONST.DEBUG: print('Error: HW file does not exist: {}'.format(file_path), file=sys.stderr)
                 self.read_disabled.append(parameter)
                 return False
 
