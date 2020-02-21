@@ -311,18 +311,14 @@ def main():
     if num_gpus['total'] == 0:
         print('No GPUs detected, exiting...')
         sys.exit(-1)
-    print('{} detected GPUs, {} may be readable, {} may be writable, checking...'.format(num_gpus['total'],
-                                                                                         num_gpus['readable'],
-                                                                                         num_gpus['writable']))
 
     # Read data static/dynamic/info/state driver information for GPUs
     gpu_list.read_gpu_sensor_data(data_type='All')
 
     # Check number of readable/writable GPUs again
     num_gpus = gpu_list.num_gpus()
-    print('{} total GPUs, {} readable, {} writable.\n'.format(num_gpus['total'],
-                                                              num_gpus['readable'],
-                                                              num_gpus['writable']))
+    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
+                                                                num_gpus['r-only'], num_gpus['w-only']))
 
     time.sleep(1)
     # Generate a new list of only compatible GPUs
