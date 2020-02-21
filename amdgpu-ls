@@ -82,8 +82,6 @@ def main():
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    env.GUT_CONST.read_amd_driver_version()
-
     # Get list of GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
     gpu_list.set_gpu_list()
@@ -97,6 +95,11 @@ def main():
         else:
             print('{}: {}'.format(k, v), end='')
     print('')
+    if 'AMD' in num_gpus.keys():
+        env.GUT_CONST.read_amd_driver_version()
+        gpu_list.wattman_status()
+    if 'NV' in num_gpus.keys():
+        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
 
     num_gpus = gpu_list.num_gpus()
     if num_gpus['total'] == 0:
@@ -119,13 +122,13 @@ def main():
     if args.clinfo:
         if not gpu_list.read_gpu_opencl_data():
             args.clinfo = False
-    gpu_list.read_gpu_pstates()
-    gpu_list.read_gpu_ppm_table()
 
     # Print out user requested details
     if args.pstates:
+        gpu_list.read_gpu_pstates()
         gpu_list.print_pstates()
     if args.ppm:
+        gpu_list.read_gpu_ppm_table()
         gpu_list.print_ppm_table()
     if not args.pstates and not args.ppm:
         gpu_list.print(args.clinfo)

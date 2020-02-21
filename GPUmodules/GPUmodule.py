@@ -899,12 +899,14 @@ class GpuItem:
         :return: None
         """
         if not self.prm.readable:
+            print('PPM for card number {} not readable.'.format(self.prm.card_num))
             return
-        print('Card Model: {}'.format(self.prm.model_display))
-        print('Card: {}'.format(self.prm.card_path))
-        print('Power Performance Mode: {}'.format(self.prm.power_dpm_force))
+        print('Card Number: {}'.format(self.prm.card_num))
+        print('   Card Model: {}'.format(self.prm.model_display))
+        print('   Card: {}'.format(self.prm.card_path))
+        print('   Power Performance Mode: {}'.format(self.prm.power_dpm_force))
         for k, v in self.ppm_modes.items():
-            print('{:<3}: {:>15}'.format(k, v[0]), end='')
+            print('   {:<3}: {:>15}'.format(k, v[0]), end='')
             for v_item in v[1:]:
                 print('{:>18}'.format(v_item), end='')
             print('')
@@ -916,20 +918,22 @@ class GpuItem:
         :return: None
         """
         if not self.prm.readable:
+            print('P-States for card number {} not readable.'.format(self.prm.card_num))
             return
-        print('Card Model: {}'.format(self.prm.model_display))
-        print('Card: {}'.format(self.prm.card_path))
-        print('SCLK: {:<17} MCLK:'.format(' '))
+        print('Card Number: {}'.format(self.prm.card_num))
+        print('   Card Model: {}'.format(self.prm.model_display))
+        print('   Card: {}'.format(self.prm.card_path))
+        print('   SCLK: {:<17} MCLK:'.format(' '))
         for k, v in self.sclk_state.items():
-            print('{:>1}:  {:<8}  {:<8}'.format(k, v[0], v[1]), end='')
+            print('   {:>1}:  {:<8}  {:<8}  '.format(k, v[0], v[1]), end='')
             if k in self.mclk_state.keys():
                 print('{:3>}:  {:<8}  {:<8}'.format(k, self.mclk_state[k][0], self.mclk_state[k][1]))
             else:
                 print('')
         if self.prm.gpu_type == 2:
-            print('VDDC_CURVE')
+            print('   VDDC_CURVE')
             for k, v in self.vddc_curve.items():
-                print('{}: {}'.format(k, v))
+                print('   {}: {}'.format(k, v))
         print('')
 
     def print(self, clflag=False):
@@ -1029,8 +1033,19 @@ class GpuList:
         self.list = {}
         self.opencl_map = {}
         self.amd_featuremask = None
+        self.amd_wattman = False
         self.amd_writable = False
         self.nv_writable = False
+
+    def wattman_status(self):
+        """
+        Display Wattman status.
+        :return:  None
+        """
+        if self.amd_wattman:
+            print('AMD Wattman features enabled: {}'.format(hex(self.amd_featuremask)))
+        else:
+            print('AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask)))
 
     def add(self, gpu_item):
         """
@@ -1072,15 +1087,12 @@ class GpuList:
         try:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
-            print('Cannot read ppfeaturemask. AMD writability not possible...')
-            self.amd_writable = False
+            self.amd_wattman = self.amd_writable = False
         if (self.amd_featuremask == int(0xffff7fff) or self.amd_featuremask == int(0xffffffff) or
                                                        self.amd_featuremask == int(0xfffd7fff)):
-            print('AMD Wattman features enabled: {}'.format(hex(self.amd_featuremask)))
-            self.amd_writable = True
+            self.amd_wattman = self.amd_writable = True
         else:
-            print('AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask)))
-            self.amd_writable = False
+            self.amd_wattman = self.amd_writable = False
 
         # Check NV writability
         if env.GUT_CONST.cmd_nvidia_smi:
