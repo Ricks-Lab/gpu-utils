@@ -908,7 +908,7 @@ class GpuItem:
                         print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
                               self.prm.card_num))
                 elif rdata is None:
-                    print('Warning: Invalid or disabled parameter: {}'.format(param))
+                    if env.GUT_CONST.DEBUG: print('Warning: Invalid or disabled parameter: {}'.format(param))
                 else:
                     if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
                     self.set_params_value(param, rdata)
