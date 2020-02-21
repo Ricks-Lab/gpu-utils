@@ -84,27 +84,36 @@ def main():
 
     env.GUT_CONST.read_amd_driver_version()
 
-    # Get list of AMD GPUs and get basic non-driver details
+    # Get list of GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
     gpu_list.set_gpu_list()
 
-    # Check list of AMD GPUs
+    # Check list of GPUs
+    num_gpus = gpu_list.num_vendor_gpus()
+    print('Detected GPUs: ', end='')
+    for i, (k, v) in enumerate(num_gpus.items()):
+        if i:
+            print(', {}: {}'.format(k, v), end='')
+        else:
+            print('{}: {}'.format(k, v), end='')
+    print('')
+
     num_gpus = gpu_list.num_gpus()
-    num_amd_gpus = gpu_list.num_gpus(vendor='AMD')
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_gpus == 0:
+    if num_gpus['total'] == 0:
         print('No GPUs detected, exiting...')
         sys.exit(-1)
-    print('{} detected GPUs, {} are AMD, {} may be compatible, checking...'.format(num_gpus,
-                                                                                   num_amd_gpus,
-                                                                                   num_com_gpus))
+    print('{} detected GPUs, {} may be readable, {} may be writable, checking...'.format(num_gpus['total'],
+                                                                                         num_gpus['readable'],
+                                                                                         num_gpus['writable']))
 
     # Read data static/dynamic/info/state driver information for GPUs
     gpu_list.read_gpu_sensor_data(data_type='All')
 
-    # Check number of compatible GPUs again
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    print('{} confirmed compatible.\n'.format(num_com_gpus))
+    # Check number of readable/writable GPUs again
+    num_gpus = gpu_list.num_gpus()
+    print('{} total GPUs, {} readable, {} writable.\n'.format(num_gpus['total'],
+                                                              num_gpus['readable'],
+                                                              num_gpus['writable']))
 
     # Read report specific details
     if args.clinfo:

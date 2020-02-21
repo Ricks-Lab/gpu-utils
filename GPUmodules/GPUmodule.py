@@ -74,7 +74,7 @@ class GpuItem:
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
-    _GPU_NC_Param_List = ['compatible', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
+    _GPU_NC_Param_List = ['readable', 'writable', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'device_name': 'Device Name',
                           'device_version': 'Device Version',
@@ -91,17 +91,16 @@ class GpuItem:
                           'prf_wg_multiple': 'Preferred Work Group Multiple'}
     _GPU_Param_Labels = {'card_num': 'Card Number',
                          'vendor': 'Vendor',
-                         'compatible': '{} Compatibility'.format(__program_name__),
                          'readable': 'Readable',
-                         'writeable': 'Writeable',
+                         'writable': 'Writable',
                          'unique_id': 'GPU UID',
                          'id': 'Device ID',
                          'model_device_decode': 'Decoded Device ID',
                          'model': 'Card Model',
                          'model_display': 'Display Card Model',
                          'pcie_id': 'PCIe ID',
-                         'link_spd': 'Link Speed',
-                         'link_wth': 'Link Width',
+                         'link_spd': '   Link Speed',
+                         'link_wth': '   Link Width',
                          'sep1': '#',
                          'driver': 'Driver',
                          'vbios': 'vBIOS Version',
@@ -112,27 +111,27 @@ class GpuItem:
                          'sep2': '#',
                          'power': 'Current Power (W)',
                          'power_cap': 'Power Cap (W)',
-                         'power_cap_range': 'Power Cap Range (W)'}
+                         'power_cap_range': '   Power Cap Range (W)'}
     if env.GUT_CONST.show_fans:
         _GPU_Param_Labels.update({'fan_enable': 'Fan Enable',
                                   'pwm_mode': 'Fan PWM Mode',
-                                  'fan_pwm': 'Current Fan PWM (%)',
-                                  'fan_speed': 'Current Fan Speed (rpm)',
                                   'fan_target': 'Fan Target Speed (rpm)',
-                                  'fan_speed_range': 'Fan Speed Range (rpm)',
-                                  'fan_pwm_range': 'Fan PWM Range (%)'})
+                                  'fan_speed': 'Current Fan Speed (rpm)',
+                                  'fan_pwm': 'Current Fan PWM (%)',
+                                  'fan_speed_range': '   Fan Speed Range (rpm)',
+                                  'fan_pwm_range': '   Fan PWM Range (%)'})
     _GPU_Param_Labels.update({'sep3': '#',
                               'loading': 'Current GPU Loading (%)',
                               'mem_loading': 'Current Memory Loading (%)',
                               'temperatures': 'Current Temps (C)',
-                              'temp_crit': 'Critical Temp (C)',
+                              'temp_crit': '   Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
-                              'vddc_range': 'Vddc Range',
+                              'vddc_range': '   Vddc Range',
                               'frequencies': 'Current Clk Frequencies (MHz)',
                               'sclk_ps': 'Current SCLK P-State',
-                              'sclk_f_range': 'SCLK Range',
+                              'sclk_f_range': '   SCLK Range',
                               'mclk_ps': 'Current MCLK P-State',
-                              'mclk_f_range': 'MCLK Range',
+                              'mclk_f_range': '   MCLK Range',
                               'ppm': 'Power Performance Mode',
                               'power_dpm_force': 'Power Force Performance Level'})
 
@@ -207,7 +206,6 @@ class GpuItem:
                             'pcie_id': '',
                             'driver': '',
                             'vendor': '',
-                            'compatible': False,
                             'readable': False,
                             'writable': False,
                             'compute': False,
@@ -324,7 +322,7 @@ class GpuItem:
         return self.prm[name]
 
     def populate(self, pcie_id, gpu_name, short_gpu_name, vendor, driver_module, card_path, hwmon_path,
-                 readable, writeable, compute, compatible, ocl_dev, ocl_ver, ocl_index):
+                 readable, writable, compute, ocl_dev, ocl_ver, ocl_index):
         """
         Populate elements of a GpuItem.
         :param pcie_id: The pcid ID of the GPU.
@@ -343,12 +341,10 @@ class GpuItem:
         :type hwmon_path: str
         :param readable: readable compatibility flag
         :type readable: bool
-        :param writeable: writeable compatibility flag
-        :type writeable: bool
+        :param writable: writable compatibility flag
+        :type writable: bool
         :param compute: Compute compatibility flag
         :type compute: bool
-        :param compatible: util compatibility flag
-        :type compatible: bool
         :param ocl_dev:  openCL device
         :type ocl_dev: str
         :param ocl_ver: openCL version
@@ -367,10 +363,9 @@ class GpuItem:
         self.prm.card_num = int(card_path.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', ''))
         self.prm.hwmon_path = hwmon_path
         self.prm.readable = readable
-        self.prm.writeable = writeable
+        self.prm.writable = writable
         self.prm.compute = compute
         self.prm.compute_platform = ocl_ver if compute else 'None'
-        self.prm.compatible = compatible
         #self.ocl_device_name = ocl_dev
         #self.ocl_device_version = ocl_ver
 
@@ -411,7 +406,7 @@ class GpuItem:
 
     def get_nc_params_list(self):
         """
-        Get list of parameter names for use with non-compatible cards.
+        Get list of parameter names for use with non-readable cards.
         :return: List of parameter names
         :rtype: list
         """
@@ -637,6 +632,8 @@ class GpuItem:
         Read the ppm table.
         :return: None
         """
+        if not self.prm.readable:
+            return
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
             print('Error getting power profile modes: {}'.format(file_path), file=sys.stderr)
@@ -659,7 +656,7 @@ class GpuItem:
         rdata = self.read_gpu_sensor('power_dpm_force', vendor='AMD', sensor_type='DEVICE')
         if rdata is False:
             print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
-            self.prm.compatible = False
+            self.prm.readable = False
         else:
             self.set_params_value('power_dpm_force', rdata)
 
@@ -669,13 +666,15 @@ class GpuItem:
         Set card type based on pstate configuration
         :return: None
         """
+        if not self.prm.readable:
+            return
         range_mode = False
         type_unknown = True
 
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
-            self.prm.compatible = False
+            self.prm.readable = False
             return
         with open(file_path) as card_file:
             for line in card_file:
@@ -899,7 +898,7 @@ class GpuItem:
         Print human friendly table of ppm parameters.
         :return: None
         """
-        if not self.prm.compatible:
+        if not self.prm.readable:
             return
         print('Card Model: {}'.format(self.prm.model_display))
         print('Card: {}'.format(self.prm.card_path))
@@ -916,7 +915,7 @@ class GpuItem:
         Print human friendly table of p-states.
         :return: None
         """
-        if not self.prm.compatible:
+        if not self.prm.readable:
             return
         print('Card Model: {}'.format(self.prm.model_display))
         print('Card: {}'.format(self.prm.card_path))
@@ -941,7 +940,7 @@ class GpuItem:
         :return: None
         """
         for k, v in self.get_all_params_labels().items():
-            if not self.prm.compatible:
+            if not self.prm.readable:
                 if k not in self.get_nc_params_list():
                     continue
             pre = '' if k == 'card_num' else '   '
@@ -1100,7 +1099,7 @@ class GpuList:
             gpu_uuid = uuid4().hex
             self.add(GpuItem(gpu_uuid))
             if env.GUT_CONST.DEBUG: print('GPU: {}'.format(pcie_id))
-            readable = writeable = compatible = compute = False
+            readable = writable = compute = False
             try:
                 lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
                                                       shell=True).decode().split('\n')
@@ -1133,7 +1132,6 @@ class GpuList:
             srch_obj = re.search(r'(AMD|amd|ATI|ati)', gpu_name)
             if srch_obj:
                 vendor = 'AMD'
-                compatible = True
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         opencl_device_name = self.opencl_map[pcie_id][0]
@@ -1207,10 +1205,10 @@ class GpuList:
                 if os.path.isfile(pp_od_clk_voltage_file):
                     readable = True
                     if self.amd_writable:
-                        writeable = True
+                        writable = True
 
             self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
-                                         card_path, hwmon_path, readable, writeable, compute, compatible,
+                                         card_path, hwmon_path, readable, writable, compute,
                                          opencl_device_name, opencl_device_version, opencl_device_index)
 
         return True
@@ -1296,67 +1294,69 @@ class GpuList:
         if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
         return True
 
-    def num_gpus(self, vendor=None, compatible=False, readable=False, writeable=False):
+    def num_vendor_gpus(self, compatibility='total'):
         """
-        Return the count of GPUs.  Counts all by default, but can also count compatible, readable or writeable.
-        Only one flag should be set.
+        Return the count of GPUs by vendor.  Counts total by default, but can also count readable or writable.
+        :param compatibility: Only count vendor GPUs if True.
+        :type compatibility: str
+        :return: Dictionary of GPU counts
+        :rtype: dict
+        """
+        results_dict = {}
+        for v in self.list.values():
+            if compatibility == 'readable':
+                if not v.prm.readable:
+                    continue
+            if compatibility == 'writable':
+                if not v.prm.writable:
+                    continue
+            if v.prm.vendor not in results_dict.keys():
+                results_dict.update({v.prm.vendor: 1})
+            else:
+                results_dict[v.prm.vendor] += 1
+        return results_dict
+
+    def num_gpus(self, vendor='All'):
+        """
+        Return the count of GPUs by total, readable or writable.
         :param vendor: Only count vendor GPUs if True.
         :type vendor: str
-        :param compatible: Only count compatible GPUs if True.
-        :type compatible: bool
-        :param readable: Only count readable GPUs if True.
-        :type readable: bool
-        :param writeable: Only count writeable GPUs if True.
-        :type readable: bool
-        :return: Number of GPUs
-        :rtype: int
+        :return: Dictionary of GPU counts
+        :rtype: dict
         """
-        cnt = 0
+        results_dict = {'vendor': vendor, 'total': 0, 'readable': 0, 'writable': 0}
         for v in self.list.values():
-            if vendor:
+            if vendor != 'All':
                 if vendor != v.prm.vendor:
                     continue
-            if compatible:
-                if v.prm.compatible:
-                    cnt += 1
-            elif readable:
-                if v.prm.readable:
-                    cnt += 1
-            elif writeable:
-                if v.prm.writeable:
-                    cnt += 1
-            else:
-                cnt += 1
-        return cnt
+            if v.prm.readable:
+                results_dict['readable'] += 1
+            if v.prm.writable:
+                results_dict['writable'] += 1
+            results_dict['total'] += 1
+        return results_dict
 
-    def list_gpus(self, vendor=None, compatible=False, readable=False, writeable=False):
+    def list_gpus(self, vendor='All', compatibility='total'):
         """
-        Return GPU_Item of GPUs.  Contains all by default, but can also count compatible, readable or writeable.
+        Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
-        :param vendor: Only count vendor GPUs if True.
+        :param vendor: Only count vendor GPUs or All by default (All, AMD, INTEL, NV, ...)
         :type vendor: str
-        :param compatible: Only count compatible GPUs if True.
-        :type compatible: bool
-        :param readable: Only count readable GPUs if True.
-        :type readable: bool
-        :param writeable: Only count writeable GPUs if True.
-        :type readable: bool
+        :param compatibility: Only count GPUs with specified compatibility (total, readable, writable)
+        :type compatibility: str
         :return: GpuList of compatible GPUs
         :rtype: GpuList
         """
         result_list = GpuList()
         for k, v in self.list.items():
-            if vendor:
+            if vendor != 'All':
                 if vendor != v.prm.vendor:
                     continue
-            if compatible:
-                if v.prm.compatible:
-                    result_list.list[k] = v
-            elif readable:
+            if compatibility == 'readable':
                 if v.prm.readable:
                     result_list.list[k] = v
-            elif writeable:
-                if v.prm.writeable:
+            elif compatibility == 'writable':
+                if v.prm.writable:
                     result_list.list[k] = v
             else:
                 result_list.list[k] = v
@@ -1368,7 +1368,7 @@ class GpuList:
         :return: None
         """
         for v in self.list.values():
-            if v.prm.compatible:
+            if v.prm.readable:
                 v.read_gpu_ppm_table()
 
     def print_ppm_table(self):
@@ -1385,7 +1385,7 @@ class GpuList:
         :return: None
         """
         for v in self.list.values():
-            if v.prm.compatible:
+            if v.prm.readable:
                 v.read_gpu_pstates()
 
     def print_pstates(self):
