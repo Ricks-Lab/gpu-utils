@@ -153,7 +153,7 @@ class GpuItem:
                                    'freq1': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
                                    'freq2': {'type': 'sl', 'cf': 0.000001, 'sensor': ['freq2_input', 'freq2_label']},
                                    'frequencies': {'type': 'sl*', 'cf': 0.000001, 'sensor': ['freq*_input']},
-                                   'voltages': {'type': 'sl*', 'cf': 0.001, 'sensor': ['in*_input']},
+                                   'voltages': {'type': 'sl*', 'cf': 1, 'sensor': ['in*_input']},
                                    'temperatures': {'type': 'sl*', 'cf': 0.001, 'sensor': ['temp*_input']},
                                    'vddgfx': {'type': 'sl', 'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}},
                                'DEVICE': {
@@ -319,6 +319,25 @@ class GpuItem:
         :return: Parameter value
         :rtype: Union[int, str, list]
         """
+        if re.fullmatch(r'.*_val', name):
+            if name == 'temp_val':
+                if 'edge' in self.prm['temperatures'].keys():
+                    return round(self.prm['temperatures']['edge'], 1)
+                return self.prm['temperatures'].keys()[0]
+            if name == 'vddgfx_val':
+                return int(self.prm['voltages']['vddgfx'])
+            if name == 'sclk_ps_val':
+                return self.prm['sclk_ps'][0]
+            if name == 'sclk_f_val':
+                if 'sclk' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['sclk'])
+                return self.prm['sclk_ps'][1]
+            if name == 'mclk_ps_val':
+                return self.prm['mclk_ps'][0]
+            if name == 'mclk_f_val':
+                if 'mclk' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['mclk'])
+                return self.prm['mclk_ps'][1]
         return self.prm[name]
 
     def populate(self, pcie_id, gpu_name, short_gpu_name, vendor, driver_module, card_path, hwmon_path,
@@ -841,7 +860,7 @@ class GpuItem:
             :type dict1: dict
             :param dict2:
             :type dict2: dict
-            :return:
+            :return: None
             """
             for st in dict2.keys():
                 if st in dict1.keys():
@@ -851,14 +870,15 @@ class GpuItem:
 
         param_list_static = {'HWMON': ['power_cap_range', 'temp_crit']}
         param_list_static_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range']}
-        param_list_dynamic = {'HWMON': ['power', 'temperatures', 'voltages', 'frequencies']}
+        param_list_dynamic = {'HWMON': ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
         param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
         param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios']}
         param_list_state = {'DEVICE': ['loading', 'mem_loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
                                        'power_dpm_force']}
         param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
                                      'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force'],
-                          'HWMON': ['power_cap_range', 'temp_crit', 'power', 'temperatures', 'voltages', 'frequencies']}
+                          'HWMON': ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
+                                    'voltages', 'frequencies']}
         param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
                                         'pwm_mode', 'fan_pwm']}
 
@@ -892,6 +912,7 @@ class GpuItem:
                 else:
                     if env.GUT_CONST.DEBUG: print('Valid data [{}] for parameter: {}'.format(rdata, param))
                     self.set_params_value(param, rdata)
+        return None
 
     def print_ppm_table(self):
         """
@@ -992,35 +1013,37 @@ class GpuList:
     """
     # Table parameters labels.
     if env.GUT_CONST.show_fans:
-        _table_parameters = ['model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
-                             'fan_pwm', 'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+        _table_parameters = ['model_display', 'loading', 'mem_loading', 'power', 'power_cap', 'energy', 'temp_val',
+                             'vddgfx_val', 'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
         _table_param_labels = {'model_display': 'Model',
                                'loading': 'Load %',
+                               'mem_loading': 'Mem Load %',
                                'power': 'Power (W)',
                                'power_cap': 'Power Cap (W)',
                                'energy': 'Energy (kWh)',
-                               'temp': 'T (C)',
-                               'vddgfx': 'VddGFX (mV)',
+                               'temp_val': 'T (C)',
+                               'vddgfx_val': 'VddGFX (mV)',
                                'fan_pwm': 'Fan Spd (%)',
-                               'sclk_f': 'Sclk (MHz)',
-                               'sclk_ps': 'Sclk Pstate',
-                               'mclk_f': 'Mclk (MHz)',
-                               'mclk_ps': 'Mclk Pstate',
+                               'sclk_f_val': 'Sclk (MHz)',
+                               'sclk_ps_val': 'Sclk Pstate',
+                               'mclk_f_val': 'Mclk (MHz)',
+                               'mclk_ps_val': 'Mclk Pstate',
                                'ppm': 'Perf Mode'}
     else:
-        _table_parameters = ['model_display', 'loading', 'power', 'power_cap', 'energy', 'temp', 'vddgfx',
-                             'sclk_f', 'sclk_ps', 'mclk_f', 'mclk_ps', 'ppm']
+        _table_parameters = ['model_display', 'loading', 'mem_loading', 'power', 'power_cap', 'energy', 'temp_val',
+                             'vddgfx_val', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
         _table_param_labels = {'model_display': 'Model',
                                'loading': 'Load %',
+                               'mem_loading': 'Mem Load %',
                                'power': 'Power (W)',
                                'power_cap': 'Power Cap (W)',
                                'energy': 'Energy (kWh)',
-                               'temp': 'T (C)',
-                               'vddgfx': 'VddGFX (mV)',
-                               'sclk_f': 'Sclk (MHz)',
-                               'sclk_ps': 'Sclk Pstate',
-                               'mclk_f': 'Mclk (MHz)',
-                               'mclk_ps': 'Mclk Pstate',
+                               'temp_val': 'T (C)',
+                               'vddgfx_val': 'VddGFX (mV)',
+                               'sclk_f_val': 'Sclk (MHz)',
+                               'sclk_ps_val': 'Sclk Pstate',
+                               'mclk_f_val': 'Mclk (MHz)',
+                               'mclk_ps_val': 'Mclk Pstate',
                                'ppm': 'Perf Mode'}
 
     def __repr__(self):
@@ -1045,8 +1068,7 @@ class GpuList:
         """
         if self.amd_wattman:
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
-        else:
-            return 'AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
+        return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
 
     def add(self, gpu_item):
         """
@@ -1089,11 +1111,10 @@ class GpuList:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             self.amd_wattman = self.amd_writable = False
-        if (self.amd_featuremask == int(0xffff7fff) or self.amd_featuremask == int(0xffffffff) or
-                                                       self.amd_featuremask == int(0xfffd7fff)):
-            self.amd_wattman = self.amd_writable = True
-        else:
-            self.amd_wattman = self.amd_writable = False
+
+        self.amd_wattman = self.amd_writable = True if (self.amd_featuremask == int(0xffff7fff) or
+                                                        self.amd_featuremask == int(0xffffffff) or
+                                                        self.amd_featuremask == int(0xfffd7fff)) else False
 
         # Check NV writability
         if env.GUT_CONST.cmd_nvidia_smi:
@@ -1426,14 +1447,17 @@ class GpuList:
         for v in self.list.values():
             v.print(clflag)
 
-    def print_table(self):
+    def print_table(self, title=None):
         """
         Print table of parameters.
         :return: True if success
         :rtype: bool
         """
-        if self.num_gpus() < 1:
+        if self.num_gpus()['total'] < 1:
             return False
+
+        if title:
+            print('\x1b[1;36m{}\x1b[0m'.format(title))
 
         print('┌', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.list.values():
@@ -1442,7 +1466,7 @@ class GpuList:
 
         print('│', '\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
         for v in self.list.values():
-            print('│', '\x1b[1;36m' + ('card' + v.prm.card_num).ljust(16, ' ') + '\x1b[0m',
+            print('│', '\x1b[1;36m' + ('card' + str(v.prm.card_num)).ljust(16, ' ') + '\x1b[0m',
                   sep='', end='')
         print('│')
 
@@ -1472,7 +1496,7 @@ class GpuList:
         :return: True if success
         :rtype: bool
         """
-        if self.num_gpus() < 1:
+        if self.num_gpus()['total'] < 1:
             return False
 
         # Print Header
@@ -1490,12 +1514,12 @@ class GpuList:
         :return: True if success
         :rtype: bool
         """
-        if self.num_gpus() < 1:
+        if self.num_gpus()['total'] < 1:
             return False
 
         # Print Data
         for v in self.list.values():
-            print('{}|{}'.format(v.energy['tn'].strftime('%c').strip(), v.card_num),
+            print('{}|{}'.format(v.energy['tn'].strftime('%c').strip(), v.prm.card_num),
                   sep='', end='', file=log_file_ptr)
             for table_item in self.table_parameters():
                 print('|{}'.format(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)).strip())),
@@ -1511,7 +1535,7 @@ class GpuList:
         :return: True if success
         :rtype: bool
         """
-        if self.num_gpus() < 1:
+        if self.num_gpus()['total'] < 1:
             return False
 
         # Print Header
@@ -1532,12 +1556,12 @@ class GpuList:
         :return: True if success
         :rtype: bool
         """
-        if self.num_gpus() < 1:
+        if self.num_gpus()['total'] < 1:
             return False
 
         # Print Data
         for v in self.list.values():
-            line_str_item = [str(v.energy['tn'].strftime('%c')).strip() + '|' + str(v.card_num)]
+            line_str_item = [str(v.energy['tn'].strftime('%c')).strip() + '|' + str(v.prm.card_num)]
             for table_item in self.table_parameters():
                 line_str_item.append('|' + str(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)))).strip())
             line_str_item.append('\n')

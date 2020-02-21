@@ -103,7 +103,7 @@ class MonitorWindow(Gtk.Window):
 
         col = 0
         row = 0
-        num_amd_gpus = gpu_list.num_gpus()
+        num_amd_gpus = gpu_list.num_gpus()['total']
         if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
@@ -143,10 +143,10 @@ class MonitorWindow(Gtk.Window):
             v.set_alignment(0, 0.5)
             row += 1
         for v in gpu_list.list.values():
-            devices[v.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')))}
+            devices[v.prm.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')))}
             for cv in gpu_list.table_param_labels():
-                devices[v.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
-                devices[v.uuid][cv].set_width_chars(10)
+                devices[v.prm.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
+                devices[v.prm.uuid][cv].set_width_chars(10)
 
         for dv in devices.values():
             col += 1
@@ -189,8 +189,8 @@ def update_data(gpu_list, devices, cmd):
     :type cmd: subprocess.Popen
     :return: None
     """
-    gpu_list.read_gpu_sensor_data()
-    gpu_list.read_gpu_state_data()
+    gpu_list.read_gpu_sensor_data(data_type='dynamic')
+    gpu_list.read_gpu_sensor_data(data_type='state')
     if env.GUT_CONST.LOG:
         gpu_list.print_log(env.GUT_CONST.log_file_ptr)
     if env.GUT_CONST.PLOT:
@@ -290,54 +290,45 @@ def main():
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    # Check value of AMD Feature mask
-    try:
-        featuremask = env.GUT_CONST.read_amdfeaturemask()
-    except FileNotFoundError:
-        print('Cannot read ppfeaturemask. Exiting...')
-        sys.exit(-1)
-    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
-        print('AMD Wattman features enabled: {}'.format(hex(featuremask)))
-    else:
-        print('AMD Wattman features not enabled: {}, See README file.'.format(hex(featuremask)))
-        sys.exit(-1)
-
-    env.GUT_CONST.read_amd_driver_version()
-
     # Get list of AMD GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
-    gpu_list.get_gpu_list()
-    gpu_list.read_allgpu_pci_info()
+    gpu_list.set_gpu_list()
 
-    # Check list of AMD GPUs
-    num_amd_gpus = gpu_list.num_gpus()
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_amd_gpus == 0:
-        print('No AMD GPUs detected, exiting...')
+    # Check list of GPUs
+    num_gpus = gpu_list.num_vendor_gpus()
+    print('Detected GPUs: ', end='')
+    for i, (k, v) in enumerate(num_gpus.items()):
+        if i:
+            print(', {}: {}'.format(k, v), end='')
+        else:
+            print('{}: {}'.format(k, v), end='')
+    print('')
+    if 'AMD' in num_gpus.keys():
+        env.GUT_CONST.read_amd_driver_version()
+        print('AMD: {}'.format(gpu_list.wattman_status()))
+    if 'NV' in num_gpus.keys():
+        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+
+    num_gpus = gpu_list.num_gpus()
+    if num_gpus['total'] == 0:
+        print('No GPUs detected, exiting...')
         sys.exit(-1)
-    else:
-        if num_com_gpus == 0:
-            print('None are compatible, exiting...')
-            sys.exit(-1)
-        print('{} AMD GPUs detected, {} may be compatible, checking...'.format(num_amd_gpus, num_com_gpus))
+    print('{} detected GPUs, {} may be readable, {} may be writable, checking...'.format(num_gpus['total'],
+                                                                                         num_gpus['readable'],
+                                                                                         num_gpus['writable']))
 
-    # Read data static driver information for GPUs
-    gpu_list.read_gpu_driver_info()
-    gpu_list.read_gpu_sensor_static_data()
-    # Read dynamic sensor and state data from GPUs
-    gpu_list.read_gpu_sensor_data()
-    gpu_list.read_gpu_state_data()
+    # Read data static/dynamic/info/state driver information for GPUs
+    gpu_list.read_gpu_sensor_data(data_type='All')
 
-    # Check number of compatible GPUs again
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_com_gpus == 0:
-        print('None are compatible, exiting...')
-        sys.exit(-1)
-    else:
-        print('{} are confirmed compatible.\n'.format(num_com_gpus))
+    # Check number of readable/writable GPUs again
+    num_gpus = gpu_list.num_gpus()
+    print('{} total GPUs, {} readable, {} writable.\n'.format(num_gpus['total'],
+                                                              num_gpus['readable'],
+                                                              num_gpus['writable']))
 
+    time.sleep(1)
     # Generate a new list of only compatible GPUs
-    com_gpu_list = gpu_list.list_gpus(compatible=True)
+    com_gpu_list = gpu_list.list_gpus(compatibility='readable')
 
     if args.log:
         env.GUT_CONST.LOG = True
@@ -368,19 +359,19 @@ def main():
                 else:
                     cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
-                gpu_list.print_plot_header(cmd.stdin)
+                com_gpu_list.print_plot_header(cmd.stdin)
 
         # Start thread to update Monitor
         _ = threading.Thread(target=refresh, daemon=True, args=[env.GUT_CONST.SLEEP,
-                             update_data, gpu_list, devices, cmd, gmonitor]).start()
+                             update_data, com_gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:
         # Display text style Monitor
         try:
             while True:
-                com_gpu_list.read_gpu_sensor_data()
-                com_gpu_list.read_gpu_state_data()
+                com_gpu_list.read_gpu_sensor_data(data_type='dynamic')
+                com_gpu_list.read_gpu_sensor_data(data_type='state')
                 if not env.GUT_CONST.DEBUG: os.system('clear')
                 if env.GUT_CONST.LOG:
                     print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))

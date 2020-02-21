@@ -50,6 +50,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
                         action='store_true', default=False)
+    parser.add_argument('--table', help='Output table of basic GPU details',
+                        action='store_true', default=False)
     parser.add_argument('--pstates', help='Output pstate tables instead of GPU details',
                         action='store_true', default=False)
     parser.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
@@ -132,7 +134,11 @@ def main():
         gpu_list.print_ppm_table()
     if not args.pstates and not args.ppm:
         gpu_list.read_gpu_pstates()
-        gpu_list.print(args.clinfo)
+        if args.table:
+            com_gpu_list = gpu_list.list_gpus(compatibility='readable')
+            com_gpu_list.print_table(title='Status of Readable GPUs:')
+        else:
+            gpu_list.print(args.clinfo)
     sys.exit(0)
 
 
