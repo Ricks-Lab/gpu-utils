@@ -1330,7 +1330,7 @@ class GpuList:
 
     def num_vendor_gpus(self, compatibility='total'):
         """
-        Return the count of GPUs by vendor.  Counts total by default, but can also count readable or writable.
+        Return the count of GPUs by vendor.  Counts total by default, but can also by rw, ronly, or wonly.
         :param compatibility: Only count vendor GPUs if True.
         :type compatibility: str
         :return: Dictionary of GPU counts
@@ -1338,10 +1338,13 @@ class GpuList:
         """
         results_dict = {}
         for v in self.list.values():
-            if compatibility == 'readable':
+            if compatibility == 'rw':
+                if not v.prm.readable or not v.prm.writable:
+                    continue
+            if compatibility == 'r-only':
                 if not v.prm.readable:
                     continue
-            if compatibility == 'writable':
+            if compatibility == 'w-only':
                 if not v.prm.writable:
                     continue
             if v.prm.vendor not in results_dict.keys():
@@ -1352,21 +1355,23 @@ class GpuList:
 
     def num_gpus(self, vendor='All'):
         """
-        Return the count of GPUs by total, readable or writable.
+        Return the count of GPUs by total, rw, r-only or w-only.
         :param vendor: Only count vendor GPUs if True.
         :type vendor: str
         :return: Dictionary of GPU counts
         :rtype: dict
         """
-        results_dict = {'vendor': vendor, 'total': 0, 'readable': 0, 'writable': 0}
+        results_dict = {'vendor': vendor, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for v in self.list.values():
             if vendor != 'All':
                 if vendor != v.prm.vendor:
                     continue
-            if v.prm.readable:
-                results_dict['readable'] += 1
-            if v.prm.writable:
-                results_dict['writable'] += 1
+            if v.prm.readable and v.prm.writable:
+                results_dict['rw'] += 1
+            elif v.prm.readable:
+                results_dict['r-only'] += 1
+            elif v.prm.writable:
+                results_dict['w-only'] += 1
             results_dict['total'] += 1
         return results_dict
 
