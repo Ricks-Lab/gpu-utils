@@ -81,7 +81,6 @@ class GutConst:
         self.nv_write = None
         # Command access
         self.cmd_lspci = None
-        self.cmd_lshw = None
         self.cmd_clinfo = None
         self.cmd_dpkg = None
         self.cmd_nvidia_smi = None
@@ -167,10 +166,6 @@ class GutConst:
         self.cmd_lspci = shutil.which('lspci')
         if not self.cmd_lspci:
             print('OS command [lspci] executable not found.')
-            command_access_fail = True
-        self.cmd_lshw = shutil.which('lshw')
-        if not self.cmd_lshw:
-            print('OS command [lshw] executable not found.')
             command_access_fail = True
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
