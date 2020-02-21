@@ -70,7 +70,7 @@ class PACWindow(Gtk.Window):
     PAC Window class.
     """
     def __init__(self, gpu_list, devices):
-        Gtk.Window.__init__(self, title='amdgpu-pac')
+        Gtk.Window.__init__(self, title=__program_name__)
         self.set_border_width(1)
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
         if os.path.isfile(icon_file):
@@ -79,21 +79,21 @@ class PACWindow(Gtk.Window):
         grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1))
         self.add(grid)
 
-        num_com_amd_gpus = gpu_list.num_gpus(compatible=True)
+        num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
         col = 0
         for v in gpu_list.list.values():
             row = 0
             # Card Number in top center of box
-            devices[v.uuid] = {'card_num':  Gtk.Label()}
-            devices[v.uuid]['card_num'].set_markup('<big><b>Card {}:  </b>{}</big>'.format(
+            devices[v.prm.uuid] = {'card_num':  Gtk.Label()}
+            devices[v.prm.uuid]['card_num'].set_markup('<big><b>Card {}:  </b>{}</big>'.format(
                 v.get_params_value(str('card_num')), v.get_params_value('model_display')))
-            devices[v.uuid]['card_num'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-            devices[v.uuid]['card_num'].set_property('margin-top', 1)
-            devices[v.uuid]['card_num'].set_property('margin-bottom', 1)
-            devices[v.uuid]['card_num'].set_property('margin-right', 4)
-            devices[v.uuid]['card_num'].set_property('margin-left', 4)
-            devices[v.uuid]['card_num'].set_alignment(0.5, 0.5)
+            devices[v.prm.uuid]['card_num'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
+            devices[v.prm.uuid]['card_num'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['card_num'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['card_num'].set_property('margin-right', 4)
+            devices[v.prm.uuid]['card_num'].set_property('margin-left', 4)
+            devices[v.prm.uuid]['card_num'].set_alignment(0.5, 0.5)
 
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
@@ -101,19 +101,19 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['card_num'], True, True, 0)
+            lbox.pack_start(devices[v.prm.uuid]['card_num'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Card Path
-            devices[v.uuid]['card_path'] = Gtk.Label()
-            devices[v.uuid]['card_path'].set_markup('<b>Device: </b>{}'.format(v.get_params_value('card_path')))
-            devices[v.uuid]['card_path'].set_property('width-request', MAX_CHAR*CHAR_WIDTH)
-            devices[v.uuid]['card_path'].set_property('margin-top', 1)
-            devices[v.uuid]['card_path'].set_property('margin-bottom', 1)
-            devices[v.uuid]['card_path'].set_property('margin-right', 4)
-            devices[v.uuid]['card_path'].set_property('margin-left', 4)
-            devices[v.uuid]['card_path'].set_alignment(0, 0.5)
+            devices[v.prm.uuid]['card_path'] = Gtk.Label()
+            devices[v.prm.uuid]['card_path'].set_markup('<b>Device: </b>{}'.format(v.get_params_value('card_path')))
+            devices[v.prm.uuid]['card_path'].set_property('width-request', MAX_CHAR*CHAR_WIDTH)
+            devices[v.prm.uuid]['card_path'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['card_path'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['card_path'].set_property('margin-right', 4)
+            devices[v.prm.uuid]['card_path'].set_property('margin-left', 4)
+            devices[v.prm.uuid]['card_path'].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
@@ -121,20 +121,20 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['card_path'], True, True, 0)
+            lbox.pack_start(devices[v.prm.uuid]['card_path'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Card Power Cap
             power_cap_range = v.get_params_value('power_cap_range')
-            devices[v.uuid]['power_cap'] = Gtk.Label()
-            devices[v.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
+            devices[v.prm.uuid]['power_cap'] = Gtk.Label()
+            devices[v.prm.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
                                                     power_cap_range[0], power_cap_range[1]))
-            devices[v.uuid]['power_cap'].set_property('margin-top', 1)
-            devices[v.uuid]['power_cap'].set_property('margin-bottom', 1)
-            devices[v.uuid]['power_cap'].set_property('margin-right', 2)
-            devices[v.uuid]['power_cap'].set_property('margin-left', 2)
-            devices[v.uuid]['power_cap'].set_alignment(0, 0.5)
+            devices[v.prm.uuid]['power_cap'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['power_cap'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['power_cap'].set_property('margin-right', 2)
+            devices[v.prm.uuid]['power_cap'].set_property('margin-left', 2)
+            devices[v.prm.uuid]['power_cap'].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
@@ -142,33 +142,33 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['power_cap'], True, True, 0)
+            lbox.pack_start(devices[v.prm.uuid]['power_cap'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Card Power Cap Value and Entry
-            devices[v.uuid]['power_cap_cur'] = Gtk.Label()
-            devices[v.uuid]['power_cap_cur'].set_property('margin-top', 1)
-            devices[v.uuid]['power_cap_cur'].set_property('margin-bottom', 1)
-            devices[v.uuid]['power_cap_cur'].set_property('margin-right', 2)
-            devices[v.uuid]['power_cap_cur'].set_property('margin-left', 2)
+            devices[v.prm.uuid]['power_cap_cur'] = Gtk.Label()
+            devices[v.prm.uuid]['power_cap_cur'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['power_cap_cur'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['power_cap_cur'].set_property('margin-right', 2)
+            devices[v.prm.uuid]['power_cap_cur'].set_property('margin-left', 2)
 
-            devices[v.uuid]['power_cap_ent'] = Gtk.Entry()
-            devices[v.uuid]['power_cap_ent'].set_width_chars(4)
-            devices[v.uuid]['power_cap_ent'].set_max_length(4)
-            devices[v.uuid]['power_cap_ent'].set_alignment(xalign=1)
-            devices[v.uuid]['power_cap_ent'].set_property('margin-top', 1)
-            devices[v.uuid]['power_cap_ent'].set_property('margin-bottom', 1)
-            devices[v.uuid]['power_cap_ent'].set_property('margin-right', 0)
-            devices[v.uuid]['power_cap_ent'].set_property('margin-left', 2)
+            devices[v.prm.uuid]['power_cap_ent'] = Gtk.Entry()
+            devices[v.prm.uuid]['power_cap_ent'].set_width_chars(4)
+            devices[v.prm.uuid]['power_cap_ent'].set_max_length(4)
+            devices[v.prm.uuid]['power_cap_ent'].set_alignment(xalign=1)
+            devices[v.prm.uuid]['power_cap_ent'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['power_cap_ent'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['power_cap_ent'].set_property('margin-right', 0)
+            devices[v.prm.uuid]['power_cap_ent'].set_property('margin-left', 2)
 
-            devices[v.uuid]['power_cap_ent_unit'] = Gtk.Label()
-            devices[v.uuid]['power_cap_ent_unit'].set_text('W   (-1 to reset)')
-            devices[v.uuid]['power_cap_ent_unit'].set_property('margin-top', 1)
-            devices[v.uuid]['power_cap_ent_unit'].set_property('margin-bottom', 1)
-            devices[v.uuid]['power_cap_ent_unit'].set_property('margin-right', 0)
-            devices[v.uuid]['power_cap_ent_unit'].set_property('margin-left', 0)
-            devices[v.uuid]['power_cap_ent_unit'].set_alignment(0, 0.5)
+            devices[v.prm.uuid]['power_cap_ent_unit'] = Gtk.Label()
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_text('W   (-1 to reset)')
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_property('margin-right', 0)
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_property('margin-left', 0)
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
             lbox.set_homogeneous(False)
@@ -177,23 +177,23 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['power_cap_cur'], False, False, 0)
-            lbox.pack_start(devices[v.uuid]['power_cap_ent'], False, False, 0)
-            lbox.pack_start(devices[v.uuid]['power_cap_ent_unit'], False, False, 0)
+            lbox.pack_start(devices[v.prm.uuid]['power_cap_cur'], False, False, 0)
+            lbox.pack_start(devices[v.prm.uuid]['power_cap_ent'], False, False, 0)
+            lbox.pack_start(devices[v.prm.uuid]['power_cap_ent_unit'], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             if env.GUT_CONST.show_fans:
                 # Fan PWM Value
                 fan_pwm_range = v.get_params_value('fan_pwm_range')
-                devices[v.uuid]['fan_pwm_range'] = Gtk.Label()
-                devices[v.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
+                devices[v.prm.uuid]['fan_pwm_range'] = Gtk.Label()
+                devices[v.prm.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
                                                             fan_pwm_range[0], fan_pwm_range[1]))
-                devices[v.uuid]['fan_pwm_range'].set_property('margin-top', 1)
-                devices[v.uuid]['fan_pwm_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['fan_pwm_range'].set_property('margin-right', 2)
-                devices[v.uuid]['fan_pwm_range'].set_property('margin-left', 2)
-                devices[v.uuid]['fan_pwm_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['fan_pwm_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(spacing=6)
                 lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
@@ -201,33 +201,33 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['fan_pwm_range'], True, True, 0)
+                lbox.pack_start(devices[v.prm.uuid]['fan_pwm_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Card Fan PWM Value and Entry
-                devices[v.uuid]['fan_pwm_cur'] = Gtk.Label()
-                devices[v.uuid]['fan_pwm_cur'].set_property('margin-top', 1)
-                devices[v.uuid]['fan_pwm_cur'].set_property('margin-bottom', 1)
-                devices[v.uuid]['fan_pwm_cur'].set_property('margin-right', 2)
-                devices[v.uuid]['fan_pwm_cur'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['fan_pwm_cur'] = Gtk.Label()
+                devices[v.prm.uuid]['fan_pwm_cur'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['fan_pwm_cur'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['fan_pwm_cur'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['fan_pwm_cur'].set_property('margin-left', 2)
 
-                devices[v.uuid]['fan_pwm_ent'] = Gtk.Entry()
-                devices[v.uuid]['fan_pwm_ent'].set_width_chars(4)
-                devices[v.uuid]['fan_pwm_ent'].set_max_length(4)
-                devices[v.uuid]['fan_pwm_ent'].set_alignment(xalign=1)
-                devices[v.uuid]['fan_pwm_ent'].set_property('margin-top', 1)
-                devices[v.uuid]['fan_pwm_ent'].set_property('margin-bottom', 1)
-                devices[v.uuid]['fan_pwm_ent'].set_property('margin-right', 0)
-                devices[v.uuid]['fan_pwm_ent'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['fan_pwm_ent'] = Gtk.Entry()
+                devices[v.prm.uuid]['fan_pwm_ent'].set_width_chars(4)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_max_length(4)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_alignment(xalign=1)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['fan_pwm_ent'].set_property('margin-left', 2)
 
-                devices[v.uuid]['fan_pwm_ent_unit'] = Gtk.Label()
-                devices[v.uuid]['fan_pwm_ent_unit'].set_text('%   (-1 to reset)')
-                devices[v.uuid]['fan_pwm_ent_unit'].set_property('margin-top', 1)
-                devices[v.uuid]['fan_pwm_ent_unit'].set_property('margin-bottom', 1)
-                devices[v.uuid]['fan_pwm_ent_unit'].set_property('margin-right', 0)
-                devices[v.uuid]['fan_pwm_ent_unit'].set_property('margin-left', 0)
-                devices[v.uuid]['fan_pwm_ent_unit'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['fan_pwm_ent_unit'] = Gtk.Label()
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_text('%   (-1 to reset)')
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_property('margin-left', 0)
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
@@ -236,25 +236,25 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['fan_pwm_cur'], False, False, 0)
-                lbox.pack_start(devices[v.uuid]['fan_pwm_ent'], False, False, 0)
-                lbox.pack_start(devices[v.uuid]['fan_pwm_ent_unit'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['fan_pwm_cur'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['fan_pwm_ent'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['fan_pwm_ent_unit'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
             if v.get_params_value('gpu_type') == 1:
                 # Sclk P-States
-                devices[v.uuid]['sclk_range'] = Gtk.Label()
-                devices[v.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
+                devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                          v.get_params_value('sclk_f_range')[0],
                                                          v.get_params_value('sclk_f_range')[1],
                                                          v.get_params_value('vddc_range')[0],
                                                          v.get_params_value('vddc_range')[1]))
-                devices[v.uuid]['sclk_range'].set_property('margin-top', 1)
-                devices[v.uuid]['sclk_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['sclk_range'].set_property('margin-right', 2)
-                devices[v.uuid]['sclk_range'].set_property('margin-left', 2)
-                devices[v.uuid]['sclk_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['sclk_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
@@ -263,54 +263,54 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['sclk_range'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Sclk P-State Values and Entry
-                devices[v.uuid]['sclk_pstate'] = {}
+                devices[v.prm.uuid]['sclk_pstate'] = {}
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps] = {}
+                    devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 0)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
@@ -319,29 +319,29 @@ class PACWindow(Gtk.Window):
                     lbox.set_property('margin-bottom', 1)
                     lbox.set_property('margin-right', 1)
                     lbox.set_property('margin-left', 1)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
                 # SCLK P-State Mask
-                devices[v.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
-                devices[v.uuid]['sclk_pst_mask_cur'].set_property('margin-top', 1)
-                devices[v.uuid]['sclk_pst_mask_cur'].set_property('margin-bottom', 1)
-                devices[v.uuid]['sclk_pst_mask_cur'].set_property('margin-right', 2)
-                devices[v.uuid]['sclk_pst_mask_cur'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-left', 2)
 
-                devices[v.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.uuid]['sclk_pst_mask_ent'].set_width_chars(15)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_max_length(15)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_property('margin-top', 1)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_property('margin-bottom', 1)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_property('margin-right', 0)
-                devices[v.uuid]['sclk_pst_mask_ent'].set_property('margin-left', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_width_chars(15)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_max_length(15)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-left', 1)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
@@ -350,22 +350,22 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['sclk_pst_mask_cur'], False, False, 0)
-                lbox.pack_start(devices[v.uuid]['sclk_pst_mask_ent'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_ent'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
             elif v.get_params_value('gpu_type') == 2:
                 # Sclk Curve End Points
-                devices[v.uuid]['sclk_range'] = Gtk.Label()
-                devices[v.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
+                devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
                                                          v.get_params_value('sclk_f_range')[0],
                                                          v.get_params_value('sclk_f_range')[1]))
-                devices[v.uuid]['sclk_range'].set_property('margin-top', 1)
-                devices[v.uuid]['sclk_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['sclk_range'].set_property('margin-right', 2)
-                devices[v.uuid]['sclk_range'].set_property('margin-left', 2)
-                devices[v.uuid]['sclk_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['sclk_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['sclk_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
@@ -374,38 +374,38 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['sclk_range'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Sclk Curve End Points Values and Entry
-                devices[v.uuid]['sclk_pstate'] = {}
+                devices[v.prm.uuid]['sclk_pstate'] = {}
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps] = {}
+                    devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
@@ -414,25 +414,25 @@ class PACWindow(Gtk.Window):
                     lbox.set_property('margin-bottom', 1)
                     lbox.set_property('margin-right', 1)
                     lbox.set_property('margin-left', 1)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
             if v.get_params_value('gpu_type') == 1:
                 # Mclk P-States
-                devices[v.uuid]['mclk_range'] = Gtk.Label()
-                devices[v.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
+                devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                          v.get_params_value('mclk_f_range')[0],
                                                          v.get_params_value('mclk_f_range')[1],
                                                          v.get_params_value('vddc_range')[0],
                                                          v.get_params_value('vddc_range')[1]))
-                devices[v.uuid]['mclk_range'].set_property('margin-top', 1)
-                devices[v.uuid]['mclk_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['mclk_range'].set_property('margin-right', 2)
-                devices[v.uuid]['mclk_range'].set_property('margin-left', 2)
-                devices[v.uuid]['mclk_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['mclk_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
@@ -441,54 +441,54 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['mclk_range'], True, True, 0)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Mclk P-State Values and Entry
-                devices[v.uuid]['mclk_pstate'] = {}
+                devices[v.prm.uuid]['mclk_pstate'] = {}
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps] = {}
+                    devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
@@ -497,29 +497,29 @@ class PACWindow(Gtk.Window):
                     lbox.set_property('margin-bottom', 1)
                     lbox.set_property('margin-right', 1)
                     lbox.set_property('margin-left', 1)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
                 # MCLK P-State Mask
-                devices[v.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
-                devices[v.uuid]['mclk_pst_mask_cur'].set_property('margin-top', 1)
-                devices[v.uuid]['mclk_pst_mask_cur'].set_property('margin-bottom', 1)
-                devices[v.uuid]['mclk_pst_mask_cur'].set_property('margin-right', 2)
-                devices[v.uuid]['mclk_pst_mask_cur'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-left', 2)
 
-                devices[v.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.uuid]['mclk_pst_mask_ent'].set_width_chars(15)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_max_length(15)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_property('margin-top', 1)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_property('margin-bottom', 1)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_property('margin-right', 0)
-                devices[v.uuid]['mclk_pst_mask_ent'].set_property('margin-left', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_width_chars(15)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_max_length(15)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-left', 1)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
                 lbox.set_homogeneous(False)
@@ -528,21 +528,21 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['mclk_pst_mask_cur'], False, False, 0)
-                lbox.pack_start(devices[v.uuid]['mclk_pst_mask_ent'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_ent'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
             elif v.get_params_value('gpu_type') == 2:
                 # Mclk Curve End points
-                devices[v.uuid]['mclk_range'] = Gtk.Label()
-                devices[v.uuid]['mclk_range'].set_markup('<b>Mclk Curve End Points: </b> Ranges {}-{} '.format(
+                devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk Curve End Points: </b> Ranges {}-{} '.format(
                                                          v.get_params_value('mclk_f_range')[0],
                                                          v.get_params_value('mclk_f_range')[1]))
-                devices[v.uuid]['mclk_range'].set_property('margin-top', 1)
-                devices[v.uuid]['mclk_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['mclk_range'].set_property('margin-right', 2)
-                devices[v.uuid]['mclk_range'].set_property('margin-left', 2)
-                devices[v.uuid]['mclk_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['mclk_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['mclk_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
@@ -551,38 +551,38 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['mclk_range'], True, True, 0)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Mclk Curve End Points Values and Entry
-                devices[v.uuid]['mclk_pstate'] = {}
+                devices[v.prm.uuid]['mclk_pstate'] = {}
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps] = {}
+                    devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
@@ -591,25 +591,25 @@ class PACWindow(Gtk.Window):
                     lbox.set_property('margin-bottom', 1)
                     lbox.set_property('margin-right', 1)
                     lbox.set_property('margin-left', 1)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
             if v.get_params_value('gpu_type') == 2:
                 # VDDC Curve Points
-                devices[v.uuid]['vddc_curve_range'] = Gtk.Label()
-                devices[v.uuid]['vddc_curve_range'].set_markup('<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(
+                devices[v.prm.uuid]['vddc_curve_range'] = Gtk.Label()
+                devices[v.prm.uuid]['vddc_curve_range'].set_markup('<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(
                                                                v.vddc_curve_range['0']['SCLK'][0],
                                                                v.vddc_curve_range['0']['SCLK'][1],
                                                                v.vddc_curve_range['0']['VOLT'][0],
                                                                v.vddc_curve_range['0']['VOLT'][1]))
-                devices[v.uuid]['vddc_curve_range'].set_property('margin-top', 1)
-                devices[v.uuid]['vddc_curve_range'].set_property('margin-bottom', 1)
-                devices[v.uuid]['vddc_curve_range'].set_property('margin-right', 2)
-                devices[v.uuid]['vddc_curve_range'].set_property('margin-left', 2)
-                devices[v.uuid]['vddc_curve_range'].set_alignment(0, 0.5)
+                devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-left', 2)
+                devices[v.prm.uuid]['vddc_curve_range'].set_alignment(0, 0.5)
 
                 lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                 lbox.set_homogeneous(False)
@@ -618,54 +618,54 @@ class PACWindow(Gtk.Window):
                 lbox.set_property('margin-bottom', 1)
                 lbox.set_property('margin-right', 1)
                 lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.uuid]['vddc_curve_range'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['vddc_curve_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # VDDC CURVE Points Values and Entry
-                devices[v.uuid]['vddc_curve_pt'] = {}
+                devices[v.prm.uuid]['vddc_curve_pt'] = {}
                 for ps, psd in v.vddc_curve.items():
-                    devices[v.uuid]['vddc_curve_pt'][ps] = {}
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps] = {}
 
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_width_chars(20)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-right', 2)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_property('margin-left', 2)
 
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-right', 4)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_width_chars(5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_max_length(5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_property('margin-left', 0)
 
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 0)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_alignment(0, 0.5)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-top', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-bottom', 1)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-right', 0)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_property('margin-left', 0)
 
                     lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
                     lbox.set_homogeneous(False)
@@ -674,22 +674,22 @@ class PACWindow(Gtk.Window):
                     lbox.set_property('margin-bottom', 1)
                     lbox.set_property('margin-right', 1)
                     lbox.set_property('margin-left', 1)
-                    lbox.pack_start(devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'], False, False, 0)
-                    lbox.pack_start(devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'], False, False, 0)
+                    lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
             # Power Performance Mode Selection
-            devices[v.uuid]['ppm'] = Gtk.Label()
-            devices[v.uuid]['ppm'].set_markup('<b>Power Performance Modes:</b>')
-            devices[v.uuid]['ppm'].set_property('margin-top', 1)
-            devices[v.uuid]['ppm'].set_property('margin-bottom', 1)
-            devices[v.uuid]['ppm'].set_property('margin-right', 2)
-            devices[v.uuid]['ppm'].set_property('margin-left', 2)
-            devices[v.uuid]['ppm'].set_alignment(0, 0.5)
+            devices[v.prm.uuid]['ppm'] = Gtk.Label()
+            devices[v.prm.uuid]['ppm'].set_markup('<b>Power Performance Modes:</b>')
+            devices[v.prm.uuid]['ppm'].set_property('margin-top', 1)
+            devices[v.prm.uuid]['ppm'].set_property('margin-bottom', 1)
+            devices[v.prm.uuid]['ppm'].set_property('margin-right', 2)
+            devices[v.prm.uuid]['ppm'].set_property('margin-left', 2)
+            devices[v.prm.uuid]['ppm'].set_alignment(0, 0.5)
 
             lbox = Gtk.Box(spacing=6)
             lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .12))
@@ -697,20 +697,20 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['ppm'], True, True, 0)
+            lbox.pack_start(devices[v.prm.uuid]['ppm'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
-            devices[v.uuid]['ppm_modes'] = Gtk.ListStore(int, str)
-            devices[v.uuid]['ppm_mode_items'] = {}
+            devices[v.prm.uuid]['ppm_modes'] = Gtk.ListStore(int, str)
+            devices[v.prm.uuid]['ppm_mode_items'] = {}
             item_num = 0
             for mode_num, mode in v.ppm_modes.items():
                 if mode_num == 'NUM':
                     continue
                 if mode[0] == 'CUSTOM':
                     continue
-                devices[v.uuid]['ppm_modes'].append([int(mode_num), mode[0]])
-                devices[v.uuid]['ppm_mode_items'][int(mode_num)] = item_num
+                devices[v.prm.uuid]['ppm_modes'].append([int(mode_num), mode[0]])
+                devices[v.prm.uuid]['ppm_mode_items'][int(mode_num)] = item_num
                 item_num += 1
 
             lbox = Gtk.Box(spacing=6)
@@ -720,27 +720,27 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
 
-            devices[v.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(devices[v.uuid]['ppm_modes'])
-            devices[v.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.uuid])
-            devices[v.uuid]['ppm_modes_combo'].set_entry_text_column(1)
-            lbox.pack_start(devices[v.uuid]['ppm_modes_combo'], False, False, 0)
+            devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(devices[v.prm.uuid]['ppm_modes'])
+            devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
+            devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
+            lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Save/Reset Card Buttons
-            devices[v.uuid]['save_button'] = Gtk.Button('')
-            for child in devices[v.uuid]['save_button'].get_children():
+            devices[v.prm.uuid]['save_button'] = Gtk.Button('')
+            for child in devices[v.prm.uuid]['save_button'].get_children():
                 child.set_label('<big><b>Save</b></big>')
                 child.set_use_markup(True)
-            devices[v.uuid]['save_button'].connect('clicked', self.save_card, gpu_list, devices, v.uuid)
-            devices[v.uuid]['save_button'].set_property('width-request', 90)
+            devices[v.prm.uuid]['save_button'].connect('clicked', self.save_card, gpu_list, devices, v.prm.uuid)
+            devices[v.prm.uuid]['save_button'].set_property('width-request', 90)
 
-            devices[v.uuid]['reset_button'] = Gtk.Button('')
-            for child in devices[v.uuid]['reset_button'].get_children():
+            devices[v.prm.uuid]['reset_button'] = Gtk.Button('')
+            for child in devices[v.prm.uuid]['reset_button'].get_children():
                 child.set_label('<big><b>Reset</b></big>')
                 child.set_use_markup(True)
-            devices[v.uuid]['reset_button'].connect('clicked', self.reset_card, gpu_list, devices, v.uuid)
-            devices[v.uuid]['reset_button'].set_property('width-request', 90)
+            devices[v.prm.uuid]['reset_button'].connect('clicked', self.reset_card, gpu_list, devices, v.prm.uuid)
+            devices[v.prm.uuid]['reset_button'].set_property('width-request', 90)
 
             lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
             lbox.set_homogeneous(False)
@@ -749,8 +749,8 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-bottom', 1)
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
-            lbox.pack_start(devices[v.uuid]['save_button'], True, False, 0)
-            lbox.pack_start(devices[v.uuid]['reset_button'], True, False, 0)
+            lbox.pack_start(devices[v.prm.uuid]['save_button'], True, False, 0)
+            lbox.pack_start(devices[v.prm.uuid]['reset_button'], True, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
@@ -761,7 +761,7 @@ class PACWindow(Gtk.Window):
         # End of for v in values
 
         # Setup the Save_ALL and Reset_ALL buttons
-        if num_com_amd_gpus > 1:
+        if num_com_gpus > 1:
             # Save/Reset/Update ALL Card Buttons
             devices['all_buttons'] = {}
             devices['all_buttons']['save_all_button'] = Gtk.Button('')
@@ -805,8 +805,8 @@ class PACWindow(Gtk.Window):
         devices['message_box'] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
 
         devices['message_label'].set_alignment(0, 0.5)
-        devices['message_label'].set_max_width_chars(num_com_amd_gpus * MAX_CHAR)
-        devices['message_label'].set_property('width-request', num_com_amd_gpus * MAX_CHAR * CHAR_WIDTH)
+        devices['message_label'].set_max_width_chars(num_com_gpus * MAX_CHAR)
+        devices['message_label'].set_property('width-request', num_com_gpus * MAX_CHAR * CHAR_WIDTH)
         devices['message_label'].set_line_wrap(True)
         devices['message_box'].set_homogeneous(False)
         devices['message_label'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
@@ -886,80 +886,80 @@ class PACWindow(Gtk.Window):
         :return:
         """
         # Read dynamic sensor and state data from GPUs
-        gpu_list.read_gpu_sensor_data()
-        gpu_list.read_gpu_state_data()
+        gpu_list.read_gpu_sensor_data(data_type='static')
+        gpu_list.read_gpu_sensor_data(data_type='state')
         # Read pstate and ppm table data
         gpu_list.read_gpu_pstates()
         gpu_list.read_gpu_ppm_table()
 
         for v in gpu_list.list.values():
-            devices[v.uuid]['power_cap_cur'].set_text('    Current: {}W    Set: '.format(
+            devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {}W    Set: '.format(
                                                       v.get_params_value('power_cap')))
-            devices[v.uuid]['power_cap_ent'].set_text(str(int(v.get_params_value('power_cap'))))
+            devices[v.prm.uuid]['power_cap_ent'].set_text(str(int(v.get_params_value('power_cap'))))
             if env.GUT_CONST.show_fans:
-                devices[v.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
+                devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
                                                         v.get_params_value('fan_pwm')))
-                devices[v.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
+                devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
             # SCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: {}    Set Mask: '.format(
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: {}    Set Mask: '.format(
                                                               v.get_pstate_list_str('SCLK')))
-                devices[v.uuid]['sclk_pst_mask_ent'].set_text(v.get_pstate_list_str('SCLK'))
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.get_pstate_list_str('SCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.sclk_state.items():
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
             # MCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: {}    Set Mask: '.format(
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: {}    Set Mask: '.format(
                                                               v.get_pstate_list_str('MCLK')))
-                devices[v.uuid]['mclk_pst_mask_ent'].set_text(v.get_pstate_list_str('MCLK'))
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.get_pstate_list_str('MCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.mclk_state.items():
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
             # VDDC CURVE
             if v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.vddc_curve.items():
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
 
             # refresh active mode item
-            devices[v.uuid]['ppm_modes_combo'].set_active(
-                devices[v.uuid]['ppm_mode_items'][v.get_current_ppm_mode()[0]])
+            devices[v.prm.uuid]['ppm_modes_combo'].set_active(
+                devices[v.prm.uuid]['ppm_mode_items'][v.get_current_ppm_mode()[0]])
 
         if refresh_message:
             self.update_message(devices, 'Refresh complete.\n', 'gray')
@@ -1540,57 +1540,52 @@ def main():
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    # Check value of AMD Feature mask
-    try:
-        featuremask = env.GUT_CONST.read_amdfeaturemask()
-    except FileNotFoundError:
-        print('Cannot read ppfeaturemask. Exiting...')
-        sys.exit(-1)
-    if featuremask == int(0xffff7fff) or featuremask == int(0xffffffff) or featuremask == int(0xfffd7fff):
-        print('AMD Wattman features enabled: {}'.format(hex(featuremask)))
-    else:
-        print('AMD Wattman features not enabled: {}, See README file.'.format(hex(featuremask)))
-        sys.exit(-1)
-
-    env.GUT_CONST.read_amd_driver_version()
-
-    # Get list of AMD GPUs and get basic non-driver details
+    # Get list of GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
-    gpu_list.get_gpu_list()
-    gpu_list.read_allgpu_pci_info()
+    gpu_list.set_gpu_list()
 
-    # Check list of AMD GPUs
-    num_amd_gpus = gpu_list.num_gpus()
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_amd_gpus == 0:
-        print('No AMD GPUs detected, exiting...')
+    # Check list of GPUs
+    num_gpus = gpu_list.num_vendor_gpus()
+    print('Detected GPUs: ', end='')
+    for i, (k, v) in enumerate(num_gpus.items()):
+        if i:
+            print(', {}: {}'.format(k, v), end='')
+        else:
+            print('{}: {}'.format(k, v), end='')
+    print('')
+    if 'AMD' in num_gpus.keys():
+        env.GUT_CONST.read_amd_driver_version()
+        print('AMD: {}'.format(gpu_list.wattman_status()))
+    if 'NV' in num_gpus.keys():
+        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+
+    num_gpus = gpu_list.num_gpus()
+    if num_gpus['total'] == 0:
+        print('No GPUs detected, exiting...')
         sys.exit(-1)
-    else:
-        if num_com_gpus == 0:
-            print('None are compatible, exiting...')
-            sys.exit(-1)
-        print('{} AMD GPUs detected, {} may be compatible, checking...'.format(num_amd_gpus, num_com_gpus))
+    print('{} detected GPUs, {} may be rw, {} may be r-only, {} may be w-only, checking...'.format(num_gpus['total'],
+                                                                                                   num_gpus['rw'],
+                                                                                                   num_gpus['r-only'],
+                                                                                                   num_gpus['w-only']))
 
-    # Read data static driver information for GPUs
-    gpu_list.read_gpu_driver_info()
-    gpu_list.read_gpu_sensor_static_data()
-    # Read dynamic sensor and state data from GPUs
-    gpu_list.read_gpu_sensor_data()
-    gpu_list.read_gpu_state_data()
-    # Read pstate and ppm table data
-    gpu_list.read_gpu_pstates()
-    gpu_list.read_gpu_ppm_table()
+    # Read data static/dynamic/info/state driver information for GPUs
+    gpu_list.read_gpu_sensor_data(data_type='All')
+
+    # Check number of readable/writable GPUs again
+    num_gpus = gpu_list.num_gpus()
+    print('{} total GPUs, {} rw, {} r-only, {} w-only.\n'.format(num_gpus['total'],
+                                                                 num_gpus['rw'],
+                                                                 num_gpus['r-only'],
+                                                                 num_gpus['w-only']))
 
     # Check number of compatible GPUs again
-    num_com_gpus = gpu_list.num_gpus(compatible=True)
-    if num_com_gpus == 0:
-        print('None are compatible, exiting...')
+    com_gpu_list = gpu_list.list_gpus(compatibility='writable')
+    writable_gpus = com_gpu_list.num_gpus()['total']
+    if not writable_gpus:
+        print('None are writable, exiting...')
         sys.exit(-1)
-    else:
-        print('{} are confirmed compatible.\n'.format(num_com_gpus))
-
-    # Generate a new list of only compatible GPUs
-    com_gpu_list = gpu_list.list_gpus(compatible=True)
+    com_gpu_list.read_gpu_pstates()
+    com_gpu_list.read_gpu_ppm_table()
 
     # Display Gtk style Monitor
     devices = {}
