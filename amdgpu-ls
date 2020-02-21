@@ -97,7 +97,7 @@ def main():
     print('')
     if 'AMD' in num_gpus.keys():
         env.GUT_CONST.read_amd_driver_version()
-        gpu_list.wattman_status()
+        print('AMD: {}'.format(gpu_list.wattman_status()))
     if 'NV' in num_gpus.keys():
         print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
 
@@ -131,6 +131,7 @@ def main():
         gpu_list.read_gpu_ppm_table()
         gpu_list.print_ppm_table()
     if not args.pstates and not args.ppm:
+        gpu_list.read_gpu_pstates()
         gpu_list.print(args.clinfo)
     sys.exit(0)
 

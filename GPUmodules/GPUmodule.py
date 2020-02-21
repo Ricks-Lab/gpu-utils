@@ -1040,12 +1040,13 @@ class GpuList:
     def wattman_status(self):
         """
         Display Wattman status.
-        :return:  None
+        :return:  Status string
+        :rtype: str
         """
         if self.amd_wattman:
-            print('AMD Wattman features enabled: {}'.format(hex(self.amd_featuremask)))
+            return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         else:
-            print('AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask)))
+            return 'AMD Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
 
     def add(self, gpu_item):
         """

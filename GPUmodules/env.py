@@ -208,7 +208,7 @@ class GutConst:
                                 if re.fullmatch(r'.*none.*', dpkg_items[2]):
                                     continue
                                 else:
-                                    print('AMD {} version: {}'.format(driverpkg, dpkg_items[2]))
+                                    print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
                                     version_ok = True
                                     break
                 if version_ok:
