@@ -74,25 +74,28 @@ class GpuItem:
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
-    _GPU_NC_Param_List = ['readable', 'writable', 'vendor', 'model', 'card_num', 'card_path', 'pcie_id', 'driver']
+    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
+                          'card_path', 'pcie_id', 'driver']
     # Define Class Labels
-    _GPU_CLINFO_Labels = {'device_name': 'Device Name',
-                          'device_version': 'Device Version',
-                          'driver_version': 'Driver Version',
-                          'opencl_version': 'Device OpenCL C Version',
-                          'max_cu': 'Max Compute Units',
-                          'simd_per_cu': 'SIMD per CU',
-                          'simd_width': 'SIMD Width',
-                          'simd_ins_width': 'SIMD Instruction Width',
-                          'max_mem_allocation': 'CL Max Memory Allocation',
-                          'max_wi_dim': 'Max Work Item Dimensions',
-                          'max_wi_sizes': 'Max Work Item Sizes',
-                          'max_wg_size': 'Max Work Group Size',
-                          'prf_wg_multiple': 'Preferred Work Group Multiple'}
+    _GPU_CLINFO_Labels = {'sep4': '#',
+                          'device_name': '   Device Name',
+                          'device_version': '   Device Version',
+                          'driver_version': '   Driver Version',
+                          'opencl_version': '   Device OpenCL C Version',
+                          'max_cu': '   Max Compute Units',
+                          'simd_per_cu': '   SIMD per CU',
+                          'simd_width': '   SIMD Width',
+                          'simd_ins_width': '   SIMD Instruction Width',
+                          'max_mem_allocation': '   CL Max Memory Allocation',
+                          'max_wi_dim': '   Max Work Item Dimensions',
+                          'max_wi_sizes': '   Max Work Item Sizes',
+                          'max_wg_size': '   Max Work Group Size',
+                          'prf_wg_multiple': '   Preferred Work Group Multiple'}
     _GPU_Param_Labels = {'card_num': 'Card Number',
                          'vendor': 'Vendor',
                          'readable': 'Readable',
                          'writable': 'Writable',
+                         'compute': 'Compute',
                          'unique_id': 'GPU UID',
                          'id': 'Device ID',
                          'model_device_decode': 'Decoded Device ID',
@@ -341,7 +344,7 @@ class GpuItem:
         return self.prm[name]
 
     def populate(self, pcie_id, gpu_name, short_gpu_name, vendor, driver_module, card_path, hwmon_path,
-                 readable, writable, compute, ocl_dev, ocl_ver, ocl_index):
+                 readable, writable, compute, ocl_ver):
         """
         Populate elements of a GpuItem.
         :param pcie_id: The pcid ID of the GPU.
@@ -364,12 +367,8 @@ class GpuItem:
         :type writable: bool
         :param compute: Compute compatibility flag
         :type compute: bool
-        :param ocl_dev:  openCL device
-        :type ocl_dev: str
-        :param ocl_ver: openCL version
+        :param ocl_ver: Compute platform Name
         :type ocl_ver: str
-        :param ocl_index: openCL index
-        :type ocl_index: str
         :return: None
         :rtype: None
         """
@@ -385,8 +384,17 @@ class GpuItem:
         self.prm.writable = writable
         self.prm.compute = compute
         self.prm.compute_platform = ocl_ver if compute else 'None'
-        #self.ocl_device_name = ocl_dev
-        #self.ocl_device_version = ocl_ver
+
+    def populate_ocl(self, ocl_dict):
+        """
+        Populate ocl parameters in GpuItem
+        :param ocl_dict: Dictionary of parameters for specific pcie_id
+        :type ocl_dict: dict
+        :return: None
+        """
+        for k, v in ocl_dict.items():
+            if k in self.clinfo.keys():
+                self.set_clinfo_value(k, v)
 
     def set_clinfo_value(self, name, value):
         """
@@ -397,7 +405,6 @@ class GpuItem:
         :type value: Union[int, str, list]
         :return: None
         :rtype: None
-        .. note: Maybe not needed
         """
         self.clinfo[name] = value
 
@@ -979,8 +986,11 @@ class GpuItem:
             if self.prm.gpu_type == 2 and k == 'vddc_range':
                 continue
             print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
-        if clflag:
+        if clflag and self.prm.compute:
             for k, v in self.get_all_clinfo_labels().items():
+                if re.search(r'sep[0-9]', k):
+                    print('{}{}'.format(pre, v.ljust(50, v)))
+                    continue
                 print('{}: {}'.format(v, self.get_clinfo_value(k)))
         print('')
 
@@ -1160,17 +1170,13 @@ class GpuList:
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
             vendor = 'UNKNOWN'
-            opencl_device_name = None
             opencl_device_version = None
-            opencl_device_index = None
             srch_obj = re.search(r'(AMD|amd|ATI|ati)', gpu_name)
             if srch_obj:
                 vendor = 'AMD'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_name = self.opencl_map[pcie_id][0]
-                        opencl_device_version = self.opencl_map[pcie_id][1]
-                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
                 else:
                     compute = True
@@ -1179,9 +1185,7 @@ class GpuList:
                 vendor = 'NVIDIA'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_name = self.opencl_map[pcie_id][0]
-                        opencl_device_version = self.opencl_map[pcie_id][1]
-                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
                 else:
                     compute = True
@@ -1190,9 +1194,7 @@ class GpuList:
                 vendor = 'INTEL'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_name = self.opencl_map[pcie_id][0]
-                        opencl_device_version = self.opencl_map[pcie_id][1]
-                        opencl_device_index = self.opencl_map[pcie_id][2]
+                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
                 else:
                     srch_obj = re.search(r' 530', gpu_name)
@@ -1242,9 +1244,9 @@ class GpuList:
                         writable = True
 
             self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
-                                         card_path, hwmon_path, readable, writable, compute,
-                                         opencl_device_name, opencl_device_version, opencl_device_index)
-
+                                         card_path, hwmon_path, readable, writable, compute, opencl_device_version)
+            if pcie_id in self.opencl_map.keys():
+                self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
         return True
 
     def read_gpu_opencl_data(self):
@@ -1260,11 +1262,11 @@ class GpuList:
             return False
         cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)), shell=False,
                                stdout=subprocess.PIPE)
-        ocl_pcie_id = ''
-        ocl_device_name = ''
-        ocl_device_version = ''
         ocl_index = ''
-        ocl_pcie_slot_id = ocl_pcie_bus_id = None
+        ocl_pcie_id = ocl_device_name = ocl_device_version = ocl_driver_version = ocl_pcie_slot_id = None
+        ocl_pcie_bus_id = ocl_max_cu = ocl_simd_per_cu = ocl_simd_width = ocl_simd_ins_width = None
+        ocl_max_mem_allocation = ocl_max_wi_dim = ocl_max_wi_sizes = ocl_max_wg_size = None
+        ocl_prf_wg_multiple = ocl_opencl_version = None
         for line in cmd.stdout:
             linestr = line.decode('utf-8').strip()
             if len(linestr) < 1:
@@ -1286,16 +1288,71 @@ class GpuList:
                 self.opencl_map.update({ocl_pcie_id: [ocl_device_name, ocl_device_version, ocl_index]})
                 if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
                 ocl_index = cl_index
-                ocl_pcie_id = ''
-                ocl_device_name = ''
-                ocl_device_version = ''
-                ocl_pcie_slot_id = ocl_pcie_bus_id = None
+                ocl_pcie_id = ocl_device_name = ocl_device_version = ocl_driver_version = ocl_pcie_slot_id = None
+                ocl_pcie_bus_id = ocl_max_cu = ocl_simd_per_cu = ocl_simd_width = ocl_simd_ins_width = None
+                ocl_max_mem_allocation = ocl_max_wi_dim = ocl_max_wi_sizes = ocl_max_wg_size = None
+                ocl_prf_wg_multiple = ocl_opencl_version = None
 
             param_str = line_items[1]
+            srch_obj = re.search('CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE', param_str)
+            if srch_obj:
+                ocl_prf_wg_multiple = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_prf_wg_multiple [{}]'.format(ocl_prf_wg_multiple))
+                continue
+            srch_obj = re.search('CL_DEVICE_MAX_WORK_GROUP_SIZE', param_str)
+            if srch_obj:
+                ocl_max_wg_size = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_max_wg_size [{}]'.format(ocl_max_wg_size))
+                continue
+            srch_obj = re.search('CL_DEVICE_MAX_WORK_ITEM_SIZES', param_str)
+            if srch_obj:
+                ocl_max_wi_sizes = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_max_wi_sizes [{}]'.format(ocl_max_wi_sizes))
+                continue
+            srch_obj = re.search('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS', param_str)
+            if srch_obj:
+                ocl_max_wi_dim = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_max_wi_dim [{}]'.format(ocl_max_wi_dim))
+                continue
+            srch_obj = re.search('CL_DEVICE_MAX_MEM_ALLOC_SIZE', param_str)
+            if srch_obj:
+                ocl_max_mem_allocation = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_max_mem_allocation [{}]'.format(ocl_max_mem_allocation))
+                continue
+            srch_obj = re.search('CL_DEVICE_SIMD_INSTRUCTION_WIDTH', param_str)
+            if srch_obj:
+                ocl_simd_ins_width = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_simd_ins_width [{}]'.format(ocl_simd_ins_width))
+                continue
+            srch_obj = re.search('CL_DEVICE_SIMD_WIDTH', param_str)
+            if srch_obj:
+                ocl_simd_width = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_simd_width [{}]'.format(ocl_simd_width))
+                continue
+            srch_obj = re.search('CL_DEVICE_SIMD_PER_COMPUTE_UNIT', param_str)
+            if srch_obj:
+                ocl_simd_per_cu = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_simd_per_cu [{}]'.format(ocl_simd_per_cu))
+                continue
+            srch_obj = re.search('CL_DEVICE_MAX_COMPUTE_UNITS', param_str)
+            if srch_obj:
+                ocl_max_cu = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_max_cu [{}]'.format(ocl_max_cu))
+                continue
             srch_obj = re.search('CL_DEVICE_NAME', param_str)
             if srch_obj:
                 ocl_device_name = line_items[2].strip()
                 if env.GUT_CONST.DEBUG: print('ocl_device_name [{}]'.format(ocl_device_name))
+                continue
+            srch_obj = re.search('CL_DEVICE_OPENCL_C_VERSION', param_str)
+            if srch_obj:
+                ocl_opencl_version = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_opencl_version [{}]'.format(ocl_opencl_version))
+                continue
+            srch_obj = re.search('CL_DRIVER_VERSION', param_str)
+            if srch_obj:
+                ocl_driver_version = line_items[2].strip()
+                if env.GUT_CONST.DEBUG: print('ocl_driver_version [{}]'.format(ocl_driver_version))
                 continue
             srch_obj = re.search('CL_DEVICE_VERSION', param_str)
             if srch_obj:
@@ -1324,7 +1381,21 @@ class GpuList:
                     if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
                 continue
 
-        self.opencl_map.update({ocl_pcie_id: [ocl_device_name, ocl_device_version, ocl_index]})
+        self.opencl_map.update({ocl_pcie_id: {'device_name': ocl_device_name,
+                                              'driver_version': ocl_driver_version,
+                                              'device_version': ocl_device_version,
+                                              'opencl_version': ocl_opencl_version,
+                                              'device_index': ocl_index,
+                                              'max_cu': ocl_max_cu,
+                                              'simd_per_cu': ocl_simd_per_cu,
+                                              'simd_width': ocl_simd_width,
+                                              'simd_ins_width': ocl_simd_ins_width,
+                                              'max_mem_allocation': ocl_max_mem_allocation,
+                                              'max_wi_dim': ocl_max_wi_dim,
+                                              'max_wi_sizes': ocl_max_wi_sizes,
+                                              'max_wg_size': ocl_max_wg_size,
+                                              'prf_wg_multiple': ocl_prf_wg_multiple
+                                              }})
         if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
         return True
 
