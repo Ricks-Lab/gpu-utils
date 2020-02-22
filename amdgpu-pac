@@ -32,8 +32,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-pac'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-#__status__ = 'Stable Release'
-__status__ = 'Complete rewrite under development - Please use an official release.'
+__status__ = 'Alpha Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -129,7 +128,7 @@ class PACWindow(Gtk.Window):
             power_cap_range = v.get_params_value('power_cap_range')
             devices[v.prm.uuid]['power_cap'] = Gtk.Label()
             devices[v.prm.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
-                                                    power_cap_range[0], power_cap_range[1]))
+                                                        power_cap_range[0], power_cap_range[1]))
             devices[v.prm.uuid]['power_cap'].set_property('margin-top', 1)
             devices[v.prm.uuid]['power_cap'].set_property('margin-bottom', 1)
             devices[v.prm.uuid]['power_cap'].set_property('margin-right', 2)
@@ -188,7 +187,7 @@ class PACWindow(Gtk.Window):
                 fan_pwm_range = v.get_params_value('fan_pwm_range')
                 devices[v.prm.uuid]['fan_pwm_range'] = Gtk.Label()
                 devices[v.prm.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
-                                                            fan_pwm_range[0], fan_pwm_range[1]))
+                                                                fan_pwm_range[0], fan_pwm_range[1]))
                 devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['fan_pwm_range'].set_property('margin-right', 2)
@@ -246,10 +245,10 @@ class PACWindow(Gtk.Window):
                 # Sclk P-States
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
-                                                         v.get_params_value('sclk_f_range')[0],
-                                                         v.get_params_value('sclk_f_range')[1],
-                                                         v.get_params_value('vddc_range')[0],
-                                                         v.get_params_value('vddc_range')[1]))
+                                                             v.get_params_value('sclk_f_range')[0],
+                                                             v.get_params_value('sclk_f_range')[1],
+                                                             v.get_params_value('vddc_range')[0],
+                                                             v.get_params_value('vddc_range')[1]))
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-right', 2)
@@ -359,8 +358,8 @@ class PACWindow(Gtk.Window):
                 # Sclk Curve End Points
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
-                                                         v.get_params_value('sclk_f_range')[0],
-                                                         v.get_params_value('sclk_f_range')[1]))
+                                                             v.get_params_value('sclk_f_range')[0],
+                                                             v.get_params_value('sclk_f_range')[1]))
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-right', 2)
@@ -424,10 +423,10 @@ class PACWindow(Gtk.Window):
                 # Mclk P-States
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
-                                                         v.get_params_value('mclk_f_range')[0],
-                                                         v.get_params_value('mclk_f_range')[1],
-                                                         v.get_params_value('vddc_range')[0],
-                                                         v.get_params_value('vddc_range')[1]))
+                                                             v.get_params_value('mclk_f_range')[0],
+                                                             v.get_params_value('mclk_f_range')[1],
+                                                             v.get_params_value('vddc_range')[0],
+                                                             v.get_params_value('vddc_range')[1]))
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-right', 2)
@@ -536,8 +535,8 @@ class PACWindow(Gtk.Window):
                 # Mclk Curve End points
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk Curve End Points: </b> Ranges {}-{} '.format(
-                                                         v.get_params_value('mclk_f_range')[0],
-                                                         v.get_params_value('mclk_f_range')[1]))
+                                                             v.get_params_value('mclk_f_range')[0],
+                                                             v.get_params_value('mclk_f_range')[1]))
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['mclk_range'].set_property('margin-right', 2)
@@ -600,11 +599,11 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 2:
                 # VDDC Curve Points
                 devices[v.prm.uuid]['vddc_curve_range'] = Gtk.Label()
-                devices[v.prm.uuid]['vddc_curve_range'].set_markup('<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(
-                                                               v.vddc_curve_range['0']['SCLK'][0],
-                                                               v.vddc_curve_range['0']['SCLK'][1],
-                                                               v.vddc_curve_range['0']['VOLT'][0],
-                                                               v.vddc_curve_range['0']['VOLT'][1]))
+                devices[v.prm.uuid]['vddc_curve_range'].set_markup(
+                    '<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(v.vddc_curve_range['0']['SCLK'][0],
+                                                                             v.vddc_curve_range['0']['SCLK'][1],
+                                                                             v.vddc_curve_range['0']['VOLT'][0],
+                                                                             v.vddc_curve_range['0']['VOLT'][1]))
                 devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['vddc_curve_range'].set_property('margin-right', 2)
@@ -720,7 +719,8 @@ class PACWindow(Gtk.Window):
             lbox.set_property('margin-right', 1)
             lbox.set_property('margin-left', 1)
 
-            devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(devices[v.prm.uuid]['ppm_modes'])
+            devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(
+                devices[v.prm.uuid]['ppm_modes'])
             devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
             devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
             lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
@@ -894,11 +894,11 @@ class PACWindow(Gtk.Window):
 
         for v in gpu_list.list.values():
             devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {}W    Set: '.format(
-                                                      v.get_params_value('power_cap')))
+                                                          v.get_params_value('power_cap')))
             devices[v.prm.uuid]['power_cap_ent'].set_text(str(int(v.get_params_value('power_cap'))))
             if env.GUT_CONST.show_fans:
                 devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
-                                                        v.get_params_value('fan_pwm')))
+                                                            v.get_params_value('fan_pwm')))
                 devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
             # SCLK
             if v.get_params_value('gpu_type') == 1:
@@ -913,7 +913,7 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: {}    Set Mask: '.format(
-                                                              v.get_pstate_list_str('SCLK')))
+                                                                  v.get_pstate_list_str('SCLK')))
                 devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.get_pstate_list_str('SCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.sclk_state.items():
@@ -935,7 +935,7 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: {}    Set Mask: '.format(
-                                                              v.get_pstate_list_str('MCLK')))
+                                                                  v.get_pstate_list_str('MCLK')))
                 devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.get_pstate_list_str('MCLK'))
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.mclk_state.items():

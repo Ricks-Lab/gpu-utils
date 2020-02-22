@@ -86,7 +86,7 @@ from GPUmodules import env
 
 
 # SEMAPHORE ############
-pd_sem = threading.Semaphore()
+PD_SEM = threading.Semaphore()
 ########################
 
 
@@ -156,11 +156,11 @@ class PlotData:
         .. note:: This may have contention issues
         """
         # SEMAPHORE ############
-        pd_sem.acquire()
+        PD_SEM.acquire()
         ########################
         ndf = self.df.copy()
         # SEMAPHORE ############
-        pd_sem.release()
+        PD_SEM.release()
         ########################
         return ndf
 
@@ -213,12 +213,12 @@ class GuiComponents:
         self.gui_components['temp_status'] = {}
         self.gui_components['temp_status']['df_name'] = 'temp_val'
         self.gui_components['card_plots'] = {}
-        for i, gpu in enumerate(self.gpu_list):
-            self.gui_components['card_plots'][gpu] = {}
-            self.gui_components['card_plots'][gpu]['color'] = gpu_color_list[i]
-            self.gpu_color[gpu] = gpu_color_list[i]
+        for i, gpu_i in enumerate(self.gpu_list):
+            self.gui_components['card_plots'][gpu_i] = {}
+            self.gui_components['card_plots'][gpu_i]['color'] = gpu_color_list[i]
+            self.gpu_color[gpu_i] = gpu_color_list[i]
         return
-    
+
     def set_ready(self, mode):
         """
         Set flag to indicate gui is ready.
@@ -484,7 +484,7 @@ class GPUPlotWindow(Gtk.Window):
         gc.plot_items[k] = False if gc.plot_items[k] else True
 
 
-def updateData(gc, plot_data):
+def update_data(gc, plot_data):
     """
     Update plot data.
     :param gc:
@@ -494,7 +494,7 @@ def updateData(gc, plot_data):
     :return:  None
     """
     # SEMAPHORE ###########
-    pd_sem.acquire()
+    PD_SEM.acquire()
     #######################
     ldf = plot_data.df
     try:
@@ -519,7 +519,7 @@ def updateData(gc, plot_data):
             # Do bar plot
             plt.figure(v['figure_num'])
             v['ax1'].clear()
-            rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
+            _rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v['df_name'] == 'temp_val':
                 for a, b in zip(ind, data_val):
                     v['ax1'].text(x=float(a)-(float(width)/1.8), y=0.90*b, s=' '+str(b), fontsize=8)
@@ -585,7 +585,7 @@ def updateData(gc, plot_data):
         plot_data.kill_thread()
 
     # SEMAPHORE ###########
-    pd_sem.release()
+    PD_SEM.release()
     #######################
 
 
@@ -609,7 +609,7 @@ def read_from_stdin(refreshtime, plot_data):
         # Process a set of GPUs at a time
         skip_update = False
         read_time = 0.0
-        for gpu_index in range(0, plot_data.num_gpus + sync_add):
+        for _gpu_index in range(0, plot_data.num_gpus + sync_add):
             tb = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
             line = sys.stdin.readline()
             tmp_read_time = (env.GUT_CONST.now(env.GUT_CONST.USELTZ) - tb).total_seconds()
@@ -657,7 +657,7 @@ def read_from_stdin(refreshtime, plot_data):
                 if env.GUT_CONST.DEBUG: print('skipping update')
 
         # SEMAPHORE ############
-        pd_sem.acquire()
+        PD_SEM.acquire()
         ########################
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index=True)
@@ -670,7 +670,7 @@ def read_from_stdin(refreshtime, plot_data):
             plot_data.df.drop(np.arange(0, trun_index), inplace=True)
             plot_data.df.reset_index(drop=True, inplace=True)
         # SEMAPHORE ############
-        pd_sem.release()
+        PD_SEM.release()
         ########################
         del ndf
 
@@ -685,13 +685,13 @@ def read_from_stdin(refreshtime, plot_data):
             if first_update:
                 time.sleep(refreshtime)
                 first_update = False
-            GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
+            GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
             time.sleep(0.01)
-            pd_sem.acquire()
-            pd_sem.release()
+            PD_SEM.acquire()
+            PD_SEM.release()
             ########################
             garbcollect.collect()
         if env.GUT_CONST.DEBUG: print('update stack size: {}'.format(get_stack_size()))
@@ -730,7 +730,7 @@ def read_from_gpus(refreshtime, plot_data):
             del rdf
 
         # SEMAPHORE ############
-        pd_sem.acquire()
+        PD_SEM.acquire()
         ########################
         # Concatenate new data on plot_data dataframe and truncate
         plot_data.df = pd.concat([plot_data.df, ndf], ignore_index=True)
@@ -743,7 +743,7 @@ def read_from_gpus(refreshtime, plot_data):
             plot_data.df.drop(np.arange(0, trun_index), inplace=True)
             plot_data.df.reset_index(drop=True, inplace=True)
         # SEMAPHORE ############
-        pd_sem.release()
+        PD_SEM.release()
         ########################
         del ndf
 
@@ -759,13 +759,13 @@ def read_from_gpus(refreshtime, plot_data):
             if first_update:
                 time.sleep(refreshtime)
                 first_update = False
-            GLib.idle_add(updateData, plot_data.gui_comp, plot_data)
+            GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
             time.sleep(0.01)
-            pd_sem.acquire()
-            pd_sem.release()
+            PD_SEM.acquire()
+            PD_SEM.release()
             ########################
             garbcollect.collect()
         if env.GUT_CONST.DEBUG: print('update stack size: {}'.format(get_stack_size()))
@@ -861,9 +861,9 @@ def main():
     # end of if args.stdin == False
 
     if args.stdin or args.simlog:
-        readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
+        _readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
     else:
-        readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
+        _readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 9:
