@@ -85,7 +85,7 @@ def main():
 
     # Get list of GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
-    gpu_list.set_gpu_list()
+    gpu_list.set_gpu_list(clinfo_flag=True)
 
     # Check list of GPUs
     num_gpus = gpu_list.num_vendor_gpus()

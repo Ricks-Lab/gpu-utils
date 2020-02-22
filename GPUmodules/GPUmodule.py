@@ -1105,7 +1105,7 @@ class GpuList:
         """
         return self._table_parameters
 
-    def set_gpu_list(self):
+    def set_gpu_list(self, clinfo_flag=False):
         """
         Use lspci to populate list of all installed GPUs.
         :return: True on success
@@ -1113,8 +1113,9 @@ class GpuList:
         """
         if not env.GUT_CONST.cmd_lspci:
             return False
-        self.read_gpu_opencl_data()
-        if env.GUT_CONST.DEBUG: print('openCL map: {}'.format(self.opencl_map))
+        if clinfo_flag:
+            self.read_gpu_opencl_data()
+            if env.GUT_CONST.DEBUG: print('openCL map: {}'.format(self.opencl_map))
 
         # Check AMD writability
         try:
@@ -1170,14 +1171,15 @@ class GpuList:
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
             vendor = 'UNKNOWN'
-            opencl_device_version = None
+            opencl_device_version = None if clinfo_flag else 'UNKNOWN'
             srch_obj = re.search(r'(AMD|amd|ATI|ati)', gpu_name)
             if srch_obj:
                 vendor = 'AMD'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                        compute = True
+                        if 'device_version' in self.opencl_map[pcie_id].keys():
+                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
+                            compute = True
                 else:
                     compute = True
             srch_obj = re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name)
@@ -1185,8 +1187,9 @@ class GpuList:
                 vendor = 'NVIDIA'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                        compute = True
+                        if 'device_version' in self.opencl_map[pcie_id].keys():
+                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
+                            compute = True
                 else:
                     compute = True
             srch_obj = re.search(r'(INTEL|intel|Intel)', gpu_name)
@@ -1194,8 +1197,9 @@ class GpuList:
                 vendor = 'INTEL'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
-                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                        compute = True
+                        if 'device_version' in self.opencl_map[pcie_id].keys():
+                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
+                            compute = True
                 else:
                     srch_obj = re.search(r' 530', gpu_name)
                     if srch_obj:
@@ -1245,8 +1249,9 @@ class GpuList:
 
             self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                          card_path, hwmon_path, readable, writable, compute, opencl_device_version)
-            if pcie_id in self.opencl_map.keys():
-                self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
+            if clinfo_flag:
+                if pcie_id in self.opencl_map.keys():
+                    self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
         return True
 
     def read_gpu_opencl_data(self):
@@ -1285,7 +1290,9 @@ class GpuList:
 
             # If new cl_index, then update opencl_map
             if cl_index != ocl_index:
-                self.opencl_map.update({ocl_pcie_id: [ocl_device_name, ocl_device_version, ocl_index]})
+                self.opencl_map.update({ocl_pcie_id: {'device_name': ocl_device_name,
+                                                      'device_version': ocl_device_version,
+                                                      'device_index': ocl_index}})
                 if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
                 ocl_index = cl_index
                 ocl_pcie_id = ocl_device_name = ocl_device_version = ocl_driver_version = ocl_pcie_slot_id = None
