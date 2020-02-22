@@ -62,22 +62,6 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## amdgpu-pciid
-The system pci.ids file is used by *amdgpu-utils* starting in v2.7.0.  The *amdgpu-pciid*
-should only be used to delete a local version of the file, if it exists, in order for 
-the system file to be used.  The system command *update-pciids* can be used to update
-the system pci-ids file from the original source.
-
-The *amdgpu-pciid* utility will display the version of the current pci.ids data extract
-in use.  With the *--download* option, the latest pci.ids file from https://pci-ids.ucw.cz/
-will be downloaded. With the *--install* option, the latest pci.ids will be downloaded and
-filtered for AMD specific data and written to the file used by amdgpu-utils to decode device
-names from the driver provided device id.  The *--force* option can be used to update this 
-file even if there is no change in version.  The *--remove_local* option can be used to remove
-a local version of the file, which will override the preferred system file results if it exists.
-If your GPU model is missing from the pci.ids file, you can use the device id of your card found with 
-*amdgpu-ls* and make a request for the addition on the pci.ids website.
-
 ## New in this Development -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/tree/v3.0)
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid* 
@@ -87,6 +71,8 @@ class variables for generic behavior parameters.
 compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
 * Test for readability and writability of all GPUs and apply utilities as appropriate.
 * Add assessment of compute capability.
+* Eliminated the use of lshw to determine driver compatibility and display of driver details in now
+informational with no impact on the utilities.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
