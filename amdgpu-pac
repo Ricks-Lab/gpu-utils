@@ -1065,13 +1065,13 @@ class PACWindow(Gtk.Window):
         changed = 0
         v = gpu_list.list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(v.card_num, v.get_params_value('model')), file=fileptr)
-        print('# {}'.format(v.card_path), file=fileptr)
+        print('# Card{}  {}'.format(v.prm.card_num, v.get_params_value('model')), file=fileptr)
+        print('# {}'.format(v.prm.card_path), file=fileptr)
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
 
         # Power Cap
-        power_cap_file = v.hwmon_path + 'power1_cap'
+        power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
         old_power_cap = int(v.get_params_value('power_cap'))
         new_power_cap_str = devices[uuid]['power_cap_ent'].get_text()
         if re.fullmatch(r'^[-]*[0-9]+', new_power_cap_str):
@@ -1104,8 +1104,8 @@ class PACWindow(Gtk.Window):
 
         if env.GUT_CONST.show_fans:
             # Fan PWM
-            pwm_enable_file = v.hwmon_path + 'pwm1_enable'
-            pwm_file = v.hwmon_path + 'pwm1'
+            pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
+            pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
             old_pwm = int(v.get_params_value('fan_pwm'))
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             if re.fullmatch(r'^[-]*[0-9]+', new_pwm_str):
@@ -1138,7 +1138,7 @@ class PACWindow(Gtk.Window):
                 else:
                     print('# Invalid parameter values', file=fileptr)
 
-        device_file = v.card_path + 'pp_od_clk_voltage'
+        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
         commit_needed = False
         if v.get_params_value('gpu_type') == 1:
             # Sclk P-states
@@ -1248,8 +1248,8 @@ class PACWindow(Gtk.Window):
                     print('# Invalid vddc curve point values', file=fileptr)
 
         # PPM
-        ppm_level_file = os.path.join(v.card_path, 'power_dpm_force_performance_level')
-        ppm_mode_file = os.path.join(v.card_path, 'pp_power_profile_mode')
+        ppm_level_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
+        ppm_mode_file = os.path.join(v.prm.card_path, 'pp_power_profile_mode')
 
         tree_iter = devices[uuid]['ppm_modes_combo'].get_active_iter()
         if tree_iter is not None:
@@ -1270,7 +1270,7 @@ class PACWindow(Gtk.Window):
                 print('# PPM mode {} unchanged, skipping'.format(devices[uuid]['new_ppm'][1]), file=fileptr)
 
         # Commit changes
-        device_file = os.path.join(v.card_path, 'pp_od_clk_voltage')
+        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
         if commit_needed:
             changed += 1
             print("sudo sh -c \"echo \'c\' >  {}\"".format(device_file), file=fileptr)
@@ -1280,7 +1280,7 @@ class PACWindow(Gtk.Window):
         if v.get_params_value('gpu_type') == 1:
             # Writes of pstate Masks must come after commit of pstate changes
             # Sclk Mask
-            sclk_mask_file = os.path.join(v.card_path, 'pp_dpm_sclk')
+            sclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_sclk')
             old_sclk_mask = v.get_pstate_list_str('SCLK').replace(',', ' ')
             new_sclk_mask = devices[uuid]['sclk_pst_mask_ent'].get_text().replace(',', ' ').strip()
             print('# Sclk P-State Mask Default: {}'.format(old_sclk_mask), end='', file=fileptr)
@@ -1300,7 +1300,7 @@ class PACWindow(Gtk.Window):
                     print('# Invalid parameter values', file=fileptr)
 
             # Mclk Mask
-            mclk_mask_file = os.path.join(v.card_path, 'pp_dpm_mclk')
+            mclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_mclk')
             old_mclk_mask = v.get_pstate_list_str('MCLK').replace(',', ' ')
             new_mclk_mask = devices[uuid]['mclk_pst_mask_ent'].get_text().replace(',', ' ').strip()
             print('# Mclk P-State Mask Default: {}'.format(old_mclk_mask), end='', file=fileptr)
@@ -1325,7 +1325,7 @@ class PACWindow(Gtk.Window):
         print('Batch file completed: {}'.format(out_filename))
         if env.GUT_CONST.execute_pac:
             # Execute bash file
-            print('Writing {} changes to GPU {}'.format(changed, v.card_path))
+            print('Writing {} changes to GPU {}'.format(changed, v.prm.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print('PAC execution complete.')
@@ -1352,7 +1352,7 @@ class PACWindow(Gtk.Window):
                 else:
                     message = 'No PAC commands to write bash file.\nNo changes specified.'
                 self.update_message(devices, message, 'yellow')
-            print('Execute to write changes to GPU {}'.format(v.card_path))
+            print('Execute to write changes to GPU {}'.format(v.prm.card_path))
             print('')
         return changed
 
@@ -1442,16 +1442,16 @@ class PACWindow(Gtk.Window):
 
         v = gpu_list.list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(v.card_num, v.get_params_value('model')), file=fileptr)
-        print('# {}'.format(v.card_path), file=fileptr)
+        print('# Card{}  {}'.format(v.prm.card_num, v.get_params_value('model')), file=fileptr)
+        print('# {}'.format(v.prm.card_path), file=fileptr)
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
 
         # Commit changes
-        power_cap_file = os.path.join(v.hwmon_path, 'power1_cap')
-        pwm_enable_file = os.path.join(v.hwmon_path, 'pwm1_enable')
-        device_file = os.path.join(v.card_path, 'pp_od_clk_voltage')
-        ppm_level_file = os.path.join(v.card_path, 'power_dpm_force_performance_level')
+        power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
+        pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
+        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
+        ppm_level_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
         print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
         if env.GUT_CONST.show_fans:
             print("sudo sh -c \"echo \'2\' >  {}\"".format(pwm_enable_file), file=fileptr)
@@ -1465,7 +1465,7 @@ class PACWindow(Gtk.Window):
         os.chmod(out_filename, 0o744)
         print('Batch file completed: {}'.format(out_filename))
         if env.GUT_CONST.execute_pac:
-            print('Writing changes to GPU {}'.format(v.card_path))
+            print('Writing changes to GPU {}'.format(v.prm.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print('')
@@ -1476,7 +1476,7 @@ class PACWindow(Gtk.Window):
             self.refresh_pac(gpu_list, devices)
             os.remove(out_filename)
         else:
-            print('Execute to write changes to GPU {}.\n'.format(v.card_path))
+            print('Execute to write changes to GPU {}.\n'.format(v.prm.card_path))
             if refresh:
                 # Dismiss execute_pac message
                 message = 'Write reset commands to bash file complete.\nRun bash file with sudo to execute changes.'
