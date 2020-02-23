@@ -80,6 +80,10 @@ def ctrl_c_handler(target_signal, frame):
 
 signal.signal(signal.SIGINT, ctrl_c_handler)
 
+# SEMAPHORE ############
+UD_SEM = threading.Semaphore()
+########################
+
 
 class MonitorWindow(Gtk.Window):
     """
@@ -187,6 +191,11 @@ def update_data(gpu_list, devices, cmd):
     :type cmd: subprocess.Popen
     :return: None
     """
+    # SEMAPHORE ############
+    if not UD_SEM.acquire(blocking=False):
+        print('Update while updating, skipping new update')
+        return
+    ########################
     gpu_list.read_gpu_sensor_data(data_type='dynamic')
     gpu_list.read_gpu_sensor_data(data_type='state')
     if env.GUT_CONST.LOG:
@@ -212,6 +221,9 @@ def update_data(gpu_list, devices, cmd):
 
     while Gtk.events_pending():
         Gtk.main_iteration_do(True)
+    # SEMAPHORE ############
+    UD_SEM.release()
+    ########################
 
 
 def refresh(refreshtime, update_data, gpu_list, devices, cmd, gmonitor):
@@ -238,7 +250,7 @@ def refresh(refreshtime, update_data, gpu_list, devices, cmd, gmonitor):
             sys.exit(0)
         GLib.idle_add(update_data, gpu_list, devices, cmd)
         tst = 0.0
-        sleep_interval = 0.1
+        sleep_interval = 0.2
         while tst < refreshtime:
             time.sleep(sleep_interval)
             tst += sleep_interval
