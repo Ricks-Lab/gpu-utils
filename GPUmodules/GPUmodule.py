@@ -90,6 +90,7 @@ class GpuItem:
                           'max_wi_dim': '   Max Work Item Dimensions',
                           'max_wi_sizes': '   Max Work Item Sizes',
                           'max_wg_size': '   Max Work Group Size',
+                          'prf_wg_size': '   Preferred Work Group Size',
                           'prf_wg_multiple': '   Preferred Work Group Multiple'}
     _GPU_Param_Labels = {'card_num': 'Card Number',
                          'vendor': 'Vendor',
@@ -263,6 +264,7 @@ class GpuItem:
                                'max_wi_dim': '',
                                'max_wi_sizes': '',
                                'max_wg_size': '',
+                               'prf_wg_size': '',
                                'prf_wg_multiple': ''})
         self.sclk_state = {}        # {'1': ['Mhz', 'mV']}
         self.mclk_state = {}        # {'1': ['Mhz', 'mV']}
@@ -1273,6 +1275,7 @@ class GpuList:
         # Clinfo Keywords and related opencl_map key.
         ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
                         'CL_DEVICE_MAX_WORK_GROUP_SIZE': 'max_wg_size',
+                        'CL_DEVICE_PREFERRED_WORK_GROUP_SIZE': 'prf_wg_size',
                         'CL_DEVICE_MAX_WORK_ITEM_SIZES': 'max_wi_sizes',
                         'CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS': 'max_wi_dim',
                         'CL_DEVICE_MAX_MEM_ALLOC_SIZE': 'max_mem_allocation',
@@ -1283,8 +1286,7 @@ class GpuList:
                         'CL_DEVICE_NAME': 'device_name',
                         'CL_DEVICE_OPENCL_C_VERSION': 'opencl_version',
                         'CL_DRIVER_VERSION': 'driver_version',
-                        'CL_DEVICE_VERSION': 'device_version'
-                        }
+                        'CL_DEVICE_VERSION': 'device_version'}
 
         def init_temp_map():
             """
@@ -1512,10 +1514,9 @@ class GpuList:
             print('┬', '─'.ljust(16, '─'), sep='', end='')
         print('┐')
 
-        print('│', '\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
+        print('│\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
         for v in self.list.values():
-            print('│', '\x1b[1;36m' + ('card' + str(v.prm.card_num)).ljust(16, ' ') + '\x1b[0m',
-                  sep='', end='')
+            print('│\x1b[1;36mcard{:<12}\x1b[0m'.format(v.prm.card_num), end='')
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
@@ -1524,10 +1525,11 @@ class GpuList:
         print('┤')
 
         for table_item in self.table_parameters():
-            print('│', '\x1b[1;36m' + self.table_param_labels()[table_item].ljust(13, ' ')[:13] + '\x1b[0m',
-                  sep='', end='')
+            #print('│', '\x1b[1;36m' + self.table_param_labels()[table_item].ljust(13, ' ')[:13] + '\x1b[0m',
+            print('│\x1b[1;36m{:<13}\x1b[0m'.format(self.table_param_labels()[table_item]),  end='')
             for v in self.list.values():
-                print('│', str(v.get_params_value(table_item)).ljust(16, ' ')[:16], sep='', end='')
+                #print('│', str(v.get_params_value(table_item)).ljust(16, ' ')[:16], sep='', end='')
+                print('│{:<16}'.format(str(v.get_params_value(table_item))), end='')
             print('│')
 
         print('└', '─'.ljust(13, '─'), sep='', end='')
@@ -1609,7 +1611,7 @@ class GpuList:
 
         # Print Data
         for v in self.list.values():
-            line_str_item = [str(v.energy['tn'].strftime('%c')).strip() + '|' + str(v.prm.card_num)]
+            line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime('%c')).strip(), v.prm.card_num)]
             for table_item in self.table_parameters():
                 line_str_item.append('|' + str(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)))).strip())
             line_str_item.append('\n')
