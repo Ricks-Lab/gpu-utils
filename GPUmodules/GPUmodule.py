@@ -1525,10 +1525,8 @@ class GpuList:
         print('┤')
 
         for table_item in self.table_parameters():
-            #print('│', '\x1b[1;36m' + self.table_param_labels()[table_item].ljust(13, ' ')[:13] + '\x1b[0m',
             print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]),  end='')
             for v in self.list.values():
-                #print('│', str(v.get_params_value(table_item)).ljust(16, ' ')[:16], sep='', end='')
                 print('│{:<16}'.format(str(v.get_params_value(table_item))[:16]), end='')
             print('│')
 
