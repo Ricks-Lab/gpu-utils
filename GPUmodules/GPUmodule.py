@@ -78,10 +78,10 @@ class GpuItem:
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'sep4': '#',
+                          'opencl_version': '   Device OpenCL C Version',
                           'device_name': '   Device Name',
                           'device_version': '   Device Version',
                           'driver_version': '   Driver Version',
-                          'opencl_version': '   Device OpenCL C Version',
                           'max_cu': '   Max Compute Units',
                           'simd_per_cu': '   SIMD per CU',
                           'simd_width': '   SIMD Width',
@@ -1265,13 +1265,10 @@ class GpuList:
         if not env.GUT_CONST.cmd_clinfo:
             print('OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install', file=sys.stderr)
             return False
+
+        # Run the clinfo command
         cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)), shell=False,
                                stdout=subprocess.PIPE)
-
-        #temp_map = {'device_name': None, 'driver_version': None, 'device_version': None,
-                    #'opencl_version': None, 'device_index': None, 'max_cu': None, 'simd_per_cu': None,
-                    #'simd_width': None, 'simd_ins_width': None, 'max_mem_allocation': None,
-                    #'max_wi_dim': None, 'max_wi_sizes': None, 'max_wg_size': None, 'prf_wg_multiple': None}
 
         # Clinfo Keywords and related opencl_map key.
         ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
@@ -1290,6 +1287,11 @@ class GpuList:
                         }
 
         def init_temp_map():
+            """
+            Return an initialized clinfo dict.
+            :return:  Initialized clinfo dict
+            :rtype: dict
+            """
             t_dict = {}
             for temp_keys in ocl_keywords.values():
                 t_dict[temp_keys] = None
@@ -1326,10 +1328,6 @@ class GpuList:
                 ocl_index = cl_index
                 ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
                 temp_map = init_temp_map()
-                #temp_map = {'device_name': None, 'driver_version': None, 'device_version': None,
-                            #'opencl_version': None, 'device_index': None, 'max_cu': None, 'simd_per_cu': None,
-                            #'simd_width': None, 'simd_ins_width': None, 'max_mem_allocation': None,
-                            #'max_wi_dim': None, 'max_wi_sizes': None, 'max_wg_size': None, 'prf_wg_multiple': None }
 
             param_str = line_items[1]
             # Check item in clinfo_keywords
@@ -1341,11 +1339,14 @@ class GpuList:
                     continue
 
             # PCIe ID related clinfo_keywords
+            # Check for AMD pcie_id details
             srch_obj = re.search('CL_DEVICE_TOPOLOGY', param_str)
             if srch_obj:
                 ocl_pcie_id = (line_items[2].split()[1]).strip()
                 if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
                 continue
+
+            # Check for NV pcie_id details
             srch_obj = re.search('CL_DEVICE_PCI_BUS_ID_NV', param_str)
             if srch_obj:
                 ocl_pcie_bus_id = hex(int(line_items[2].strip()))
@@ -1362,6 +1363,9 @@ class GpuList:
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
                     if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
                 continue
+
+            # Check for INTEL pcie_id details
+            # TODO don't know how to do this yet.
 
         self.opencl_map.update({ocl_pcie_id: temp_map})
         if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
