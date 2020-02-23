@@ -193,11 +193,11 @@ def update_data(gpu_list, devices, cmd):
     """
     # SEMAPHORE ############
     if not UD_SEM.acquire(blocking=False):
-        print('Update while updating, skipping new update')
+        if env.GUT_CONST.DEBUG: print('Update while updating, skipping new update')
         return
     ########################
-    gpu_list.read_gpu_sensor_data(data_type='dynamic')
-    gpu_list.read_gpu_sensor_data(data_type='state')
+    gpu_list.read_gpu_sensor_data(data_type='DynamicM')
+    gpu_list.read_gpu_sensor_data(data_type='StateM')
     if env.GUT_CONST.LOG:
         gpu_list.print_log(env.GUT_CONST.log_file_ptr)
     if env.GUT_CONST.PLOT:
@@ -376,8 +376,8 @@ def main():
         # Display text style Monitor
         try:
             while True:
-                com_gpu_list.read_gpu_sensor_data(data_type='dynamic')
-                com_gpu_list.read_gpu_sensor_data(data_type='state')
+                com_gpu_list.read_gpu_sensor_data(data_type='DynamicM')
+                com_gpu_list.read_gpu_sensor_data(data_type='StateM')
                 if not env.GUT_CONST.DEBUG: os.system('clear')
                 if env.GUT_CONST.LOG:
                     print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))

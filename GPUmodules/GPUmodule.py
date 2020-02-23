@@ -884,6 +884,7 @@ class GpuItem:
         param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios']}
         param_list_state = {'DEVICE': ['loading', 'mem_loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
                                        'power_dpm_force']}
+        param_list_state_mon = {'DEVICE': ['loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
         param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
                                      'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force'],
                           'HWMON': ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
@@ -895,12 +896,18 @@ class GpuItem:
             param_list = param_list_static.copy()
             if env.GUT_CONST.show_fans:
                 concat_sensor_dicts(param_list, param_list_static_fan)
+        elif data_type == 'DynamicM':
+            param_list = param_list_dynamic.copy()
+            if env.GUT_CONST.show_fans:
+                concat_sensor_dicts(param_list, param_list_dynamic_fan)
         elif data_type == 'Dynamic':
             param_list = param_list_dynamic.copy()
             if env.GUT_CONST.show_fans:
                 concat_sensor_dicts(param_list, param_list_dynamic_fan)
         elif data_type == 'Info':
             param_list = param_list_info
+        elif data_type == 'StateM':
+            param_list = param_list_state_mon
         elif data_type == 'State':
             param_list = param_list_state
         else:   # '== All'

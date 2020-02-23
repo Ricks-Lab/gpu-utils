@@ -885,9 +885,8 @@ class PACWindow(Gtk.Window):
         :param refresh_message:
         :return:
         """
-        # Read dynamic sensor and state data from GPUs
-        gpu_list.read_gpu_sensor_data(data_type='static')
-        gpu_list.read_gpu_sensor_data(data_type='state')
+        # Read sensor and state data from GPUs
+        gpu_list.read_gpu_sensor_data(data_type='All')
         # Read pstate and ppm table data
         gpu_list.read_gpu_pstates()
         gpu_list.read_gpu_ppm_table()

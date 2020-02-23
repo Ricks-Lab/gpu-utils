@@ -715,8 +715,8 @@ def read_from_gpus(refreshtime, plot_data):
     while not plot_data.quit:
         ndf = pd.DataFrame()
 
-        plot_data.com_gpu_list.read_gpu_sensor_data(data_type='dynamic')
-        plot_data.com_gpu_list.read_gpu_sensor_data(data_type='state')
+        plot_data.com_gpu_list.read_gpu_sensor_data(data_type='DynamicM')
+        plot_data.com_gpu_list.read_gpu_sensor_data(data_type='StateM')
 
         # Process a set of GPUs at a time
         skip_update = False
