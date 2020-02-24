@@ -82,15 +82,21 @@ informational with no impact on the utilities.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
 * *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
-* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
+* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows
+actual values instead of set values.
 
 ## References
-* Original inspiration for this project: <a href="https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15">Reddit</a>
-* Phoronix articles including these: <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test">Phoronix Power Cap</a>, <a href="https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1">Phoronix HWMon</a>
-* Repositories: <a href="https://github.com/sibradzic/amdgpu-clocks">amdgpu-clocks</a>, <a href="https://github.com/BoukeHaarsma23/WattmanGTK">WattmanGTK</a>, <a href="https://github.com/RadeonOpenCompute/ROC-smi">ROC-smi</a>
-* Relevant Kernel Details: <a href="https://www.kernel.org/doc/html/latest/gpu/amdgpu.html">Kernel Details</a>
-* PCI ID Decode Table: <a href="https://pci-ids.ucw.cz/v2.2/pci.ids">PCI IDs</a>
-* Radeon VII discussion on Reddit: <a href="https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/">Radeon VII Overclocking</a>
+* Original inspiration for this project: 
+[Reddit](https://www.reddit.com/r/Amd/comments/agwroj/how_to_overclock_your_amd_gpu_on_linux/?st=JSL25OVP&sh=306c2d15)
+* Phoronix articles including these: 
+[PowerCap](https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Quick-WattMan-Cap-Test),
+[HWMon](https://www.phoronix.com/scan.php?page=news_item&px=AMDGPU-Linux-4.17-Round-1)
+* Repositories: [amdgpu-clocks](https://github.com/sibradzic/amdgpu-clocks), 
+[WattmanGTK](https://github.com/BoukeHaarsma23/WattmanGTK), [ROC-smi](https://github.com/RadeonOpenCompute/ROC-smi)
+* Relevant Kernel Details: [Kernel Details](https://www.kernel.org/doc/html/latest/gpu/amdgpu.html)
+* PCI ID Decode Table: [PCI IDs](https://pci-ids.ucw.cz/v2.2/pci.ids)
+* Radeon VII discussion on Reddit: 
+[Radeon VII OC](https://www.reddit.com/r/linux_gaming/duplicates/au7m3x/radeon_vii_on_linux_overclocking_undervolting/)
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
@@ -106,7 +112,8 @@ informational with no impact on the utilities.
 * Implement requirements file for with and without a venv.
 * Found and fixed a few minor bugs.
 * Fixed issue with *amdgpu-plot* becoming corrupt over time.
-* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems with many GPUs.
+* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems
+with many GPUs.
 
 #### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 * Some preparation work for Debian package (@smoe).
@@ -119,14 +126,17 @@ informational with no impact on the utilities.
 * Display version information for pandas, matplotlib, and numpy with the *--about* option for *amdgpu-plot*
 
 #### New in Previous Release  -  [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
-* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
+* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update
+at an interval defined by the *--sleep N* option.
 * Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.
 * Fixed a bug in implementation of compatibility checks and improved usage of try/except.
 
 #### New in Previous Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
-* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
-* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
+* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if
+unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute
+complete message in terminal, and update messages in PAC message box.
 * Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
 * Tuned *amdgpu-pac* window format.
 
@@ -135,12 +145,14 @@ informational with no impact on the utilities.
 * Added Python2 compatible utility to check *amdgpu-utils* compatibility.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
-* Implemented classification of card type based on how it implements frequency/voltage control.  This is reported by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
+* Implemented classification of card type based on how it implements frequency/voltage control.  This is reported
+by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
 * Changed dpkg error to a warning to handle custom driver installs.
 * Initial [User Guide](docs/USER_GUIDE.md) - [Need contributors!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
 #### New in Previous Release  -  v2.3.0
-* Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
+* Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending
+credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
 * Optimized refresh of data by moving static items to a different function and only read those that are dynamic.
@@ -148,17 +160,22 @@ informational with no impact on the utilities.
 * Initial basic functionality for Radeon VII GPU!
 
 #### New in Previous Release  -  v2.2.0
-* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
-* Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the target filename.
+* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly
+when a some other card is resident in a PCIe slot.
+* Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the
+target filename.
 * Implemented energy meter in amdgpu-monitor.
-* Implemented the ability to check the GPU extracted ID in a pci.ids file for correct model name.  Implemented a function to extract only AMD information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
+* Implemented the ability to check the GPU extracted ID in a pci.ids file for correct model name.  Implemented a
+function to extract only AMD information for the pci.ids file and store in the file amd_pci_id.txt which is included
+in this distribution.
 * Optimized long, short, and decoded GPU model names.
 * Alpha release of a utility to update device decode data from the pci.ids website.
 
 #### New in Previous Release  -  v2.1.0
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
 * Added fan monitor and control features.
-* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
+* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and
+useful for those who have installed GPU waterblocks.
 * Implemented P-state masking, which limits available P-states to those specified. Useful for power management.
 * Fixed implementation of global variables that broke with implementation of modules in library.
 * Added more validation checks before writing parameters to cards.
@@ -169,9 +186,11 @@ informational with no impact on the utilities.
 * Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
-* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
+* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available
+for each GPU.
 * Error messages are now output to stderr instead stdout.
-* Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
+* Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls
+display in addtion to the power cap limits.
 
 #### New in Previous Release  -  v1.1.0
 * Added --pstates feature to display table of p-states instead of GPU details.
