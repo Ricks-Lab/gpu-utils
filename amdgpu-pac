@@ -1066,8 +1066,24 @@ class PACWindow(Gtk.Window):
         print('# ', file=fileptr)
         print('# Card{}  {}'.format(v.prm.card_num, v.get_params_value('model')), file=fileptr)
         print('# {}'.format(v.prm.card_path), file=fileptr)
+        if not env.GUT_CONST.write_delta_only:
+            print('# Force Write mode.')
+        else:
+            print('# Write Delta mode.')
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
+
+        # Check/set power_dpm_force_performance_level
+        # Mode of manual required to change ppm or clock masks
+        curr_power_dpm_force = v.get_params_value('power_dpm_force').lower()
+        if curr_power_dpm_force == 'manual' and env.GUT_CONST.write_delta_only:
+            print('# Power DPM Force Performance Level: [{}], skipping.'.format(curr_power_dpm_force), file=fileptr)
+        else:
+            power_dpm_force_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
+            print('# Power DPM Force Performance Level: [{}] change to [manual]'.format(curr_power_dpm_force),
+                  file=fileptr)
+            print("sudo sh -c \"echo \'manual\' >  {}\"".format(power_dpm_force_file), file=fileptr)
+        print('', file=fileptr)
 
         # Power Cap
         power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
@@ -1192,7 +1208,7 @@ class PACWindow(Gtk.Window):
                     print('# Invalid sclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
-                print('#sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
+                print('# sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
                     if v.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
@@ -1211,7 +1227,7 @@ class PACWindow(Gtk.Window):
                     print('# Invalid mclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
-                print('#mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
+                print('# mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
                     if v.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
@@ -1219,7 +1235,7 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'m {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
                               file=fileptr)
                     else:
-                        print('# Mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid mclk curve end point values', file=fileptr)
             # VDDC Curve Points
@@ -1247,7 +1263,6 @@ class PACWindow(Gtk.Window):
                     print('# Invalid vddc curve point values', file=fileptr)
 
         # PPM
-        ppm_level_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
         ppm_mode_file = os.path.join(v.prm.card_path, 'pp_power_profile_mode')
 
         tree_iter = devices[uuid]['ppm_modes_combo'].get_active_iter()
@@ -1259,12 +1274,8 @@ class PACWindow(Gtk.Window):
                   file=fileptr)
             if v.get_current_ppm_mode()[0] != devices[uuid]['new_ppm'][0] or not env.GUT_CONST.write_delta_only:
                 changed += 1
-                if (devices[uuid]['new_ppm'][1]).lower() == 'auto':
-                    print("sudo sh -c \"echo \'auto\' >  {}\"".format(ppm_level_file), file=fileptr)
-                else:
-                    print("sudo sh -c \"echo \'manual\' >  {}\"".format(ppm_level_file), file=fileptr)
-                    print("sudo sh -c \"echo \'{}\' >  {}\"".format(devices[uuid]['new_ppm'][0], ppm_mode_file),
-                          file=fileptr)
+                print("sudo sh -c \"echo \'{}\' >  {}\"".format(devices[uuid]['new_ppm'][0], ppm_mode_file),
+                      file=fileptr)
             else:
                 print('# PPM mode {} unchanged, skipping'.format(devices[uuid]['new_ppm'][1]), file=fileptr)
 
@@ -1450,11 +1461,11 @@ class PACWindow(Gtk.Window):
         power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
         pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
         device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
-        ppm_level_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
+        power_dpm_force_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
         print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
         if env.GUT_CONST.show_fans:
             print("sudo sh -c \"echo \'2\' >  {}\"".format(pwm_enable_file), file=fileptr)
-        print("sudo sh -c \"echo \'auto\' >  {}\"".format(ppm_level_file), file=fileptr)
+        print("sudo sh -c \"echo \'auto\' >  {}\"".format(power_dpm_force_file), file=fileptr)
         print("sudo sh -c \"echo \'r\' >  {}\"".format(device_file), file=fileptr)
         print("sudo sh -c \"echo \'c\' >  {}\"".format(device_file), file=fileptr)
         # No need to reset clk pstate masks as commit to pp_od_clk_voltage will reset

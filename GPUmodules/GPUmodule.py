@@ -250,6 +250,7 @@ class GpuItem:
                             'link_wth': '',
                             'ppm': '',
                             'power_dpm_force': '',
+                            # auto, low, high, manual, profile_standard, profile_min_sclk, profile_min_mclk, profile_peak
                             'vbios': ''})
         self.clinfo = ObjDict({'device_name': '',
                                'device_version': '',
