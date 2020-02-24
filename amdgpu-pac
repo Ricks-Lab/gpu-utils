@@ -326,40 +326,12 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-                # SCLK P-State Mask
-                devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-top', 1)
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-bottom', 1)
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-right', 2)
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-left', 2)
-
-                devices[v.prm.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_width_chars(15)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_max_length(15)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-top', 1)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-bottom', 1)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-right', 0)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-left', 1)
-
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
-                lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
-                lbox.set_property('margin-top', 1)
-                lbox.set_property('margin-bottom', 1)
-                lbox.set_property('margin-right', 1)
-                lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
-                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_ent'], False, False, 0)
-                grid.attach(lbox, col, row, 1, 1)
-                row += 1
-
             elif v.get_params_value('gpu_type') == 2:
                 # Sclk Curve End Points
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
-                                                             v.get_params_value('sclk_f_range')[0],
-                                                             v.get_params_value('sclk_f_range')[1]))
+                    v.get_params_value('sclk_f_range')[0],
+                    v.get_params_value('sclk_f_range')[1]))
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-top', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-bottom', 1)
                 devices[v.prm.uuid]['sclk_range'].set_property('margin-right', 2)
@@ -418,6 +390,35 @@ class PACWindow(Gtk.Window):
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
+
+            if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
+                # SCLK P-State Mask
+                devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_property('margin-left', 2)
+
+                devices[v.prm.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_width_chars(17)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_max_length(17)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_property('margin-left', 1)
+
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
+                lbox.set_property('margin-top', 1)
+                lbox.set_property('margin-bottom', 1)
+                lbox.set_property('margin-right', 1)
+                lbox.set_property('margin-left', 1)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_ent'], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
             if v.get_params_value('gpu_type') == 1:
                 # Mclk P-States
@@ -504,33 +505,6 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-                # MCLK P-State Mask
-                devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-top', 1)
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-bottom', 1)
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-right', 2)
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-left', 2)
-
-                devices[v.prm.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_width_chars(15)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_max_length(15)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-top', 1)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-bottom', 1)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-right', 0)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-left', 1)
-
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
-                lbox.set_homogeneous(False)
-                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
-                lbox.set_property('margin-top', 1)
-                lbox.set_property('margin-bottom', 1)
-                lbox.set_property('margin-right', 1)
-                lbox.set_property('margin-left', 1)
-                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
-                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_ent'], False, False, 0)
-                grid.attach(lbox, col, row, 1, 1)
-                row += 1
             elif v.get_params_value('gpu_type') == 2:
                 # Mclk Curve End points
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
@@ -595,6 +569,35 @@ class PACWindow(Gtk.Window):
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
+
+            if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
+                # MCLK P-State Mask
+                devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-right', 2)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_property('margin-left', 2)
+
+                devices[v.prm.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_width_chars(17)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_max_length(17)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-top', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-bottom', 1)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-right', 0)
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_property('margin-left', 1)
+
+                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox.set_homogeneous(False)
+                lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.06, .06, .06, .06))
+                lbox.set_property('margin-top', 1)
+                lbox.set_property('margin-bottom', 1)
+                lbox.set_property('margin-right', 1)
+                lbox.set_property('margin-left', 1)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
+                lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_ent'], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
             if v.get_params_value('gpu_type') == 2:
                 # VDDC Curve Points
@@ -911,9 +914,9 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text('    SCLK Default: {}    Set Mask: '.format(
-                                                                  v.get_pstate_list_str('SCLK')))
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.get_pstate_list_str('SCLK'))
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
+                    '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.sclk_state.items():
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
@@ -921,6 +924,9 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
+                    '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
+                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
             # MCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.mclk_state.items():
@@ -933,9 +939,9 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text('    MCLK Default: {}    Set Mask: '.format(
-                                                                  v.get_pstate_list_str('MCLK')))
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.get_pstate_list_str('MCLK'))
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
+                    '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.mclk_state.items():
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
@@ -943,6 +949,9 @@ class PACWindow(Gtk.Window):
                     item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
+                    '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
+                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
             # VDDC CURVE
             if v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.vddc_curve.items():
@@ -1287,7 +1296,7 @@ class PACWindow(Gtk.Window):
         else:
             print('# No clock changes made, commit skipped', file=fileptr)
 
-        if v.get_params_value('gpu_type') == 1:
+        if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
             # Writes of pstate Masks must come after commit of pstate changes
             # Sclk Mask
             sclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_sclk')

@@ -168,8 +168,8 @@ class GpuItem:
                                    'mem_loading': {'type': 'st', 'cf': None, 'sensor': ['mem_busy_percent']},
                                    'link_spd': {'type': 'st', 'cf': None, 'sensor': ['current_link_speed']},
                                    'link_wth': {'type': 'st', 'cf': None, 'sensor': ['current_link_width']},
-                                   'sclk_ps': {'type': 'st*', 'cf': None, 'sensor': ['pp_dpm_sclk']},
-                                   'mclk_ps': {'type': 'st*', 'cf': None, 'sensor': ['pp_dpm_mclk']},
+                                   'sclk_ps': {'type': 'ml', 'cf': None, 'sensor': ['pp_dpm_sclk']},
+                                   'mclk_ps': {'type': 'ml', 'cf': None, 'sensor': ['pp_dpm_mclk']},
                                    'power_dpm_force': {'type': 'st', 'cf': None,
                                                        'sensor': ['power_dpm_force_performance_level']},
                                    'ppm': {'type': 'st*', 'cf': None, 'sensor': ['pp_power_profile_mode']},
@@ -244,8 +244,10 @@ class GpuItem:
                             'mem_loading': None,
                             'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
+                            'mclk_mask': '',
                             'sclk_ps': ['', ''],
                             'sclk_f_range': ['', ''],
+                            'sclk_mask': '',
                             'link_spd': '',
                             'link_wth': '',
                             'ppm': '',
@@ -300,11 +302,33 @@ class GpuItem:
             self.energy['cumulative'] += delta_hrs * value / 1000
             self.prm['energy'] = round(self.energy['cumulative'], 6)
         elif name == 'sclk_ps':
-            self.prm.sclk_ps = value.strip('*').strip().split(': ')
-            self.prm.sclk_ps[0] = int(self.prm.sclk_ps[0])
+            mask = ''
+            for ps in value:
+                if not mask:
+                    mask = ps.split(':')[0].strip()
+                else:
+                    mask += ',' + ps.split(':')[0].strip()
+                if re.search(r'\*', ps):
+                    sclk_ps = ps.strip('*').strip().split(': ')
+                    self.prm.sclk_ps[0] = int(sclk_ps[0])
+                    self.prm.sclk_ps[1] = sclk_ps[1]
+                self.prm.sclk_mask = mask
+            print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.sclk_ps))
+            if env.GUT_CONST.DEBUG: print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.sclk_ps))
         elif name == 'mclk_ps':
-            self.prm.mclk_ps = value.strip('*').strip().split(': ')
-            self.prm.mclk_ps[0] = int(self.prm.mclk_ps[0])
+            mask = ''
+            for ps in value:
+                if not mask:
+                    mask = ps.split(':')[0].strip()
+                else:
+                    mask += ',' + ps.split(':')[0].strip()
+                if re.search(r'\*', ps):
+                    mclk_ps = ps.strip('*').strip().split(': ')
+                    self.prm.mclk_ps[0] = int(mclk_ps[0])
+                    self.prm.mclk_ps[1] = mclk_ps[1]
+                self.prm.mclk_mask = mask
+            print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.mclk_ps))
+            if env.GUT_CONST.DEBUG: print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.mclk_ps))
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
         elif name == 'id':
@@ -808,7 +832,7 @@ class GpuItem:
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
-                        if sensor_dict[parameter]['type'] == 'st*':
+                        if sensor_dict[parameter]['type'] == 'st*' or sensor_dict[parameter]['type'] == 'ml':
                             lines = hwmon_file.readlines()
                             for line in lines:
                                 values.append(line.strip())
@@ -835,7 +859,7 @@ class GpuItem:
             ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
-        elif sensor_dict[parameter]['type'] == 'mt':
+        elif sensor_dict[parameter]['type'] == 'mt' or sensor_dict[parameter]['type'] == 'ml':
             return values
         elif sensor_dict[parameter]['type'] == 'mm':
             ret_value.append(int(int(values[0])*sensor_dict[parameter]['cf']))
