@@ -313,7 +313,6 @@ class GpuItem:
                     self.prm.sclk_ps[0] = int(sclk_ps[0])
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
-            print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.sclk_ps))
             if env.GUT_CONST.DEBUG: print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.sclk_ps))
         elif name == 'mclk_ps':
             mask = ''
@@ -327,7 +326,6 @@ class GpuItem:
                     self.prm.mclk_ps[0] = int(mclk_ps[0])
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
-            print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.mclk_ps))
             if env.GUT_CONST.DEBUG: print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.mclk_ps))
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
