@@ -269,6 +269,8 @@ class GpuItem:
                                'max_wg_size': '',
                                'prf_wg_size': '',
                                'prf_wg_multiple': ''})
+        self.sclk_dpm_state = {}    # {'1': 'Mhz'}
+        self.mclk_dpm_state = {}    # {'1': 'Mhz'}
         self.sclk_state = {}        # {'1': ['Mhz', 'mV']}
         self.mclk_state = {}        # {'1': ['Mhz', 'mV']}
         self.vddc_curve = {}        # {'1': ['Mhz', 'mV']}
@@ -308,8 +310,9 @@ class GpuItem:
                     mask = ps.split(':')[0].strip()
                 else:
                     mask += ',' + ps.split(':')[0].strip()
+                sclk_ps = ps.strip('*').strip().split(': ')
+                self.sclk_dpm_state.update({int(sclk_ps[0]): sclk_ps[1]})
                 if re.search(r'\*', ps):
-                    sclk_ps = ps.strip('*').strip().split(': ')
                     self.prm.sclk_ps[0] = int(sclk_ps[0])
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
@@ -321,8 +324,9 @@ class GpuItem:
                     mask = ps.split(':')[0].strip()
                 else:
                     mask += ',' + ps.split(':')[0].strip()
+                mclk_ps = ps.strip('*').strip().split(': ')
+                self.mclk_dpm_state.update({int(mclk_ps[0]): mclk_ps[1]})
                 if re.search(r'\*', ps):
-                    mclk_ps = ps.strip('*').strip().split(': ')
                     self.prm.mclk_ps[0] = int(mclk_ps[0])
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
@@ -955,17 +959,25 @@ class GpuItem:
         print('Card Number: {}'.format(self.prm.card_num))
         print('   Card Model: {}'.format(self.prm.model_display))
         print('   Card: {}'.format(self.prm.card_path))
+        if self.prm.gpu_type == 2:
+            print('   SCLK: {:<17} MCLK:'.format(' '))
+            for k, v in self.sclk_dpm_state.items():
+                print('    {:>1}:  {:<8}            '.format(k, v), end='')
+                if k in self.mclk_dpm_state.keys():
+                    print('{:3>}:  {:<8}'.format(k, self.mclk_dpm_state[k]))
+                else:
+                    print('')
         print('   SCLK: {:<17} MCLK:'.format(' '))
         for k, v in self.sclk_state.items():
-            print('   {:>1}:  {:<8}  {:<8}  '.format(k, v[0], v[1]), end='')
+            print('    {:>1}:  {:<8}  {:<8}  '.format(k, v[0], v[1]), end='')
             if k in self.mclk_state.keys():
                 print('{:3>}:  {:<8}  {:<8}'.format(k, self.mclk_state[k][0], self.mclk_state[k][1]))
             else:
                 print('')
         if self.prm.gpu_type == 2:
-            print('   VDDC_CURVE')
+            print('   VDDC_CURVE:')
             for k, v in self.vddc_curve.items():
-                print('   {}: {}'.format(k, v))
+                print('    {}: {}'.format(k, v))
         print('')
 
     def print(self, clflag=False):
