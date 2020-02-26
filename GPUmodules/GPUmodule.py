@@ -24,7 +24,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Alpha Release'
+__status__ = 'Beta Release'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements

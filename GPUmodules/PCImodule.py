@@ -23,8 +23,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Complete rewrite under development - Please use an official release.'
-#__status__ = 'Stable Release'
+__status__ = 'Beta Release'
 __docformat__ = 'reStructuredText'
 
 import re
