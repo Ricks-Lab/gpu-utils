@@ -633,39 +633,11 @@ class GpuItem:
         """
         if ps_str == '':
             return True
+        ps_list = self.prm.mclk_mask.split(',') if clk_name == 'MCLK' else self.prm.sclk_mask.split(',')
         for ps in ps_str.split():
-            ps_list = self.get_pstate_list(clk_name)
-            try:
-                ps_list.index(int(ps))
-            except ValueError as except_err:
-                print('Error [{}]: Invalid pstate {} for {}.'.format(except_err, ps, clk_name), file=sys.stderr)
+            if ps not in ps_list:
                 return False
         return True
-
-    def get_pstate_list_str(self, clk_name):
-        """
-        Get list of pstate numbers and return as a string.
-        :param clk_name: Name of clock (SCLK or MCLK)
-        :type clk_name: str
-        :return:
-        :rtype: str
-        """
-        ps_list = self.get_pstate_list(clk_name)
-        return ','.join(str(ps) for ps in ps_list)
-
-    def get_pstate_list(self, clk_name):
-        """
-        Get list of pstate numbers and return as a list.
-        :param clk_name: Name of clock (SCLK or MCLK)
-        :type clk_name: str
-        :return:
-        :rtype: list
-        """
-        if clk_name == 'SCLK':
-            return list(self.sclk_state.keys())
-        elif clk_name == 'MCLK':
-            return list(self.mclk_state.keys())
-        return []
 
     def get_current_ppm_mode(self):
         """
