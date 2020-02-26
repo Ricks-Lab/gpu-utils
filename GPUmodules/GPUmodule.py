@@ -448,17 +448,6 @@ class GpuItem:
         """
         return self.clinfo[name]
 
-    def copy_clinfo_values(self, gpu_item):
-        """
-        Copy values of one gpu_item to another.
-        :param gpu_item:
-        :type gpu_item: GpuItem
-        :return: None
-        :rtype: None
-        """
-        for k, v in gpu_item.clinfo.items():
-            self.clinfo[k] = v
-
     def get_nc_params_list(self):
         """
         Get list of parameter names for use with non-readable cards.
@@ -466,22 +455,6 @@ class GpuItem:
         :rtype: list
         """
         return self._GPU_NC_Param_List
-
-    def get_all_params_labels(self):
-        """
-        Get human friendly labels for params keys.
-        :return: Dictionary of label names and Labels
-        :rtype: dict
-        """
-        return self._GPU_Param_Labels
-
-    def get_all_clinfo_labels(self):
-        """
-        Get human friendly labels for clinfo keys.
-        :return: Dictionary of label names and labels
-        :rtype: dict
-        """
-        return self._GPU_CLINFO_Labels
 
     def is_valid_power_cap(self, power_cap):
         """
@@ -987,7 +960,7 @@ class GpuItem:
         :type clflag: bool
         :return: None
         """
-        for k, v in self.get_all_params_labels().items():
+        for k, v in self._GPU_Param_Labels.items():
             if not self.prm.readable:
                 if k not in self.get_nc_params_list():
                     continue
@@ -1003,7 +976,7 @@ class GpuItem:
                 continue
             print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
         if clflag and self.prm.compute:
-            for k, v in self.get_all_clinfo_labels().items():
+            for k, v in self._GPU_CLINFO_Labels.items():
                 if re.search(r'sep[0-9]', k):
                     print('{}{}'.format(pre, v.ljust(50, v)))
                     continue
@@ -1539,7 +1512,7 @@ class GpuList:
         print('┤')
 
         for table_item in self.table_parameters():
-            print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]),  end='')
+            print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]), end='')
             for v in self.list.values():
                 print('│{:<16}'.format(str(v.get_params_value(table_item))[:16]), end='')
             print('│')
