@@ -884,18 +884,18 @@ class PACWindow(Gtk.Window):
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
             elif re.fullmatch(r'^[0-9]+', new_pwm_str):
                 new_pwm = int(new_pwm_str)
-                print('# Fan PWM Old: ', str(old_pwm), end='', file=fileptr)
-                print(' New: ', str(new_pwm), end='', file=fileptr)
+                print('# Fan PWM Old: {}'.format(old_pwm), end='', file=fileptr)
+                print(' New: {}'.format(new_pwm), end='', file=fileptr)
                 pwm_range = v.get_params_value('fan_pwm_range')
-                print(' Min: ', pwm_range[0], end='', file=fileptr)
-                print(' Max: ', pwm_range[1], end='', file=fileptr)
+                print(' Min: {}'.format(pwm_range[0]), end='', file=fileptr)
+                print(' Max: {}\n'.format(pwm_range[1]), end='', file=fileptr)
                 if new_pwm == old_pwm and env.GUT_CONST.write_delta_only:
                     print('# No changes, skipped', file=fileptr)
                 else:
                     if v.is_valid_fan_pwm(new_pwm):
                         changed += 1
                         new_pwm_value = int(255 * new_pwm / 100)
-                        print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
+                        #print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
                         print("sudo sh -c \"echo \'1\' >  {}\"".format(pwm_enable_file), file=fileptr)
                         print("sudo sh -c \"echo \'{}\' >  {}\"".format(new_pwm_value, pwm_file), file=fileptr)
                     else:
