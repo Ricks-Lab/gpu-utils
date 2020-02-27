@@ -876,10 +876,12 @@ class PACWindow(Gtk.Window):
             old_pwm = int(v.get_params_value('fan_pwm'))
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             if new_pwm_str.lower() == 'reset':
+                changed += 1
                 print('# PWM entry: {}, Resetting to default mode of dynamic'.format(new_pwm_str), file=fileptr)
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
                 print("sudo sh -c \"echo \'2\' >  {}\"".format(pwm_enable_file), file=fileptr)
             elif new_pwm_str.lower() == 'max':
+                changed += 1
                 print('# PWM entry: {}, Disabling fan control'.format(new_pwm_str), file=fileptr)
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
             elif re.fullmatch(r'^[0-9]+', new_pwm_str):
