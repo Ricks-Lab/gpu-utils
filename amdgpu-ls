@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """ amdgpu-ls  -  Displays details about installed AMD GPUs
 
-    This utility displays most relevant parameters for installed and compatible AMD GPUs.
-    The default behavior is to list relevant parameters by GPU.  OpenCL platform information
-    is added when the *--clinfo* option is used.  The *--no_fan* can be used to ignore fan
-    settings.  The *--pstate* option can be used to output the p-state table for each GPU
-    instead of the list of basic parameters.  The *--ppm* option is used to output the table
-    of available power/performance modes instead of basic parameters.
+    This utility displays most relevant parameters for installed and compatible AMD GPUs. The default
+    behavior is to list relevant parameters by GPU.  OpenCL platform information is added when the
+    *--clinfo* option is used.  A simplified table of current GPU state is displayed with the *--table*
+    option. The *--no_fan* can be used to ignore fan settings.  The *--pstate* option can be used to
+    output the p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
+    is used to output the table of available power/performance modes instead of basic parameters.
 
     Copyright (C) 2019  RueiKe
 

@@ -10,18 +10,18 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
 Download latest official release: [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
-Or use this development version from master branch.
+Or use this release candidate for v3.0.0 from master branch.
 
 ## amdgpu-chk
 This utility verifies if the environment is compatible with *amdgpu-util*s.
 
 ## amdgpu-ls
-This utility displays most relevant parameters for installed and compatible AMD GPUs.
-The default behavior is to list relevant parameters by GPU.  OpenCL platform information
-is added when the *--clinfo* option is used.  The *--no_fan* can be used to ignore fan
-settings.  The *--pstate* option can be used to output the p-state table for each GPU
-instead of the list of basic parameters.  The *--ppm* option is used to output the table
-of available power/performance modes instead of basic parameters.
+This utility displays most relevant parameters for installed and compatible AMD GPUs. The default
+behavior is to list relevant parameters by GPU.  OpenCL platform information is added when the
+*--clinfo* option is used.  A simplified table of current GPU state is displayed with the *--table*
+option. The *--no_fan* can be used to ignore fan settings.  The *--pstate* option can be used to
+output the p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
+is used to output the table of available power/performance modes instead of basic parameters.
 
 ## amdgpu-monitor
 A utility to give the current state of all compatible AMD GPUs. The default behavior
@@ -64,7 +64,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in this Release Candidate -  on master branch
 * Style and code robustness improvements
-* Deprecated  *amdgpu-pciid* 
+* Deprecated  *amdgpu-pciid*  and removed all related code.
 * Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
 class variables for generic behavior parameters.
 * Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability, and
