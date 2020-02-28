@@ -908,14 +908,14 @@ class GpuItem:
         :return: None
         """
         if not self.prm.readable:
-            print('PPM for card number {} not readable.'.format(self.prm.card_num))
+            if env.GUT_CONST.DEBUG: print('PPM for card number {} not readable.'.format(self.prm.card_num))
             return
         print('Card Number: {}'.format(self.prm.card_num))
         print('   Card Model: {}'.format(self.prm.model_display))
         print('   Card: {}'.format(self.prm.card_path))
         print('   Power Performance Mode: {}'.format(self.prm.power_dpm_force))
         for k, v in self.ppm_modes.items():
-            print('   {:<3}: {:>15}'.format(k, v[0]), end='')
+            print('   {:>2}: {:>16}'.format(k, v[0]), end='')
             for v_item in v[1:]:
                 print('{:>18}'.format(v_item), end='')
             print('')
@@ -927,7 +927,7 @@ class GpuItem:
         :return: None
         """
         if not self.prm.readable:
-            print('P-States for card number {} not readable.'.format(self.prm.card_num))
+            if env.GUT_CONST.DEBUG: print('P-States for card number {} not readable.'.format(self.prm.card_num))
             return
         print('Card Number: {}'.format(self.prm.card_num))
         print('   Card Model: {}'.format(self.prm.model_display))
