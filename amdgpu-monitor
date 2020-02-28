@@ -74,7 +74,10 @@ def ctrl_c_handler(target_signal, frame):
     :param frame:
     :return: None
     """
-    print('ctrl_c_handler (ID: {}) has been caught. Setting quit flag...'.format(target_signal))
+    if env.GUT_CONST.DEBUG:
+        print('ctrl_c_handler (ID: {}) has been caught. Setting quit flag...'.format(target_signal))
+    else:
+        print('Setting quit flag...')
     MonitorWindow.quit = True
 
 
