@@ -34,7 +34,8 @@ dpkg -l 'amdgpu*'
 You also must set your Linux machine to boot with the feature mask set to support the functionality
 that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xfffd7fff.  This
 can be accomplished by adding amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT
-value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or your favorite command line editor:
+value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or your favorite
+command line editor:
 ```
 cd /etc/default
 sudo vi grub
@@ -49,8 +50,8 @@ sudo update-grub
 ```
 and then reboot.
 
-If not running from a package installation, it is suggested run amdgpu-util in a virtual environment to avoid dependency issues. If you don't have venv installed 
-with python3, then execute the following (Ubuntu example)
+If not running from a package installation, it is suggested run amdgpu-util in a virtual environment to avoid
+dependency issues. If you don't have venv installed with python3, then execute the following (Ubuntu example):
 ```
 sudo apt install -y python3-venv
 ```
@@ -74,63 +75,82 @@ After getting your system setup to support amdgpu-utils, it is best to verify fu
 listing your GPU details with the *amdgpu-ls* command.  It first attempts to detect the version 
 of amdgpu drivers you have installed and then check compatibility of installed AMD GPUs.  Its
 default behavior is to list basic GPU details for all compatible cards:
-```AMD Wattman features enabled: 0xffff7fff
-amdgpu version: 18.50-725072
-2 AMD GPUs detected, 2 may be compatible, checking...
-2 are confirmed compatible.
+```
+Detected GPUs: AMD: 1, ASPEED: 1
+AMD: rocm version: 3.0.6
+AMD: Wattman features enabled: 0xfffd7fff
+2 total GPUs, 1 rw, 0 r-only, 0 w-only
 
-UUID: 309abc9c97ea451396334b11199d0680
-amdgpu-utils Compatibility: Yes
-Device ID: {'vendor': '0x1002', 'device': '0x687f', 'subsystem_vendor': '0x1002', 'subsystem_device': '0x0b36'}
-GPU Frequency/Voltage Control Type: 1
-Decoded Device ID: RX Vega64
-Card Model:  Vega 10 XT [Radeon RX Vega 64] (rev c1)
-Short Card Model:  RX Vega 64
-Display Card Model: RX Vega64
 Card Number: 1
-Card Path: /sys/class/drm/card1/device/
-PCIe ID: 44:00.0
-Driver: amdgpu
-vBIOS Version: 113-D0500100-105
-HWmon: /sys/class/drm/card1/device/hwmon/hwmon6/
-Current Power (W): 118.0
-Power Cap (W): 140.0
-Power Cap Range (W): [0, 220]
-Fan Enable: 1
-Fan PWM Mode: [1, 'Manual']
-Current Fan PWM (%): 0
-Current Fan Speed (rpm): 0
-Fan Target Speed (rpm): 0
-Fan Speed Range (rpm): [400, 4900]
-Fan PWM Range (%): [0, 100]
-Current Temp (C): 35.0
-Critical Temp (C): 91.0
-Current VddGFX (mV): 1037
-Vddc Range: ['800mV', '1200mV']
-Current Loading (%): 99
-Link Speed: 8 GT/s
-Link Width: 16
-Current SCLK P-State: 6
-Current SCLK: 1536Mhz 
-SCLK Range: ['852MHz', '2400MHz']
-Current MCLK P-State: 3
-Current MCLK: 945Mhz 
-MCLK Range: ['167MHz', '1500MHz']
-Power Performance Mode: 4-COMPUTE
-Power Force Performance Level: manual
+   Vendor: AMD
+   Readable: True
+   Writable: True
+   Compute: True
+   GPU UID: a5e4788172dc768b
+   Device ID: {'vendor': '0x1002', 'device': '0x66af', 'subsystem_vendor': '0x1458', 'subsystem_device': '0x1000'}
+   Decoded Device ID: Vega 20
+   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Vega 20 (rev c1)
+   Display Card Model: Vega 20
+   PCIe ID: 43:00.0
+      Link Speed: 8 GT/s
+      Link Width: 16
+   ##################################################
+   Driver: amdgpu
+   vBIOS Version: 113-D3600200-106
+   Compute Platform: OpenCL 2.0
+   GPU Frequency/Voltage Control Type: 2
+   HWmon: /sys/class/drm/card1/device/hwmon/hwmon2
+   Card Path: /sys/class/drm/card1/device
+   ##################################################
+   Current Power (W): 82.0
+   Power Cap (W): 150.0
+      Power Cap Range (W): [0, 300]
+   Fan Enable: 0
+   Fan PWM Mode: [2, 'Dynamic']
+   Fan Target Speed (rpm): 0
+   Current Fan Speed (rpm): 0
+   Current Fan PWM (%): 0
+      Fan Speed Range (rpm): [0, 3850]
+      Fan PWM Range (%): [0, 100]
+   ##################################################
+   Current GPU Loading (%): 93
+   Current Memory Loading (%): 25
+   Current Temps (C): {'mem': 31.0, 'edge': 33.0, 'junction': 39.0}
+      Critical Temp (C): 100.0
+   Current Voltages (V): {'vddgfx': 1006}
+   Current Clk Frequencies (MHz): {'sclk': 1633.0, 'mclk': 1051.0}
+   Current SCLK P-State: [8, '1651Mhz']
+      SCLK Range: ['808Mhz', '2200Mhz']
+   Current MCLK P-State: [2, '1051Mhz']
+      MCLK Range: ['801Mhz', '1200Mhz']
+   Power Performance Mode: 5-COMPUTE
+   Power Force Performance Level: manual
+
+Card Number: 0
+   Vendor: ASPEED
+   Readable: False
+   Writable: False
+   Compute: False
+   Card Model: ASPEED Technology, Inc. ASPEED Graphics Family (rev 41)
+   PCIe ID: c4:00.0
+   Driver: ast
+   Card Path: /sys/class/drm/card0/device
 ```
 
 If everything is working fine, you should see no warning or errors.  The listing utility
 also has other command line options:
-```usage: amdgpu-ls [-h] [--about] [--pstates] [--ppm] [--clinfo] [--no_fan] [-d]
+```
+usage: amdgpu-ls [-h] [--about] [--table] [--pstates] [--ppm] [--clinfo]
+                 [--no_fan] [-d]
 
 optional arguments:
   -h, --help   show this help message and exit
   --about      README
+  --table      Output table of basic GPU details
   --pstates    Output pstate tables instead of GPU details
   --ppm        Output power/performance mode tables instead of GPU details
   --clinfo     Include openCL with card details
-  --no_fan     don't include fan setting options
+  --no_fan     do not include fan setting options
   -d, --debug  Debug output
 ```
 
@@ -142,50 +162,46 @@ The *--pstates* and *--ppm* options will display the P-State definition table an
 performance mode table.
 ```
 ./amdgpu-ls --pstate --ppm
-AMD Wattman features enabled: 0xffff7fff
-amdgpu version: 18.50-725072
-2 AMD GPUs detected, 2 may be compatible, checking...
-2 are confirmed compatible.
+Detected GPUs: AMD: 1, ASPEED: 1
+AMD: rocm version: 3.0.6
+AMD: Wattman features enabled: 0xfffd7fff
+2 total GPUs, 1 rw, 0 r-only, 0 w-only
 
-Card: /sys/class/drm/card1/device/
-SCLK:                   MCLK:
-0:  852Mhz    800mV     0:  167Mhz    800mV   
-1:  991Mhz    900mV     1:  500Mhz    800mV   
-2:  1084Mhz   950mV     2:  800Mhz    950mV   
-3:  1138Mhz   1000mV    3:  945Mhz    1100mV  
-4:  1200Mhz   1050mV  
-5:  1401Mhz   1100mV  
-6:  1536Mhz   1150mV  
-7:  1630Mhz   1200mV  
+Card Number: 1
+   Card Model: Vega 20
+   Card: /sys/class/drm/card1/device
+   SCLK:                   MCLK:
+    0:  701Mhz              0:  351Mhz  
+    1:  809Mhz              1:  801Mhz  
+    2:  1085Mhz             2:  1051Mhz 
+    3:  1287Mhz             
+    4:  1434Mhz             
+    5:  1550Mhz             
+    6:  1606Mhz             
+    7:  1627Mhz             
+    8:  1651Mhz             
+   SCLK:                   MCLK:
+    0:  808Mhz    -         
+    1:  1650Mhz   -         1:  1050Mhz   -       
+   VDDC_CURVE:
+    0: ['808Mhz', '724mV']
+    1: ['1304Mhz', '822mV']
+    2: ['1801Mhz', '1124mV']
 
-Card: /sys/class/drm/card1/device/
-Power Performance Mode: manual
-  0:  3D_FULL_SCREEN                70                60                 1                 3
-  1:    POWER_SAVING                90                60                 0                 0
-  2:           VIDEO                70                60                 0                 0
-  3:              VR                70                90                 0                 0
-  4:         COMPUTE                30                60                 0                 6
-  5:          CUSTOM                 0                 0                 0                 0
- -1:            AUTO              Auto
+Card Number: 1
+   Card Model: Vega 20
+   Card: /sys/class/drm/card1/device
+   Power Performance Mode: manual
+    0:   BOOTUP_DEFAULT
+    1:   3D_FULL_SCREEN
+    2:     POWER_SAVING
+    3:            VIDEO
+    4:               VR
+    5:          COMPUTE
+    6:           CUSTOM
+   -1:             AUTO
 ```
-The amdgpu driver package version: 19.30 has an additional Power mode, as seen with *--ppm* option (showing one of two GPU on a system with the amdgpu All-0pen driver stack installed instead of the amdgpu-pro stack):
-```
-AMD Wattman features enabled: 0xffff7fff
-amdgpu version: 19.30-838629
-2 AMD GPUs detected, 2 may be compatible, checking...
-2 are confirmed compatible.
 
-Card: /sys/class/drm/card1/device/
-Power Performance Mode: manual
-  0:  BOOTUP_DEFAULT             -             -             -             -             -             -
-  1:  3D_FULL_SCREEN             0           100            30             0           100            10
-  2:    POWER_SAVING            10             0            30             -             -             -
-  3:           VIDEO             -             -             -            10            16            31
-  4:              VR             0            11            50             0           100            10
-  5:         COMPUTE             0             5            30             0           100            10
-  6:          CUSTOM             -             -             -             -             -             -
- -1:            AUTO          Auto
-```
 ## GPU Type Dependent Behavior
 AMD GPU's compatible with the amdgpu open source drivers are of three different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
