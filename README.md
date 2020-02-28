@@ -73,9 +73,13 @@ compute capability.  Build in potential to be generic GPU util, instead of AMD f
 * Add assessment of compute capability.
 * Eliminated the use of lshw to determine driver compatibility and display of driver details in now
 informational with no impact on the utilities.
+* Add p-state masking capability for Type 2 GPUs.
+* Optimized pac writing to GPUs.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
+* Optimize plot utilities for performance.
+* Add status read capabilities for Nvidia GPUs.
 
 ## Known Issues
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
