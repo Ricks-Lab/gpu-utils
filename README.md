@@ -62,7 +62,7 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Development -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/tree/v3.0)
+## New in this Release Candidate -  on master branch
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid* 
 * Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
