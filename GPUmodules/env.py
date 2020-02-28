@@ -24,8 +24,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-#__status__ = 'Stable Release'
-__status__ = 'Complete rewrite under development - Please use an official release.'
+__status__ = 'Beta Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -81,7 +80,6 @@ class GutConst:
         self.nv_write = None
         # Command access
         self.cmd_lspci = None
-        self.cmd_lshw = None
         self.cmd_clinfo = None
         self.cmd_dpkg = None
         self.cmd_nvidia_smi = None
@@ -168,42 +166,22 @@ class GutConst:
         if not self.cmd_lspci:
             print('OS command [lspci] executable not found.')
             command_access_fail = True
-        self.cmd_lshw = shutil.which('lshw')
-        if not self.cmd_lshw:
-            print('OS command [lshw] executable not found.')
-            command_access_fail = True
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
             print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
-            command_access_fail = True
+            #command_access_fail = True
         self.cmd_dpkg = shutil.which('dpkg')
         if not self.cmd_dpkg:
             print('OS command [dpkg] executable not found.')
-            command_access_fail = True
+            #command_access_fail = True
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
-        if not self.cmd_dpkg:
+        if not self.cmd_nvidia_smi:
             pass
             #print('OS command [nvidia_smi] executable not found.')
             #command_access_fail = True
         if command_access_fail:
             return -3
-
-        # Check AMD GPU Driver Version
-        lshw_out = subprocess.check_output(shlex.split('{} -c video'.format(self.cmd_lshw)), shell=False,
-                                           stderr=subprocess.DEVNULL).decode().split('\n')
-        driver_str = ''
-        for lshw_line in lshw_out:
-            search_obj = re.search('configuration:', lshw_line)
-            if search_obj:
-                lineitems = lshw_line.split(sep=':')
-                driver_str = lineitems[1].strip()
-                search_obj = re.search('driver=amdgpu', driver_str)
-                if search_obj:
-                    return 0
-        print('amdgpu-utils no compatible driver found: {}'.format(driver_str))
-        print('amdgpu-utils requires AMD \'amdgpu\' driver package in order to function.')
-        self.amd_read = self.amd_write = False
-        return -3
+        return 0
 
     def read_amd_driver_version(self):
         """
@@ -215,28 +193,29 @@ class GutConst:
             print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
             return False
         version_ok = False
-        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro']:
+        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
                 for dpkg_line in dpkg_out:
-                    search_obj = re.search('amdgpu', dpkg_line)
-                    if search_obj:
-                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
-                        dpkg_items = dpkg_line.split()
-                        if len(dpkg_items) > 2:
-                            if re.fullmatch(r'.*none.*', dpkg_items[2]):
-                                continue
-                            else:
-                                print(f'amdgpu version: {dpkg_items[2]}')
-                                version_ok = True
-                                break
+                    for driverpkg in ['amdgpu', 'rocm']:
+                        search_obj = re.search(driverpkg, dpkg_line)
+                        if search_obj:
+                            if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                            dpkg_items = dpkg_line.split()
+                            if len(dpkg_items) > 2:
+                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
+                                    continue
+                                else:
+                                    print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
+                                    version_ok = True
+                                    break
                 if version_ok:
                     break
             except (subprocess.CalledProcessError, OSError):
                 continue
         if not version_ok:
-            print('amdgpu version: UNKNOWN')
+            print('amdgpu/rocm version: UNKNOWN')
             return False
         return True
 
