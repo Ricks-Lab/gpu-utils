@@ -16,5 +16,3 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from GPUmodules import GPUmodule
 from GPUmodules import env
-from GPUmodules import PCImodule
-

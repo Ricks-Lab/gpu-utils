@@ -24,7 +24,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Beta Release'
+__status__ = 'Release Candidate RC1'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
@@ -42,10 +42,6 @@ try:
     from GPUmodules import env
 except ImportError:
     import env
-try:
-    from GPUmodules import PCImodule
-except ImportError:
-    import PCImodule
 
 
 class ObjDict(dict):
@@ -335,14 +331,56 @@ class GpuItem:
             self.prm.fan_pwm = int(value)
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
-            pcid = PCImodule.PCI_ID()
-            self.prm.model_device_decode = pcid.get_model(self.prm.id)
+            self.prm.model_device_decode = self.read_pciid_model()
             if (self.prm.model_device_decode != 'UNDETERMINED' and
                     len(self.prm.model_device_decode) < 1.2*len(self.prm.model_short)):
                 self.prm.model_display = self.prm.model_device_decode
         else:
             self.prm[name] = value
 
+    def read_pciid_model(self):
+        """
+        Read the model name from the system pcid.ids file
+        :return:  GPU model name
+        :rtype: str
+        """
+        if not os.path.isfile(env.GUT_CONST.sys_pciid):
+            print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
+            return None
+        with open(env.GUT_CONST.sys_pciid, 'r') as pci_id_file_ptr:
+            model_str = ''
+            level = 0
+            for line_item in pci_id_file_ptr:
+                line = line_item.rstrip()
+                if len(line) < 4:
+                    continue
+                if line[0] == '#':
+                    continue
+                if level == 0:
+                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        if line[:4] == self.prm.id['vendor'].replace('0x', ''):
+                            level += 1
+                            continue
+                elif level == 1:
+                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        break
+                    if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        if line[1:5] == self.prm.id['device'].replace('0x', ''):
+                            model_str = line[5:]
+                            level += 1
+                            continue
+                elif level == 2:
+                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        break
+                    if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        break
+                    if re.fullmatch(r'^\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                        if line[2:6] == self.prm.id['subsystem_vendor'].replace('0x', ''):
+                            if line[7:11] == self.prm.id['subsystem_device'].replace('0x', ''):
+                                model_str = line[11:]
+                                break
+        return model_str.strip()
+    
     def get_params_value(self, name):
         """
         Get parameter value for give name.
