@@ -25,10 +25,12 @@ warned, I have tested it with kernel releases no older than 4.15. There have bee
 implemented over time that span many releases of the kernel, so your experience in using these
 utilities with older kernels might not be ideal.
 
-To use any of these utilities, you must have the *amdgpu* open source driver
-package installed, either the All-Open stack or Pro stack. You can check with the following command:
+To use any of these utilities, you must have the *amdgpu* open source driver package installed,
+either the All-Open stack or Pro stack. Components of *amdgpu* are also installed when *ROCm* is 
+installed.  You can check with the following commands:
 ```
 dpkg -l 'amdgpu*'
+dpkg -l 'rocm*'
 ```
 
 You also must set your Linux machine to boot with the feature mask set to support the functionality
@@ -170,6 +172,7 @@ AMD: Wattman features enabled: 0xfffd7fff
 Card Number: 1
    Card Model: Vega 20
    Card: /sys/class/drm/card1/device
+   Type: 2
    SCLK:                   MCLK:
     0:  701Mhz              0:  351Mhz  
     1:  809Mhz              1:  801Mhz  
@@ -330,7 +333,7 @@ file is created that you can review and execute to implement the desired changes
 
 ###########################################################################
 ## WARNING - Do not execute this script without completely
-## understanding appropriate value to write to your specific GPUs
+## understanding appropriate values to write to your specific GPUs
 ###########################################################################
 #
 #    Copyright (C) 2019  RueiKe
@@ -349,44 +352,36 @@ file is created that you can review and execute to implement the desired changes
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ###########################################################################
 # 
-# Card1   Vega 10 XT [Radeon RX Vega 64] (rev c1)
-# /sys/class/drm/card1/device/
+# Card1  Advanced Micro Devices, Inc. [AMD/ATI] Vega 20 (rev c1)
+# /sys/class/drm/card1/device
 # 
 set -x
-# Powercap Old:  140 New:  140 Min: 0 Max: 220
-sudo sh -c "echo '140000000' >  /sys/class/drm/card1/device/hwmon/hwmon6/power1_cap"
-#sck p-state: 0 : 852 MHz, 800 mV
-sudo sh -c "echo 's 0 852 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 1 : 991 MHz, 900 mV
-sudo sh -c "echo 's 1 991 900' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 2 : 1084 MHz, 950 mV
-sudo sh -c "echo 's 2 1084 950' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 3 : 1138 MHz, 1000 mV
-sudo sh -c "echo 's 3 1138 1000' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 4 : 1200 MHz, 1050 mV
-sudo sh -c "echo 's 4 1200 1050' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 5 : 1401 MHz, 1100 mV
-sudo sh -c "echo 's 5 1401 1100' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 6 : 1530 MHz, 1150 mV
-sudo sh -c "echo 's 6 1530 1150' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#sck p-state: 7 : 1630 MHz, 1200 mV
-sudo sh -c "echo 's 7 1630 1200' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#mck p-state: 0 : 167 MHz, 800 mV
-sudo sh -c "echo 'm 0 167 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#mck p-state: 1 : 500 MHz, 800 mV
-sudo sh -c "echo 'm 1 500 800' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#mck p-state: 2 : 800 MHz, 950 mV
-sudo sh -c "echo 'm 2 800 950' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-#mck p-state: 3 : 945 MHz, 1100 mV
-sudo sh -c "echo 'm 3 945 1100' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-# Selected: ID=4, name=COMPUTE
+# Power DPM Force Performance Level: [manual] change to [manual]
 sudo sh -c "echo 'manual' >  /sys/class/drm/card1/device/power_dpm_force_performance_level"
-sudo sh -c "echo '4' >  /sys/class/drm/card1/device/pp_power_profile_mode"
+# Powercap Old: 150 New: 150 Min: 0 Max: 300
+sudo sh -c "echo '150000000' >  /sys/class/drm/card1/device/hwmon/hwmon2/power1_cap"
+# Fan PWM Old: 0 New: 0 Min: 0 Max: 100
+sudo sh -c "echo '1' >  /sys/class/drm/card1/device/hwmon/hwmon2/pwm1_enable"
+sudo sh -c "echo '0' >  /sys/class/drm/card1/device/hwmon/hwmon2/pwm1"
+# sclk curve end point: 0 : 808 MHz
+sudo sh -c "echo 's 0 808' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# sclk curve end point: 1 : 1650 MHz
+sudo sh -c "echo 's 1 1650' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# mclk curve end point: 1 : 1050 MHz
+sudo sh -c "echo 'm 1 1050' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# vddc curve point: 0 : 808 MHz, 724 mV
+sudo sh -c "echo 'vc 0 808 724' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# vddc curve point: 1 : 1304 MHz, 822 mV
+sudo sh -c "echo 'vc 1 1304 822' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# vddc curve point: 2 : 1801 MHz, 1124 mV
+sudo sh -c "echo 'vc 2 1801 1124' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
+# Selected: ID=5, name=COMPUTE
+sudo sh -c "echo '5' >  /sys/class/drm/card1/device/pp_power_profile_mode"
 sudo sh -c "echo 'c' >  /sys/class/drm/card1/device/pp_od_clk_voltage"
-# Sclk P-State Mask Default:  0 1 2 3 4 5 6 7 New:  4 5 6
-sudo sh -c "echo '4 5 6' >  /sys/class/drm/card1/device/pp_dpm_sclk"
-# Mclk P-State Mask Default:  0 1 2 3 New:  3
-sudo sh -c "echo '3' >  /sys/class/drm/card1/device/pp_dpm_mclk"
+# Sclk P-State Mask Default: 0 1 2 3 4 5 6 7 8 New: 0 1 2 3 4 5 6 7 8
+sudo sh -c "echo '0 1 2 3 4 5 6 7 8' >  /sys/class/drm/card1/device/pp_dpm_sclk"
+# Mclk P-State Mask Default: 0 1 2 New: 0 1 2
+sudo sh -c "echo '0 1 2' >  /sys/class/drm/card1/device/pp_dpm_mclk"
 ```
 
 When you execute *amdgpu-pac*, you will notice a message bar at the bottom of the interface.  By default, it informs
@@ -533,4 +528,4 @@ crontab or systemd, you can create an alternative PAC bash file after a renumber
 files in your crontab or systemd service. You will probably just need two alternative bash files for a card that is
 subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and
 *amdgpu-plot*. Card reindexing does not affect a card's PCI ID number, which corresponds to its PCIe slot number
-on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.  
+on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.

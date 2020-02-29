@@ -9,8 +9,7 @@ amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
-Or use this release candidate for v3.0.0 from master branch.
+Download latest official release: [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
 
 ## amdgpu-chk
 This utility verifies if the environment is compatible with *amdgpu-util*s.
@@ -62,7 +61,7 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release Candidate -  on master branch
+## New in this Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid*  and removed all related code.
 * Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
@@ -71,7 +70,7 @@ class variables for generic behavior parameters.
 compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
 * Test for readability and writability of all GPUs and apply utilities as appropriate.
 * Add assessment of compute capability.
-* Eliminated the use of lshw to determine driver compatibility and display of driver details in now
+* Eliminated the use of lshw to determine driver compatibility and display of driver details is now
 informational with no impact on the utilities.
 * Add p-state masking capability for Type 2 GPUs.
 * Optimized pac writing to GPUs.
@@ -104,7 +103,7 @@ actual values instead of set values.
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
-## New in Previous Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
+#### New in Previous Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
 * Initial release of man pages
 * Modifications to work with distribution installation
 * Use system pci.ids file and make *amdgpu-pciid* obsolete

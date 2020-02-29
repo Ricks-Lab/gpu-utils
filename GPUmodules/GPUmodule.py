@@ -24,7 +24,7 @@ __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.0.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Release Candidate RC1'
+__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
@@ -970,6 +970,7 @@ class GpuItem:
         print('Card Number: {}'.format(self.prm.card_num))
         print('   Card Model: {}'.format(self.prm.model_display))
         print('   Card: {}'.format(self.prm.card_path))
+        print('   Type: {}'.format(self.prm.gpu_type))
         if self.prm.gpu_type == 2:
             print('   SCLK: {:<17} MCLK:'.format(' '))
             for k, v in self.sclk_dpm_state.items():
