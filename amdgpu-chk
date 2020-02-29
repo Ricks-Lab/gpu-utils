@@ -43,10 +43,19 @@ warnings.filterwarnings('ignore')
 
 
 class GutConst:
+    """
+    Base object for chk util.  These are simplified versions of what are in env module designed to run in python2
+    in order to detect setup issues even if wrong version of python.
+    """
     def __init__(self):
         self.DEBUG = False
 
     def check_env(self):
+        """
+        Checks python version, kernel version, and amd gpu driver version.
+        :return:  A list of 3 integers representing status of 3 check items.
+        :rtype: list
+        """
         ret_val = [0, 0, 0]
         # Check python version
         required_pversion = [3, 6]
@@ -133,11 +142,16 @@ GUT_CONST = GutConst()
 
 
 def is_venv_installed():
+    """
+    Check if a venv is being used
+    :return: True if using venv
+    :rtype: bool
+    """
     cmdstr = 'python3 -m venv -h > /dev/null'
     try:
         p = subprocess.Popen(shlex.split(cmdstr), shell=False, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = p.communicate()
+        output, _error = p.communicate()
         # print('subprocess output: ', output.decode(), 'subprocess error: ', error.decode())
         if not re.fullmatch(r'.*No module named.*', output.decode()):
             print('python3 venv is installed')
@@ -152,6 +166,11 @@ def is_venv_installed():
 
 
 def does_amdgpu_utils_env_exist():
+    """
+    Check if venv exists.
+    :return:  Return True if venv exists.
+    :rtype: bool
+    """
     env_name = './amdgpu-utils-env/bin/activate'
 
     if os.path.isfile(env_name):
@@ -164,6 +183,11 @@ def does_amdgpu_utils_env_exist():
 
 
 def is_in_venv():
+    """
+    Check if execution is from within a venv.
+    :return: True if in venv
+    :rtype: bool
+    """
     try:
         python_path = shutil.which('python')
     except (NameError, AttributeError):
@@ -180,6 +204,10 @@ def is_in_venv():
 
 
 def main():
+    """
+    Main flow for chk utility.
+    :return: None
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
