@@ -46,8 +46,7 @@ class GutConst:
     def __init__(self):
         self.DEBUG = False
 
-    @staticmethod
-    def check_env():
+    def check_env(self):
         ret_val = [0, 0, 0]
         # Check python version
         required_pversion = [3, 6]
@@ -83,35 +82,51 @@ class GutConst:
             ret_val[1] = 0
 
         # Check for amdgpu driver
-        required_aversion = 'driver=amdgpu'
-        lshw_out = subprocess.check_output(shlex.split('lshw -c video'), shell=False,
-                                           stderr=subprocess.DEVNULL).decode().split('\n')
-        config_found = False
-        driver_str = ''
-        for lshw_line in lshw_out:
-            searchObj = re.search('configuration:', lshw_line)
-            if searchObj:
-                config_found = True
-                lineitems = lshw_line.split(sep=':')
-                driver_str = lineitems[1].strip()
-                searchObj = re.search(required_aversion, driver_str)
-                if searchObj:
-                    break
-        if not config_found:
-            driver_str = 'not detected'
-            print('AMD GPU driver not detected')
-            print('          ' + '\x1b[1;37;41m' + ' AMD\'s \'amdgpu\' driver package is required. ' + '\x1b[0m')
-            ret_val[2] = -3
-        if searchObj:
-            print('AMD GPU driver is ' + driver_str)
-            print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
-            ret_val[2] = 0
-        else:
-            print('AMD GPU driver is ' + driver_str)
-            print('          ' + '\x1b[1;37;41m' + ' AMD\'s \'amdgpu\' driver package is required. ' + '\x1b[0m')
-            ret_val[2] = -3
-
+        ret_val[2] = 0 if self.read_amd_driver_version() else -3
         return ret_val
+
+    def read_amd_driver_version(self):
+        """
+        Read the AMD driver version and store in GutConst object.
+        :return: True if successful
+        :rtype: bool
+        """
+        try:
+            cmd_dpkg = shutil.which('dpkg')
+        except (NameError, AttributeError):
+            cmd_dpkg = None
+        if not cmd_dpkg:
+            print('Command dpkg not found. Can not determine amdgpu version.')
+            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+            return True
+        version_ok = False
+        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
+            try:
+                dpkg_out = subprocess.check_output(shlex.split(cmd_dpkg + ' -l ' + pkgname),
+                                                   shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
+                for dpkg_line in dpkg_out:
+                    for driverpkg in ['amdgpu', 'rocm']:
+                        search_obj = re.search(driverpkg, dpkg_line)
+                        if search_obj:
+                            if self.DEBUG: print('Debug: ' + dpkg_line)
+                            dpkg_items = dpkg_line.split()
+                            if len(dpkg_items) > 2:
+                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
+                                    continue
+                                else:
+                                    print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
+                                    print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
+                                    version_ok = True
+                                    break
+                if version_ok:
+                    break
+            except (subprocess.CalledProcessError, OSError):
+                continue
+        if not version_ok:
+            print('amdgpu/rocm version: UNKNOWN')
+            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+            # return False
+        return True
 
 
 GUT_CONST = GutConst()
@@ -149,7 +164,11 @@ def does_amdgpu_utils_env_exist():
 
 
 def is_in_venv():
-    python_path = shutil.which('python')
+    try:
+        python_path = shutil.which('python')
+    except (NameError, AttributeError):
+        python_path = None
+        print('Maybe python version compatibility issue.')
 
     if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
         print('In amdgpu-utils-env')
