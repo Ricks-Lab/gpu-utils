@@ -132,8 +132,8 @@ class GpuItem:
                               'sclk_f_range': '   SCLK Range',
                               'mclk_ps': 'Current MCLK P-State',
                               'mclk_f_range': '   MCLK Range',
-                              'ppm': 'Power Performance Mode',
-                              'power_dpm_force': 'Power Force Performance Level'})
+                              'ppm': 'Power Profile Mode',
+                              'power_dpm_force': 'Power DPM Force Performance Level'})
 
     # HWMON sensor reading details
     _sensor_details = {'AMD': {'HWMON': {
@@ -954,10 +954,15 @@ class GpuItem:
         print('   Power Performance Mode: {}'.format(self.prm.power_dpm_force))
         for k, v in self.ppm_modes.items():
             print('   {:>2}: {:>16}'.format(k, v[0]), end='')
-            for v_item in v[1:]:
-                print('{:>18}'.format(v_item), end='')
+            #for v_item in v[1:]:
+                #print('{:>18}'.format(v_item), end='')
             print('')
         print('')
+        file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
+        with open(file_path, 'r') as file_ptr:
+            lines = file_ptr.readlines()
+            for line in lines:
+                print(line.strip('\n'))
 
     def print_pstates(self):
         """
