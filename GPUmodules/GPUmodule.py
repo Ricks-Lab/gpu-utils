@@ -948,21 +948,15 @@ class GpuItem:
         if not self.prm.readable:
             if env.GUT_CONST.DEBUG: print('PPM for card number {} not readable.'.format(self.prm.card_num))
             return
-        print('Card Number: {}'.format(self.prm.card_num))
-        print('   Card Model: {}'.format(self.prm.model_display))
-        print('   Card: {}'.format(self.prm.card_path))
-        print('   Power Performance Mode: {}'.format(self.prm.power_dpm_force))
-        for k, v in self.ppm_modes.items():
-            print('   {:>2}: {:>16}'.format(k, v[0]), end='')
-            #for v_item in v[1:]:
-                #print('{:>18}'.format(v_item), end='')
-            print('')
-        print('')
+        print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
+        print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
+        print('   {}: {}'.format(self._GPU_Param_Labels['card_path'], self.prm.card_path))
+        print('   {}: {}'.format(self._GPU_Param_Labels['power_dpm_force'], self.prm.power_dpm_force))
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         with open(file_path, 'r') as file_ptr:
             lines = file_ptr.readlines()
             for line in lines:
-                print(line.strip('\n'))
+                print('   {}'.format(line.strip('\n')))
 
     def print_pstates(self):
         """
@@ -972,10 +966,10 @@ class GpuItem:
         if not self.prm.readable:
             if env.GUT_CONST.DEBUG: print('P-States for card number {} not readable.'.format(self.prm.card_num))
             return
-        print('Card Number: {}'.format(self.prm.card_num))
-        print('   Card Model: {}'.format(self.prm.model_display))
-        print('   Card: {}'.format(self.prm.card_path))
-        print('   Type: {}'.format(self.prm.gpu_type))
+        print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
+        print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
+        print('   {}: {}'.format(self._GPU_Param_Labels['card_path'], self.prm.card_path))
+        print('   {}: {}'.format(self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type))
         if self.prm.gpu_type == 2:
             print('   SCLK: {:<17} MCLK:'.format(' '))
             for k, v in self.sclk_dpm_state.items():
@@ -1059,7 +1053,7 @@ class GpuList:
         _table_parameters = ['model_display', 'loading', 'mem_loading', 'power', 'power_cap', 'energy', 'temp_val',
                              'vddgfx_val', 'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
         _table_param_labels = {'model_display': 'Model',
-                               'loading': 'Load %',
+                               'loading': 'GPU Load %',
                                'mem_loading': 'Mem Load %',
                                'power': 'Power (W)',
                                'power_cap': 'Power Cap (W)',
