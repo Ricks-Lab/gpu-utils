@@ -10,7 +10,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-pac](#using-amdgpu-pac)
  - [Updating the PCI ID decode file](#Updating-the-PCI-ID-decode-file)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
- - [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)
+ - [Running Startup PAC Bash Files](#running-startup-pac-bash-files)
 
 ## Getting Started
 First, this set of utilities is written and tested with Python3.6.  If you are using an older
@@ -204,6 +204,27 @@ Card Number: 1
     6:           CUSTOM
    -1:             AUTO
 ```
+Different generations of cards will provide different information with the --ppm option. Here is an example for Ellsmere and Polaris (Type 1) cards:
+```
+./amdgpu-ls --ppm
+Detected GPUs: INTEL: 1, AMD: 2
+AMD: amdgpu version: 19.50-967956
+AMD: Wattman features enabled: 0xfffd7fff
+3 total GPUs, 2 rw, 0 r-only, 0 w-only
+
+Card Number: 1
+   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] (rev ef)
+   Card Path: /sys/class/drm/card1/device
+   Power DPM Force Performance Level: manual
+   NUM        MODE_NAME     SCLK_UP_HYST   SCLK_DOWN_HYST SCLK_ACTIVE_LEVEL     MCLK_UP_HYST   MCLK_DOWN_HYST MCLK_ACTIVE_LEVEL
+     0   BOOTUP_DEFAULT:        -                -                -                -                -                -
+     1   3D_FULL_SCREEN:        0              100               30                0              100               10
+     2     POWER_SAVING:       10                0               30                -                -                -
+     3            VIDEO:        -                -                -               10               16               31
+     4               VR:        0               11               50                0              100               10
+     5        COMPUTE *:        0                5               30                0              100               10
+     6           CUSTOM:        -                -                -                -                -                -
+```
 
 ## GPU Type Dependent Behavior
 AMD GPU's compatible with the amdgpu open source drivers are of three different types in terms of how frequency/voltage
@@ -250,21 +271,22 @@ every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by defa
 water cooling, you can use the *--no_fans* to remove fan functionality.
 ```
 ┌─────────────┬────────────────┬────────────────┐
-│Card #       │card1           │card0           │
+│Card #       │card1           │card2           │
 ├─────────────┼────────────────┼────────────────┤
-│Model        │RX Vega64       │Vega 20  Radeon │
-│Load %       │99              │93              │
-│Power (W)    │60.0            │138.0           │
-│Power Cap (W)│140.0           │140.0           │
-│Energy (kWh) │1e-06           │3e-06           │
-│T (C)        │30.0            │47.0            │
-│VddGFX (mV)  │1037            │1062            │
-│Fan Spd (%)  │0               │93              │
-│Sclk (MHz)   │1536Mhz         │                │
-│Sclk Pstate  │6               │-1              │
-│Mclk (MHz)   │945Mhz          │                │
-│Mclk Pstate  │3               │-1              │
-│Perf Mode    │4-COMPUTE       │4-COMPUTE       │
+│Model        │Radeon RX 570   │Radeon RX 570   │
+│GPU Load %   │100             │100             │
+│Mem Load %   │26              │96              │
+│Power (W)    │77.1            │87.0            │
+│Power Cap (W)│120.0           │120.0           │
+│Energy (kWh) │1e-06           │2e-06           │
+│T (C)        │74.0            │74.0            │
+│VddGFX (mV)  │918             │912             │
+│Fan Spd (%)  │44              │41              │
+│Sclk (MHz)   │1087            │1092            │
+│Sclk Pstate  │6               │6               │
+│Mclk (MHz)   │1850            │1850            │
+│Mclk Pstate  │2               │2               │
+│Perf Mode    │5-COMPUTE       │5-COMPUTE       │
 └─────────────┴────────────────┴────────────────┘
 ```
 The fields are the same as the GUI version of the display, available with the *--gui* option.
@@ -294,7 +316,7 @@ GPU parameters.
 Having an *amdgpu-monitor* Gtx window open at startup may be useful if you run GPU compute projects that autostart
 and you need to quickly confirm that *amdgpu-pac* bash scripts ran as expected at startup
 (see [Using amdgpu-pac](#using-amdgpu-pac)). You can have *amdgpu-monitor --gui* automatically launch at startup
-or upon reboot by using the startup utility for your system. In Ubuntu, for example, open *Startup Applications
+or upon reboot by using the startup utility for your distribution. In Ubuntu, for example, open *Startup Applications
 Preferences* app, then in the Preferences window select *Add* and use something like this in the command field:
 ```
 /usr/bin/python3 /home/<user>/Desktop/amdgpu-utils/amdgpu-monitor --gui
@@ -416,7 +438,7 @@ is not under load.  If you know the cause of the differences between entered and
 Changes made with *amdgpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a
 reboot, either re-enter them using *amdgpu-pac* or *amdgpu-pac --execute*, or execute a previously saved bash file.
 *Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
-See [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup) for how to run PAC bash
+See [Running Startup PAC Bash Files](#running-startup-pac-bash-files) for how to run PAC bash
 scripts automatically at system startup.
 
 For Type 1 cards, while changes to power caps and fan speeds can be made while the GPU is under load, for
@@ -426,6 +448,8 @@ stuck in a 0 P-state or that the entire system becomes slow to respond, where a 
 full GPU functions. Note that when you change a P-state mask, default mask values will reappear in the field
 after Save, but your specified changes will have been implemented on the card and show up in *amdgpu-monitor*.
 Some changes may not persist when a card has a connected display. 
+
+When changing P-state MHz or mV, the desired P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save
 changes to the GPU.
@@ -453,7 +477,7 @@ benchmark power and execution times for various work units.  This, combined with
 
 ![](https://i.imgur.com/YPuDez2l.png)
 
-## Setting GPU Automatically at Startup
+## Running Startup PAC Bash Files
 If you set your system to run *amdgpu-pac* bash scripts automatically, as described in this section, note that
 changes in your hardware or graphic drivers may cause potentially serious problems with GPU settings unless new
 PAC bash files are generated following the changes. Review the [Using amdgpu-pac](#using-amdgpu-pac) section
@@ -529,3 +553,14 @@ files in your crontab or systemd service. You will probably just need two altern
 subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and
 *amdgpu-plot*. Card reindexing does not affect a card's PCI ID number, which corresponds to its PCIe slot number
 on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.
+
+You may find a card running at startup with default power limits and Fan PWM settings instead of what is prescribed in its startup PAC bash file. If so, it may be that the card's hwmon# is different from what is hard coded in the bash file, because the hwmon index for devices can change with each reboot. To work around this, you can edit a card's bash file to define hwmon# as a variable and modify the hwmon lines to use it. Here is an example for card1:
+```
+set -x
+HWMON=$(ls /sys/class/drm/card1/device/hwmon/)
+# Powercap Old: 120 New: 110 Min: 0 Max: 180
+sudo sh -c "echo '1100000000' >  /sys/class/drm/card1/device/hwmon/$HWMON/power1_cap"
+# Fan PWM Old:  44 New:  47 Min:  0 Max:  100
+sudo sh -c "echo '1' >  /sys/class/drm/card1/device/hwmon/$HWMON/pwm1_enable"
+sudo sh -c "echo '119' >  /sys/class/drm/card1/device/hwmon/$HWMON/pwm1"
+```
