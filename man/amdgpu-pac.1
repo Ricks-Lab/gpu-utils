@@ -1,0 +1,107 @@
+.TH AMDGPU\-PAC 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.nh
+.SH NAME
+amdgpu-pac \- program and control compatible AMD GPUs
+
+.SH SYNOPSIS
+.B amdgpu-pac
+.RB [ \-\-help " | " \-\-about "]"
+.br
+.B amdgpu-pac
+.RB [ \-\-execute_pac "] [" \-\-no_fan "] [" \-\-force_write "] [" \-\-debug "]
+
+.SH CONFIGURATION
+All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+the feature to access them is enabled.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing update-grub.
+
+.SH DESCRIPTION
+.B amdgpu-pac
+will present the user with a gui to modify the operating conditions of compatible AMD GPUs.
+With this utility, the user can change GPU power limit, S-Clk and M-Clk P-state/Curve definitions,
+P-state masks, fan speed, and power performance mode.
+By default, the commands to program and control a GPU are written to a bash file for the user to inspect
+and run with root permissions.
+
+.SH OPTIONS
+.TP
+.BR " \-\-about"
+Will display details about
+.B amdgpu-pac\fP.
+.TP
+.BR " \-\-execute_pac"
+Will execute a bash file created with commands written to the AMD driver files to modify the operating
+conditions of the selected GPU/GPUs.  The default behavior is to only create the bash files for the user
+to execute.
+.TP
+.BR " \-\-no_fan"
+Will exclude fan information from the display and will not include fans in writing or resetting
+GPU operating conditions.
+.TP
+.BR " \-\-force_write"
+Will result in all parameters being writen to the selected GPU/GPUs instead of the default behavior of
+only writing changes.
+.TP
+.BR " \-\-debug"
+Will display additional details useful in troubleshooting.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+
+.SH "EXAMPLES"
+.nf
+.B amdgpu-pac
+
+.fi
+Will open a Gtk based user interface which will display current or default values for modifiable GPU operating
+parameters.  The interface supports entry of new values for all compatible AMD GPUs.  The user can select to save
+or reset values for individual or all GPUs. It is suggested that \fBamdgpu-monitor\fR be used
+to make sure the changes are made as expected.
+.P
+.B amdgpu-pac \-\-execute_pac
+
+.fi
+To simplify this process, the \fB\-\-execute_pac\fR option can be specified to automate execution of the bash files.
+A message in the user interface will indicate if credentials are required in the original terminal window.
+.P
+.B amdgpu-pac \-\-force_write
+
+.fi
+With this option, all parameters will be written to the bash file, even if they are unchanged.  This is useful in
+creating bash files used to put GPU's into a known state which is convenient for use in start up routines.
+.P
+
+.SH "FILES"
+.PP
+.TP
+\fB/usr/share/misc/pci.ids\fR
+The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+It can be updated with the \fBupdate-pciids\fR command.
+.TP
+\fB~/.amdgpu-utils/amd_pci_id.txt\fR
+A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+It is preferred to use the system PCI ID file.  If the local file exists, it will be used instead of
+the system file and can be removed with \fB\-\-remove_local\fR option.
+.TP
+\fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
+Special driver file for each GPU required for \fBamdgpu-utils\fR.
+.TP
+\fB/etc/default/grub\fR
+The grub defaults file where amdgpu.ppfeaturemask needs to be set.
+
+.SH BUGS
+Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.  The
+display of P-state masks is always the defaults, not the actual values.
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+
+.SH "SEE ALSO"
+.BR amdgpu-monitor (1),
+.BR amdgpu (4),
+.BR update-grub (8),
+.BR update-pciids (8),
+.BR lspci (8)
+
+.SH AVAILABILITY
+The amdgpu-pac command is part of the amdgpu-utils package and is available from
+https://github.com/Ricks-Lab/amdgpu-utils

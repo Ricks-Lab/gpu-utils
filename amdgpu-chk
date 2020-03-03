@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""amdgpu-chk  -  Checks OS/Python compatibility
+""" amdgpu-chk  -  Checks OS/Python compatibility
+
+    This utility verifies if the environment is compatible with amdgpu-utils.
 
     Copyright (C) 2019  RueiKe
 
@@ -16,86 +18,225 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = "RueiKe"
-__copyright__ = "Copyright (C) 2019 RueiKe"
-__credits__ = ["Craig Echt - Testing, Debug, and Verification"]
-__license__ = "GNU General Public License"
-__program_name__ = "amdgpu-chk"
-__version__ = "v2.3.1"
-__maintainer__ = "RueiKe"
-__status__ = "Stable Release"
+__author__ = 'RueiKe'
+__copyright__ = 'Copyright (C) 2019 RueiKe'
+__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
+__license__ = 'GNU General Public License'
+__program_name__ = 'amdgpu-chk'
+__version__ = 'v3.0.0'
+__maintainer__ = 'RueiKe'
+__status__ = 'Stable Release'
+__docformat__ = 'reStructuredText'
+# pylint: disable=multiple-statements
+# pylint: disable=line-too-long
 
 import argparse
+import re
+import subprocess
 import os
+import shlex
 import platform
 import sys
+import shutil
+import warnings
+warnings.filterwarnings('ignore')
 
-class GUT_CONST:
+
+class GutConst:
+    """
+    Base object for chk util.  These are simplified versions of what are in env module designed to run in python2
+    in order to detect setup issues even if wrong version of python.
+    """
     def __init__(self):
         self.DEBUG = False
 
     def check_env(self):
-        ret_val = [0,0]
+        """
+        Checks python version, kernel version, and amd gpu driver version.
+        :return:  A list of 3 integers representing status of 3 check items.
+        :rtype: list
+        """
+        ret_val = [0, 0, 0]
         # Check python version
-        required_pversion = [3,6]
+        required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        print("Using python " + python_major +"."+ python_minor +"."+ python_patch)
+        print('Using python ' + python_major + '.' + python_minor + '.' + python_patch)
         if int(python_major) < required_pversion[0]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-utils requires python " +
-                    str(required_pversion[0]) +"."+ str(required_pversion[1]) + " or newer." + '\x1b[0m')
+            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-utils requires python ' +
+                  str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or newer.' + '\x1b[0m')
             ret_val[0] = -1
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-utils requires python " +
-                    str(required_pversion[0]) +"."+ str(required_pversion[1]) + " or newer." + '\x1b[0m')
+            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-utils requires python ' +
+                  str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or newer.' + '\x1b[0m')
             ret_val[0] = -1
         else:
-            print("          " +'\x1b[1;37;42m' + " Python version OK. " + '\x1b[0m')
+            print('          ' + '\x1b[1;37;42m' + ' Python version OK. ' + '\x1b[0m')
             ret_val[0] = 0
 
         # Check Linux Kernel version
-        required_kversion = [4,8]
+        required_kversion = [4, 8]
         linux_version = platform.release()
-        print("Using Linux Kernel" + str(linux_version))
-        if int(linux_version.split(".")[0]) < required_kversion[0]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-util requires " + 
-                    str(required_kversion[0]) +"."+ str(required_kversion[1]) + " or newer." + '\x1b[0m')
+        print('Using Linux Kernel ' + str(linux_version))
+        if int(linux_version.split('.')[0]) < required_kversion[0]:
+            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-util requires ' +
+                  str(required_kversion[0]) + '.' + str(required_kversion[1]) + ' or newer.' + '\x1b[0m')
             ret_val[1] = -2
-        elif int(linux_version.split(".")[0]) == required_kversion[0] and int(linux_version.split(".")[1]) < required_kversion[1]:
-            print("          " +'\x1b[1;37;41m' + " but amdgpu-util requires " + 
-                    str(required_kversion[0]) +"."+ str(required_kversion[1]) + " or newer." + '\x1b[0m')
+        elif int(linux_version.split('.')[0]) == required_kversion[0] and \
+                int(linux_version.split('.')[1]) < required_kversion[1]:
+            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-util requires ' +
+                  str(required_kversion[0]) + '.' + str(required_kversion[1]) + ' or newer.' + '\x1b[0m')
             ret_val[1] = -2
         else:
-            print("          " +'\x1b[1;37;42m' + " OS kernel OK. " + '\x1b[0m')
+            print('          ' + '\x1b[1;37;42m' + ' OS kernel OK. ' + '\x1b[0m')
             ret_val[1] = 0
 
-        return(ret_val)
+        # Check for amdgpu driver
+        ret_val[2] = 0 if self.read_amd_driver_version() else -3
+        return ret_val
 
-gut_const = GUT_CONST()
+    def read_amd_driver_version(self):
+        """
+        Read the AMD driver version and store in GutConst object.
+        :return: True if successful
+        :rtype: bool
+        """
+        try:
+            cmd_dpkg = shutil.which('dpkg')
+        except (NameError, AttributeError):
+            cmd_dpkg = None
+        if not cmd_dpkg:
+            print('Command dpkg not found. Can not determine amdgpu version.')
+            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+            return True
+        version_ok = False
+        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
+            try:
+                dpkg_out = subprocess.check_output(shlex.split(cmd_dpkg + ' -l ' + pkgname),
+                                                   shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
+                for dpkg_line in dpkg_out:
+                    for driverpkg in ['amdgpu', 'rocm']:
+                        search_obj = re.search(driverpkg, dpkg_line)
+                        if search_obj:
+                            if self.DEBUG: print('Debug: ' + dpkg_line)
+                            dpkg_items = dpkg_line.split()
+                            if len(dpkg_items) > 2:
+                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
+                                    continue
+                                else:
+                                    print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
+                                    print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
+                                    version_ok = True
+                                    break
+                if version_ok:
+                    break
+            except (subprocess.CalledProcessError, OSError):
+                continue
+        if not version_ok:
+            print('amdgpu/rocm version: UNKNOWN')
+            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+            # return False
+        return True
+
+
+GUT_CONST = GutConst()
+
+
+def is_venv_installed():
+    """
+    Check if a venv is being used
+    :return: True if using venv
+    :rtype: bool
+    """
+    cmdstr = 'python3 -m venv -h > /dev/null'
+    try:
+        p = subprocess.Popen(shlex.split(cmdstr), shell=False, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, _error = p.communicate()
+        # print('subprocess output: ', output.decode(), 'subprocess error: ', error.decode())
+        if not re.fullmatch(r'.*No module named.*', output.decode()):
+            print('python3 venv is installed')
+            print('          ' + '\x1b[1;37;42m' + ' python3-venv OK. ' + '\x1b[0m')
+            return True
+    except:
+        pass
+    print('python3 venv is NOT installed')
+    print('          ' + '\x1b[1;30;43m' + ' Python3 venv package \'python3-venv\' package is recommended. ' +
+          '\x1b[0m')
+    return False
+
+
+def does_amdgpu_utils_env_exist():
+    """
+    Check if venv exists.
+    :return:  Return True if venv exists.
+    :rtype: bool
+    """
+    env_name = './amdgpu-utils-env/bin/activate'
+
+    if os.path.isfile(env_name):
+        print('amdgpu-utils-env available')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env OK. ' + '\x1b[0m')
+        return True
+    print('amdgpu-utils-env is NOT available')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be configured per User Guide. ' + '\x1b[0m')
+    return False
+
+
+def is_in_venv():
+    """
+    Check if execution is from within a venv.
+    :return: True if in venv
+    :rtype: bool
+    """
+    try:
+        python_path = shutil.which('python')
+    except (NameError, AttributeError):
+        python_path = None
+        print('Maybe python version compatibility issue.')
+
+    if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
+        print('In amdgpu-utils-env')
+        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
+        return True
+    print('Not in amdgpu-utils-env')
+    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be activated per User Guide. ' + '\x1b[0m')
+    return False
+
 
 def main():
+    """
+    Main flow for chk utility.
+    :return: None
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--about", help="README", action="store_true", default=False)
-    parser.add_argument("-d", "--debug", help="Debug output", action="store_true", default=False)
+    parser.add_argument('--about', help='README', action='store_true', default=False)
+    parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 
-
     # About me
-    if args.about == True :  
-        print(__doc__ )
-        print("Author: ", __author__ )
-        print("Copyright: ", __copyright__)
-        print("Credits: ", __credits__)
-        print("License: ", __license__)
-        print("Version: ", __version__)
-        print("Maintainer: ", __maintainer__)
-        print("Status: ", __status__)
+    if args.about:
+        print(__doc__)
+        print('Author: ', __author__)
+        print('Copyright: ', __copyright__)
+        print('Credits: ', __credits__)
+        print('License: ', __license__)
+        print('Version: ', __version__)
+        print('Maintainer: ', __maintainer__)
+        print('Status: ', __status__)
         sys.exit(0)
 
-    gut_const.DEBUG = args.debug
+    GUT_CONST.DEBUG = args.debug
 
-    if gut_const.check_env() != [0,0]:
-        print("Error in environment. Exiting...")
+    if GUT_CONST.check_env() != [0, 0, 0]:
+        print('Error in environment. Exiting...')
         sys.exit(-1)
 
-if __name__ == "__main__":
+    if not is_venv_installed() or not does_amdgpu_utils_env_exist():
+        print('Environment not configured. WARNING')
+
+    if not is_in_venv():
+        print('Virtual Environment not activated. WARNING')
+
+
+if __name__ == '__main__':
     main()
