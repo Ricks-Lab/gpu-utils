@@ -347,7 +347,7 @@ class GpuItem:
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
             return None
-        with open(env.GUT_CONST.sys_pciid, 'r') as pci_id_file_ptr:
+        with open(env.GUT_CONST.sys_pciid, 'r', encoding='utf8') as pci_id_file_ptr:
             model_str = ''
             level = 0
             for line_item in pci_id_file_ptr:
