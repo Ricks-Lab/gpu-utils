@@ -119,7 +119,7 @@ actual values instead of set values.
 with many GPUs.
 
 #### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
-* Some preparation work for Debian package (@smoe).
+* Some preparation work for [Debian package](https://tracker.debian.org/pkg/ricks-amdgpu-utils) (smoe).
 * Added *--ltz* option to use local times instead of UTC for logging and plot data.
 * Added 0xfffd7fff to valid amdgpu.ppfeaturemask values (@pastaq).
 * Updates to User Guide to include instructions to apply PAC conditions on startup (@csecht).
