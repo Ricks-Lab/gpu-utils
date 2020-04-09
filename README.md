@@ -61,19 +61,10 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
-* Style and code robustness improvements
-* Deprecated  *amdgpu-pciid*  and removed all related code.
-* Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
-class variables for generic behavior parameters.
-* Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability, and
-compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
-* Test for readability and writability of all GPUs and apply utilities as appropriate.
-* Add assessment of compute capability.
-* Eliminated the use of lshw to determine driver compatibility and display of driver details is now
-informational with no impact on the utilities.
-* Add p-state masking capability for Type 2 GPUs.
-* Optimized pac writing to GPUs.
+## New in Development on Master  -  v3.0.1
+* Fixed issue in reading pciid file in Gentoo (@CH3CN).
+* Modified setup to indicate minimum instead of absolute package versions (@smoe).
+* Modified venv requirements to include min/max package versions for major packages.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -103,6 +94,20 @@ actual values instead of set values.
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+## New in Previous Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
+* Style and code robustness improvements
+* Deprecated  *amdgpu-pciid*  and removed all related code.
+* Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
+class variables for generic behavior parameters.
+* Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability, and
+compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
+* Test for readability and writability of all GPUs and apply utilities as appropriate.
+* Add assessment of compute capability.
+* Eliminated the use of lshw to determine driver compatibility and display of driver details is now
+informational with no impact on the utilities.
+* Add p-state masking capability for Type 2 GPUs.
+* Optimized pac writing to GPUs.
+
 #### New in Previous Release  -  [v2.7.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.7.0)
 * Initial release of man pages
 * Modifications to work with distribution installation
@@ -119,7 +124,7 @@ actual values instead of set values.
 with many GPUs.
 
 #### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
-* Some preparation work for [Debian package](https://tracker.debian.org/pkg/ricks-amdgpu-utils) (smoe).
+* Some preparation work for [Debian package](https://tracker.debian.org/pkg/ricks-amdgpu-utils) (@smoe).
 * Added *--ltz* option to use local times instead of UTC for logging and plot data.
 * Added 0xfffd7fff to valid amdgpu.ppfeaturemask values (@pastaq).
 * Updates to User Guide to include instructions to apply PAC conditions on startup (@csecht).
