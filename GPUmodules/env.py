@@ -51,6 +51,7 @@ class GutConst:
         self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
         self.sys_pciid = '/usr/share/misc/pci.ids'
+        self.sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
         self.dist_icons = os.path.join(self.dist_share, 'icons')
         if os.path.isdir(self.dist_icons):
             self.icon_path = self.dist_icons
@@ -85,47 +86,45 @@ class GutConst:
         self.cmd_nvidia_smi = None
 
     @staticmethod
-    def now(ltz=False):
+    def now(ltz: bool = False) -> datetime:
         """
         Get the current datetime object.
+
         :param ltz: Flag to get local time instead of UTC
-        :type ltz: bool
-        :return:
-        :rtype: datetime
+        :return: datetime obj of current time
         """
         if ltz:
             return datetime.now()
         return datetime.utcnow()
 
     @staticmethod
-    def utc2local(utc):
+    def utc2local(utc: datetime) -> datetime:
         """
         Return local time for given UTC time.
-        :param utc:
-        :type utc: datetime
-        :return:
-        :rtype: datetime
+
+        :param utc: Time for UTC
+        :return: Time for local time zone
         .. note:: from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
         """
         epoch = time.mktime(utc.timetuple())
         offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
         return utc + offset
 
-    def read_amdfeaturemask(self):
+    def read_amdfeaturemask(self) -> int:
         """
         Read and return the amdfeaturemask as an int.
-        :return:
-        :rtype: int
+
+        :return: AMD Feature Mask
         """
         with open(self.featuremask) as fm_file:
             self.amdfeaturemask = int(fm_file.readline())
             return self.amdfeaturemask
 
-    def check_env(self):
+    def check_env(self) -> int:
         """
         Check the compatibility of the user environment.
+
         :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
-        :rtype: int
         """
         # Check python version
         required_pversion = [3, 6]
@@ -160,6 +159,12 @@ class GutConst:
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
 
+        # Check which pci-ids file is to be used
+        for test_sys_pciid in self.sys_pciid_list:
+            if os.path.isfile(test_sys_pciid):
+                self.sys_pciid = test_sys_pciid
+                break
+
         # Check access/paths to system commands
         command_access_fail = False
         self.cmd_lspci = shutil.which('lspci')
@@ -183,11 +188,11 @@ class GutConst:
             return -3
         return 0
 
-    def read_amd_driver_version(self):
+    def read_amd_driver_version(self) -> bool:
         """
         Read the AMD driver version and store in GutConst object.
+
         :return: True if successful
-        :rtype: bool
         """
         if not self.cmd_dpkg:
             print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
@@ -223,10 +228,9 @@ class GutConst:
 GUT_CONST = GutConst()
 
 
-def about():
+def about() -> None:
     """
     Display details of this module.
-    :return: None
     """
     print(__doc__)
     print('Author: ', __author__)

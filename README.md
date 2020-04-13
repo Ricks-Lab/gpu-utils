@@ -65,6 +65,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
 * Modified setup to indicate minimum instead of absolute package versions (@smoe).
 * Modified venv requirements to include min/max package versions for major packages.
+* Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion)
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!

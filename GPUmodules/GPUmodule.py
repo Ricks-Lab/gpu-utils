@@ -35,7 +35,7 @@ import subprocess
 import shlex
 import os
 import sys
-from typing import Union
+from typing import Union, List, Dict, TextIO, BinaryIO
 from pathlib import Path
 from uuid import uuid4
 import glob
@@ -192,11 +192,11 @@ class GpuItem:
         """
         return 'GPU_Item: uuid={}'.format(self.prm.uuid)
 
-    def __init__(self, item_id):
+    def __init__(self, item_id: str):
         """
         Initialize GpuItem object.
+
         :param item_id:  UUID of the new item.
-        :type item_id: str
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
@@ -275,14 +275,12 @@ class GpuItem:
         self.vddc_curve_range = {}  # {'1': {SCLK: ['val1', 'val2'], VOLT: ['val1', 'val2']}
         self.ppm_modes = {}         # {'1': ['Name', 'Description']}
 
-    def set_params_value(self, name, value):
+    def set_params_value(self, name: str, value: Union[int, str, list]) -> None:
         """
         Set parameter value for give name.
+
         :param name:  Parameter name
-        :type name: str
         :param value:  parameter value
-        :type value: Union[int, str, list]
-        :return: None
         """
         if isinstance(value, tuple):
             self.prm[name] = list(value)
@@ -343,8 +341,8 @@ class GpuItem:
     def read_pciid_model(self) -> str:
         """
         Read the model name from the system pcid.ids file
+
         :return:  GPU model name
-        :rtype: str
         """
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
@@ -382,14 +380,13 @@ class GpuItem:
                                 model_str = line[11:]
                                 break
         return model_str.strip()
-    
-    def get_params_value(self, name) -> Union[int, str, list]:
+
+    def get_params_value(self, name: str) -> Union[int, str, list]:
         """
         Get parameter value for give name.
+
         :param name:  Parameter name
-        :type name: str
         :return: Parameter value
-        :rtype: Union[int, str, list]
         """
         if re.fullmatch(r'.*_val', name):
             if name == 'temp_val':
@@ -412,34 +409,22 @@ class GpuItem:
                 return self.prm['mclk_ps'][1]
         return self.prm[name]
 
-    def populate(self, pcie_id, gpu_name, short_gpu_name, vendor, driver_module, card_path, hwmon_path,
-                 readable, writable, compute, ocl_ver):
+    def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: str, driver_module: str,
+                 card_path: str, hwmon_path: str, readable: bool, writable: bool, compute: bool, ocl_ver: str) -> None:
         """
         Populate elements of a GpuItem.
+
         :param pcie_id: The pcid ID of the GPU.
-        :type pcie_id: str
         :param gpu_name:  Model name of the GPU
-        :type gpu_name: str
         :param short_gpu_name:  Short Model name of the GPU
-        :type short_gpu_name: str
         :param vendor:  The make of the GPU (AMD, NVIDIA, ...)
-        :type vendor: str
         :param driver_module: The name of the driver.
-        :type driver_module: str
         :param card_path: The path to the GPU.
-        :type card_path: str
         :param hwmon_path: Path to the hardware monitor files.
-        :type hwmon_path: str
         :param readable: readable compatibility flag
-        :type readable: bool
         :param writable: writable compatibility flag
-        :type writable: bool
         :param compute: Compute compatibility flag
-        :type compute: bool
         :param ocl_ver: Compute platform Name
-        :type ocl_ver: str
-        :return: None
-        :rtype: None
         """
         self.prm.pcie_id = pcie_id
         self.prm.model = gpu_name
@@ -454,55 +439,49 @@ class GpuItem:
         self.prm.compute = compute
         self.prm.compute_platform = ocl_ver if compute else 'None'
 
-    def populate_ocl(self, ocl_dict):
+    def populate_ocl(self, ocl_dict: dict) -> None:
         """
-        Populate ocl parameters in GpuItem
+        Populate ocl parameters in GpuItem.
+
         :param ocl_dict: Dictionary of parameters for specific pcie_id
-        :type ocl_dict: dict
-        :return: None
         """
         for k, v in ocl_dict.items():
             if k in self.clinfo.keys():
                 self.set_clinfo_value(k, v)
 
-    def set_clinfo_value(self, name, value):
+    def set_clinfo_value(self, name: str, value: Union[int, str, list]) -> None:
         """
         Set clinfo values in GPU item dictionary.
+
         :param name: clinfo parameter name
-        :type name: str
         :param value:  parameter value
-        :type value: Union[int, str, list]
-        :return: None
-        :rtype: None
         """
         self.clinfo[name] = value
 
-    def get_clinfo_value(self, name):
+    def get_clinfo_value(self, name: str) -> Union[int, str, list]:
         """
         Get clinfo parameter value for give name.
+
         :param name:  clinfo Parameter name
-        :type name: str
         :return: clinfo Parameter value
-        :rtype: Union[int, str, list]
         .. note: Maybe not needed
         """
         return self.clinfo[name]
 
-    def get_nc_params_list(self):
+    def get_nc_params_list(self) -> List[str]:
         """
         Get list of parameter names for use with non-readable cards.
+
         :return: List of parameter names
-        :rtype: list
         """
         return self._GPU_NC_Param_List
 
-    def is_valid_power_cap(self, power_cap):
+    def is_valid_power_cap(self, power_cap: int) -> bool:
         """
         Check if a given power_cap value is valid.
+
         :param power_cap: Target power cap value to be tested.
-        :type power_cap: int
         :return: True if valid
-        :rtype: bool
         """
         power_cap_range = self.prm.power_cap_range
         if power_cap_range[0] <= power_cap <= power_cap_range[1]:
@@ -512,13 +491,12 @@ class GpuItem:
             return True
         return False
 
-    def is_valid_fan_pwm(self, pwm_value):
+    def is_valid_fan_pwm(self, pwm_value: int) -> bool:
         """
         Check if a given fan_pwm value is valid.
+
         :param pwm_value: Target fan_pwm value to be tested.
-        :type pwm_value: int
         :return: True if valid
-        :rtype: bool
         """
         pwm_range = self.prm.fan_pwm_range
         if pwm_range[0] <= pwm_value <= pwm_range[1]:
@@ -528,14 +506,12 @@ class GpuItem:
             return True
         return False
 
-    def is_valid_mclk_pstate(self, pstate):
+    def is_valid_mclk_pstate(self, pstate: List[int]) -> bool:
         """
         Check if given mclk pstate value is valid.
-        .. note:: pstate = [pstate_number, clk_value, vddc_value]
-        :param pstate:
-        :type pstate: list[int]
+
+        :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if valid
-        :rtype: bool
         """
         mclk_range = self.prm.mclk_f_range
         mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
@@ -550,14 +526,12 @@ class GpuItem:
                 return False
         return True
 
-    def is_valid_sclk_pstate(self, pstate):
+    def is_valid_sclk_pstate(self, pstate: List[int]) -> bool:
         """
         Check if given sclk pstate value is valid.
-            pstate = [pstate_number, clk_value, vddc_value]
-        :param pstate:
-        :type pstate: list[int]
+
+        :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if valid
-        :rtype: bool
         """
         sclk_range = self.prm.sclk_f_range
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[0])))
@@ -572,14 +546,12 @@ class GpuItem:
                 return False
         return True
 
-    def is_changed_sclk_pstate(self, pstate):
+    def is_changed_sclk_pstate(self, pstate: List[int]) -> bool:
         """
         Check if given sclk pstate value different from current.
-            pstate = [pstate_number, clk_value, vddc_value]
-        :param pstate:
-        :type pstate: list[int]
+
+        :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if changed
-        :rtype: bool
         """
         if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][0])) != pstate[1]:
             return True
@@ -588,14 +560,12 @@ class GpuItem:
                 return True
         return False
 
-    def is_changed_mclk_pstate(self, pstate):
+    def is_changed_mclk_pstate(self, pstate: List[int]) -> bool:
         """
         Check if given mclk pstate value different from current.
-            pstate = [pstate_number, clk_value, vddc_value]
-        :param pstate:
-        :type pstate: list[int]
+
+        :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if changed
-        :rtype: bool
         """
         if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][0])) != pstate[1]:
             return True
@@ -604,14 +574,12 @@ class GpuItem:
                 return True
         return False
 
-    def is_changed_vddc_curve_pt(self, pstate):
+    def is_changed_vddc_curve_pt(self, pstate: List[int]) -> bool:
         """
         Check if given vddc curve point value different from current.
-            curve_point = [point_number, clk_value, vddc_value]
-        :param pstate:
-        :type pstate: list[int]
+
+        :param pstate: curve_point = [point_number, clk_value, vddc_value]
         :return: Return True if changed
-        :rtype: bool
         """
         if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
             return True
@@ -619,14 +587,12 @@ class GpuItem:
             return True
         return False
 
-    def is_valid_vddc_curve_pts(self, curve_pts):
+    def is_valid_vddc_curve_pts(self, curve_pts: List[int]) -> bool:
         """
         Check if given sclk pstate value is valid.
-            curve_point = [point_number, clk_value, vddc_value]
-        :param curve_pts:
-        :type curve_pts: list[int]
+
+        :param curve_pts: curve_point = [point_number, clk_value, vddc_value]
         :return: Return True if valid
-        :rtype: bool
         """
         sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][0])))
         sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][1])))
@@ -638,15 +604,13 @@ class GpuItem:
             return False
         return True
 
-    def is_valid_pstate_list_str(self, ps_str, clk_name):
+    def is_valid_pstate_list_str(self, ps_str: str, clk_name: str) -> bool:
         """
-         Check if the given p-states are valid for the given clock.
+        Check if the given p-states are valid for the given clock.
+
         :param ps_str: String of comma separated pstate numbers
-        :type ps_str: str
         :param clk_name: The target clock name
-        :type clk_name: str
         :return: True if valid
-        :rtype: bool
         """
         if ps_str == '':
             return True
@@ -656,7 +620,7 @@ class GpuItem:
                 return False
         return True
 
-    def get_current_ppm_mode(self):
+    def get_current_ppm_mode(self) -> List[Union[int, str]]:
         """
         Read GPU ppm definitions and current settings from driver files.
         :return: ppm state
@@ -667,10 +631,9 @@ class GpuItem:
         ppm_item = self.prm.ppm.split('-')
         return [int(ppm_item[0]), ppm_item[1]]
 
-    def read_gpu_ppm_table(self):
+    def read_gpu_ppm_table(self) -> None:
         """
         Read the ppm table.
-        :return: None
         """
         if not self.prm.readable:
             return
@@ -700,11 +663,10 @@ class GpuItem:
         else:
             self.set_params_value('power_dpm_force', rdata)
 
-    def read_gpu_pstates(self):
+    def read_gpu_pstates(self) -> None:
         """
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
-        :return: None
         """
         if not self.prm.readable:
             return
@@ -781,17 +743,16 @@ class GpuItem:
                         else:
                             print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
 
-    def read_gpu_sensor(self, parameter, vendor='AMD', sensor_type='HWMON'):
+    def read_gpu_sensor(self, parameter: str, vendor: str = 'AMD',
+                        sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
         """
         Read sensor for the given parameter name.  Process per sensor_details dict using the specified
         vendor name and sensor_type.
+
         :param parameter: GpuItem parameter name (AMD)
-        :type parameter: str
         :param vendor: GPU vendor name
-        :type vendor: str
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
-        :type sensor_type: str
-        :return:
+        :return: Value from reading sensor.
         """
         if vendor not in self._sensor_details.keys():
             print('Error: Invalid vendor [{}]'.format(vendor))
@@ -864,24 +825,21 @@ class GpuItem:
         else:  # 'st or st*'
             return values[0]
 
-    def read_gpu_sensor_data(self, data_type='All'):
+    def read_gpu_sensor_data(self, data_type: str = 'All') -> None:
         """
         Read GPU static data from HWMON path.
+
         :param data_type: Test, Static, Dynamic, Info, State, or All
-        :type data_type: str
-        :return: None
         """
         if not self.prm.readable:
             return None
 
-        def concat_sensor_dicts(dict1, dict2):
+        def concat_sensor_dicts(dict1: dict, dict2: dict) -> None:
             """
             Concatenate dict2 onto dict1
+
             :param dict1:
-            :type dict1: dict
             :param dict2:
-            :type dict2: dict
-            :return: None
             """
             for st in dict2.keys():
                 if st in dict1.keys():
@@ -942,10 +900,9 @@ class GpuItem:
                     self.set_params_value(param, rdata)
         return None
 
-    def print_ppm_table(self):
+    def print_ppm_table(self) -> None:
         """
         Print human friendly table of ppm parameters.
-        :return: None
         """
         if not self.prm.readable:
             if env.GUT_CONST.DEBUG: print('PPM for card number {} not readable.'.format(self.prm.card_num))
@@ -960,10 +917,9 @@ class GpuItem:
             for line in lines:
                 print('   {}'.format(line.strip('\n')))
 
-    def print_pstates(self):
+    def print_pstates(self) -> None:
         """
         Print human friendly table of p-states.
-        :return: None
         """
         if not self.prm.readable:
             if env.GUT_CONST.DEBUG: print('P-States for card number {} not readable.'.format(self.prm.card_num))
@@ -993,7 +949,7 @@ class GpuItem:
                 print('    {}: {}'.format(k, v))
         print('')
 
-    def print(self, clflag=False):
+    def print(self, clflag: bool = False) -> None:
         """
         Display ls like listing function for GPU parameters.
         :param clflag:  Display clinfo data if True
@@ -1023,13 +979,12 @@ class GpuItem:
                 print('{}: {}'.format(v, self.get_clinfo_value(k)))
         print('')
 
-    def get_plot_data(self, gpu_list):
+    def get_plot_data(self, gpu_list: 'class GpuList') -> dict:
         """
         Return a dictionary of dynamic gpu parameters used by amdgpu-plot to populate a df.
+
         :param gpu_list: GpuList object
-        :type gpu_list: GpuList
         :return: Dictionary of GPU state info for plot data.
-        :rtype: dict
         """
         gpu_state = {'Time': str(self.energy['tn'].strftime('%c')).strip(), 'Card#': int(self.prm.card_num)}
 
@@ -1099,46 +1054,45 @@ class GpuList:
         self.amd_writable = False
         self.nv_writable = False
 
-    def wattman_status(self):
+    def wattman_status(self) -> str:
         """
         Display Wattman status.
+
         :return:  Status string
-        :rtype: str
         """
         if self.amd_wattman:
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
 
-    def add(self, gpu_item):
+    def add(self, gpu_item: GpuItem) -> None:
         """
-        Add given GpuItem to the GpuList
+        Add given GpuItem to the GpuList.
+
         :param gpu_item:  Item to be added
-        :type gpu_item: GpuItem
-        :return: None
         """
         self.list[gpu_item.prm.uuid] = gpu_item
 
-    def table_param_labels(self):
+    def table_param_labels(self) -> dict:
         """
         Get dictionary of parameter labels to be used in table reports.
+
         :return: Dictionary of table parameters/labels
-        :rtype: dict
         """
         return self._table_param_labels
 
-    def table_parameters(self):
+    def table_parameters(self) -> List[str]:
         """
         Get list of parameters to be used in table reports.
+
         :return: List of table parameters
-        :rtype: list
         """
         return self._table_parameters
 
-    def set_gpu_list(self, clinfo_flag=False):
+    def set_gpu_list(self, clinfo_flag: bool = False) -> bool:
         """
         Use lspci to populate list of all installed GPUs.
+
         :return: True on success
-        :rtype: bool
         """
         if not env.GUT_CONST.cmd_lspci:
             return False
@@ -1283,11 +1237,11 @@ class GpuList:
                     self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
         return True
 
-    def read_gpu_opencl_data(self):
+    def read_gpu_opencl_data(self) -> bool:
         """
         Use clinfo system call to get openCL details for relevant GPUs.
+
         :return:  Returns True if successful
-        :rtype:  bool
         .. todo:: Read of Intel pcie_id is not working.
         """
         # Check access to clinfo command
@@ -1315,11 +1269,11 @@ class GpuList:
                         'CL_DRIVER_VERSION': 'driver_version',
                         'CL_DEVICE_VERSION': 'device_version'}
 
-        def init_temp_map():
+        def init_temp_map() -> dict:
             """
             Return an initialized clinfo dict.
+
             :return:  Initialized clinfo dict
-            :rtype: dict
             """
             t_dict = {}
             for temp_keys in ocl_keywords.values():
@@ -1400,13 +1354,12 @@ class GpuList:
         if env.GUT_CONST.DEBUG: print('cl_index: {}'.format(self.opencl_map[ocl_pcie_id]))
         return True
 
-    def num_vendor_gpus(self, compatibility='total'):
+    def num_vendor_gpus(self, compatibility: str = 'total') -> Dict[str, int]:
         """
         Return the count of GPUs by vendor.  Counts total by default, but can also by rw, ronly, or wonly.
+
         :param compatibility: Only count vendor GPUs if True.
-        :type compatibility: str
         :return: Dictionary of GPU counts
-        :rtype: dict
         """
         results_dict = {}
         for v in self.list.values():
@@ -1425,13 +1378,12 @@ class GpuList:
                 results_dict[v.prm.vendor] += 1
         return results_dict
 
-    def num_gpus(self, vendor='All'):
+    def num_gpus(self, vendor: str = 'All') -> Dict[str, int]:
         """
         Return the count of GPUs by total, rw, r-only or w-only.
-        :param vendor: Only count vendor GPUs if True.
-        :type vendor: str
+
+        :param vendor: Only count vendor GPUs of specfic vendor or all.
         :return: Dictionary of GPU counts
-        :rtype: dict
         """
         results_dict = {'vendor': vendor, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for v in self.list.values():
@@ -1447,16 +1399,14 @@ class GpuList:
             results_dict['total'] += 1
         return results_dict
 
-    def list_gpus(self, vendor='All', compatibility='total'):
+    def list_gpus(self, vendor: str = 'All', compatibility: str = 'total') -> 'class GpuList':
         """
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
+
         :param vendor: Only count vendor GPUs or All by default (All, AMD, INTEL, NV, ...)
-        :type vendor: str
         :param compatibility: Only count GPUs with specified compatibility (total, readable, writable)
-        :type compatibility: str
         :return: GpuList of compatible GPUs
-        :rtype: GpuList
         """
         result_list = GpuList()
         for k, v in self.list.items():
@@ -1473,62 +1423,59 @@ class GpuList:
                 result_list.list[k] = v
         return result_list
 
-    def read_gpu_ppm_table(self):
+    def read_gpu_ppm_table(self) -> None:
         """
-        Read GPU ppm data and populate GpuItem
-        :return: None
+        Read GPU ppm data and populate GpuItem.
         """
         for v in self.list.values():
             if v.prm.readable:
                 v.read_gpu_ppm_table()
 
-    def print_ppm_table(self):
+    def print_ppm_table(self) -> None:
         """
         Print the GpuItem ppm data.
-        :return: None
         """
         for v in self.list.values():
             v.print_ppm_table()
 
-    def read_gpu_pstates(self):
+    def read_gpu_pstates(self) -> None:
         """
-        Read GPU p-state data and populate GpuItem
-        :return: None
+        Read GPU p-state data and populate GpuItem.
         """
         for v in self.list.values():
             if v.prm.readable:
                 v.read_gpu_pstates()
 
-    def print_pstates(self):
+    def print_pstates(self) -> None:
         """
         Print the GpuItem p-state data.
-        :return: None
         """
         for v in self.list.values():
             v.print_pstates()
 
-    def read_gpu_sensor_data(self, data_type='All'):
-        """Read sensor data from GPUs"""
+    def read_gpu_sensor_data(self, data_type='All') -> None:
+        """
+        Read sensor data from GPUs.
+        """
         for v in self.list.values():
             if v.prm.readable:
                 v.read_gpu_sensor_data(data_type)
 
     # Printing Methods follow.
-    def print(self, clflag=False):
+    def print(self, clflag: bool = False) -> None:
         """
         Print all GpuItem.
+
         :param clflag: If true, print clinfo
-        :type clflag: bool
-        :return:
         """
         for v in self.list.values():
             v.print(clflag)
 
-    def print_table(self, title=None):
+    def print_table(self, title: Union[str, None] = None) -> bool:
         """
         Print table of parameters.
+
         :return: True if success
-        :rtype: bool
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1563,13 +1510,12 @@ class GpuList:
         print('┘')
         return True
 
-    def print_log_header(self, log_file_ptr):
+    def print_log_header(self, log_file_ptr: TextIO) -> bool:
         """
         Print the log header.
+
         :param log_file_ptr: File pointer for target output.
-        :type log_file_ptr: file
         :return: True if success
-        :rtype: bool
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1581,13 +1527,12 @@ class GpuList:
         print('', file=log_file_ptr)
         return True
 
-    def print_log(self, log_file_ptr):
+    def print_log(self, log_file_ptr: TextIO) -> bool:
         """
         Print the log data.
+
         :param log_file_ptr: File pointer for target output.
-        :type log_file_ptr: file
         :return: True if success
-        :rtype: bool
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1602,13 +1547,12 @@ class GpuList:
             print('', file=log_file_ptr)
         return True
 
-    def print_plot_header(self, log_file_ptr):
+    def print_plot_header(self, log_file_ptr: BinaryIO) -> bool:
         """
         Print the plot header.
+
         :param log_file_ptr: File pointer for target output.
-        :type log_file_ptr: file
         :return: True if success
-        :rtype: bool
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1623,13 +1567,12 @@ class GpuList:
         log_file_ptr.flush()
         return True
 
-    def print_plot(self, log_file_ptr):
+    def print_plot(self, log_file_ptr: BinaryIO) -> bool:
         """
         Print the plot data.
+
         :param log_file_ptr: File pointer for target output.
-        :type log_file_ptr: file
         :return: True if success
-        :rtype: bool
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1646,10 +1589,9 @@ class GpuList:
         return True
 
 
-def about():
+def about() -> None:
     """
     Print details about this module.
-    :return: None
     """
     print(__doc__)
     print('Author: ', __author__)
