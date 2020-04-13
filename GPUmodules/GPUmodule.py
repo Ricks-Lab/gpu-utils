@@ -35,6 +35,7 @@ import subprocess
 import shlex
 import os
 import sys
+from typing import Union
 from pathlib import Path
 from uuid import uuid4
 import glob
@@ -67,6 +68,7 @@ class ObjDict(dict):
 
 class GpuItem:
     """An object to store GPU details.
+
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
@@ -171,22 +173,22 @@ class GpuItem:
                                    'ppm': {'type': 'st*', 'cf': None, 'sensor': ['pp_power_profile_mode']},
                                    'vbios': {'type': 'st', 'cf': None, 'sensor': ['vbios_version']}}}}
 
-    def __repr__(self):
+    def __repr__(self) -> dict:
         """
         Return dictionary representing all parts of the GpuItem object.
-        :return:
-        :rtype: dict
+
+        :return: Dictionary of GPU item
         """
         return {'params': self.prm, 'clinfo': self.clinfo,
                 'sclk_state': self.sclk_state, 'mclk_state': self.mclk_state,
                 'vddc_curve': self.vddc_curve, 'vddc_curve_range': self.vddc_curve_range,
                 'ppm_modes': self.ppm_modes}
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
-        Return  simple string representing the GpuItem object.
-        :return:
-        :rtype: str
+        Return simple string representing the GpuItem object.
+
+        :return: GPU_item informational string
         """
         return 'GPU_Item: uuid={}'.format(self.prm.uuid)
 
@@ -338,7 +340,7 @@ class GpuItem:
         else:
             self.prm[name] = value
 
-    def read_pciid_model(self):
+    def read_pciid_model(self) -> str:
         """
         Read the model name from the system pcid.ids file
         :return:  GPU model name
@@ -346,7 +348,7 @@ class GpuItem:
         """
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
-            return None
+            return ''
         with open(env.GUT_CONST.sys_pciid, 'r', encoding='utf8') as pci_id_file_ptr:
             model_str = ''
             level = 0
@@ -381,7 +383,7 @@ class GpuItem:
                                 break
         return model_str.strip()
     
-    def get_params_value(self, name):
+    def get_params_value(self, name) -> Union[int, str, list]:
         """
         Get parameter value for give name.
         :param name:  Parameter name
