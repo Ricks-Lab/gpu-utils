@@ -50,11 +50,11 @@ class GutConst:
     def __init__(self):
         self.DEBUG = False
 
-    def check_env(self):
+    def check_env(self) -> list:
         """
         Checks python version, kernel version, and amd gpu driver version.
+
         :return:  A list of 3 integers representing status of 3 check items.
-        :rtype: list
         """
         ret_val = [0, 0, 0]
         # Check python version
@@ -94,11 +94,11 @@ class GutConst:
         ret_val[2] = 0 if self.read_amd_driver_version() else -3
         return ret_val
 
-    def read_amd_driver_version(self):
+    def read_amd_driver_version(self) -> bool:
         """
         Read the AMD driver version and store in GutConst object.
+
         :return: True if successful
-        :rtype: bool
         """
         try:
             cmd_dpkg = shutil.which('dpkg')
@@ -141,11 +141,11 @@ class GutConst:
 GUT_CONST = GutConst()
 
 
-def is_venv_installed():
+def is_venv_installed() -> bool:
     """
-    Check if a venv is being used
+    Check if a venv is being used.
+
     :return: True if using venv
-    :rtype: bool
     """
     cmdstr = 'python3 -m venv -h > /dev/null'
     try:
@@ -165,11 +165,11 @@ def is_venv_installed():
     return False
 
 
-def does_amdgpu_utils_env_exist():
+def does_amdgpu_utils_env_exist() -> bool:
     """
     Check if venv exists.
+
     :return:  Return True if venv exists.
-    :rtype: bool
     """
     env_name = './amdgpu-utils-env/bin/activate'
 
@@ -182,11 +182,11 @@ def does_amdgpu_utils_env_exist():
     return False
 
 
-def is_in_venv():
+def is_in_venv() -> bool:
     """
     Check if execution is from within a venv.
+
     :return: True if in venv
-    :rtype: bool
     """
     try:
         python_path = shutil.which('python')
@@ -203,10 +203,9 @@ def is_in_venv():
     return False
 
 
-def main():
+def main() -> None:
     """
     Main flow for chk utility.
-    :return: None
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)

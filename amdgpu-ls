@@ -41,10 +41,9 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
-def main():
+def main() -> None:
     """
     Main flow for amdgpu-ls.
-    :return:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',

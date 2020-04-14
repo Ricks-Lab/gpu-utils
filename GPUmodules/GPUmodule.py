@@ -35,7 +35,7 @@ import subprocess
 import shlex
 import os
 import sys
-from typing import Union, List, Dict, TextIO, BinaryIO
+from typing import Union, List, Dict, TextIO, BinaryIO, IO
 from pathlib import Path
 from uuid import uuid4
 import glob
@@ -1040,19 +1040,36 @@ class GpuList:
                                'mclk_ps_val': 'Mclk Pstate',
                                'ppm': 'Perf Mode'}
 
-    def __repr__(self):
+    def __repr__(self) -> dict:
         return self.list
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.list = {}
         self.opencl_map = {}
         self.amd_featuremask = None
         self.amd_wattman = False
         self.amd_writable = False
         self.nv_writable = False
+
+    def __getitem__(self, uuid: str) -> GpuItem:
+        """
+        Get GpuItem for specific uuid.
+
+        :param uuid:  Key used in GpuItem dict
+        :return: The matching GpuItem, else None
+        """
+        return self.list.get(uuid, None)
+
+    def add(self, gpu_item: GpuItem) -> None:
+        """
+        Add given GpuItem to the GpuList.
+
+        :param gpu_item:  Item to be added
+        """
+        self.list[gpu_item.prm.uuid] = gpu_item
 
     def wattman_status(self) -> str:
         """
@@ -1063,14 +1080,6 @@ class GpuList:
         if self.amd_wattman:
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
-
-    def add(self, gpu_item: GpuItem) -> None:
-        """
-        Add given GpuItem to the GpuList.
-
-        :param gpu_item:  Item to be added
-        """
-        self.list[gpu_item.prm.uuid] = gpu_item
 
     def table_param_labels(self) -> dict:
         """
@@ -1230,11 +1239,11 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
 
-            self.list[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
-                                         card_path, hwmon_path, readable, writable, compute, opencl_device_version)
+            self[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
+                                    card_path, hwmon_path, readable, writable, compute, opencl_device_version)
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
-                    self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
+                    self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
         return True
 
     def read_gpu_opencl_data(self) -> bool:
@@ -1547,7 +1556,7 @@ class GpuList:
             print('', file=log_file_ptr)
         return True
 
-    def print_plot_header(self, log_file_ptr: BinaryIO) -> bool:
+    def print_plot_header(self, log_file_ptr: IO[Union[str, bytes]]) -> bool:
         """
         Print the plot header.
 
@@ -1567,7 +1576,7 @@ class GpuList:
         log_file_ptr.flush()
         return True
 
-    def print_plot(self, log_file_ptr: BinaryIO) -> bool:
+    def print_plot(self, log_file_ptr: IO[Union[str, bytes]]) -> bool:
         """
         Print the plot data.
 

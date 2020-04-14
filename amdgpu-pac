@@ -100,7 +100,7 @@ class PACWindow(Gtk.Window):
 
         num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
-        col = 0
+        row = col = 0
         for v in gpu_list.list.values():
             row = 0
             # Card Number in top center of box
@@ -574,16 +574,13 @@ class PACWindow(Gtk.Window):
         self.refresh_pac(gpu_list, devices)
 
     @staticmethod
-    def update_message(devices, message, color='gray'):
+    def update_message(devices: dict, message: str, color: str = 'gray') -> None:
         """
         Set PAC message using default message if no message specified.
+
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
         :param message:
-        :type message: str
         :param color: Valid color strings: gray, yellow, white, red
-        :type color: str
-        :return: None
         """
         if message == '':
             if env.GUT_CONST.execute_pac:
@@ -611,30 +608,25 @@ class PACWindow(Gtk.Window):
             Gtk.main_iteration_do(True)
         return
 
-    def refresh_all_cards(self, _, gpu_list, devices, reset_message=False):
+    def refresh_all_cards(self, _, gpu_list: gpu.GpuList, devices: dict, reset_message: bool = False) -> None:
         """
         Refresh all cards by calling card level refresh.
+
         :param _: parent not used
         :param gpu_list:
-        :type gpu_list: gpuList
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
         :param reset_message:
-        :type reset_message: bool
-        :return: None
         """
         self.refresh_pac(gpu_list, devices, reset_message)
         return
 
-    def refresh_pac(self, gpu_list, devices, refresh_message=False):
+    def refresh_pac(self, gpu_list: gpu.GpuList, devices: dict, refresh_message: bool = False) -> None:
         """
-        Update device data from gpuList data
+        Update device data from gpuList data.
+
         :param gpu_list: gpuList of all gpuItems
-        :type gpu_list: gpuList
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
         :param refresh_message:
-        :return:
         """
         # Read sensor and state data from GPUs
         gpu_list.read_gpu_sensor_data(data_type='All')
@@ -723,14 +715,13 @@ class PACWindow(Gtk.Window):
             Gtk.main_iteration_do(True)
         return
 
-    def save_all_cards(self, parent, gpu_list, devices):
+    def save_all_cards(self, parent, gpu_list: gpu.GpuList, devices: dict) -> None:
         """
         Save modified data for all GPUs.
+
         :param parent: parent
         :param gpu_list:
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
-        :return:
         """
         changed = 0
         # Write start message
@@ -765,18 +756,15 @@ class PACWindow(Gtk.Window):
         self.refresh_all_cards(parent, gpu_list, devices)
         return
 
-    def save_card(self, _, gpu_list, devices, uuid, refresh=True):
+    def save_card(self, _, gpu_list: gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
         Save modified data for specified GPU.
+
         :param _: parent not used
         :param gpu_list:
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
         :param uuid: GPU device ID
-        :type uuid: str
         :param refresh: Flag to indicate if refresh should be done
-        :type refresh: bool
-        :return:
         """
         if refresh:
             # Write message
@@ -1119,14 +1107,13 @@ class PACWindow(Gtk.Window):
             print('')
         return changed
 
-    def reset_all_cards(self, parent, gpu_list, devices):
+    def reset_all_cards(self, parent, gpu_list: gpu.GpuList, devices: dict) -> None:
         """
         Reset data for all GPUs.
+
         :param parent: parent
         :param gpu_list:
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
-        :return:
         """
         # Write start message
         if env.GUT_CONST.execute_pac:
@@ -1151,18 +1138,15 @@ class PACWindow(Gtk.Window):
         self.refresh_all_cards(parent, gpu_list, devices)
         return
 
-    def reset_card(self, _, gpu_list, devices, uuid, refresh=True):
+    def reset_card(self, _, gpu_list: gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
         Reset data for specified GPU.
+
         :param _: parent not used
         :param gpu_list:
         :param devices:  Dictionary of GUI items and GPU data.
-        :type devices: dict
         :param uuid: GPU device ID
-        :type uuid: str
         :param refresh: Flag to indicate if refresh should be done
-        :type refresh: bool
-        :return:
         """
         if refresh:
             # Write message
@@ -1247,13 +1231,12 @@ class PACWindow(Gtk.Window):
         return
 
 
-def ppm_select(_, device):
+def ppm_select(_, device: dict) -> None:
     """
     Update device data for ppm selection and update active selected item in Gui.
+
     :param _: self
     :param device:  Dictionary of GUI items and GPU data.
-    :type device: dict
-    :return: None
     """
     tree_iter = device['ppm_modes_combo'].get_active_iter()
     if tree_iter is not None:
@@ -1263,10 +1246,9 @@ def ppm_select(_, device):
     return
 
 
-def main():
+def main() -> None:
     """
     Main PAC flow.
-    :return:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)

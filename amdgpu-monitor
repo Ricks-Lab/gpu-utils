@@ -50,6 +50,7 @@ import sys
 import shlex
 import time
 import signal
+from typing import Callable
 
 try:
     import gi
@@ -66,13 +67,12 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 
-def ctrl_c_handler(target_signal, frame):
+def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
     """
     Signal catcher for ctrl-c to exit monitor loop.
-    :param target_signal:
-    :type target_signal: Signals
-    :param frame:
-    :return: None
+
+    :param target_signal: Target signal name
+    :param _frame: Ignored
     """
     if env.GUT_CONST.DEBUG:
         print('ctrl_c_handler (ID: {}) has been caught. Setting quit flag...'.format(target_signal))
@@ -173,26 +173,20 @@ class MonitorWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-    def set_quit(self, _arg2, _arg3):
+    def set_quit(self, _arg2, _arg3) -> None:
         """
         Set quit flag when Gtk quit is selected.
-        :param _arg2:
-        :param _arg3:
-        :return: None
         """
         self.quit = True
 
 
-def update_data(gpu_list, devices, cmd):
+def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
     """
     Update monitor data with data read from GPUs.
+
     :param gpu_list: A gpuList object with all gpuItems
-    :type gpu_list: gpuList
     :param devices: A dictionary linking Gui items with data.
-    :type devices: dict
     :param cmd: Subprocess return from running plot.
-    :type cmd: subprocess.Popen
-    :return: None
     """
     # SEMAPHORE ############
     if not UD_SEM.acquire(blocking=False):
@@ -232,22 +226,17 @@ def update_data(gpu_list, devices, cmd):
     ########################
 
 
-def refresh(refreshtime, update_data, gpu_list, devices, cmd, gmonitor):
+def refresh(refreshtime: int, update_data: Callable, gpu_list: gpu.GpuList, devices: dict,
+            cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
     """
     Method called for monitor refresh.
+
     :param refreshtime:  Amount of seconds to sleep after refresh.
-    :type refreshtime: int
     :param update_data: Function that does actual data update.
-    :type update_data: Callable
     :param gpu_list: A gpuList object with all gpuItems
-    :type gpu_list: gpuList
     :param devices: A dictionary linking Gui items with data.
-    :type devices: dict
     :param cmd: Subprocess return from running plot.
-    :type cmd: subprocess.Popen
     :param gmonitor:
-    :type gmonitor: Gtk
-    :return:
     """
     while True:
         if gmonitor.quit:
@@ -262,7 +251,7 @@ def refresh(refreshtime, update_data, gpu_list, devices, cmd, gmonitor):
             tst += sleep_interval
 
 
-def main():
+def main() -> None:
     """
     Flow for amdgpu-monitor.
     """

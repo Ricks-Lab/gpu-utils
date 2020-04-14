@@ -49,6 +49,7 @@ import threading
 import os
 import time
 import numpy as np
+from typing import Tuple
 
 try:
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
@@ -90,13 +91,13 @@ PD_SEM = threading.Semaphore()
 ########################
 
 
-def hex_to_rgba(value):
+def hex_to_rgba(value: str) -> Tuple[float, ...]:
     """
     Return rgba tuple for give hex color name.
+
     :param value: hex color value as string
-    :type value: str
     :return:  rgba tuple
-    :rtype: tuple
+
     .. note:: Code copied from Stack Overflow
     """
     value = value.lstrip('#')
@@ -107,11 +108,11 @@ def hex_to_rgba(value):
     return r1, g1, b1, a1
 
 
-def get_stack_size():
+def get_stack_size() -> int:
     """
     Get stack size for caller's frame. Code copied from Stack Overflow.
+
     :return: Stack size
-    :rtype: int
     """
     size = 2  # current frame and caller's frame always exist
     while True:
@@ -140,20 +141,18 @@ class PlotData:
         self.num_gpus = 1
         self.com_gpu_list = gpu.GpuList()
 
-    def set_gpus(self):
+    def set_gpus(self) -> None:
         """
         Populate num_gpus and gpu_list from dataframe member.
-        :return: None
         """
         self.num_gpus = self.df['Card#'].nunique()
         self.gpu_list = self.df['Card#'].unique()
 
-    def get_plot_data(self):
+    def get_plot_data(self) -> pd.DataFrame:
         """
         Get deep copy of plot data df.
+
         :return: deep copy of the plot data dataframe
-        :rtype: dataFrame
-        .. note:: This may have contention issues
         """
         # SEMAPHORE ############
         PD_SEM.acquire()
@@ -164,10 +163,9 @@ class PlotData:
         ########################
         return ndf
 
-    def kill_thread(self):
+    def kill_thread(self) -> None:
         """
         Sets flags that result in reader thread death.
-        :return: None
         """
         self.reader = False
         self.quit = True
@@ -219,20 +217,19 @@ class GuiComponents:
             self.gpu_color[gpu_i] = gpu_color_list[i]
         return
 
-    def set_ready(self, mode):
+    def set_ready(self, mode: bool) -> None:
         """
         Set flag to indicate gui is ready.
+
         :param mode: True if gui is ready
-        :type mode: bool
-        :return: None
         """
         self.ready = mode
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """
         Return the ready status of the plot gui.
+
         :return: True if ready
-        :rtype: bool
         """
         return self.ready
 
@@ -241,7 +238,7 @@ class GPUPlotWindow(Gtk.Window):
     """
     Plot window.
     """
-    def __init__(self, gc, plot_data):
+    def __init__(self, gc: GuiComponents, plot_data: PlotData):
         box_spacing_val = 5
         num_bar_plots = 3
         if gc.num_gpus > 4:
@@ -471,27 +468,23 @@ class GPUPlotWindow(Gtk.Window):
             prow += 1
 
     @staticmethod
-    def toggle_plot_item(_, gc, k):
+    def toggle_plot_item(_, gc: GuiComponents, k: str) -> None:
         """
         Toggle specified plot item.
+
         :param _: parent
         :param gc: gui components object
-        :type gc: GuiComponents
         :param k:  Name of plot item to toggle
-        :type k: str
-        :return: None
         """
         gc.plot_items[k] = False if gc.plot_items[k] else True
 
 
-def update_data(gc, plot_data):
+def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     """
     Update plot data.
+
     :param gc:
-    :type gc: GuiComponents
     :param plot_data:
-    :type plot_data: PlotData
-    :return:  None
     """
     # SEMAPHORE ###########
     PD_SEM.acquire()
@@ -589,16 +582,15 @@ def update_data(gc, plot_data):
     #######################
 
 
-def read_from_stdin(refreshtime, plot_data):
+def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
+
     :param refreshtime:
-    :type refreshtime: int
     :param plot_data:
-    :type plot_data: PlotData
-    :return:
     .. note:: this should continuously read from stdin and populate df and call plot/gui update
     """
+    header_item = ''
     first_update = True
     header = True
     sync_add = 0
@@ -701,14 +693,12 @@ def read_from_stdin(refreshtime, plot_data):
     sys.exit(0)
 
 
-def read_from_gpus(refreshtime, plot_data):
+def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
+
     :param refreshtime:
-    :type refreshtime: int
     :param plot_data:
-    :type plot_data: PlotData
-    :return:
     .. note:: this should continuously read from GPUs and populate df and call plot/gui update
     """
     first_update = True
@@ -776,7 +766,7 @@ def read_from_gpus(refreshtime, plot_data):
     sys.exit(0)
 
 
-def main():
+def main() -> None:
     """ Main flow for plot."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
