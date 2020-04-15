@@ -195,7 +195,7 @@ class GutConst:
         :return: True if successful
         """
         if not self.cmd_dpkg:
-            print('Command {} not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
+            print('Command dpkg not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
             return False
         version_ok = False
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:

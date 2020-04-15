@@ -95,7 +95,8 @@ class PACWindow(Gtk.Window):
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1))
+        #grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1))
+        set_prop(grid, bg_color=Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
         self.add(grid)
 
         num_com_gpus = gpu_list.num_gpus()['total']
@@ -150,7 +151,8 @@ class PACWindow(Gtk.Window):
             devices[v.prm.uuid]['power_cap_ent_unit'] = Gtk.Label()
             devices[v.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
             set_prop(devices[v.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
-            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+            lbox = Gtk.Box(spacing=2)
             set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['power_cap_cur'], False, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['power_cap_ent'], False, False, 0)
@@ -182,7 +184,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['fan_pwm_ent_unit'] = Gtk.Label()
                 devices[v.prm.uuid]['fan_pwm_ent_unit'].set_text('%   (value, \'reset\', or \'max\')')
                 set_prop(devices[v.prm.uuid]['fan_pwm_ent_unit'], top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox = Gtk.Box(spacing=2)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_ent'], False, False, 0)
@@ -199,7 +202,8 @@ class PACWindow(Gtk.Window):
                                                              v.get_params_value('vddc_range')[0],
                                                              v.get_params_value('vddc_range')[1]))
                 set_prop(devices[v.prm.uuid]['sclk_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox = Gtk.Box(spacing=6)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.12), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -233,7 +237,8 @@ class PACWindow(Gtk.Window):
                     set_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'],
                              top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
 
-                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox = Gtk.Box(spacing=6)
                     set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
@@ -251,7 +256,8 @@ class PACWindow(Gtk.Window):
                     v.get_params_value('sclk_f_range')[1]))
                 set_prop(devices[v.prm.uuid]['sclk_range'],
                          top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox = Gtk.Box(spacing=6)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.12), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -275,7 +281,8 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                              top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
-                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox = Gtk.Box(spacing=6)
                     set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
@@ -292,7 +299,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['sclk_pst_mask_ent'].set_max_length(17)
                 devices[v.prm.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
                 set_prop(devices[v.prm.uuid]['sclk_pst_mask_ent'], top=1, bottom=1, right=0, left=1)
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox = Gtk.Box(spacing=2)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_ent'], False, False, 0)
@@ -308,7 +316,8 @@ class PACWindow(Gtk.Window):
                                                              v.get_params_value('vddc_range')[0],
                                                              v.get_params_value('vddc_range')[1]))
                 set_prop(devices[v.prm.uuid]['mclk_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox = Gtk.Box(spacing=6)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.12), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -342,7 +351,8 @@ class PACWindow(Gtk.Window):
                     set_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'],
                              top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
 
-                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox = Gtk.Box(spacing=6)
                     set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
@@ -360,7 +370,8 @@ class PACWindow(Gtk.Window):
                                                              v.get_params_value('mclk_f_range')[1]))
                 set_prop(devices[v.prm.uuid]['mclk_range'],
                          top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox = Gtk.Box(spacing=6)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.12), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -384,7 +395,8 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                              top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
-                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox = Gtk.Box(spacing=6)
                     set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
@@ -401,7 +413,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['mclk_pst_mask_ent'].set_max_length(17)
                 devices[v.prm.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
                 set_prop(devices[v.prm.uuid]['mclk_pst_mask_ent'], top=1, bottom=1, right=0, left=1)
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0, spacing=2)
+                lbox = Gtk.Box(spacing=2)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_ent'], False, False, 0)
@@ -417,7 +430,8 @@ class PACWindow(Gtk.Window):
                                                                              v.vddc_curve_range['0']['VOLT'][0],
                                                                              v.vddc_curve_range['0']['VOLT'][1]))
                 set_prop(devices[v.prm.uuid]['vddc_curve_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
-                lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbox = Gtk.Box(spacing=6)
                 set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.12), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['vddc_curve_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -450,7 +464,8 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
                     set_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'],
                              top=1, bottom=1, right=4, left=0, align=(0.0, 0.5)) # right was 0
-                    lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+                    lbox = Gtk.Box(spacing=6)
                     set_prop(lbox, set_hom=False, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], False, False, 0)
@@ -509,7 +524,8 @@ class PACWindow(Gtk.Window):
             devices[v.prm.uuid]['reset_button'].connect('clicked', self.reset_card, gpu_list, devices, v.prm.uuid)
             devices[v.prm.uuid]['reset_button'].set_property('width-request', 90)
 
-            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox = Gtk.Box(spacing=6)
             set_prop(lbox, set_hom=False, bg_color=(0.6, 0.6, 0.6, 1.0), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['save_button'], True, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['reset_button'], True, False, 0)
@@ -548,7 +564,8 @@ class PACWindow(Gtk.Window):
                                                                  devices, True)
             devices['all_buttons']['refresh_all_button'].set_property('width-request', 100)
 
-            lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            #lbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+            lbox = Gtk.Box(spacing=6)
             set_prop(lbox, set_hom=False, bg_color=(0.6, 0.6, 0.6, 1.0), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices['all_buttons']['save_all_button'], True, False, 0)
             lbox.pack_start(devices['all_buttons']['reset_all_button'], True, False, 0)
@@ -641,7 +658,10 @@ class PACWindow(Gtk.Window):
             if env.GUT_CONST.show_fans:
                 devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
                                                             v.get_params_value('fan_pwm')))
-                devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
+                try:
+                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
+                except TypeError:
+                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm')))
             # SCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.sclk_state.items():
@@ -822,7 +842,8 @@ class PACWindow(Gtk.Window):
         # Mode of manual required to change ppm or clock masks
         curr_power_dpm_force = v.get_params_value('power_dpm_force').lower()
         if curr_power_dpm_force == 'manual' and env.GUT_CONST.write_delta_only:
-            print('# Power DPM Force Performance Level: already [{}], skipping.'.format(curr_power_dpm_force), file=fileptr)
+            print('# Power DPM Force Performance Level: already [{}], skipping.'.format(curr_power_dpm_force),
+                  file=fileptr)
         else:
             power_dpm_force_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
             print('# Power DPM Force Performance Level: [{}] change to [manual]'.format(curr_power_dpm_force),
