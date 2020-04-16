@@ -48,8 +48,9 @@ import re
 import threading
 import os
 import time
-import numpy as np
+import warnings
 from typing import Tuple
+import numpy as np
 
 try:
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
@@ -234,6 +235,46 @@ class GuiComponents:
         return self.ready
 
 
+GTK_Color = Tuple[float, ...]
+
+
+def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None, left: int = None,
+                 width: int = None, bg_color: GTK_Color = None, color: GTK_Color = None, align: tuple = None) -> None:
+    """
+    Set properties of Gtk objects.
+
+    :param gui_item: Gtk object
+    :param top: Top margin
+    :param bottom: Bottom margin
+    :param right: Right margin
+    :param left: Left margin
+    :param width: Width of request field
+    :param bg_color: Background color
+    :param color: Font color
+    :param align: Alignment parameters
+    """
+    if color:
+        gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
+    if top:
+        gui_item.set_property('margin-top', top)
+    if bottom:
+        gui_item.set_property('margin-bottom', bottom)
+    if right:
+        gui_item.set_property('margin-right', right)
+    if left:
+        gui_item.set_property('margin-left', left)
+    if width:
+        gui_item.set_property('width-request', width)
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+        if align:
+            # FIXME - This is deprecated in latest Gtk, need to use halign
+            gui_item.set_alignment(*align)
+        if bg_color:
+            # FIXME - This is deprecated in latest Gtk
+            gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*bg_color))
+
+
 class GPUPlotWindow(Gtk.Window):
     """
     Plot window.
@@ -270,8 +311,9 @@ class GPUPlotWindow(Gtk.Window):
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-plot.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
+
         grid = Gtk.Grid()
-        grid.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
+        set_gtk_prop(grid, bg_color=Gdk.RGBA(0.7, 0.7, 0.7, 1.0))
         self.add(grid)
 
         # Get deep copy of current df
@@ -281,18 +323,10 @@ class GPUPlotWindow(Gtk.Window):
         # Top Bar - info
         gc.gui_components['info_bar']['gtk_obj'] = Gtk.Label()
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>{} Plot</b></big>'.format(__program_name__))
-        gc.gui_components['info_bar']['gtk_obj'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-        gc.gui_components['info_bar']['gtk_obj'].set_property('margin-top', 1)
-        gc.gui_components['info_bar']['gtk_obj'].set_property('margin-bottom', 1)
-        gc.gui_components['info_bar']['gtk_obj'].set_property('margin-right', 4)
-        gc.gui_components['info_bar']['gtk_obj'].set_property('margin-left', 4)
-        gc.gui_components['info_bar']['gtk_obj'].set_alignment(0.5, 0.5)
+        set_gtk_prop(gc.gui_components['info_bar']['gtk_obj'], align=(0.5, 0.5),
+                     top=1, bottom=1, right=4, left=4, color=(1.0, 1.0, 1.0, 1.0))
         lbox = Gtk.Box(spacing=box_spacing_val)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
-        lbox.set_property('margin-top', 1)
-        lbox.set_property('margin-bottom', 1)
-        lbox.set_property('margin-right', 1)
-        lbox.set_property('margin-left', 1)
+        set_gtk_prop(lbox, bg_color=(0.20, 0.40, 0.60, 1.0), top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['info_bar']['gtk_obj'], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
@@ -300,18 +334,10 @@ class GPUPlotWindow(Gtk.Window):
         # Legend
         gc.gui_components['legend']['gtk_obj'] = Gtk.Label()
         gc.gui_components['legend']['gtk_obj'].set_markup('<big><b>Plot Items</b></big>')
-        gc.gui_components['legend']['gtk_obj'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-        gc.gui_components['legend']['gtk_obj'].set_property('margin-top', 1)
-        gc.gui_components['legend']['gtk_obj'].set_property('margin-bottom', 1)
-        gc.gui_components['legend']['gtk_obj'].set_property('margin-right', 4)
-        gc.gui_components['legend']['gtk_obj'].set_property('margin-left', 4)
-        gc.gui_components['legend']['gtk_obj'].set_alignment(0.5, 0.5)
+        set_gtk_prop(gc.gui_components['legend']['gtk_obj'], align=(0.5, 0.5),
+                     top=1, bottom=1, right=4, left=4, color=(1.0, 1.0, 1.0, 1.0))
         lbox = Gtk.Box(spacing=box_spacing_val)
-        lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.40, .40, .40, 1.0))
-        lbox.set_property('margin-top', 1)
-        lbox.set_property('margin-bottom', 1)
-        lbox.set_property('margin-right', 1)
-        lbox.set_property('margin-left', 1)
+        set_gtk_prop(lbox, bg_color=(0.40, 0.40, 0.40, 1.0), top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for k, v in gc.gui_components['legend']['plot_items'].items():
             but_color = hex_to_rgba(gc.colors[k])
@@ -320,24 +346,10 @@ class GPUPlotWindow(Gtk.Window):
             for child in gc.gui_components['legend']['buttons'][k].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(k))
                 child.set_use_markup(True)
-                child.override_color(
-                        Gtk.StateFlags.NORMAL,
-                        Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
-                child.override_background_color(
-                        Gtk.StateFlags.NORMAL,
-                        Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
-            gc.gui_components['legend']['buttons'][k].override_color(
-                        Gtk.StateFlags.NORMAL,
-                        Gdk.RGBA(but_font_color[0], but_font_color[1], but_font_color[2], but_font_color[3]))
-            gc.gui_components['legend']['buttons'][k].override_background_color(
-                        Gtk.StateFlags.NORMAL,
-                        Gdk.RGBA(but_color[0], but_color[1], but_color[2], but_color[3]))
+                set_gtk_prop(child, bg_color=but_color, color=but_font_color)
             gc.gui_components['legend']['buttons'][k].connect('clicked', self.toggle_plot_item, gc, k)
-            gc.gui_components['legend']['buttons'][k].set_property('width-request', 90)
-            gc.gui_components['legend']['buttons'][k].set_property('margin-top', 1)
-            gc.gui_components['legend']['buttons'][k].set_property('margin-bottom', 1)
-            gc.gui_components['legend']['buttons'][k].set_property('margin-right', 1)
-            gc.gui_components['legend']['buttons'][k].set_property('margin-left', 1)
+            set_gtk_prop(gc.gui_components['legend']['buttons'][k], bg_color=but_color, color=but_font_color,
+                         top=1, bottom=1, right=1, left=1, width=90)
             lbox.pack_start(gc.gui_components['legend']['buttons'][k], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
@@ -345,7 +357,7 @@ class GPUPlotWindow(Gtk.Window):
 
         # Set up bar plots
         grid_bar = Gtk.Grid()
-        grid_bar.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
+        set_gtk_prop(grid_bar, bg_color=(0.7, 0.7, 0.7, 1))
         grid.attach(grid_bar, 1, main_last_row, 1, 1)
         brow = 0
         fig_num = 0
@@ -356,18 +368,10 @@ class GPUPlotWindow(Gtk.Window):
             # Add Bar Plots Titles
             v['title_obj'] = Gtk.Label()
             v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(v['df_name']))
-            v['title_obj'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-            v['title_obj'].set_property('margin-top', 1)
-            v['title_obj'].set_property('margin-bottom', 1)
-            v['title_obj'].set_property('margin-right', 4)
-            v['title_obj'].set_property('margin-left', 4)
-            v['title_obj'].set_alignment(0.5, 0.5)
+            set_gtk_prop(v['title_obj'],
+                         align=(0.5, 0.5), top=1, bottom=1, right=4, left=4, color=(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=box_spacing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.20, .40, .60, 1.0))
-            lbox.set_property('margin-top', 1)
-            lbox.set_property('margin-bottom', 1)
-            lbox.set_property('margin-right', 1)
-            lbox.set_property('margin-left', 1)
+            set_gtk_prop(lbox, bg_color=(0.20, 0.40, 0.60, 1.0), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['title_obj'], True, True, 0)
 
             grid_bar.attach(lbox, 1, brow, 1, 1)
@@ -392,11 +396,7 @@ class GPUPlotWindow(Gtk.Window):
             v['canvas'].set_size_request(def_bp_x_size, bp_y_size)
 
             lbox = Gtk.Box(spacing=box_spacing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.5, 0.5, 0.5, 1.0))
-            lbox.set_property('margin-top', 1)
-            lbox.set_property('margin-bottom', 1)
-            lbox.set_property('margin-right', 1)
-            lbox.set_property('margin-left', 1)
+            set_gtk_prop(lbox, bg_color=(0.50, 0.50, 0.50, 1.0), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['canvas'], True, True, 0)
 
             grid_bar.attach(lbox, 1, brow, 1, 1)
@@ -404,7 +404,7 @@ class GPUPlotWindow(Gtk.Window):
 
         # Set up gpu plots
         grid_plot = Gtk.Grid()
-        grid_plot.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.7, 0.7, 0.7, 1))
+        set_gtk_prop(grid_plot, bg_color=Gdk.RGBA(0.7, 0.7, 0.7, 1.0))
         grid.attach(grid_plot, 2, main_last_row, 3, 1)
         prow = 0
         # row = plot_top_row
@@ -414,20 +414,11 @@ class GPUPlotWindow(Gtk.Window):
             # Add GPU Plots Titles
             v['title_obj'] = Gtk.Label()
             v['title_obj'].set_markup('<big><b>Card   {}    {}    Energy:  {}</b></big>'.format(k, model_val, data_val))
-            v['title_obj'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-            v['title_obj'].set_property('margin-top', 1)
-            v['title_obj'].set_property('margin-bottom', 1)
-            v['title_obj'].set_property('margin-right', 4)
-            v['title_obj'].set_property('margin-left', 4)
-            v['title_obj'].set_alignment(0.5, 0.5)
+            set_gtk_prop(v['title_obj'], align=(0.5, 0.5),
+                         top=1, bottom=1, right=4, left=4, color=(1.0, 1.0, 1.0, 1.0))
             lbox = Gtk.Box(spacing=box_spacing_val)
             rgba_col = hex_to_rgba(v['color'])
-            lbox.override_background_color(Gtk.StateType.NORMAL,
-                                           Gdk.RGBA(rgba_col[0], rgba_col[1], rgba_col[2], rgba_col[3]))
-            lbox.set_property('margin-top', 1)
-            lbox.set_property('margin-bottom', 1)
-            lbox.set_property('margin-right', 1)
-            lbox.set_property('margin-left', 1)
+            set_gtk_prop(lbox, bg_color=tuple(rgba_col), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['title_obj'], True, True, 0)
 
             grid_plot.attach(lbox, 1, prow, 1, 1)
@@ -457,11 +448,7 @@ class GPUPlotWindow(Gtk.Window):
             v['canvas'].set_size_request(def_gp_x_size, gp_y_size)
 
             lbox = Gtk.Box(spacing=box_spacing_val)
-            lbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1, 1, 1, 1.0))
-            lbox.set_property('margin-top', 1)
-            lbox.set_property('margin-bottom', 1)
-            lbox.set_property('margin-right', 1)
-            lbox.set_property('margin-left', 1)
+            set_gtk_prop(lbox, bg_color=(1.0, 1.0, 1.0, 1.0), top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['canvas'], True, True, 0)
 
             grid_plot.attach(lbox, 1, prow, 1, 1)
