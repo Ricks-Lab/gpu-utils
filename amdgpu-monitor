@@ -92,8 +92,8 @@ GTK_Color = Tuple[float, ...]
 
 
 def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None, left: int = None,
-                 width: int = None, width_chars: int = None, bg_color: GTK_Color = None,
-                 color: GTK_Color = None, align: tuple = None) -> None:
+                 width: int = None, width_chars: int = None, max_length: int = None, bg_color: GTK_Color = None,
+                 color: GTK_Color = None, align: tuple = None, xalign: float = None) -> None:
     """
     Set properties of Gtk objects.
 
@@ -104,9 +104,11 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
     :param left: Left margin
     :param width: Width of request field
     :param width_chars: Width of label
+    :param max_length: max length of entry
     :param bg_color: Background color
     :param color: Font color
     :param align: Alignment parameters
+    :param xalign: X Alignment parameter
     """
     if color:
         gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
@@ -122,8 +124,13 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
         gui_item.set_property('width-request', width)
     if width_chars:
         gui_item.set_width_chars(width_chars)
+    if max_length:
+        gui_item.set_max_length(max_length)
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
+        if xalign:
+            # FIXME - This is deprecated in latest Gtk, need to use halign
+            gui_item.set_alignment(xalign=xalign)
         if align:
             # FIXME - This is deprecated in latest Gtk, need to use halign
             gui_item.set_alignment(*align)

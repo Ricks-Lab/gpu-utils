@@ -69,7 +69,8 @@ GTK_Color = Tuple[float, ...]
 
 
 def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None, left: int = None,
-                 width: int = None, bg_color: GTK_Color = None, color: GTK_Color = None, align: tuple = None) -> None:
+                 width: int = None, width_chars: int = None, max_length: int = None, bg_color: GTK_Color = None,
+                 color: GTK_Color = None, align: tuple = None, xalign: float = None) -> None:
     """
     Set properties of Gtk objects.
 
@@ -79,9 +80,12 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
     :param right: Right margin
     :param left: Left margin
     :param width: Width of request field
+    :param width_chars: Width of label
+    :param max_length: max length of entry
     :param bg_color: Background color
     :param color: Font color
     :param align: Alignment parameters
+    :param xalign: X Alignment parameter
     """
     if color:
         gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
@@ -95,8 +99,15 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
         gui_item.set_property('margin-left', left)
     if width:
         gui_item.set_property('width-request', width)
+    if width_chars:
+        gui_item.set_width_chars(width_chars)
+    if max_length:
+        gui_item.set_max_length(max_length)
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
+        if xalign:
+            # FIXME - This is deprecated in latest Gtk, need to use halign
+            gui_item.set_alignment(xalign=xalign)
         if align:
             # FIXME - This is deprecated in latest Gtk, need to use halign
             gui_item.set_alignment(*align)
@@ -164,10 +175,8 @@ class PACWindow(Gtk.Window):
             devices[v.prm.uuid]['power_cap_cur'] = Gtk.Label()
             set_gtk_prop(devices[v.prm.uuid]['power_cap_cur'], top=1, bottom=1, right=2, left=2)
             devices[v.prm.uuid]['power_cap_ent'] = Gtk.Entry()
-            devices[v.prm.uuid]['power_cap_ent'].set_width_chars(5)
-            devices[v.prm.uuid]['power_cap_ent'].set_max_length(5)
-            devices[v.prm.uuid]['power_cap_ent'].set_alignment(xalign=1)
-            set_gtk_prop(devices[v.prm.uuid]['power_cap_ent'], top=1, bottom=1, right=0, left=2)
+            set_gtk_prop(devices[v.prm.uuid]['power_cap_ent'], top=1, bottom=1, right=0, left=2, xalign=1,
+                         width_chars=5, max_length=5)
             devices[v.prm.uuid]['power_cap_ent_unit'] = Gtk.Label()
             devices[v.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
             set_gtk_prop(devices[v.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
@@ -196,10 +205,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['fan_pwm_cur'] = Gtk.Label()
                 set_gtk_prop(devices[v.prm.uuid]['fan_pwm_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['fan_pwm_ent'] = Gtk.Entry()
-                devices[v.prm.uuid]['fan_pwm_ent'].set_width_chars(5)
-                devices[v.prm.uuid]['fan_pwm_ent'].set_max_length(5)
-                devices[v.prm.uuid]['fan_pwm_ent'].set_alignment(xalign=1)
-                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent'], top=1, bottom=1, right=0, left=2)
+                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent'], top=1, bottom=1, right=0, left=2,
+                             width_chars=5, max_length=5, xalign=1)
                 devices[v.prm.uuid]['fan_pwm_ent_unit'] = Gtk.Label()
                 devices[v.prm.uuid]['fan_pwm_ent_unit'].set_text('%   (value, \'reset\', or \'max\')')
                 set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent_unit'],
@@ -233,24 +240,17 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'],
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
@@ -284,15 +284,11 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'],
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
@@ -309,10 +305,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
                 set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_width_chars(17)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_max_length(17)
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_alignment(xalign=0)
-                set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_ent'], top=1, bottom=1, right=0, left=1)
+                set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_ent'], width_chars=17, max_length=17,
+                             xalign=0, top=1, bottom=1, right=0, left=1)
                 lbox = Gtk.Box(spacing=2)
                 set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
@@ -341,24 +335,17 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'],
+                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
@@ -393,15 +380,11 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'],
+                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
@@ -418,10 +401,8 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
                 set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_width_chars(17)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_max_length(17)
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_alignment(xalign=0)
-                set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_ent'], top=1, bottom=1, right=0, left=1)
+                set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_ent'], width_chars=17, max_length=17,
+                             xalign=0, top=1, bottom=1, right=0, left=1)
                 lbox = Gtk.Box(spacing=2)
                 set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
@@ -451,27 +432,20 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['vddc_curve_pt'][ps] = {}
 
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'] = Gtk.Label()
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_width_chars(20)
-                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'],
+                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], width_chars=20,
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], width_chars=5,
+                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_width_chars(5)
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_max_length(5)
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_alignment(xalign=1)
-                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'],
-                                 top=1, bottom=1, right=0, left=0)
+                    set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'], width_chars=5,
+                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'],
-                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5)) # right was 0
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     lbox = Gtk.Box(spacing=6)
                     set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], False, False, 0)
@@ -581,9 +555,8 @@ class PACWindow(Gtk.Window):
 
         # Initialize message box
         devices['message_label'] = Gtk.Label()
-        devices['message_label'].set_max_width_chars(num_com_gpus * MAX_CHAR)
         devices['message_label'].set_line_wrap(True)
-        set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0),
+        set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0), width_chars=num_com_gpus * MAX_CHAR,
                      align=(0.0, 0.5), width=num_com_gpus * MAX_CHAR * CHAR_WIDTH)
 
         devices['message_box'] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -614,23 +587,15 @@ class PACWindow(Gtk.Window):
                            'file with sudo to execute changes.')
 
         if color == 'red':
-            #devices['message_box'].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(0.60, 0.20, 0.20, 1.0))
-            #devices['message_label'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             set_gtk_prop(devices['message_box'], bg_color=(0.60, 0.20, 0.20, 1.0))
             set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0))
         elif color == 'yellow':
-            #devices['message_box'].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.50, .50, .00, 1.0))
-            #devices['message_label'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             set_gtk_prop(devices['message_box'], bg_color=(0.50, 0.50, 0.00, 1.0))
             set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0))
         elif color == 'white':
-            #devices['message_box'].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
-            #devices['message_label'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0.0, 0.0, 0.0, 1.0))
             set_gtk_prop(devices['message_box'], bg_color=(1.00, 1.00, 1.00, 1.0))
             set_gtk_prop(devices['message_label'], color=(0.0, 0.0, 0.0, 1.0))
         else:
-            #devices['message_box'].override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.6, .6, .6, 1.0))
-            #devices['message_label'].override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.0, 1.0, 1.0, 1.0))
             set_gtk_prop(devices['message_box'], bg_color=(0.60, 0.60, 0.60, 1.0))
             set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0))
         devices['message_label'].set_text(message)
