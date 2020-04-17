@@ -59,6 +59,7 @@ except ModuleNotFoundError as error:
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
+#from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
@@ -87,8 +88,6 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
     :param align: Alignment parameters
     :param xalign: X Alignment parameter
     """
-    if color:
-        gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
     if top:
         gui_item.set_property('margin-top', top)
     if bottom:
@@ -114,6 +113,9 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
         if bg_color:
             # FIXME - This is deprecated in latest Gtk
             gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*bg_color))
+        if color:
+            # FIXME - This is deprecated in latest Gtk
+            gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
 
 
 class PACWindow(Gtk.Window):
@@ -491,14 +493,14 @@ class PACWindow(Gtk.Window):
             row += 1
 
             # Save/Reset Card Buttons
-            devices[v.prm.uuid]['save_button'] = Gtk.Button('')
+            devices[v.prm.uuid]['save_button'] = Gtk.Button(label='')
             for child in devices[v.prm.uuid]['save_button'].get_children():
                 child.set_label('<big><b>Save</b></big>')
                 child.set_use_markup(True)
             devices[v.prm.uuid]['save_button'].connect('clicked', self.save_card, gpu_list, devices, v.prm.uuid)
             set_gtk_prop(devices[v.prm.uuid]['save_button'], width=90)
 
-            devices[v.prm.uuid]['reset_button'] = Gtk.Button('')
+            devices[v.prm.uuid]['reset_button'] = Gtk.Button(label='')
             for child in devices[v.prm.uuid]['reset_button'].get_children():
                 child.set_label('<big><b>Reset</b></big>')
                 child.set_use_markup(True)
@@ -522,21 +524,21 @@ class PACWindow(Gtk.Window):
         if num_com_gpus > 1:
             # Save/Reset/Update ALL Card Buttons
             devices['all_buttons'] = {}
-            devices['all_buttons']['save_all_button'] = Gtk.Button('')
+            devices['all_buttons']['save_all_button'] = Gtk.Button(label='')
             for child in devices['all_buttons']['save_all_button'].get_children():
                 child.set_label('<big><b>Save All</b></big>')
                 child.set_use_markup(True)
             devices['all_buttons']['save_all_button'].connect('clicked', self.save_all_cards, gpu_list, devices)
             set_gtk_prop(devices['all_buttons']['save_all_button'], width=100)
 
-            devices['all_buttons']['reset_all_button'] = Gtk.Button('')
+            devices['all_buttons']['reset_all_button'] = Gtk.Button(label='')
             for child in devices['all_buttons']['reset_all_button'].get_children():
                 child.set_label('<big><b>Reset All</b></big>')
                 child.set_use_markup(True)
             devices['all_buttons']['reset_all_button'].connect('clicked', self.reset_all_cards, gpu_list, devices)
             set_gtk_prop(devices['all_buttons']['reset_all_button'], width=100)
 
-            devices['all_buttons']['refresh_all_button'] = Gtk.Button('')
+            devices['all_buttons']['refresh_all_button'] = Gtk.Button(label='')
             for child in devices['all_buttons']['refresh_all_button'].get_children():
                 child.set_label('<big><b>Refresh All</b></big>')
                 child.set_use_markup(True)
@@ -559,7 +561,7 @@ class PACWindow(Gtk.Window):
         set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0), width_chars=num_com_gpus * MAX_CHAR,
                      align=(0.0, 0.5), width=num_com_gpus * MAX_CHAR * CHAR_WIDTH)
 
-        devices['message_box'] = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        devices['message_box'] = Gtk.Box(spacing=6)
         set_gtk_prop(devices['message_box'], bg_color=(0.6, 0.6, 0.6, 1.0), top=1, bottom=1, right=1, left=1)
         devices['message_box'].pack_start(devices['message_label'], True, True, 1)
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
