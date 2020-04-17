@@ -38,6 +38,18 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: bad-continuation
 
+try:
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, Gdk
+except ModuleNotFoundError as error:
+    print('gi import error: {}'.format(error))
+    print('gi is required for {}'.format(__program_name__))
+    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
+    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
+    import sys
+    sys.exit(0)
+
 import argparse
 import re
 import subprocess
@@ -45,77 +57,14 @@ import os
 import sys
 import time
 from uuid import uuid4
-from typing import Tuple
-import warnings
 
-try:
-    import gi
-except ModuleNotFoundError as error:
-    print('gi import error: {}'.format(error))
-    print('gi is required for {}'.format(__program_name__))
-    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
-    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
-    sys.exit(0)
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
-
-#from GPUmodules import GPUgui
+from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 MAX_CHAR = 54
 CHAR_WIDTH = 8
-
-GTK_Color = Tuple[float, ...]
-
-
-def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None, left: int = None,
-                 width: int = None, width_chars: int = None, max_length: int = None, bg_color: GTK_Color = None,
-                 color: GTK_Color = None, align: tuple = None, xalign: float = None) -> None:
-    """
-    Set properties of Gtk objects.
-
-    :param gui_item: Gtk object
-    :param top: Top margin
-    :param bottom: Bottom margin
-    :param right: Right margin
-    :param left: Left margin
-    :param width: Width of request field
-    :param width_chars: Width of label
-    :param max_length: max length of entry
-    :param bg_color: Background color
-    :param color: Font color
-    :param align: Alignment parameters
-    :param xalign: X Alignment parameter
-    """
-    if top:
-        gui_item.set_property('margin-top', top)
-    if bottom:
-        gui_item.set_property('margin-bottom', bottom)
-    if right:
-        gui_item.set_property('margin-right', right)
-    if left:
-        gui_item.set_property('margin-left', left)
-    if width:
-        gui_item.set_property('width-request', width)
-    if width_chars:
-        gui_item.set_width_chars(width_chars)
-    if max_length:
-        gui_item.set_max_length(max_length)
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        if xalign:
-            # FIXME - This is deprecated in latest Gtk, need to use halign
-            gui_item.set_alignment(xalign=xalign)
-        if align:
-            # FIXME - This is deprecated in latest Gtk, need to use halign
-            gui_item.set_alignment(*align)
-        if bg_color:
-            # FIXME - This is deprecated in latest Gtk
-            gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*bg_color))
-        if color:
-            # FIXME - This is deprecated in latest Gtk
-            gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
+set_gtk_prop = GPUgui.set_gtk_prop
 
 
 class PACWindow(Gtk.Window):
@@ -887,7 +836,6 @@ class PACWindow(Gtk.Window):
                     if v.is_valid_fan_pwm(new_pwm):
                         changed += 1
                         new_pwm_value = int(255 * new_pwm / 100)
-                        #print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
                         print("sudo sh -c \"echo \'1\' >  {}\"".format(pwm_enable_file), file=fileptr)
                         print("sudo sh -c \"echo \'{}\' >  {}\"".format(new_pwm_value, pwm_file), file=fileptr)
                     else:
