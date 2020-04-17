@@ -61,11 +61,15 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development on Master  -  v3.0.1
+## New in Development on Master  -  v3.1.0
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
 * Modified setup to indicate minimum instead of absolute package versions (@smoe).
 * Modified venv requirements to include min/max package versions for major packages.
-* Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion)
+* Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
+* Fixed a crash in pac when no fan details could be read (laptop GPU).
+* Fixed deprecation warnings for several property setting functions.  Consolidated all
+property setting to a single function in a new module, and ignore warnings fir those that
+are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
