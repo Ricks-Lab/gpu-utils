@@ -812,7 +812,10 @@ class PACWindow(Gtk.Window):
             # Fan PWM
             pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
             pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
-            old_pwm = int(v.get_params_value('fan_pwm'))
+            if v.get_params_value('fan_pwm'):
+                old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
+            else:
+                old_pwm = None
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             if new_pwm_str.lower() == 'reset':
                 changed += 1
@@ -841,7 +844,7 @@ class PACWindow(Gtk.Window):
                     else:
                         print('# Invalid parameter values', file=fileptr)
             else:
-                print('# PWM entry: {}, invalid input, ignoring'.format(new_power_cap_str), file=fileptr)
+                print('# PWM entry: {}, invalid input, ignoring'.format(new_pwm_str), file=fileptr)
                 new_pwm = old_pwm
 
         device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
