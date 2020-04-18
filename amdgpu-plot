@@ -581,16 +581,13 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
                     new_line_item.append(ll)
             line_item = tuple(new_line_item)
             rdf = pd.DataFrame.from_records([line_item], columns=header_item)
-            rdf['datetime'] = pd.to_datetime(rdf['Time'])
+            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
-            if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1:
-                sync_add = 1
-            else:
-                sync_add = 0
+            sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
         if env.GUT_CONST.DEBUG:
-            print(env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime('%c'))
+            print(env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT))
             print(ndf)
 
         if not env.GUT_CONST.SIMLOG:
@@ -665,7 +662,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
             if env.GUT_CONST.DEBUG: print('gpu_plot_data: ', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
-            rdf['datetime'] = pd.to_datetime(rdf['Time'])
+            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
 

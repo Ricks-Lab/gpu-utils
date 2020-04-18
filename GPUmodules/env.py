@@ -72,6 +72,7 @@ class GutConst:
         self.SLEEP = 2
         self.amdfeaturemask = ''
         self.USELTZ = False
+        self.TIME_FORMAT = '%d-%b-%Y %H:%M:%S'
         self.LTZ = datetime.utcnow().astimezone().tzinfo
         if self.DEBUG: print('Local TZ: {}'.format(self.LTZ))
         # GPU platform capability

@@ -986,7 +986,8 @@ class GpuItem:
         :param gpu_list: GpuList object
         :return: Dictionary of GPU state info for plot data.
         """
-        gpu_state = {'Time': str(self.energy['tn'].strftime('%c')).strip(), 'Card#': int(self.prm.card_num)}
+        gpu_state = {'Time': str(self.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)),
+                     'Card#': int(self.prm.card_num)}
 
         for table_item in gpu_list.table_parameters():
             gpu_state_str = str(re.sub('M[Hh]z', '', str(self.get_params_value(table_item)))).strip()
@@ -1548,7 +1549,7 @@ class GpuList:
 
         # Print Data
         for v in self.list.values():
-            print('{}|{}'.format(v.energy['tn'].strftime('%c').strip(), v.prm.card_num),
+            print('{}|{}'.format(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT), v.prm.card_num),
                   sep='', end='', file=log_file_ptr)
             for table_item in self.table_parameters():
                 print('|{}'.format(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)).strip())),
@@ -1588,7 +1589,7 @@ class GpuList:
 
         # Print Data
         for v in self.list.values():
-            line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime('%c')).strip(), v.prm.card_num)]
+            line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)), v.prm.card_num)]
             for table_item in self.table_parameters():
                 line_str_item.append('|' + str(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)))).strip())
             line_str_item.append('\n')
