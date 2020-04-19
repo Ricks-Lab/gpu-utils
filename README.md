@@ -70,6 +70,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Fixed deprecation warnings for several property setting functions.  Consolidated all
 property setting to a single function in a new module, and ignore warnings fir those that
 are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
+* Implemented a more robust string format of datetime to address datetime conversion for
+pandas in some installations.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
