@@ -988,7 +988,8 @@ class PACWindow(Gtk.Window):
             # Sclk Mask
             sclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_sclk')
             old_sclk_mask = v.prm.sclk_mask.replace(',', ' ')
-            new_sclk_mask = devices[uuid]['sclk_pst_mask_ent'].get_text().replace(',', ' ').strip()
+            new_sclk_mask = devices[uuid]['sclk_pst_mask_ent'].get_text().replace(' ', '').strip()
+            new_sclk_mask = new_sclk_mask.replace(',', ' ').strip()
             print('# Sclk P-State Mask Default: {}'.format(old_sclk_mask), end='', file=fileptr)
             print(' New: {}'.format(new_sclk_mask), file=fileptr)
             if new_sclk_mask == old_sclk_mask and env.GUT_CONST.write_delta_only:
@@ -1008,7 +1009,8 @@ class PACWindow(Gtk.Window):
             # Mclk Mask
             mclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_mclk')
             old_mclk_mask = v.prm.mclk_mask.replace(',', ' ')
-            new_mclk_mask = devices[uuid]['mclk_pst_mask_ent'].get_text().replace(',', ' ').strip()
+            new_mclk_mask = devices[uuid]['mclk_pst_mask_ent'].get_text().replace(' ', '').strip()
+            new_mclk_mask = new_mclk_mask.replace(',', ' ').strip()
             print('# Mclk P-State Mask Default: {}'.format(old_mclk_mask), end='', file=fileptr)
             print(' New: {}'.format(new_mclk_mask), file=fileptr)
             if new_mclk_mask == old_mclk_mask and env.GUT_CONST.write_delta_only:
