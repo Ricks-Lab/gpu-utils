@@ -39,12 +39,16 @@ import shlex
 import shutil
 import time
 from datetime import datetime
+from typing import Dict, Union
 
 
 class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
+    _verified_distros = ['Ubuntu', 'Gentoo', 'Arch']
+    _dpkg_tool = {'Ubuntu': 'dpkg', 'Arch': 'pacman'}
+
     def __init__(self):
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
         self.repository_path = os.path.join(self.repository_module_path, '..')
@@ -58,6 +62,7 @@ class GutConst:
         else:
             self.icon_path = os.path.join(self.repository_path, 'icons')
         self.featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
+        self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.card_root = '/sys/class/drm/'
         self.hwmon_sub = 'hwmon/hwmon'
         self.execute_pac = False
@@ -81,6 +86,7 @@ class GutConst:
         self.nv_read = None
         self.nv_write = None
         # Command access
+        self.cmd_lsb_release = None
         self.cmd_lspci = None
         self.cmd_clinfo = None
         self.cmd_dpkg = None
@@ -160,6 +166,28 @@ class GutConst:
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
 
+        # Check Linux Distro
+        self.cmd_lsb_release = shutil.which('lsb_release')
+        if self.cmd_lsb_release:
+            lsbr_out = subprocess.check_output(shlex.split('{} -a'.format(self.cmd_lsb_release)),
+                                               shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
+            for lsbr_line in lsbr_out:
+                if re.search('Distributor ID', lsbr_line):
+                    lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
+                    if self.DEBUG: print('Linux Distro: {}'.format(lsbr_item))
+                    self.distro['Distributor'] = lsbr_item.strip()
+                if re.search('Description', lsbr_line):
+                    lsbr_items = lsbr_line.split(': ')
+                    lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
+                    if self.DEBUG: print('Distro Description: {}'.format(lsbr_item))
+                    self.distro['Description'] = lsbr_item.strip()
+
+            if self.distro['Distributor']:
+                print('{}: '.format(self.distro['Distributor']), end='')
+                print('Validated') if self.distro['Distributor'] in GutConst._verified_distros else print('Unverified')
+        else:
+            print('OS command [lsb_release] executable not found.')
+
         # Check which pci-ids file is to be used
         for test_sys_pciid in self.sys_pciid_list:
             if os.path.isfile(test_sys_pciid):
@@ -175,16 +203,13 @@ class GutConst:
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
             print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
-            #command_access_fail = True
         self.cmd_dpkg = shutil.which('dpkg')
-        if not self.cmd_dpkg:
+        if not self.cmd_dpkg and self.distro['Distrubtor'] in GutConst._debian:
             print('OS command [dpkg] executable not found.')
-            #command_access_fail = True
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
             pass
             #print('OS command [nvidia_smi] executable not found.')
-            #command_access_fail = True
         if command_access_fail:
             return -3
         return 0
