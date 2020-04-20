@@ -305,7 +305,7 @@ class GPUPlotWindow(Gtk.Window):
         for k, v in gc.gui_components['legend']['plot_items'].items():
             but_color = hex_to_rgba(gc.colors[k])
             but_font_color = hex_to_rgba(gc.font_colors[k])
-            gc.gui_components['legend']['buttons'][k] = Gtk.Button('')
+            gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
             for child in gc.gui_components['legend']['buttons'][k].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(k))
                 child.set_use_markup(True)
