@@ -614,6 +614,8 @@ class GpuItem:
         """
         if ps_str == '':
             return True
+        if not re.fullmatch(r'[0-9]+(\s[0-9])*', ps_str):
+            return False
         ps_list = self.prm.mclk_mask.split(',') if clk_name == 'MCLK' else self.prm.sclk_mask.split(',')
         for ps in ps_str.split():
             if ps not in ps_list:

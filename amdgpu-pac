@@ -804,7 +804,8 @@ class PACWindow(Gtk.Window):
                     print("sudo sh -c \"echo \'{}\' >  {}\"".format((int(1000000 * new_power_cap)), power_cap_file),
                           file=fileptr)
                 else:
-                    print('# Invalid parameter values', file=fileptr)
+                    print('# Invalid power_cap parameter values', file=fileptr)
+                    print('Invalid power_cap parameter values')
         else:
             print('# Powercap New: {}, invalid input, ignoring'.format(new_power_cap_str), file=fileptr)
             new_power_cap = old_power_cap
@@ -845,7 +846,8 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'1\' >  {}\"".format(pwm_enable_file), file=fileptr)
                         print("sudo sh -c \"echo \'{}\' >  {}\"".format(new_pwm_value, pwm_file), file=fileptr)
                     else:
-                        print('# Invalid parameter values', file=fileptr)
+                        print('# Invalid pwm parameter values', file=fileptr)
+                        print('Invalid pwm parameter values')
             else:
                 print('# PWM entry: {}, invalid input, ignoring'.format(new_pwm_str), file=fileptr)
                 new_pwm = old_pwm
@@ -874,6 +876,7 @@ class PACWindow(Gtk.Window):
                         print('# Sclk pstate {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid sclk pstate values', file=fileptr)
+                    print('Invalid sclk pstate values')
             # Mclk P-states
             for pk, pv in devices[uuid]['mclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -896,6 +899,7 @@ class PACWindow(Gtk.Window):
                         print('# Mclk pstate {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid mclk pstate values', file=fileptr)
+                    print('Invalid mclk pstate values')
         elif v.get_params_value('gpu_type') == 2:
             # Sclk Curve End Points
             for pk, pv in devices[uuid]['sclk_pstate'].items():
@@ -916,6 +920,7 @@ class PACWindow(Gtk.Window):
                         print('# Sclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid sclk curve end point values', file=fileptr)
+                    print('Invalid sclk curve end point values')
             # Mclk Curve End Points
             for pk, pv in devices[uuid]['mclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -935,6 +940,7 @@ class PACWindow(Gtk.Window):
                         print('# mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid mclk curve end point values', file=fileptr)
+                    print('Invalid mclk curve end point values')
             # VDDC Curve Points
             for pk, pv in devices[uuid]['vddc_curve_pt'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -958,6 +964,7 @@ class PACWindow(Gtk.Window):
                         print('# Vddc curve point {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid Vddc curve point values', file=fileptr)
+                    print('Invalid Vddc curve point values')
 
         # PPM
         ppm_mode_file = os.path.join(v.prm.card_path, 'pp_power_profile_mode')
@@ -1005,7 +1012,8 @@ class PACWindow(Gtk.Window):
                     else:
                         print("sudo sh -c \"echo \'{}\' >  {}\"".format(new_sclk_mask, sclk_mask_file), file=fileptr)
                 else:
-                    print('# Invalid parameter values', file=fileptr)
+                    print('# Invalid sclk mask parameter values', file=fileptr)
+                    print('Invalid sclk mask parameter values: {}'.format(new_sclk_mask))
 
             # Mclk Mask
             mclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_mclk')
@@ -1026,7 +1034,8 @@ class PACWindow(Gtk.Window):
                     else:
                         print("sudo sh -c \"echo \'{}\' >  {}\"".format(new_mclk_mask, mclk_mask_file), file=fileptr)
                 else:
-                    print('# Invalid parameter values', file=fileptr)
+                    print('# Invalid mclk mask parameter values', file=fileptr)
+                    print('Invalid mclk mask parameter values: {}'.format(new_mclk_mask))
 
         # Close file and Set permissions and Execute it --execute_pac
         fileptr.close()
