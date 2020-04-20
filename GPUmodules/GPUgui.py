@@ -46,9 +46,10 @@ from gi.repository import Gtk, Gdk
 GTK_Color = Tuple[float, ...]
 
 
-def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None, left: int = None,
-                 width: int = None, width_chars: int = None, max_length: int = None, bg_color: GTK_Color = None,
-                 color: GTK_Color = None, align: tuple = None, xalign: float = None) -> None:
+def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None,
+                 left: int = None, width: int = None, width_chars: int = None, width_max: int = None,
+                 max_length: int = None, bg_color: GTK_Color = None, color: GTK_Color = None,
+                 align: tuple = None, xalign: float = None) -> None:
     """
     Set properties of Gtk objects.
 
@@ -59,6 +60,7 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
     :param left: Left margin
     :param width: Width of request field
     :param width_chars: Width of label
+    :param width_max: Max Width of object
     :param max_length: max length of entry
     :param bg_color: Background color
     :param color: Font color
@@ -75,6 +77,8 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
         gui_item.set_property('margin-left', left)
     if width:
         gui_item.set_property('width-request', width)
+    if width_max:
+        gui_item.set_max_width_chars(width_max)
     if width_chars:
         gui_item.set_width_chars(width_chars)
     if max_length:

@@ -507,8 +507,9 @@ class PACWindow(Gtk.Window):
         # Initialize message box
         devices['message_label'] = Gtk.Label()
         devices['message_label'].set_line_wrap(True)
-        set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0), width_chars=num_com_gpus * MAX_CHAR,
+        set_gtk_prop(devices['message_label'], color=(1.0, 1.0, 1.0, 1.0), width_max=num_com_gpus * MAX_CHAR,
                      align=(0.0, 0.5), width=num_com_gpus * MAX_CHAR * CHAR_WIDTH)
+        devices['message_label'].set_line_wrap(True)
 
         devices['message_box'] = Gtk.Box(spacing=6)
         set_gtk_prop(devices['message_box'], bg_color=(0.6, 0.6, 0.6, 1.0), top=1, bottom=1, right=1, left=1)
