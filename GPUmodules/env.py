@@ -120,9 +120,13 @@ class GutConst:
 
         :return: AMD Feature Mask
         """
-        with open(self.featuremask) as fm_file:
-            self.amdfeaturemask = int(fm_file.readline())
-            return self.amdfeaturemask
+        try:
+            with open(self.featuremask) as fm_file:
+                self.amdfeaturemask = int(fm_file.readline())
+        except OSError as err:
+            print('Warning: could not read AMD Featuremask [{}]'.format(err))
+            self.amdfeaturemask = 0
+        return self.amdfeaturemask
 
     def check_env(self) -> int:
         """
@@ -131,7 +135,7 @@ class GutConst:
         :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
         """
         # Check python version
-        required_pversion = [3, 6]
+        required_pversion = (3, 6)
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
         if self.DEBUG: print('Using python: {}.{}.{}'.format(python_major, python_minor, python_patch))
         if int(python_major) < required_pversion[0]:
@@ -150,7 +154,7 @@ class GutConst:
             return -1
 
         # Check Linux Kernel version
-        required_kversion = [4, 8]
+        required_kversion = (4, 8)
         linux_version = platform.release()
         if self.DEBUG: print('Using Linux Kernel: {}'.format(linux_version))
         if int(linux_version.split('.')[0]) < required_kversion[0]:
@@ -180,7 +184,8 @@ class GutConst:
 
             if self.distro['Distributor'] and self.DEBUG:
                 print('{}: '.format(self.distro['Distributor']), end='')
-                print('Validated') if self.distro['Distributor'] in GutConst._verified_distros else print('Unverified')
+                if self.distro['Distributor'] in GutConst._verified_distros: print('Validated')
+                else: print('Unverified')
         else:
             print('OS command [lsb_release] executable not found.')
 
@@ -194,7 +199,7 @@ class GutConst:
         command_access_fail = False
         self.cmd_lspci = shutil.which('lspci')
         if not self.cmd_lspci:
-            print('OS command [lspci] executable not found.')
+            print('Error: OS command [lspci] executable not found.')
             command_access_fail = True
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
@@ -212,14 +217,19 @@ class GutConst:
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
             pass
-            #print('OS command [nvidia_smi] executable not found.')
+            # print('OS command [nvidia_smi] executable not found.')
         if command_access_fail:
             return -3
         return 0
 
     def read_amd_driver_version(self) -> bool:
+        """
+        Read the AMD driver version and store in GutConst object.
+
+        :return: True on success>
+        """
         if not self.cmd_dpkg:
-            print('Can not [{}] to verify AMD driver.'.format(self.cmd_dpkg))
+            print('Can not access package read utility to verify AMD driver.')
             return False
         if re.search(r'([uU]buntu|[dD]ebian)', self.distro['Distributor']):
             return self.read_amd_driver_version_debian()

@@ -92,9 +92,8 @@ def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = Non
             # FIXME - This is deprecated in latest Gtk, need to use halign
             gui_item.set_alignment(*align)
         if bg_color:
-            # FIXME - This is deprecated in latest Gtk
+            # FIXME - This is deprecated in latest Gtk, need to use css.
             gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*bg_color))
         if color:
-            # FIXME - This is deprecated in latest Gtk
+            # FIXME - This is deprecated in latest Gtk, need to use css.
             gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
-

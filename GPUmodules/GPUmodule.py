@@ -1158,17 +1158,14 @@ class GpuList:
             except IndexError:
                 short_gpu_name = 'UNKNOWN'
             # Check for Fiji ProDuo
-            srch_obj = re.search('Fiji', gpu_name)
-            if srch_obj:
-                srch_obj = re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1])
-                if srch_obj:
+            if re.search('Fiji', gpu_name):
+                if re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1]):
                     gpu_name = 'Radeon Fiji Pro Duo'
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
             vendor = 'UNKNOWN'
             opencl_device_version = None if clinfo_flag else 'UNKNOWN'
-            srch_obj = re.search(r'(AMD|amd|ATI|ati)', gpu_name)
-            if srch_obj:
+            if re.search(r'(AMD|amd|ATI|ati)', gpu_name):
                 vendor = 'AMD'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1177,8 +1174,7 @@ class GpuList:
                             compute = True
                 else:
                     compute = True
-            srch_obj = re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name)
-            if srch_obj:
+            if re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name):
                 vendor = 'NVIDIA'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1187,8 +1183,7 @@ class GpuList:
                             compute = True
                 else:
                     compute = True
-            srch_obj = re.search(r'(INTEL|intel|Intel)', gpu_name)
-            if srch_obj:
+            if re.search(r'(INTEL|intel|Intel)', gpu_name):
                 vendor = 'INTEL'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1196,16 +1191,10 @@ class GpuList:
                             opencl_device_version = self.opencl_map[pcie_id]['device_version']
                             compute = True
                 else:
-                    srch_obj = re.search(r' 530', gpu_name)
-                    if srch_obj:
-                        compute = False
-                    else:
-                        compute = True
-            srch_obj = re.search(r'(ASPEED|aspeed|Aspeed)', gpu_name)
-            if srch_obj:
+                    compute = False if re.search(r' 530', gpu_name) else True
+            if re.search(r'(ASPEED|aspeed|Aspeed)', gpu_name):
                 vendor = 'ASPEED'
-            srch_obj = re.search(r'(MATROX|matrox|Matrox)', gpu_name)
-            if srch_obj:
+            if re.search(r'(MATROX|matrox|Matrox)', gpu_name):
                 vendor = 'MATROX'
 
             # Get Driver Name
@@ -1327,31 +1316,27 @@ class GpuList:
             param_str = line_items[1]
             # Check item in clinfo_keywords
             for clinfo_keyword, opencl_map_keyword in ocl_keywords.items():
-                srch_obj = re.search(clinfo_keyword, param_str)
-                if srch_obj:
+                if re.search(clinfo_keyword, param_str):
                     temp_map[opencl_map_keyword] = line_items[2].strip()
                     if env.GUT_CONST.DEBUG: print('{}: [{}]'.format(clinfo_keyword, temp_map[opencl_map_keyword]))
                     continue
 
             # PCIe ID related clinfo_keywords
             # Check for AMD pcie_id details
-            srch_obj = re.search('CL_DEVICE_TOPOLOGY', param_str)
-            if srch_obj:
+            if re.search('CL_DEVICE_TOPOLOGY', param_str):
                 ocl_pcie_id = (line_items[2].split()[1]).strip()
                 if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
                 continue
 
             # Check for NV pcie_id details
-            srch_obj = re.search('CL_DEVICE_PCI_BUS_ID_NV', param_str)
-            if srch_obj:
+            if re.search('CL_DEVICE_PCI_BUS_ID_NV', param_str):
                 ocl_pcie_bus_id = hex(int(line_items[2].strip()))
                 if ocl_pcie_slot_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
                     if env.GUT_CONST.DEBUG: print('ocl_pcie_id [{}]'.format(ocl_pcie_id))
                 continue
-            srch_obj = re.search('CL_DEVICE_PCI_SLOT_ID_NV', param_str)
-            if srch_obj:
+            if re.search('CL_DEVICE_PCI_SLOT_ID_NV', param_str):
                 ocl_pcie_slot_id = hex(int(line_items[2].strip()))
                 if ocl_pcie_bus_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
