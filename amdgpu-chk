@@ -123,7 +123,7 @@ class GutConst:
             ret_val[2] = 0
 
         # Check for amdgpu driver
-        ret_val[3] = 0 if self.read_amd_driver_version() else -3
+        ret_val[3] = 0 if self.read_amd_driver_version() else 0  # Ignore False
         return ret_val
 
     def read_amd_driver_version(self) -> bool:
@@ -140,34 +140,26 @@ class GutConst:
             print('Command dpkg not found. Can not determine amdgpu version.')
             print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
             return True
-        version_ok = False
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
             try:
                 dpkg_out = subprocess.check_output(shlex.split(cmd_dpkg + ' -l ' + pkgname),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
-                for dpkg_line in dpkg_out:
-                    for driverpkg in ['amdgpu', 'rocm']:
-                        search_obj = re.search(driverpkg, dpkg_line)
-                        if search_obj:
-                            if self.DEBUG: print('Debug: ' + dpkg_line)
-                            dpkg_items = dpkg_line.split()
-                            if len(dpkg_items) > 2:
-                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
-                                    continue
-                                else:
-                                    print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
-                                    print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
-                                    version_ok = True
-                                    break
-                if version_ok:
-                    break
             except (subprocess.CalledProcessError, OSError):
                 continue
-        if not version_ok:
-            print('amdgpu/rocm version: UNKNOWN')
-            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
-            # return False
-        return True
+            for dpkg_line in dpkg_out:
+                for driverpkg in ['amdgpu', 'rocm']:
+                    if re.search(driverpkg, dpkg_line):
+                        if self.DEBUG: print('Debug: ' + dpkg_line)
+                        dpkg_items = dpkg_line.split()
+                        if len(dpkg_items) > 2:
+                            if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
+                            else:
+                                print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
+                                print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
+                                return True
+        print('amdgpu/rocm version: UNKNOWN')
+        print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+        return False
 
 
 GUT_CONST = GutConst()
@@ -183,14 +175,14 @@ def is_venv_installed() -> bool:
     try:
         p = subprocess.Popen(shlex.split(cmdstr), shell=False, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except (subprocess.CalledProcessError, OSError):
+        pass
+    else:
         output, _error = p.communicate()
-        # print('subprocess output: ', output.decode(), 'subprocess error: ', error.decode())
         if not re.fullmatch(r'.*No module named.*', output.decode()):
             print('python3 venv is installed')
             print('          ' + '\x1b[1;37;42m' + ' python3-venv OK. ' + '\x1b[0m')
             return True
-    except:
-        pass
     print('python3 venv is NOT installed')
     print('          ' + '\x1b[1;30;43m' + ' Python3 venv package \'python3-venv\' package is recommended. ' +
           '\x1b[0m')
@@ -223,15 +215,14 @@ def is_in_venv() -> bool:
     try:
         python_path = shutil.which('python')
     except (NameError, AttributeError):
-        python_path = None
         print('Maybe python version compatibility issue.')
-
-    if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
-        print('In amdgpu-utils-env')
-        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
-        return True
-    print('Not in amdgpu-utils-env')
-    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be activated per User Guide. ' + '\x1b[0m')
+    else:
+        if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
+            print('In amdgpu-utils-env')
+            print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
+            return True
+        print('Not in amdgpu-utils-env')
+        print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be activated per User Guide. ' + '\x1b[0m')
     return False
 
 
