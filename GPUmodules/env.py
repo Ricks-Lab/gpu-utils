@@ -39,15 +39,15 @@ import shlex
 import shutil
 import time
 from datetime import datetime
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 
 class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros = ['Ubuntu', 'Gentoo', 'Arch']
-    _dpkg_tool = {'Ubuntu': 'dpkg', 'Arch': 'pacman'}
+    _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
+    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'portage'}
 
     def __init__(self):
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
@@ -55,7 +55,7 @@ class GutConst:
         self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
         self.sys_pciid = '/usr/share/misc/pci.ids'
-        self.sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
+        self.sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
         self.dist_icons = os.path.join(self.dist_share, 'icons')
         if os.path.isdir(self.dist_icons):
             self.icon_path = self.dist_icons
@@ -100,9 +100,7 @@ class GutConst:
         :param ltz: Flag to get local time instead of UTC
         :return: datetime obj of current time
         """
-        if ltz:
-            return datetime.now()
-        return datetime.utcnow()
+        return datetime.now() if ltz else datetime.utcnow()
 
     @staticmethod
     def utc2local(utc: datetime) -> datetime:
@@ -177,12 +175,11 @@ class GutConst:
                     if self.DEBUG: print('Linux Distro: {}'.format(lsbr_item))
                     self.distro['Distributor'] = lsbr_item.strip()
                 if re.search('Description', lsbr_line):
-                    lsbr_items = lsbr_line.split(': ')
                     lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
                     if self.DEBUG: print('Distro Description: {}'.format(lsbr_item))
                     self.distro['Description'] = lsbr_item.strip()
 
-            if self.distro['Distributor']:
+            if self.distro['Distributor'] and self.DEBUG:
                 print('{}: '.format(self.distro['Distributor']), end='')
                 print('Validated') if self.distro['Distributor'] in GutConst._verified_distros else print('Unverified')
         else:
@@ -203,9 +200,16 @@ class GutConst:
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
             print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
-        self.cmd_dpkg = shutil.which('dpkg')
-        if not self.cmd_dpkg and self.distro['Distrubtor'] in GutConst._debian:
-            print('OS command [dpkg] executable not found.')
+
+        # Package Reader
+        if self.distro['Distributor'] in GutConst._dpkg_tool:
+            pkg_tool = GutConst._dpkg_tool[self.distro['Distributor']]
+            self.cmd_dpkg = shutil.which(pkg_tool)
+            if not self.cmd_dpkg:
+                print('OS command [{}] executable not found.'.format(pkg_tool))
+        else:
+            self.cmd_dpkg = None
+
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
             pass
@@ -221,7 +225,7 @@ class GutConst:
         :return: True if successful
         """
         if not self.cmd_dpkg:
-            print('Command dpkg not found. Can not determine amdgpu version.'.format(self.cmd_dpkg))
+            print('Can not verify AMD driver installation.')
             return False
         version_ok = False
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
