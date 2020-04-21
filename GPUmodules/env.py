@@ -52,7 +52,6 @@ class GutConst:
     def __init__(self):
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
         self.repository_path = os.path.join(self.repository_module_path, '..')
-        self.config_dir = os.path.join(os.getenv('HOME'), '.amdgpu-utils/')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
         self.sys_pciid = '/usr/share/misc/pci.ids'
         self.sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
@@ -219,40 +218,56 @@ class GutConst:
         return 0
 
     def read_amd_driver_version(self) -> bool:
+        if not self.cmd_dpkg:
+            print('Can not [{}] to verify AMD driver.'.format(self.cmd_dpkg))
+            return False
+        if re.search(r'([uU]buntu|[dD]ebian)', self.distro['Distributor']):
+            return self.read_amd_driver_version_debian()
+        elif re.search(r'([gG]entoo)', self.distro['Distributor']):
+            return self.read_amd_driver_version_gentoo()
+        elif re.search(r'([aA]rch)', self.distro['Distributor']):
+            return self.read_amd_driver_version_arch()
+        return False
+
+    def read_amd_driver_version_gentoo(self) -> bool:
         """
         Read the AMD driver version and store in GutConst object.
 
         :return: True if successful
         """
-        if not self.cmd_dpkg:
-            print('Can not verify AMD driver installation.')
-            return False
-        version_ok = False
+        return False
+
+    def read_amd_driver_version_arch(self) -> bool:
+        """
+        Read the AMD driver version and store in GutConst object.
+
+        :return: True if successful
+        """
+        return False
+
+    def read_amd_driver_version_debian(self) -> bool:
+        """
+        Read the AMD driver version and store in GutConst object.
+
+        :return: True if successful
+        """
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
-                for dpkg_line in dpkg_out:
-                    for driverpkg in ['amdgpu', 'rocm']:
-                        search_obj = re.search(driverpkg, dpkg_line)
-                        if search_obj:
-                            if self.DEBUG: print('Debug: {}'.format(dpkg_line))
-                            dpkg_items = dpkg_line.split()
-                            if len(dpkg_items) > 2:
-                                if re.fullmatch(r'.*none.*', dpkg_items[2]):
-                                    continue
-                                else:
-                                    print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
-                                    version_ok = True
-                                    break
-                if version_ok:
-                    break
             except (subprocess.CalledProcessError, OSError):
                 continue
-        if not version_ok:
-            print('amdgpu/rocm version: UNKNOWN')
-            return False
-        return True
+            for dpkg_line in dpkg_out:
+                for driverpkg in ['amdgpu', 'rocm']:
+                    if re.search(driverpkg, dpkg_line):
+                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        dpkg_items = dpkg_line.split()
+                        if len(dpkg_items) > 2:
+                            if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
+                            print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
+                            return True
+        print('amdgpu/rocm version: UNKNOWN')
+        return False
 
 
 GUT_CONST = GutConst()
