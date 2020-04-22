@@ -47,7 +47,7 @@ class GutConst:
     GPU Utils constants used throughout the project.
     """
     _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
-    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'portage'}
+    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
 
     def __init__(self):
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
@@ -246,6 +246,24 @@ class GutConst:
 
         :return: True if successful
         """
+        for pkgname in ['dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils']:
+            try:
+                dpkg_out = subprocess.check_output(shlex.split('{} list {}'.format(self.cmd_dpkg, pkgname)),
+                                                   shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
+            except (subprocess.CalledProcessError, OSError):
+                continue
+            for dpkg_line in dpkg_out:
+                if re.search('!!!', dpkg_line):
+                    continue
+                for driverpkg in ['amdgpu', 'rocm']:
+                    if re.search('Searching', dpkg_line):
+                        continue
+                    if re.search(driverpkg, dpkg_line):
+                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        dpkg_line = re.sub(r'.*\][\s]*', '', dpkg_line)
+                        print('AMD: {} version: {}'.format(driverpkg, dpkg_line))
+                        return True
+        print('amdgpu/rocm version: UNKNOWN')
         return False
 
     def read_amd_driver_version_arch(self) -> bool:
