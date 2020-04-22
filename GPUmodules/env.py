@@ -213,6 +213,7 @@ class GutConst:
                 print('OS command [{}] executable not found.'.format(pkg_tool))
         else:
             self.cmd_dpkg = None
+        if self.DEBUG: print('Debug: {} package query tool: {}'.format(self.distro['Distributor'], self.cmd_dpkg))
 
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
@@ -253,6 +254,21 @@ class GutConst:
 
         :return: True if successful
         """
+        for pkgname in ['amdgpu', 'rocm', 'rocm-utils']:
+            try:
+                dpkg_out = subprocess.check_output(shlex.split('{} -Qs {}'.format(self.cmd_dpkg, pkgname)),
+                                                   shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
+            except (subprocess.CalledProcessError, OSError):
+                continue
+            for dpkg_line in dpkg_out:
+                for driverpkg in ['amdgpu', 'rocm']:
+                    if re.search(driverpkg, dpkg_line):
+                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        dpkg_items = dpkg_line.split()
+                        if len(dpkg_items) >= 2:
+                            print('AMD: {} version: {}'.format(driverpkg, dpkg_items[1]))
+                            return True
+        print('amdgpu/rocm version: UNKNOWN')
         return False
 
     def read_amd_driver_version_debian(self) -> bool:
