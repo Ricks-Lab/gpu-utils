@@ -213,7 +213,7 @@ def is_in_venv() -> bool:
     :return: True if in venv
     """
     try:
-        python_path = shutil.which('python')
+        python_path = shutil.which('python3')
     except (NameError, AttributeError):
         print('Maybe python version compatibility issue.')
     else:
@@ -221,8 +221,8 @@ def is_in_venv() -> bool:
             print('In amdgpu-utils-env')
             print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
             return True
-        print('Not in amdgpu-utils-env')
-        print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be activated per User Guide. ' + '\x1b[0m')
+        print('Not in amdgpu-utils-env (Only needed if you want to duplicate dev env)')
+        print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env can be activated per User Guide. ' + '\x1b[0m')
     return False
 
 
@@ -257,7 +257,9 @@ def main() -> None:
         print('Environment not configured. WARNING')
 
     if not is_in_venv():
-        print('Virtual Environment not activated. WARNING')
+        pass
+        # print('Virtual Environment not activated. WARNING')
+    print('')
 
 
 if __name__ == '__main__':
