@@ -132,10 +132,7 @@ class GutConst:
 
         :return: True if successful
         """
-        try:
-            cmd_dpkg = shutil.which('dpkg')
-        except (NameError, AttributeError):
-            cmd_dpkg = None
+        cmd_dpkg = shutil.which('dpkg')
         if not cmd_dpkg:
             print('Command dpkg not found. Can not determine amdgpu version.')
             print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
@@ -212,9 +209,8 @@ def is_in_venv() -> bool:
 
     :return: True if in venv
     """
-    try:
-        python_path = shutil.which('python3')
-    except (NameError, AttributeError):
+    python_path = shutil.which('python3')
+    if not python_path:
         print('Maybe python version compatibility issue.')
     else:
         if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
