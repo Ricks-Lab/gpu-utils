@@ -698,13 +698,15 @@ class GpuItem:
                     if len(lineitems) == 3:
                         # type 1 GPU
                         self.prm.gpu_type = 1
+                        type_unknown = False
                     elif len(lineitems) == 2:
                         self.prm.gpu_type = 2
-                    type_unknown = False
-                if lineitems_len < 2 or lineitems_len > 3:
-                    print('Error: Invalid pstate entry: {}pp_od_clk_voltage'.format(self.prm.card_path),
-                          file=sys.stderr)
-                    continue
+                        type_unknown = False
+                    else:
+                        print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
+                              os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
+                        print('DEBUG: Pstate line item: {}'.format(line))
+                        continue
                 if not range_mode:
                     lineitems[0] = int(re.sub(':', '', lineitems[0]))
                     if self.prm.gpu_type == 0 or self.prm.gpu_type == 1:
