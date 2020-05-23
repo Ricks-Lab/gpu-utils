@@ -75,6 +75,7 @@ def main() -> None:
         sys.exit(0)
 
     env.GUT_CONST.DEBUG = args.debug
+
     if args.no_fan:
         env.GUT_CONST.show_fans = False
 

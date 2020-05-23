@@ -35,6 +35,7 @@ import subprocess
 import shlex
 import os
 import sys
+import logging
 from typing import Union, List, Dict, TextIO, BinaryIO, IO
 from pathlib import Path
 from uuid import uuid4
@@ -43,6 +44,16 @@ try:
     from GPUmodules import env
 except ImportError:
     import env
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(levelname)s:%(name)s:%(message)s")
+file_handler = logging.FileHandler('debug_out.log', 'w')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
+print(logger, logger.handlers, logging.getLevelName(logger.getEffectiveLevel()))
 
 
 class ObjDict(dict):
@@ -198,6 +209,7 @@ class GpuItem:
 
         :param item_id:  UUID of the new item.
         """
+        logger.warning('logging set')
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.read_disabled = []    # List of parameters that failed during read.
@@ -282,6 +294,7 @@ class GpuItem:
         :param name:  Parameter name
         :param value:  parameter value
         """
+        logger.debug('logger active in module')
         if isinstance(value, tuple):
             self.prm[name] = list(value)
         elif name == 'pwm_mode':
@@ -313,6 +326,7 @@ class GpuItem:
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
             if env.GUT_CONST.DEBUG: print('mask: [{}], ps: [{}, {}]'.format(mask, *self.prm.sclk_ps))
+            logger.debug(f'set_params_value: mask: [{mask}], ps: [{self.prm.sclk_ps[0]}, {self.prm.sclk_ps[1]}]')
         elif name == 'mclk_ps':
             mask = ''
             for ps in value:
@@ -344,6 +358,7 @@ class GpuItem:
 
         :return:  GPU model name
         """
+        logger.debug('read_pciid_model - logger active in module')
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
             return ''
@@ -1129,8 +1144,8 @@ class GpuList:
             self.nv_writable = True
 
         try:
-            pcie_ids = subprocess.check_output('{} | grep -E \"^.*(VGA|3D|Display).*$\" | grep -Eo \
-                                               \"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"'.format(
+            pcie_ids = subprocess.check_output(('{} | grep -E \"^.*(VGA|3D|Display).*$\" | grep -Eo '
+                                                '\"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"').format(
                                                env.GUT_CONST.cmd_lspci), shell=True).decode().split()
         except (subprocess.CalledProcessError, OSError) as except_err:
             print('Error [{}]: lspci failed to find GPUs'.format(except_err))
