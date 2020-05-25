@@ -1063,8 +1063,6 @@ class GpuList:
         self.amd_wattman = False
         self.amd_writable = False
         self.nv_writable = False
-        if not env.GUT_CONST.DEBUG:
-            logger.setLevel(logging.NOTSET)
 
     def __getitem__(self, uuid: str) -> GpuItem:
         """

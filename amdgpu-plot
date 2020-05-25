@@ -589,7 +589,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
         logger.debug('dataFrame {}:\n{}'.format(
-            env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.so_string()))
+            env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string()))
 
         if not env.GUT_CONST.SIMLOG:
             if read_time < 0.003:
