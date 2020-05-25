@@ -1242,7 +1242,7 @@ def main() -> None:
         sys.exit(0)
 
     env.GUT_CONST.set_args(args)
-    logger.debug(f'{__program_name__} {__version__}')
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

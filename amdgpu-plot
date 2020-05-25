@@ -588,8 +588,8 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             del rdf
             sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
-        logger.debug('dataFrame {}:\n{}'.format(
-            env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string()))
+        logger.debug('dataFrame %s:\n%s',
+                     env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string())
 
         if not env.GUT_CONST.SIMLOG:
             if read_time < 0.003:
@@ -634,7 +634,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             PD_SEM.release()
             ########################
             garbcollect.collect()
-        logger.debug('update stack size: {}'.format(get_stack_size()))
+        logger.debug('update stack size: %s', get_stack_size())
 
     # Quit
     print('exit stack size: {}'.format(get_stack_size()))
@@ -660,7 +660,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         skip_update = False
         for v in plot_data.com_gpu_list.list.values():
             gpu_plot_data = v.get_plot_data(plot_data.com_gpu_list)
-            logger.debug(f'gpu_plot_data: {gpu_plot_data}')
+            logger.debug('gpu_plot_data: %s', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
@@ -706,7 +706,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
             PD_SEM.release()
             ########################
             garbcollect.collect()
-        logger.debug('update stack size: {}'.format(get_stack_size()))
+        logger.debug('update stack size: %s', get_stack_size())
         time.sleep(refreshtime)
 
     # Quit
@@ -742,7 +742,7 @@ def main() -> None:
         sys.exit(0)
 
     env.GUT_CONST.set_args(args)
-    logger.debug(f'{__program_name__} {__version__}')
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

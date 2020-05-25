@@ -36,7 +36,7 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, BinaryIO, IO
+from typing import Union, List, Dict, TextIO, IO
 from pathlib import Path
 from uuid import uuid4
 import glob
@@ -316,7 +316,7 @@ class GpuItem:
                     self.prm.sclk_ps[0] = int(sclk_ps[0])
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
-            logger.debug('Mask: [%s], ps: [%s, %s]' % (mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1]))
+            logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
         elif name == 'mclk_ps':
             mask = ''
             for ps in value:
@@ -330,7 +330,7 @@ class GpuItem:
                     self.prm.mclk_ps[0] = int(mclk_ps[0])
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
-            logger.debug('Mask: [%s], ps: [%s, %s]' % (mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1]))
+            logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
         elif name == 'id':
@@ -655,18 +655,18 @@ class GpuItem:
                 if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
                     linestr = re.sub(r'[ ]*[*]*:', ' ', linestr)
                     line_items = linestr.split()
-                    logger.debug(f'PPM line: {linestr}')
+                    logger.debug('PPM line: %s', linestr)
                     if len(line_items) < 2:
                         print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
                         continue
-                    logger.debug(f'Valid ppm line: {linestr}')
+                    logger.debug('Valid ppm line: %s', linestr)
                     self.ppm_modes[line_items[0]] = line_items[1:]
             self.ppm_modes['-1'] = ['AUTO', 'Auto']
 
         rdata = self.read_gpu_sensor('power_dpm_force', vendor='AMD', sensor_type='DEVICE')
         if rdata is False:
             print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
-            logger.debug(f'Card file does not exist: {file_path}')
+            logger.debug('Card file does not exist: %s', file_path)
             self.prm.readable = False
         else:
             self.set_params_value('power_dpm_force', rdata)
@@ -711,7 +711,7 @@ class GpuItem:
                     else:
                         print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
                               os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
-                        logger.debug(f'Invalid line length for pstate line item: {line}')
+                        logger.debug('Invalid line length for pstate line item: %s', line)
                         continue
                 if not range_mode:
                     lineitems[0] = int(re.sub(':', '', lineitems[0]))
@@ -741,8 +741,8 @@ class GpuItem:
                             index = re.sub(r'\].*', '', index)
                             param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
                             param = re.sub(r'\[[0-9]\]:', '', param)
-                            logger.debug((f'Curve: index: {index} param: {param}, '
-                                          f'val1 {lineitems[1]}, val2: {lineitems[2]}'))
+                            logger.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
+                                         index, param, lineitems[1], lineitems[2])
                             if index in self.vddc_curve_range.keys():
                                 self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
                             else:
@@ -798,11 +798,11 @@ class GpuItem:
                         with open(file_path.replace('input', 'label')) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
                 except OSError as err:
-                    logger.debug(f'Exception [{err}]: Can not read HW file: {file_path}')
+                    logger.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
                     self.read_disabled.append(parameter)
                     return False
             else:
-                logger.debug(f'HW file does not exist: {file_path}')
+                logger.debug('HW file does not exist: %s', file_path)
                 self.read_disabled.append(parameter)
                 return False
 
@@ -894,17 +894,17 @@ class GpuItem:
 
         for sensor_type, param_names in param_list.items():
             for param in param_names:
-                logger.debug(f'Processing parameter: {param}')
+                logger.debug('Processing parameter: %s', param)
                 rdata = self.read_gpu_sensor(param, vendor=self.prm.vendor, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
-                        logger.debug(f'Error reading parameter: {param} disabling for {self.prm.cardnum}')
+                        logger.debug('Error reading parameter: %s disabling for %s', param, self.prm.card_num)
                         print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
                               self.prm.card_num))
                 elif rdata is None:
-                    logger.debug(f'Invalid or disabled parameter: {param}')
+                    logger.debug('Invalid or disabled parameter: %s', param)
                 else:
-                    logger.debug(f'Valid data [{rdata}] for parameter: {param}')
+                    logger.debug('Valid data [%s] for parameter: %s', rdata, param)
                     self.set_params_value(param, rdata)
         return None
 
@@ -913,7 +913,7 @@ class GpuItem:
         Print human friendly table of ppm parameters.
         """
         if not self.prm.readable:
-            logger.debug(f'PPM for card number {self.prm.card_num} not readable.')
+            logger.debug('PPM for card number %s not readable.', self.prm.card_num)
             return
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
         print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
@@ -930,7 +930,7 @@ class GpuItem:
         Print human friendly table of p-states.
         """
         if not self.prm.readable:
-            logger.debug(f'P-states for card number {self.prm.card_num} not readable.')
+            logger.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
         print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
@@ -1080,7 +1080,7 @@ class GpuList:
         :param gpu_item:  Item to be added
         """
         self.list[gpu_item.prm.uuid] = gpu_item
-        logger.debug(f'Added GPU Item {gpu_item.prm.uuid} to GPU List')
+        logger.debug('Added GPU Item %s to GPU List', gpu_item.prm.uuid)
 
     def wattman_status(self) -> str:
         """
@@ -1088,7 +1088,7 @@ class GpuList:
 
         :return:  Status string
         """
-        logger.debug(f'AMD featuremask: {self.amd_featuremask}')
+        logger.debug('AMD featuremask: %s', hex(self.amd_featuremask))
         if self.amd_wattman:
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
@@ -1119,7 +1119,7 @@ class GpuList:
             return False
         if clinfo_flag:
             self.read_gpu_opencl_data()
-            logger.debug(f'OpenCL map: {self.opencl_map}')
+            logger.debug('OpenCL map: %s', self.opencl_map)
 
         # Check AMD writability
         try:
@@ -1143,7 +1143,7 @@ class GpuList:
             print('Error [{}]: lspci failed to find GPUs'.format(except_err))
             return False
 
-        logger.debug(f'Found {len(pcie_ids)} GPUs')
+        logger.debug('Found %s GPUs', len(pcie_ids))
         for pcie_id in pcie_ids:
             gpu_uuid = uuid4().hex
             self.add(GpuItem(gpu_uuid))
@@ -1156,7 +1156,7 @@ class GpuList:
                 logger.debug(f'Fatal error [{except_err}]: Can not get GPU details with lspci.')
                 print('Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err))
                 sys.exit(-1)
-            logger.debug(f'lspci output items:\n {lspci_items}')
+            logger.debug('lspci output items:\n %s', lspci_items)
 
             # Get Long GPU Name
             gpu_name = 'UNKNOWN'
@@ -1227,7 +1227,7 @@ class GpuList:
             # Get full hwmon path
             hwmon_path = None
             hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
-            logger.debug(f'HW file search: {hw_file_srch}')
+            logger.debug('HW file search: %s', hw_file_srch)
             if len(hw_file_srch) > 1:
                 print('More than one hwmon file found: ', hw_file_srch)
             elif len(hw_file_srch) == 1:
@@ -1316,7 +1316,7 @@ class GpuList:
             if cl_index != ocl_index:
                 # Update opencl_map with dict variables when new index is encountered.
                 self.opencl_map.update({ocl_pcie_id: temp_map})
-                logger.debug(f'cl_index: {self.opencl_map[ocl_pcie_id]}')
+                logger.debug('cl_index: %s', self.opencl_map[ocl_pcie_id])
 
                 # Initialize dict variables
                 ocl_index = cl_index
@@ -1328,14 +1328,14 @@ class GpuList:
             for clinfo_keyword, opencl_map_keyword in ocl_keywords.items():
                 if re.search(clinfo_keyword, param_str):
                     temp_map[opencl_map_keyword] = line_items[2].strip()
-                    logger.debug(f'openCL map {clinfo_keyword}: [{temp_map[opencl_map_keyword]}]')
+                    logger.debug('openCL map %s: [%s]', clinfo_keyword, temp_map[opencl_map_keyword])
                     continue
 
             # PCIe ID related clinfo_keywords
             # Check for AMD pcie_id details
             if re.search('CL_DEVICE_TOPOLOGY', param_str):
                 ocl_pcie_id = (line_items[2].split()[1]).strip()
-                logger.debug(f'AMD ocl_pcie_id [{ocl_pcie_id}]')
+                logger.debug('AMD ocl_pcie_id [%s]', ocl_pcie_id)
                 continue
 
             # Check for NV pcie_id details
@@ -1344,21 +1344,20 @@ class GpuList:
                 if ocl_pcie_slot_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
-                    logger.debug(f'NV ocl_pcie_id [{ocl_pcie_id}]')
+                    logger.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
                 continue
             if re.search('CL_DEVICE_PCI_SLOT_ID_NV', param_str):
                 ocl_pcie_slot_id = hex(int(line_items[2].strip()))
                 if ocl_pcie_bus_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
-                    logger.debug(f'NV ocl_pcie_id [{ocl_pcie_id}]')
+                    logger.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
                 continue
 
             # Check for INTEL pcie_id details
             # TODO don't know how to do this yet.
 
         self.opencl_map.update({ocl_pcie_id: temp_map})
-        logger.debug(f'cl_map:\n{ocl_pcie_id}: {self.opencl_map[ocl_pcie_id]}')
         return True
 
     def num_vendor_gpus(self, compatibility: str = 'total') -> Dict[str, int]:

@@ -80,7 +80,7 @@ def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
     :param target_signal: Target signal name
     :param _frame: Ignored
     """
-    logger.debug(f'ctrl_c_handler (ID: {target_signal}) has been caught. Setting quit flag...')
+    logger.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
     print('Setting quit flag...')
     MonitorWindow.quit = True
 
@@ -103,7 +103,7 @@ class MonitorWindow(Gtk.Window):
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
-        logger.debug(f'Icon file: [{icon_file}]')
+        logger.debug('Icon file: [%s]', icon_file)
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -195,7 +195,7 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
         try:
             gpu_list.print_plot(cmd.stdin)
         except (OSError, KeyboardInterrupt) as except_err:
-            logger.debug(f'amdgpu-plot has closed: [{except_err}]')
+            logger.debug('amdgpu-plot has closed: [%s]', except_err)
             print('amdgpu-plot has closed')
             env.GUT_CONST.PLOT = False
 
@@ -218,13 +218,13 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     ########################
 
 
-def refresh(refreshtime: int, update_data: Callable, gpu_list: gpu.GpuList, devices: dict,
+def refresh(refreshtime: int, update_data_func: Callable, gpu_list: gpu.GpuList, devices: dict,
             cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
     """
     Method called for monitor refresh.
 
     :param refreshtime:  Amount of seconds to sleep after refresh.
-    :param update_data: Function that does actual data update.
+    :param update_data_func: Function that does actual data update.
     :param gpu_list: A gpuList object with all gpuItems
     :param devices: A dictionary linking Gui items with data.
     :param cmd: Subprocess return from running plot.
@@ -235,7 +235,7 @@ def refresh(refreshtime: int, update_data: Callable, gpu_list: gpu.GpuList, devi
             print('Quitting...')
             Gtk.main_quit()
             sys.exit(0)
-        GLib.idle_add(update_data, gpu_list, devices, cmd)
+        GLib.idle_add(update_data_func, gpu_list, devices, cmd)
         tst = 0.0
         sleep_interval = 0.2
         while tst < refreshtime:
@@ -275,7 +275,7 @@ def main() -> None:
         print('Invalid value for sleep specified.  Must be an integer great than zero')
         sys.exit(-1)
     env.GUT_CONST.set_args(args)
-    logger.debug(f'{__program_name__} {__version__}')
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

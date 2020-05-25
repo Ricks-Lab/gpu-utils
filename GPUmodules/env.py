@@ -110,7 +110,12 @@ class GutConst:
         self.cmd_dpkg = None
         self.cmd_nvidia_smi = None
 
-    def set_args(self, args):
+    def set_args(self, args) -> None:
+        """
+        Set arguments for the give args object.
+
+        :param args: The object return by args parser.
+        """
         # ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
         self.args = args
         for target_arg in self._all_args:
@@ -127,7 +132,7 @@ class GutConst:
                 else: print('Invalid arg: {}'.format(target_arg))
         if not self.DEBUG:
             logger.setLevel(logging.NOTSET)
-        logger.debug(f'Local TZ: {self.LTZ}')
+        logger.debug('Local TZ: %s', self.LTZ)
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
@@ -175,7 +180,7 @@ class GutConst:
         # Check python version
         required_pversion = (3, 6)
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        logger.debug(f'Using python: {python_major}.{python_minor}.{python_patch}')
+        logger.debug('Using python: %s.%s.%s', python_major, python_minor, python_patch)
         if int(python_major) < required_pversion[0]:
             print('Using python {}, but {} requires python {}.{} or higher.'.format(python_major, __program_name__,
                                                                                     required_pversion[0],
@@ -194,7 +199,7 @@ class GutConst:
         # Check Linux Kernel version
         required_kversion = (4, 8)
         linux_version = platform.release()
-        logger.debug(f'Using Linux Kernel: {linux_version}')
+        logger.debug('Using Linux Kernel: %s', linux_version)
         if int(linux_version.split('.')[0]) < required_kversion[0]:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
@@ -213,11 +218,11 @@ class GutConst:
             for lsbr_line in lsbr_out:
                 if re.search('Distributor ID', lsbr_line):
                     lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
-                    logger.debug(f'Using Linux Distro: {lsbr_item}')
+                    logger.debug('Using Linux Distro: %s', lsbr_item)
                     self.distro['Distributor'] = lsbr_item.strip()
                 if re.search('Description', lsbr_line):
                     lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
-                    logger.debug(f'Linux Distro Description: {lsbr_item}')
+                    logger.debug('Linux Distro Description: %s', lsbr_item)
                     self.distro['Description'] = lsbr_item.strip()
 
             if self.distro['Distributor'] and self.DEBUG:
@@ -251,7 +256,7 @@ class GutConst:
                 print('OS command [{}] executable not found.'.format(pkg_tool))
         else:
             self.cmd_dpkg = None
-        logger.debug(f'{self.distro["Distributor"]} package query tool: {self.cmd_dpkg}')
+        logger.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
@@ -297,7 +302,7 @@ class GutConst:
                     if re.search('Searching', dpkg_line):
                         continue
                     if re.search(driverpkg, dpkg_line):
-                        logger.debug(f'{dpkg_line}')
+                        logger.debug(dpkg_line)
                         dpkg_line = re.sub(r'.*\][\s]*', '', dpkg_line)
                         print('AMD: {} version: {}'.format(driverpkg, dpkg_line))
                         return True
@@ -319,7 +324,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 for driverpkg in ['amdgpu', 'rocm']:
                     if re.search(driverpkg, dpkg_line):
-                        logger.debug(f'{dpkg_line}')
+                        logger.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) >= 2:
                             print('AMD: {} version: {}'.format(driverpkg, dpkg_items[1]))
@@ -342,7 +347,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 for driverpkg in ['amdgpu', 'rocm']:
                     if re.search(driverpkg, dpkg_line):
-                        logger.debug(f'{dpkg_line}')
+                        logger.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
