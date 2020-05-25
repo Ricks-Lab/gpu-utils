@@ -47,10 +47,11 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 formatter = logging.Formatter("%(levelname)s:%(name)s:%(message)s")
 logger.setLevel(logging.DEBUG)
 
-stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
@@ -59,9 +60,6 @@ file_handler = logging.FileHandler('debug_out.log', 'w')
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
-
-print('root', logging.getLogger().handlers, logging.getLevelName(logging.getLogger().getEffectiveLevel()))
-print(logger, logger.handlers, logging.getLevelName(logger.getEffectiveLevel()))
 
 
 class ObjDict(dict):
