@@ -132,6 +132,7 @@ class GutConst:
                 else: print('Invalid arg: {}'.format(target_arg))
         if not self.DEBUG:
             logger.setLevel(logging.NOTSET)
+        logger.debug('command line arguments:\n  %s', args)
         logger.debug('Local TZ: %s', self.LTZ)
 
     @staticmethod
