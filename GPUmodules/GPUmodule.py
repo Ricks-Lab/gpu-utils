@@ -1240,6 +1240,10 @@ class GpuList:
                     readable = True
                     if self.amd_writable:
                         writable = True
+                if logger.getEffectiveLevel() == logging.DEBUG:
+                    with open(pp_od_clk_voltage_file, 'r') as fp:
+                        pp_od_file_details = fp.read()
+                    logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
 
             self[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                     card_path, hwmon_path, readable, writable, compute, opencl_device_version)
