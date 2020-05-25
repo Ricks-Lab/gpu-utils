@@ -35,7 +35,7 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-monitor'
-__version__ = 'v3.0.1'
+__version__ = 'v3.1.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
@@ -58,6 +58,7 @@ import argparse
 import subprocess
 import threading
 import os
+import logging
 import sys
 import shlex
 import time
@@ -69,6 +70,7 @@ from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
 set_gtk_prop = GPUgui.set_gtk_prop
+logger = logging.getLogger('gpu-utils')
 
 
 def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
@@ -78,10 +80,8 @@ def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
     :param target_signal: Target signal name
     :param _frame: Ignored
     """
-    if env.GUT_CONST.DEBUG:
-        print('ctrl_c_handler (ID: {}) has been caught. Setting quit flag...'.format(target_signal))
-    else:
-        print('Setting quit flag...')
+    logger.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
+    print('Setting quit flag...')
     MonitorWindow.quit = True
 
 
@@ -103,7 +103,7 @@ class MonitorWindow(Gtk.Window):
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(1)
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
-        if env.GUT_CONST.DEBUG: print('Icon file: [{}]'.format(icon_file))
+        logger.debug('Icon file: [%s]', icon_file)
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -113,6 +113,15 @@ class MonitorWindow(Gtk.Window):
         col = 0
         row = 0
         num_amd_gpus = gpu_list.num_gpus()['total']
+        if env.GUT_CONST.DEBUG:
+            debug_label = Gtk.Label()
+            debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
+            set_gtk_prop(debug_label, color=(1.0, 1.0, 1.0, 1.0))
+            lbox = Gtk.Box(spacing=6)
+            set_gtk_prop(debug_label, bg_color=(0.6, 0.2, 0.2, 1.0), top=1, bottom=1, right=1, left=1)
+            lbox.pack_start(debug_label, True, True, 0)
+            grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
+        row += 1
         if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
@@ -175,7 +184,7 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     """
     # SEMAPHORE ############
     if not UD_SEM.acquire(blocking=False):
-        if env.GUT_CONST.DEBUG: print('Update while updating, skipping new update')
+        logger.debug('Update while updating, skipping new update')
         return
     ########################
     gpu_list.read_gpu_sensor_data(data_type='DynamicM')
@@ -186,10 +195,8 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
         try:
             gpu_list.print_plot(cmd.stdin)
         except (OSError, KeyboardInterrupt) as except_err:
-            if env.GUT_CONST.DEBUG:
-                print('amdgpu-plot has closed: [{}]'.format(except_err))
-            else:
-                print('amdgpu-plot has closed')
+            logger.debug('amdgpu-plot has closed: [%s]', except_err)
+            print('amdgpu-plot has closed')
             env.GUT_CONST.PLOT = False
 
     # update gui
@@ -211,13 +218,13 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     ########################
 
 
-def refresh(refreshtime: int, update_data: Callable, gpu_list: gpu.GpuList, devices: dict,
+def refresh(refreshtime: int, update_data_func: Callable, gpu_list: gpu.GpuList, devices: dict,
             cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
     """
     Method called for monitor refresh.
 
     :param refreshtime:  Amount of seconds to sleep after refresh.
-    :param update_data: Function that does actual data update.
+    :param update_data_func: Function that does actual data update.
     :param gpu_list: A gpuList object with all gpuItems
     :param devices: A dictionary linking Gui items with data.
     :param cmd: Subprocess return from running plot.
@@ -228,7 +235,7 @@ def refresh(refreshtime: int, update_data: Callable, gpu_list: gpu.GpuList, devi
             print('Quitting...')
             Gtk.main_quit()
             sys.exit(0)
-        GLib.idle_add(update_data, gpu_list, devices, cmd)
+        GLib.idle_add(update_data_func, gpu_list, devices, cmd)
         tst = 0.0
         sleep_interval = 0.2
         while tst < refreshtime:
@@ -264,17 +271,11 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.DEBUG = args.debug
-    env.GUT_CONST.PDEBUG = args.pdebug
-    if args.ltz:
-        env.GUT_CONST.USELTZ = True
-    if args.no_fan:
-        env.GUT_CONST.show_fans = False
-    if int(args.sleep) > 0:
-        env.GUT_CONST.SLEEP = int(args.sleep)
-    else:
+    if int(args.sleep) <= 1:
         print('Invalid value for sleep specified.  Must be an integer great than zero')
         sys.exit(-1)
+    env.GUT_CONST.set_args(args)
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
@@ -361,7 +362,9 @@ def main() -> None:
             while True:
                 com_gpu_list.read_gpu_sensor_data(data_type='DynamicM')
                 com_gpu_list.read_gpu_sensor_data(data_type='StateM')
-                if not env.GUT_CONST.DEBUG: os.system('clear')
+                os.system('clear')
+                if env.GUT_CONST.DEBUG:
+                    print('{}DEBUG logger is active{}'.format('\033[31m \033[01m', '\033[0m'))
                 if env.GUT_CONST.LOG:
                     print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)

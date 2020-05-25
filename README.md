@@ -68,10 +68,12 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
 * Fixed a crash in pac when no fan details could be read (laptop GPU).
 * Fixed deprecation warnings for several property setting functions.  Consolidated all
-property setting to a single function in a new module, and ignore warnings fir those that
+property setting to a single function in a new module, and ignore warnings for those that
 are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
 * Implemented a more robust string format of datetime to address datetime conversion for
 pandas in some installations.
+* Implement dubug logging across the project.  Activated with --debug option and output
+saved to a .log file.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!

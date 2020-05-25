@@ -28,7 +28,7 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-ls'
-__version__ = 'v3.0.1'
+__version__ = 'v3.1.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
@@ -37,8 +37,11 @@ __docformat__ = 'reStructuredText'
 
 import argparse
 import sys
+import logging
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
+
+logger = logging.getLogger('gpu-utils')
 
 
 def main() -> None:
@@ -74,9 +77,8 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.DEBUG = args.debug
-    if args.no_fan:
-        env.GUT_CONST.show_fans = False
+    env.GUT_CONST.set_args(args)
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
