@@ -34,12 +34,28 @@ import subprocess
 import platform
 import sys
 import os
+import logging
 from pathlib import Path
 import shlex
 import shutil
 import time
 from datetime import datetime
 from typing import Dict, Union, List
+
+logger = logging.getLogger('gpu-utils')
+logger.propagate = False
+formatter = logging.Formatter("%(levelname)s:%(name)s:%(module)s.%(funcName)s:%(message)s")
+logger.setLevel(logging.DEBUG)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.WARNING)
+logger.addHandler(stream_handler)
+
+file_handler = logging.FileHandler('debug_gpu-utils_{}.log'.format(datetime.now().strftime("%Y%m%d-%H%M%S")), 'w')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
 
 
 class GutConst:
@@ -48,8 +64,10 @@ class GutConst:
     """
     _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
+    _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
 
     def __init__(self):
+        self.args = None
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
         self.repository_path = os.path.join(self.repository_module_path, '..')
         self.dist_share = '/usr/share/ricks-amdgpu-utils/'
@@ -64,21 +82,22 @@ class GutConst:
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.card_root = '/sys/class/drm/'
         self.hwmon_sub = 'hwmon/hwmon'
+        self.amdfeaturemask = ''
+        self.log_file_ptr = ''
+        # From args
         self.execute_pac = False
         self.DEBUG = False
         self.PDEBUG = False
         self.SIMLOG = False
         self.LOG = False
         self.PLOT = False
-        self.log_file_ptr = ''
         self.show_fans = True
         self.write_delta_only = False
         self.SLEEP = 2
-        self.amdfeaturemask = ''
         self.USELTZ = False
+        # Time
         self.TIME_FORMAT = '%d-%b-%Y %H:%M:%S'
         self.LTZ = datetime.utcnow().astimezone().tzinfo
-        if self.DEBUG: print('Local TZ: {}'.format(self.LTZ))
         # GPU platform capability
         self.amd_read = None
         self.amd_write = None
@@ -90,6 +109,25 @@ class GutConst:
         self.cmd_clinfo = None
         self.cmd_dpkg = None
         self.cmd_nvidia_smi = None
+
+    def set_args(self, args):
+        # ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
+        self.args = args
+        for target_arg in self._all_args:
+            if target_arg in self.args:
+                if target_arg == 'debug': self.DEBUG = self.args.debug
+                elif target_arg == 'execute_pac': self.execute_pac = self.args.execute_pac
+                elif target_arg == 'pdebug': self.PDEBUG = self.args.pdebug
+                elif target_arg == 'sleep': self.SLEEP = self.args.sleep
+                elif target_arg == 'no_fan': self.show_fans = not self.args.no_fan
+                elif target_arg == 'ltz': self.USELTZ = self.args.ltz
+                elif target_arg == 'simlog': self.SIMLOG = self.args.simlog
+                elif target_arg == 'log': self.LOG = self.args.log
+                elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
+                else: print('Invalid arg: {}'.format(target_arg))
+        if not self.DEBUG:
+            logger.setLevel(logging.NOTSET)
+        logger.debug(f'Local TZ: {self.LTZ}')
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
@@ -137,7 +175,7 @@ class GutConst:
         # Check python version
         required_pversion = (3, 6)
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        if self.DEBUG: print('Using python: {}.{}.{}'.format(python_major, python_minor, python_patch))
+        logger.debug(f'Using python: {python_major}.{python_minor}.{python_patch}')
         if int(python_major) < required_pversion[0]:
             print('Using python {}, but {} requires python {}.{} or higher.'.format(python_major, __program_name__,
                                                                                     required_pversion[0],
@@ -156,7 +194,7 @@ class GutConst:
         # Check Linux Kernel version
         required_kversion = (4, 8)
         linux_version = platform.release()
-        if self.DEBUG: print('Using Linux Kernel: {}'.format(linux_version))
+        logger.debug(f'Using Linux Kernel: {linux_version}')
         if int(linux_version.split('.')[0]) < required_kversion[0]:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
@@ -175,11 +213,11 @@ class GutConst:
             for lsbr_line in lsbr_out:
                 if re.search('Distributor ID', lsbr_line):
                     lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
-                    if self.DEBUG: print('Linux Distro: {}'.format(lsbr_item))
+                    logger.debug(f'Using Linux Distro: {lsbr_item}')
                     self.distro['Distributor'] = lsbr_item.strip()
                 if re.search('Description', lsbr_line):
                     lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
-                    if self.DEBUG: print('Distro Description: {}'.format(lsbr_item))
+                    logger.debug(f'Linux Distro Description: {lsbr_item}')
                     self.distro['Description'] = lsbr_item.strip()
 
             if self.distro['Distributor'] and self.DEBUG:
@@ -213,7 +251,7 @@ class GutConst:
                 print('OS command [{}] executable not found.'.format(pkg_tool))
         else:
             self.cmd_dpkg = None
-        if self.DEBUG: print('Debug: {} package query tool: {}'.format(self.distro['Distributor'], self.cmd_dpkg))
+        logger.debug(f'{self.distro["Distributor"]} package query tool: {self.cmd_dpkg}')
 
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
         if not self.cmd_nvidia_smi:
@@ -259,7 +297,7 @@ class GutConst:
                     if re.search('Searching', dpkg_line):
                         continue
                     if re.search(driverpkg, dpkg_line):
-                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        logger.debug(f'{dpkg_line}')
                         dpkg_line = re.sub(r'.*\][\s]*', '', dpkg_line)
                         print('AMD: {} version: {}'.format(driverpkg, dpkg_line))
                         return True
@@ -281,7 +319,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 for driverpkg in ['amdgpu', 'rocm']:
                     if re.search(driverpkg, dpkg_line):
-                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        logger.debug(f'{dpkg_line}')
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) >= 2:
                             print('AMD: {} version: {}'.format(driverpkg, dpkg_items[1]))
@@ -304,7 +342,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 for driverpkg in ['amdgpu', 'rocm']:
                     if re.search(driverpkg, dpkg_line):
-                        if self.DEBUG: print('Debug: {}'.format(dpkg_line))
+                        logger.debug(f'{dpkg_line}')
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue

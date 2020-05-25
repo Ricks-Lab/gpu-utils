@@ -54,6 +54,7 @@ import argparse
 import re
 import subprocess
 import os
+import logging
 import sys
 import time
 from uuid import uuid4
@@ -65,6 +66,7 @@ from GPUmodules import env
 MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.set_gtk_prop
+logger = logging.getLogger('gpu-utils')
 
 
 class PACWindow(Gtk.Window):
@@ -1239,14 +1241,8 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.DEBUG = args.debug
-    if args.no_fan:
-        env.GUT_CONST.show_fans = False
-    if args.force_write:
-        env.GUT_CONST.write_delta_only = False
-    else:
-        env.GUT_CONST.write_delta_only = True
-    env.GUT_CONST.execute_pac = args.execute_pac
+    env.GUT_CONST.set_args(args)
+    logger.debug(f'{__program_name__} {__version__}')
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

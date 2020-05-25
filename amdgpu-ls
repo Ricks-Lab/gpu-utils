@@ -37,8 +37,11 @@ __docformat__ = 'reStructuredText'
 
 import argparse
 import sys
+import logging
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
+
+logger = logging.getLogger('gpu-utils')
 
 
 def main() -> None:
@@ -74,10 +77,8 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.DEBUG = args.debug
-
-    if args.no_fan:
-        env.GUT_CONST.show_fans = False
+    env.GUT_CONST.set_args(args)
+    logger.debug(f'{__program_name__} {__version__}')
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
