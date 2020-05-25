@@ -22,7 +22,7 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.0.1'
+__version__ = 'v3.1.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
@@ -316,7 +316,7 @@ class GpuItem:
                     self.prm.sclk_ps[0] = int(sclk_ps[0])
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
-            logger.debug(f'Mask: [{mask}], ps: [{self.prm.sclk_ps[0]}, {self.prm.sclk_ps[1]}]')
+            logger.debug('Mask: [%s], ps: [%s, %s]' % (mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1]))
         elif name == 'mclk_ps':
             mask = ''
             for ps in value:
@@ -330,7 +330,7 @@ class GpuItem:
                     self.prm.mclk_ps[0] = int(mclk_ps[0])
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
-            logger.debug(f'Mask: [{mask}], ps: [{self.prm.mclk_ps[0]}, {self.prm.mclk_ps[1]}]')
+            logger.debug('Mask: [%s], ps: [%s, %s]' % (mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1]))
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
         elif name == 'id':
