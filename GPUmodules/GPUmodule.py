@@ -1232,6 +1232,7 @@ class GpuList:
                 print('More than one hwmon file found: ', hw_file_srch)
             elif len(hw_file_srch) == 1:
                 hwmon_path = hw_file_srch[0]
+                logger.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
 
             # Check AMD write capability
             if vendor == 'AMD':
@@ -1244,6 +1245,7 @@ class GpuList:
                     with open(pp_od_clk_voltage_file, 'r') as fp:
                         pp_od_file_details = fp.read()
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
+                    logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
             self[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                     card_path, hwmon_path, readable, writable, compute, opencl_device_version)
