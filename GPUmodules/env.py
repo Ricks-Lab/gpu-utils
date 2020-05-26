@@ -117,16 +117,15 @@ class GutConst:
                 elif target_arg == 'log': self.LOG = self.args.log
                 elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
                 else: print('Invalid arg: {}'.format(target_arg))
+        logger.propagate = False
+        formatter = logging.Formatter("%(levelname)s:%(name)s:%(module)s.%(funcName)s:%(message)s")
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        stream_handler.setLevel(logging.WARNING)
+        logger.addHandler(stream_handler)
+        logger.setLevel(logging.WARNING)
         if self.DEBUG:
-            logger.propagate = False
-            formatter = logging.Formatter("%(levelname)s:%(name)s:%(module)s.%(funcName)s:%(message)s")
             logger.setLevel(logging.DEBUG)
-
-            stream_handler = logging.StreamHandler()
-            stream_handler.setFormatter(formatter)
-            stream_handler.setLevel(logging.WARNING)
-            logger.addHandler(stream_handler)
-
             file_handler = logging.FileHandler(
                 'debug_gpu-utils_{}.log'.format(datetime.now().strftime("%Y%m%d-%H%M%S")), 'w')
             file_handler.setFormatter(formatter)
