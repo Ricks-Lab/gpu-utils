@@ -698,6 +698,7 @@ class GpuItem:
                         clk_name = ''
                         range_mode = True
                     continue
+                line = re.sub(r'@', ' ', line)
                 lineitems = line.split()
                 lineitems_len = len(lineitems)
                 if type_unknown:

@@ -131,7 +131,7 @@ class GutConst:
             file_handler.setFormatter(formatter)
             file_handler.setLevel(logging.DEBUG)
             logger.addHandler(file_handler)
-        logger.debug('command line arguments:\n  %s', args)
+        logger.debug('Command line arguments:\n  %s', args)
         logger.debug('Local TZ: %s', self.LTZ)
 
     @staticmethod
