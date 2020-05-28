@@ -799,7 +799,7 @@ class PACWindow(Gtk.Window):
             print(' Min: {}'.format(power_cap_range[0]), end='', file=fileptr)
             print(' Max: {}\n'.format(power_cap_range[1]), end='', file=fileptr)
             if new_power_cap == old_power_cap and env.GUT_CONST.write_delta_only:
-                print('# No changes, skipped', file=fileptr)
+                print('# No Powercap changes, skipped', file=fileptr)
             else:
                 if v.is_valid_power_cap(new_power_cap):
                     changed += 1
@@ -816,13 +816,12 @@ class PACWindow(Gtk.Window):
             # Fan PWM
             pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
             pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
-            if v.get_params_value('fan_pwm'):
-                old_pwm = v.get_params_value('fan_pwm')
-                if not isinstance(old_pwm, int):
-                    old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
-            else:
-                old_pwm = None
+            old_pwm = v.get_params_value('fan_pwm')
+            logger.debug('Current pwm value: %s', old_pwm)
+            if not isinstance(old_pwm, int):
+                old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
+            logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
             if new_pwm_str.lower() == 'reset':
                 changed += 1
                 print('# PWM entry: {}, Resetting to default mode of dynamic'.format(new_pwm_str), file=fileptr)
@@ -840,7 +839,12 @@ class PACWindow(Gtk.Window):
                 print(' Min: {}'.format(pwm_range[0]), end='', file=fileptr)
                 print(' Max: {}\n'.format(pwm_range[1]), end='', file=fileptr)
                 if new_pwm == old_pwm and env.GUT_CONST.write_delta_only:
-                    print('# No changes, skipped', file=fileptr)
+                    print('# No PWM changes, skipped', file=fileptr)
+                elif new_pwm == 0 and old_pwm is None:
+                    print('# No PWM changes, None to Zero skipped', file=fileptr)
+                elif new_pwm < 20:
+                    print('# Specified PWM value below min safe limit of 20%, skipped', file=fileptr)
+                    logger.debug('Unsafe PWM value skipped: %s', new_pwm_str)
                 else:
                     if v.is_valid_fan_pwm(new_pwm):
                         changed += 1
@@ -911,7 +915,7 @@ class PACWindow(Gtk.Window):
                     print('# Invalid sclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
-                print('# sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
+                print('# Sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_sclk_pstate(pstate):
                     if v.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
@@ -931,7 +935,7 @@ class PACWindow(Gtk.Window):
                     print('# Invalid mclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
-                print('# mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
+                print('# Mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if v.is_valid_mclk_pstate(pstate):
                     if v.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
@@ -939,7 +943,7 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'m {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
                               file=fileptr)
                     else:
-                        print('# mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
                 else:
                     print('# Invalid mclk curve end point values', file=fileptr)
                     print('Invalid mclk curve end point values')
