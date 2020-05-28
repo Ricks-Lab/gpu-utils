@@ -595,6 +595,7 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
                 except TypeError:
                     devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm')))
+                logger.debug('Refresh got current pwm speed: %s', devices[v.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.sclk_state.items():
