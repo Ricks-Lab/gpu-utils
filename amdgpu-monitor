@@ -161,8 +161,10 @@ class MonitorWindow(Gtk.Window):
             for lv in dv.values():
                 lv.set_text('')
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
+                # set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
+                # set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
+                set_gtk_prop(lbox, bg_color=(0.40, 0.40, 0.45, 1.0), top=1, bottom=1, right=1, left=1)
+                set_gtk_prop(lv, color=(0.95, 0.95, 0.95, 1), top=1, bottom=1, right=3, left=3, width_chars=17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
