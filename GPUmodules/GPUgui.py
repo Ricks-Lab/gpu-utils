@@ -31,6 +31,7 @@ __docformat__ = 'reStructuredText'
 
 from typing import Tuple, Dict, Union
 import sys
+import re
 import warnings
 try:
     import gi
@@ -44,23 +45,35 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
 GTK_Color = Tuple[Union[float, int], ...]
-ColorDict = Dict[str: GTK_Color]
+ColorDict = Dict[str, str]
 
 
 class GuiProps:
-    _colors: ColorDict = {'white': {'gtk': tuple([1.0, 1.0, 1.0, 1.0]), 'hex': '#FFFFFF'},
-                          'gray95': {'gtk': tuple([0.95, 0.95, 0.95, 1.0]), 'hex': '#131313'},
-                          'black': {'gtk': tuple([0.0, 0.0, 0.0, 1.0]),'hex': '#000000'},
-                          'green': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#8EC3A7'},
-                          'red': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#DC5355'},
-                          'orange': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#E86850'},
-                          'yellow': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#FFCC00'},
-                          'blue': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#587498'},
-                          'gray_dk': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#6A686E'},
-                          'slate_lt': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#A0A0AA'},
-                          'slate_md': {'gtk': tuple([0.50, 0.50, 0.55, 1.0]), 'hex': '#80808d'},
-                          'slate_dk': {'gtk': tuple([0.40, 0.40, 0.45, 1.0]), 'hex': '#5D5D67'}
-                          }
+    _colors: ColorDict = {'white':    '#FFFFFF',
+                          'gray95':   '#0D0D0D',
+                          'gray80':   '#333333',
+                          'gray70':   '#4D4D4D',
+                          'gray20':   '#CCCCCC',
+                          'black':    '#000000',
+                          'green':    '#8EC3A7',
+                          'red_old':  '#DC5355',
+                          'red':      '#B73743',
+                          'orange':   '#E86850',
+                          'yellow_old':   '#FFCC00',
+                          'yellow':   '#C9A100',
+                          'blue':     '#587498',
+                          'blue_old': '#336699',
+                          'purple':   '#6264A7',
+                          'gray_dk':  '#6A686E',
+                          'slate_lt': '#A0A0AA',
+                          'slate_md': '#80808d',
+                          'slate_dk': '#5D5D67'}
+
+    @staticmethod
+    def color_name_to_rgba(value: str) -> Tuple[float, ...]:
+        if value not in GuiProps._colors.keys():
+            raise ValueError('Invalid color name {} not in {}'.format(value, GuiProps._colors))
+        return GuiProps.hex_to_rgba(GuiProps._colors[value])
 
     @staticmethod
     def hex_to_rgba(value: str) -> Tuple[float, ...]:
@@ -73,8 +86,8 @@ class GuiProps:
         .. note:: Code copied from Stack Overflow
         """
         value = value.lstrip('#')
-        if len(value) == 3:
-            value = ''.join([v * 2 for v in list(value)])
+        if len(value) != 6:
+            raise ValueError('Invalid hex color format in {}'.format(value))
         (r1, g1, b1, a1) = tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2)) + (1,)
         (r1, g1, b1, a1) = (r1 / 255.00000, g1 / 255.00000, b1 / 255.00000, a1)
         return tuple([r1, g1, b1, a1])
@@ -82,7 +95,7 @@ class GuiProps:
     @staticmethod
     def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None,
                      left: int = None, width: int = None, width_chars: int = None, width_max: int = None,
-                     max_length: int = None, bg_color: GTK_Color = None, color: GTK_Color = None,
+                     max_length: int = None, bg_color: str = None, color: str = None,
                      align: tuple = None, xalign: float = None) -> None:
         """
         Set properties of Gtk objects.
@@ -127,7 +140,15 @@ class GuiProps:
                 gui_item.set_alignment(*align)
             if bg_color:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
-                gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*bg_color))
+                if re.fullmatch(r'^#[0-9a-fA-F]+', bg_color):
+                    gtk_color = GuiProps.hex_to_rgba(bg_color)
+                else:
+                    gtk_color = GuiProps.color_name_to_rgba(bg_color)
+                gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
             if color:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
-                gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*color))
+                if re.fullmatch(r'^#[0-9a-fA-F]+', color):
+                    gtk_color = GuiProps.hex_to_rgba(color)
+                else:
+                    gtk_color = GuiProps.color_name_to_rgba(color)
+                gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))

@@ -69,7 +69,7 @@ from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
-set_gtk_prop = GPUgui.set_gtk_prop
+set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 logger = logging.getLogger('gpu-utils')
 
 
@@ -101,13 +101,13 @@ class MonitorWindow(Gtk.Window):
     def __init__(self, gpu_list, devices):
 
         Gtk.Window.__init__(self, title='amdgpu-monitor')
-        self.set_border_width(1)
+        self.set_border_width(0)
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
         logger.debug('Icon file: [%s]', icon_file)
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        set_gtk_prop(grid, bg_color=(1.0, 1.0, 1.0, 1.0))
+        set_gtk_prop(grid, bg_color='gray80')
         self.add(grid)
 
         col = 0
@@ -116,18 +116,18 @@ class MonitorWindow(Gtk.Window):
         if env.GUT_CONST.DEBUG:
             debug_label = Gtk.Label()
             debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
-            set_gtk_prop(debug_label, color=(1.0, 1.0, 1.0, 1.0))
+            set_gtk_prop(debug_label, color='white')
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(debug_label, bg_color=(0.6, 0.2, 0.2, 1.0), top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(debug_label, bg_color='red', top=1, bottom=1, right=1, left=1)
             lbox.pack_start(debug_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
         if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
-            set_gtk_prop(log_label, color=(1.0, 1.0, 1.0, 1.0))
+            set_gtk_prop(log_label, color='white')
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(log_label, bg_color=(0.6, 0.2, 0.2, 1.0), top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(log_label, bg_color='red', top=1, bottom=1, right=1, left=1)
             lbox.pack_start(log_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
@@ -136,14 +136,14 @@ class MonitorWindow(Gtk.Window):
         row = row_start
         row_labels = {'card_num': Gtk.Label()}
         row_labels['card_num'].set_markup('<b>Card #</b>')
-        set_gtk_prop(row_labels['card_num'], color=(1.0, 1.0, 1.0, 1.0))
+        set_gtk_prop(row_labels['card_num'], color='white')
         for k, v in gpu_list.table_param_labels().items():
             row_labels[k] = Gtk.Label()
             row_labels[k].set_markup('<b>{}</b>'.format(v))
-            set_gtk_prop(row_labels[k], color=(1.0, 1.0, 1.0, 1.0))
+            set_gtk_prop(row_labels[k], color='white')
         for v in row_labels.values():
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color=(0.2, 0.4, 0.6, 1.0), top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
             set_gtk_prop(v, top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
@@ -163,8 +163,8 @@ class MonitorWindow(Gtk.Window):
                 lbox = Gtk.Box(spacing=6)
                 # set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 # set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
-                set_gtk_prop(lbox, bg_color=(0.40, 0.40, 0.45, 1.0), top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(lv, color=(0.95, 0.95, 0.95, 1), top=1, bottom=1, right=3, left=3, width_chars=17)
+                set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                set_gtk_prop(lv, color='white', top=1, bottom=1, right=3, left=3, width_chars=17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
