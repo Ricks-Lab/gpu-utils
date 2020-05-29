@@ -116,7 +116,7 @@ class MonitorWindow(Gtk.Window):
         if env.GUT_CONST.DEBUG:
             debug_label = Gtk.Label()
             debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
-            set_gtk_prop(debug_label, color='white')
+            set_gtk_prop(debug_label, color='white_off')
             lbox = Gtk.Box(spacing=6)
             set_gtk_prop(debug_label, bg_color='red', top=1, bottom=1, right=1, left=1)
             lbox.pack_start(debug_label, True, True, 0)
@@ -125,7 +125,7 @@ class MonitorWindow(Gtk.Window):
         if env.GUT_CONST.LOG:
             log_label = Gtk.Label()
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
-            set_gtk_prop(log_label, color='white')
+            set_gtk_prop(log_label, color='white_off')
             lbox = Gtk.Box(spacing=6)
             set_gtk_prop(log_label, bg_color='red', top=1, bottom=1, right=1, left=1)
             lbox.pack_start(log_label, True, True, 0)
@@ -136,11 +136,11 @@ class MonitorWindow(Gtk.Window):
         row = row_start
         row_labels = {'card_num': Gtk.Label()}
         row_labels['card_num'].set_markup('<b>Card #</b>')
-        set_gtk_prop(row_labels['card_num'], color='white')
+        set_gtk_prop(row_labels['card_num'], color='white_off')
         for k, v in gpu_list.table_param_labels().items():
             row_labels[k] = Gtk.Label()
             row_labels[k].set_markup('<b>{}</b>'.format(v))
-            set_gtk_prop(row_labels[k], color='white')
+            set_gtk_prop(row_labels[k], color='white_off')
         for v in row_labels.values():
             lbox = Gtk.Box(spacing=6)
             set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
@@ -164,7 +164,7 @@ class MonitorWindow(Gtk.Window):
                 # set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
                 # set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
                 set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(lv, color='white', top=1, bottom=1, right=3, left=3, width_chars=17)
+                set_gtk_prop(lv, color='white_off', top=1, bottom=1, right=3, left=3, width_chars=17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1

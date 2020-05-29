@@ -49,25 +49,26 @@ ColorDict = Dict[str, str]
 
 
 class GuiProps:
-    _colors: ColorDict = {'white':    '#FFFFFF',
-                          'gray95':   '#0D0D0D',
-                          'gray80':   '#333333',
-                          'gray70':   '#4D4D4D',
-                          'gray20':   '#CCCCCC',
-                          'black':    '#000000',
-                          'green':    '#8EC3A7',
-                          'red_old':  '#DC5355',
-                          'red':      '#B73743',
-                          'orange':   '#E86850',
-                          'yellow_old':   '#FFCC00',
-                          'yellow':   '#C9A100',
-                          'blue':     '#587498',
-                          'blue_old': '#336699',
-                          'purple':   '#6264A7',
-                          'gray_dk':  '#6A686E',
-                          'slate_lt': '#A0A0AA',
-                          'slate_md': '#80808d',
-                          'slate_dk': '#5D5D67'}
+    _colors: ColorDict = {'white':     '#FFFFFF',
+                          'white_off': '#FDFDFD',
+                          'cream':     '#FFFDD1',
+                          'gray95':    '#0D0D0D',
+                          'gray80':    '#333333',
+                          'gray70':    '#4D4D4D',
+                          'gray20':    '#CCCCCC',
+                          'black':     '#000000',
+                          'green':     '#8EC3A7',
+                          'red_old':   '#DC5355',
+                          'red':       '#B73743',
+                          'orange':    '#E86850',
+                          'yellow':    '#C9A100',
+                          'blue':      '#587498',
+                          'blue_old':  '#336699',
+                          'purple':    '#6264A7',
+                          'gray_dk':   '#6A686E',
+                          'slate_lt':  '#A0A0AA',
+                          'slate_md':  '#80808d',
+                          'slate_dk':  '#5D5D67'}
 
     @staticmethod
     def color_name_to_rgba(value: str) -> Tuple[float, ...]:
