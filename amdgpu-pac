@@ -448,7 +448,7 @@ class PACWindow(Gtk.Window):
 
             devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(
                 devices[v.prm.uuid]['ppm_modes'])
-            set_gtk_prop(devices[v.prm.uuid]['ppm_modes_combo'], bg_color='green', color='black')
+            set_gtk_prop(devices[v.prm.uuid]['ppm_modes_combo'].get_child(), bg_color='green', color='black')
             devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
             devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
             lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
