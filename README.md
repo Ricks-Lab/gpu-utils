@@ -62,6 +62,8 @@ fan details from the utility. The *--force_write* option can be used to force al
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
 ## New in Development on Master  -  v3.1.0
+* Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
+read from the GPU.
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
 * Modified setup to indicate minimum instead of absolute package versions (@smoe).
 * Modified venv requirements to include min/max package versions for major packages.
@@ -74,6 +76,7 @@ are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
 pandas in some installations.
 * Implement dubug logging across the project.  Activated with --debug option and output
 saved to a .log file.
+* Updated color scheme of Gtk applications to work in Ubuntu 20.04.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
