@@ -32,6 +32,7 @@ __docformat__ = 'reStructuredText'
 from typing import Tuple, Dict, Union
 import sys
 import re
+import logging
 import warnings
 try:
     import gi
@@ -46,6 +47,8 @@ from gi.repository import Gtk, Gdk
 
 GTK_Color = Tuple[Union[float, int], ...]
 ColorDict = Dict[str, str]
+
+logger = logging.getLogger('gpu-utils')
 
 
 class GuiProps:
@@ -141,15 +144,42 @@ class GuiProps:
                 gui_item.set_alignment(*align)
             if bg_color:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
-                if re.fullmatch(r'^#[0-9a-fA-F]+', bg_color):
+                if re.fullmatch(r'^#[0-9a-fA-F]{6}', bg_color):
                     gtk_color = GuiProps.hex_to_rgba(bg_color)
+                    bg_color_hex = bg_color
                 else:
                     gtk_color = GuiProps.color_name_to_rgba(bg_color)
-                gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
+                    bg_color_hex = GuiProps._colors[bg_color]
+                #gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
+                css_label = "label { background-color: %s}" % bg_color_hex
+                GuiProps.set_style(css_label, widget=gui_item)
             if color:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
-                if re.fullmatch(r'^#[0-9a-fA-F]+', color):
+                if re.fullmatch(r'^#[0-9a-fA-F]{6}', color):
                     gtk_color = GuiProps.hex_to_rgba(color)
+                    color_hex = color
                 else:
                     gtk_color = GuiProps.color_name_to_rgba(color)
-                gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
+                    color_hex = GuiProps._colors[color]
+                #gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
+                css_label = "label { color: %s}" % color_hex
+                GuiProps.set_style(css_label, widget=gui_item)
+
+    @classmethod
+    def set_style(cls, css_str, widget=None):
+        #css_entry = "entry { background-color: %s; color: %s; entry::selection {color: %s; background: %s;}}" % (
+            ##cls._colors['green'], cls._colors['black'], cls._colors['black'], cls._colors['yellow'])
+        #css_entry = "entry { background: %s; color: %s; }" % (cls._colors['green'], cls._colors['black'])
+        #css_label = "label { background-color: %s; color: %s}" % (cls._colors['green'], cls._colors['black'])
+        #css_str = css_entry
+        screen = Gdk.Screen.get_default()
+        logger.info('css %s'% css_str)
+        print('css %s', css_str)
+        css = css_str.encode('utf-8')
+
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        #style_context = Gtk.StyleContext()
+        style_context = widget.get_style_context()
+        style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
