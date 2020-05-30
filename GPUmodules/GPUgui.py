@@ -146,40 +146,37 @@ class GuiProps:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
                 if re.fullmatch(r'^#[0-9a-fA-F]{6}', bg_color):
                     gtk_color = GuiProps.hex_to_rgba(bg_color)
-                    bg_color_hex = bg_color
                 else:
                     gtk_color = GuiProps.color_name_to_rgba(bg_color)
-                    bg_color_hex = GuiProps._colors[bg_color]
-                #gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
-                css_label = "label { background-color: %s}" % bg_color_hex
-                GuiProps.set_style(css_label, widget=gui_item)
+                gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
             if color:
                 # FIXME - This is deprecated in latest Gtk, need to use css.
                 if re.fullmatch(r'^#[0-9a-fA-F]{6}', color):
                     gtk_color = GuiProps.hex_to_rgba(color)
-                    color_hex = color
                 else:
                     gtk_color = GuiProps.color_name_to_rgba(color)
-                    color_hex = GuiProps._colors[color]
-                #gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
-                css_label = "label { color: %s}" % color_hex
-                GuiProps.set_style(css_label, widget=gui_item)
+                gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
 
     @classmethod
-    def set_style(cls, css_str, widget=None):
+    def set_style(cls, css_str=None, widget=None):
+        css_list = []
+        css_list.append("button { background-image: image(%s); color: %s; }" % (cls._colors['slate_lt'], cls._colors['black']))
+        css_list.append("entry { background-image: image(%s); color: %s; }" % (cls._colors['green'], cls._colors['black']))
+        css_list.append("entry:selected { background-color: %s; color: %s; }" % (cls._colors['yellow'], cls._colors['white']))
         #css_entry = "entry { background-color: %s; color: %s; entry::selection {color: %s; background: %s;}}" % (
             ##cls._colors['green'], cls._colors['black'], cls._colors['black'], cls._colors['yellow'])
-        #css_entry = "entry { background: %s; color: %s; }" % (cls._colors['green'], cls._colors['black'])
+        #css_list.append("entry:hover { background-color: %s; color: %s; }" % (cls._colors['yellow'], cls._colors['white']))
         #css_label = "label { background-color: %s; color: %s}" % (cls._colors['green'], cls._colors['black'])
-        #css_str = css_entry
         screen = Gdk.Screen.get_default()
-        logger.info('css %s'% css_str)
-        print('css %s', css_str)
-        css = css_str.encode('utf-8')
+        logger.info('css %s', css_str)
+        #print('css %s' % css_str)
 
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css)
-        #style_context = Gtk.StyleContext()
-        style_context = widget.get_style_context()
-        style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        for css_str in css_list:
+            provider = Gtk.CssProvider()
+            css = css_str.encode('utf-8')
+            provider.load_from_data(css)
+            style_context = Gtk.StyleContext()
+            #style_context = widget.get_style_context()
+            style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 
