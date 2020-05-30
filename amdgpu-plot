@@ -291,13 +291,13 @@ class GPUPlotWindow(Gtk.Window):
             but_color = gc.colors[k]
             but_font_color = gc.font_colors[k]
             gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
+            gc.gui_components['legend']['buttons'][k].set_name(but_color[1:])
+            GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
+                but_color[1:], but_color, but_font_color), widget=gc.gui_components['legend']['buttons'][k])
             for child in gc.gui_components['legend']['buttons'][k].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(k))
                 child.set_use_markup(True)
-                set_gtk_prop(child, bg_color=but_color, color=but_font_color)
             gc.gui_components['legend']['buttons'][k].connect('clicked', self.toggle_plot_item, gc, k)
-            set_gtk_prop(gc.gui_components['legend']['buttons'][k], bg_color=but_color, color=but_font_color,
-                         top=1, bottom=1, right=1, left=1, width=90)
             lbox.pack_start(gc.gui_components['legend']['buttons'][k], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1

@@ -158,25 +158,37 @@ class GuiProps:
                 gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
 
     @classmethod
-    def set_style(cls, css_str=None, widget=None):
+    def set_style(cls, css_str=None, widget=None, name=None) -> None:
+        """
+        Set css for widgets.
+
+        :param css_str:
+        :param widget:
+        :param name:
+        :return:
+        """
         css_list = []
-        css_list.append("button { background-image: image(%s); color: %s; }" % (cls._colors['slate_lt'], cls._colors['black']))
-        css_list.append("entry { background-image: image(%s); color: %s; }" % (cls._colors['green'], cls._colors['black']))
-        css_list.append("entry:selected { background-color: %s; color: %s; }" % (cls._colors['yellow'], cls._colors['white']))
-        #css_entry = "entry { background-color: %s; color: %s; entry::selection {color: %s; background: %s;}}" % (
-            ##cls._colors['green'], cls._colors['black'], cls._colors['black'], cls._colors['yellow'])
-        #css_list.append("entry:hover { background-color: %s; color: %s; }" % (cls._colors['yellow'], cls._colors['white']))
-        #css_label = "label { background-color: %s; color: %s}" % (cls._colors['green'], cls._colors['black'])
+        if css_str is None:
+            css_list.append("button { background-image: image(%s); color: %s; }" %
+                            (cls._colors['slate_lt'], cls._colors['black']))
+            css_list.append("entry { background-image: image(%s); color: %s; }" %
+                            (cls._colors['green'], cls._colors['black']))
+            css_list.append("entry:selected { background-color: %s; color: %s; }" %
+                            (cls._colors['yellow'], cls._colors['white']))
+        else:
+            css_list.append(css_str)
+        logger.info('css %s', css_list)
+
         screen = Gdk.Screen.get_default()
-        logger.info('css %s', css_str)
-        #print('css %s' % css_str)
 
         for css_str in css_list:
             provider = Gtk.CssProvider()
             css = css_str.encode('utf-8')
             provider.load_from_data(css)
-            style_context = Gtk.StyleContext()
-            #style_context = widget.get_style_context()
-            style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            style_context = widget.get_style_context() if widget else Gtk.StyleContext()
 
+            if widget:
+                style_context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            else:
+                style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
