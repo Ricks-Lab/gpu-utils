@@ -75,15 +75,13 @@ class PACWindow(Gtk.Window):
     """
     def __init__(self, gpu_list, devices):
         Gtk.Window.__init__(self, title=__program_name__)
-        #cur_scr = Gdk.Screen.get_default()
-        GPUgui.GuiProps.set_style()
+        #GPUgui.GuiProps.set_style()
         self.set_border_width(0)
 
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        set_gtk_prop(grid, bg_color='gray80')
         self.add(grid)
 
         num_com_gpus = gpu_list.num_gpus()['total']
@@ -93,23 +91,26 @@ class PACWindow(Gtk.Window):
             row = 0
             # Card Number in top center of box
             devices[v.prm.uuid] = {'card_num':  Gtk.Label()}
+            devices[v.prm.uuid]['card_num'].set_name('white_label')
             devices[v.prm.uuid]['card_num'].set_markup('<big><b>Card {}:  </b>{}</big>'.format(
                 v.get_params_value(str('card_num')), v.get_params_value('model_display')))
-            set_gtk_prop(devices[v.prm.uuid]['card_num'], align=(0.5, 0.5),
-                         color='white_off', top=1, bottom=1, right=4, left=4)
+            set_gtk_prop(devices[v.prm.uuid]['card_num'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('head_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['card_num'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Card Path
             devices[v.prm.uuid]['card_path'] = Gtk.Label()
+            devices[v.prm.uuid]['card_path'].set_name('white_label')
             devices[v.prm.uuid]['card_path'].set_markup('<b>Device: </b>{}'.format(v.get_params_value('card_path')))
-            set_gtk_prop(devices[v.prm.uuid]['card_path'], align=(0.0, 0.5), color='white_off',
-                         top=1, bottom=1, right=4, left=4, width=MAX_CHAR*CHAR_WIDTH)
+            set_gtk_prop(devices[v.prm.uuid]['card_path'], align=(0.0, 0.5), top=1, bottom=1,
+                         right=4, left=4, width=MAX_CHAR*CHAR_WIDTH)
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('dark_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['card_path'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
@@ -117,28 +118,31 @@ class PACWindow(Gtk.Window):
             # Card Power Cap
             power_cap_range = v.get_params_value('power_cap_range')
             devices[v.prm.uuid]['power_cap'] = Gtk.Label()
+            devices[v.prm.uuid]['power_cap'].set_name('white_label')
             devices[v.prm.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
                                                         power_cap_range[0], power_cap_range[1]))
-            set_gtk_prop(devices[v.prm.uuid]['power_cap'], color='white_off', align=(0.0, 0.5),
-                         top=1, bottom=1, right=2, left=2)
+            set_gtk_prop(devices[v.prm.uuid]['power_cap'], align=(0.0, 0.5), top=1, bottom=1, right=2, left=2)
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('dark_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['power_cap'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
 
             # Card Power Cap Value and Entry
             devices[v.prm.uuid]['power_cap_cur'] = Gtk.Label()
-            set_gtk_prop(devices[v.prm.uuid]['power_cap_cur'], color='white_off', top=1, bottom=1, right=2, left=2)
+            devices[v.prm.uuid]['power_cap_cur'].set_name('white_label')
+            set_gtk_prop(devices[v.prm.uuid]['power_cap_cur'], top=1, bottom=1, right=2, left=2)
             devices[v.prm.uuid]['power_cap_ent'] = Gtk.Entry()
             set_gtk_prop(devices[v.prm.uuid]['power_cap_ent'], top=1, bottom=1, right=0, left=2, xalign=1,
-                         width_chars=5, max_length=5, color='black')
+                         width_chars=5, max_length=5)
             devices[v.prm.uuid]['power_cap_ent_unit'] = Gtk.Label()
+            devices[v.prm.uuid]['power_cap_ent_unit'].set_name('white_label')
             devices[v.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
-            set_gtk_prop(devices[v.prm.uuid]['power_cap_ent_unit'], color='white_off',
-                         top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
+            set_gtk_prop(devices[v.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
             lbox = Gtk.Box(spacing=2)
-            set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('med_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['power_cap_cur'], False, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['power_cap_ent'], False, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['power_cap_ent_unit'], False, False, 0)
@@ -149,28 +153,32 @@ class PACWindow(Gtk.Window):
                 # Fan PWM Value
                 fan_pwm_range = v.get_params_value('fan_pwm_range')
                 devices[v.prm.uuid]['fan_pwm_range'] = Gtk.Label()
+                devices[v.prm.uuid]['fan_pwm_range'].set_name('white_label')
                 devices[v.prm.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
                                                                 fan_pwm_range[0], fan_pwm_range[1]))
-                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_range'], color='white_off',
-                             top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
                 # Card Fan PWM Value and Entry
                 devices[v.prm.uuid]['fan_pwm_cur'] = Gtk.Label()
-                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_cur'], color='white_off', top=1, bottom=1, right=2, left=2)
+                devices[v.prm.uuid]['fan_pwm_cur'].set_name('white_label')
+                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['fan_pwm_ent'] = Gtk.Entry()
                 set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent'], top=1, bottom=1, right=0, left=2,
-                             width_chars=5, max_length=5, xalign=1, color='black')
+                             width_chars=5, max_length=5, xalign=1)
                 devices[v.prm.uuid]['fan_pwm_ent_unit'] = Gtk.Label()
+                devices[v.prm.uuid]['fan_pwm_ent_unit'].set_name('white_label')
                 devices[v.prm.uuid]['fan_pwm_ent_unit'].set_text('%   (value, \'reset\', or \'max\')')
-                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent_unit'], color='white_off',
-                             top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['fan_pwm_ent_unit'], top=1, bottom=1,
+                             right=0, left=0, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=2)
-                set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('med_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_ent'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['fan_pwm_ent_unit'], False, False, 0)
@@ -180,15 +188,17 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1:
                 # Sclk P-States
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_range'].set_name('white_label')
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                              v.get_params_value('sclk_f_range')[0],
                                                              v.get_params_value('sclk_f_range')[1],
                                                              v.get_params_value('vddc_range')[0],
                                                              v.get_params_value('vddc_range')[1]))
-                set_gtk_prop(devices[v.prm.uuid]['sclk_range'], color='white_off',
+                set_gtk_prop(devices[v.prm.uuid]['sclk_range'],
                              top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -203,19 +213,21 @@ class PACWindow(Gtk.Window):
                                  top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
-                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'], color='white_off',
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_name('white_label')
+                    set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'],
                                  top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
 
                     lbox = Gtk.Box(spacing=6)
-                    set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                    lbox.set_name('med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
@@ -227,13 +239,14 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value('gpu_type') == 2:
                 # Sclk Curve End Points
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['sclk_range'].set_name('white_label')
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
                     v.get_params_value('sclk_f_range')[0],
                     v.get_params_value('sclk_f_range')[1]))
-                set_gtk_prop(devices[v.prm.uuid]['sclk_range'], color='white_off',
-                             top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['sclk_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -244,16 +257,19 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
-                                 color='white_off', top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     lbox = Gtk.Box(spacing=6)
-                    set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                    lbox.set_name('med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
@@ -263,13 +279,14 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
                 # SCLK P-State Mask
                 devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label()
-                set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_cur'], color='white_off',
-                             top=1, bottom=1, right=2, left=2)
+                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_name('white_label')
+                set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['sclk_pst_mask_ent'] = Gtk.Entry()
                 set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_ent'], width_chars=17, max_length=17,
-                             color='black', xalign=0, top=1, bottom=1, right=0, left=1)
+                             xalign=0, top=1, bottom=1, right=0, left=1)
                 lbox = Gtk.Box(spacing=2)
-                set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('med_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['sclk_pst_mask_ent'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -278,15 +295,16 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1:
                 # Mclk P-States
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_range'].set_name('white_label')
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                              v.get_params_value('mclk_f_range')[0],
                                                              v.get_params_value('mclk_f_range')[1],
                                                              v.get_params_value('vddc_range')[0],
                                                              v.get_params_value('vddc_range')[1]))
-                set_gtk_prop(devices[v.prm.uuid]['mclk_range'], color='white_off',
-                             top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['mclk_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -297,23 +315,27 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
-                                 color='white_off', top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
 
                     lbox = Gtk.Box(spacing=6)
-                    set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                    lbox.set_name('med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
@@ -325,13 +347,14 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value('gpu_type') == 2:
                 # Mclk Curve End points
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label()
+                devices[v.prm.uuid]['mclk_range'].set_name('white_label')
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk Curve End Points: </b> Ranges {}-{} '.format(
                                                              v.get_params_value('mclk_f_range')[0],
                                                              v.get_params_value('mclk_f_range')[1]))
-                set_gtk_prop(devices[v.prm.uuid]['mclk_range'], color='white_off',
-                             top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['mclk_range'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_range'], True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -342,16 +365,19 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], width_chars=20,
-                                 color='white_off', top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], width_chars=5, max_length=5,
-                                 xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     lbox = Gtk.Box(spacing=6)
-                    set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                    lbox.set_name('med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
@@ -361,13 +387,14 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
                 # MCLK P-State Mask
                 devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label()
-                set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_cur'], color='white_off',
-                             top=1, bottom=1, right=2, left=2)
+                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_name('white_label')
+                set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
                 devices[v.prm.uuid]['mclk_pst_mask_ent'] = Gtk.Entry()
                 set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_ent'], width_chars=17, max_length=17,
-                             xalign=0, top=1, bottom=1, right=0, left=1, color='black')
+                             xalign=0, top=1, bottom=1, right=0, left=1)
                 lbox = Gtk.Box(spacing=2)
-                set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('med_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_cur'], False, False, 0)
                 lbox.pack_start(devices[v.prm.uuid]['mclk_pst_mask_ent'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
@@ -376,15 +403,17 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 2:
                 # VDDC Curve Points
                 devices[v.prm.uuid]['vddc_curve_range'] = Gtk.Label()
+                devices[v.prm.uuid]['vddc_curve_range'].set_name('white_label')
                 devices[v.prm.uuid]['vddc_curve_range'].set_markup(
                     '<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(v.vddc_curve_range['0']['SCLK'][0],
                                                                              v.vddc_curve_range['0']['SCLK'][1],
                                                                              v.vddc_curve_range['0']['VOLT'][0],
                                                                              v.vddc_curve_range['0']['VOLT'][1]))
-                set_gtk_prop(devices[v.prm.uuid]['vddc_curve_range'],
-                             color='white_off', top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                set_gtk_prop(devices[v.prm.uuid]['vddc_curve_range'], top=1, bottom=1,
+                             right=2, left=2, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6)
-                set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+                lbox.set_name('dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 lbox.pack_start(devices[v.prm.uuid]['vddc_curve_range'], False, False, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -395,22 +424,26 @@ class PACWindow(Gtk.Window):
                     devices[v.prm.uuid]['vddc_curve_pt'][ps] = {}
 
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], width_chars=20,
-                                 color='white_off', top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], width_chars=5,
-                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'] = Gtk.Entry()
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'], width_chars=5,
-                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0, color='black')
+                                 max_length=5, xalign=1, top=1, bottom=1, right=0, left=0)
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'] = Gtk.Label()
+                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_name('white_label')
                     set_gtk_prop(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'],
-                                 color='white_off', top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
+                                 top=1, bottom=1, right=4, left=0, align=(0.0, 0.5))
                     lbox = Gtk.Box(spacing=6)
-                    set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+                    lbox.set_name('med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'], False, False, 0)
                     lbox.pack_start(devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'], False, False, 0)
@@ -420,13 +453,13 @@ class PACWindow(Gtk.Window):
                     row += 1
 
             # Power Performance Mode Selection
-            devices[v.prm.uuid]['ppm'] = Gtk.Label()
+            devices[v.prm.uuid]['ppm'] = Gtk.Label(name='white_label')
             devices[v.prm.uuid]['ppm'].set_markup('<b>Power Performance Modes:</b>')
-            set_gtk_prop(devices[v.prm.uuid]['ppm'], color='white_off',
-                         top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
+            set_gtk_prop(devices[v.prm.uuid]['ppm'], top=1, bottom=1, right=2, left=2, align=(0.0, 0.5))
 
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('dark_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['ppm'], True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
@@ -444,11 +477,12 @@ class PACWindow(Gtk.Window):
                 item_num += 1
 
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('med_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
 
             devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(
                 devices[v.prm.uuid]['ppm_modes'])
-            set_gtk_prop(devices[v.prm.uuid]['ppm_modes_combo'].get_child(), bg_color='green', color='black')
+            devices[v.prm.uuid]['ppm_modes_combo'].get_child().set_name('ppm_combo')
             devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
             devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
             lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
@@ -471,7 +505,8 @@ class PACWindow(Gtk.Window):
             set_gtk_prop(devices[v.prm.uuid]['reset_button'], width=90)
 
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='gray80', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('button_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[v.prm.uuid]['save_button'], True, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['reset_button'], True, False, 0)
             grid.attach(lbox, col, row, 1, 1)
@@ -510,7 +545,8 @@ class PACWindow(Gtk.Window):
             set_gtk_prop(devices['all_buttons']['refresh_all_button'], width=100)
 
             lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='gray80', top=1, bottom=1, right=1, left=1)
+            lbox.set_name('button_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices['all_buttons']['save_all_button'], True, False, 0)
             lbox.pack_start(devices['all_buttons']['reset_all_button'], True, False, 0)
             lbox.pack_start(devices['all_buttons']['refresh_all_button'], True, False, 0)
@@ -520,17 +556,20 @@ class PACWindow(Gtk.Window):
 
         # Initialize message box
         devices['message_label'] = Gtk.Label()
+        devices['message_label'].set_name('message_label')
         devices['message_label'].set_line_wrap(True)
-        set_gtk_prop(devices['message_label'], color='white_off', width_max=num_com_gpus * MAX_CHAR,
+        set_gtk_prop(devices['message_label'], width_max=num_com_gpus * MAX_CHAR,
                      align=(0.0, 0.5), width=num_com_gpus * MAX_CHAR * CHAR_WIDTH)
         devices['message_label'].set_line_wrap(True)
 
         devices['message_box'] = Gtk.Box(spacing=6)
-        set_gtk_prop(devices['message_box'], bg_color='gray80', top=1, bottom=1, right=1, left=1)
+        devices['message_box'].set_name('message_box')
+        set_gtk_prop(devices['message_box'], top=1, bottom=1, right=1, left=1)
         devices['message_box'].pack_start(devices['message_label'], True, True, 1)
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
+        GPUgui.GuiProps.set_style()
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
 
@@ -553,17 +592,25 @@ class PACWindow(Gtk.Window):
                            'file with sudo to execute changes.')
 
         if color == 'red':
-            set_gtk_prop(devices['message_box'], bg_color='red')
-            set_gtk_prop(devices['message_label'], color='white')
+            GPUgui.GuiProps.set_style(css_str="#message_label { color: %s; }" %
+                                      GPUgui.GuiProps._colors['white_off'])
+            GPUgui.GuiProps.set_style(css_str="#message_box { background-image: image(%s); }" %
+                                      GPUgui.GuiProps._colors['red'])
         elif color == 'yellow':
-            set_gtk_prop(devices['message_box'], bg_color='yellow')
-            set_gtk_prop(devices['message_label'], color='white')
+            GPUgui.GuiProps.set_style(css_str="#message_label { color: %s; }" %
+                                      GPUgui.GuiProps._colors['white_off'])
+            GPUgui.GuiProps.set_style(css_str="#message_box { background-image: image(%s); }" %
+                                      GPUgui.GuiProps._colors['yellow'])
         elif color == 'white':
-            set_gtk_prop(devices['message_box'], bg_color='gray20')
-            set_gtk_prop(devices['message_label'], color='black')
+            GPUgui.GuiProps.set_style(css_str="#message_label { color: %s; }" %
+                                      GPUgui.GuiProps._colors['black'])
+            GPUgui.GuiProps.set_style(css_str="#message_box { background-image: image(%s); }" %
+                                      GPUgui.GuiProps._colors['gray20'])
         else:
-            set_gtk_prop(devices['message_box'], bg_color='gray70')
-            set_gtk_prop(devices['message_label'], color='white')
+            GPUgui.GuiProps.set_style(css_str="#message_label { color: %s; }" %
+                                      GPUgui.GuiProps._colors['white_off'])
+            GPUgui.GuiProps.set_style(css_str="#message_box { background-image: image(%s); }" %
+                                      GPUgui.GuiProps._colors['gray70'])
         devices['message_label'].set_text(message)
 
         while Gtk.events_pending():

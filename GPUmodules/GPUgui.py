@@ -169,11 +169,24 @@ class GuiProps:
         """
         css_list = []
         if css_str is None:
+            # Initialize formatting colors.
+            css_list.append("grid { background-image: image(%s); }" % cls._colors['gray80'])
+            css_list.append("#dark_box { background-image: image(%s); }" % cls._colors['slate_dk'])
+            css_list.append("#med_box { background-image: image(%s); }" % cls._colors['slate_md'])
+            css_list.append("#head_box { background-image: image(%s); }" % cls._colors['blue'])
+            css_list.append("#button_box { background-image: image(%s); }" % cls._colors['gray80'])
+            css_list.append("#message_box { background-image: image(%s); }" % cls._colors['gray70'])
+            css_list.append("#message_label { color: %s; }" % cls._colors['white_off'])
+            css_list.append("#white_label { color: %s; }" % cls._colors['white_off'])
+            css_list.append("#black_label { color: %s; }" % cls._colors['gray95'])
+            css_list.append("#ppm_combo { background-image: image(%s); color: %s; }" %
+                            (cls._colors['green'], cls._colors['black']))
             css_list.append("button { background-image: image(%s); color: %s; }" %
                             (cls._colors['slate_lt'], cls._colors['black']))
             css_list.append("entry { background-image: image(%s); color: %s; }" %
-                            (cls._colors['green'], cls._colors['black']))
-            css_list.append("entry:selected { background-color: %s; color: %s; }" %
+                            (cls._colors['green'], cls._colors['gray95']))
+            # Below format does not work.
+            css_list.append("entry:selected { background-image: image(%s); color: %s; }" %
                             (cls._colors['yellow'], cls._colors['white']))
         else:
             css_list.append(css_str)
