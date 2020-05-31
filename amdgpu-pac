@@ -41,7 +41,7 @@ __docformat__ = 'reStructuredText'
 try:
     import gi
     gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk, Gdk
+    from gi.repository import Gtk
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
     print('gi is required for {}'.format(__program_name__))
@@ -189,7 +189,7 @@ class PACWindow(Gtk.Window):
 
                 # Sclk P-State Values and Entry
                 devices[v.prm.uuid]['sclk_pstate'] = {}
-                for ps, psd in v.sclk_state.items():
+                for ps in v.sclk_state.keys():
                     devices[v.prm.uuid]['sclk_pstate'][ps] = {}
 
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label(name='white_label')
@@ -522,7 +522,6 @@ class PACWindow(Gtk.Window):
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
-        #GPUgui.GuiProps.set_style()
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
 
@@ -563,7 +562,7 @@ class PACWindow(Gtk.Window):
             GPUgui.GuiProps.set_style(css_str="#message_label { color: %s; }" %
                                               GPUgui.GuiProps.color_name_to_hex('white_off'))
             GPUgui.GuiProps.set_style(css_str="#message_box { background-image: image(%s); }" %
-                                              GPUgui.GuiProps.color_name_to_hex('gray70'))
+                                              GPUgui.GuiProps.color_name_to_hex('gray50'))
         devices['message_label'].set_text(message)
 
         while Gtk.events_pending():

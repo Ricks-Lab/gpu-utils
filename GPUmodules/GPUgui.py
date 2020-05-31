@@ -29,9 +29,8 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: bad-continuation
 
-from typing import Tuple, Dict, Union
+from typing import Tuple, Dict
 import sys
-import re
 import logging
 import warnings
 try:
@@ -45,7 +44,6 @@ except ModuleNotFoundError as error:
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
-GTK_Color = Tuple[Union[float, int], ...]
 ColorDict = Dict[str, str]
 
 logger = logging.getLogger('gpu-utils')
@@ -62,6 +60,8 @@ class GuiProps:
                           'gray95':    '#0D0D0D',
                           'gray80':    '#333333',
                           'gray70':    '#4D4D4D',
+                          'gray60':    '#666666',
+                          'gray50':    '#7F7F7F',
                           'gray20':    '#CCCCCC',
                           'black':     '#000000',
                           'green':     '#8EC3A7',
@@ -183,8 +183,8 @@ class GuiProps:
             css_list.append("#light_box { background-image: image(%s); }" % cls._colors['slate_lt'])
             css_list.append("#head_box { background-image: image(%s); }" % cls._colors['blue'])
             css_list.append("#warn_box { background-image: image(%s); }" % cls._colors['red'])
-            css_list.append("#button_box { background-image: image(%s); }" % cls._colors['gray80'])
-            css_list.append("#message_box { background-image: image(%s); }" % cls._colors['gray70'])
+            css_list.append("#button_box { background-image: image(%s); }" % cls._colors['slate_dk'])
+            css_list.append("#message_box { background-image: image(%s); }" % cls._colors['gray50'])
             css_list.append("#message_label { color: %s; }" % cls._colors['white_off'])
             css_list.append("#warn_label { color: %s; }" % cls._colors['white_pp'])
             css_list.append("#white_label { color: %s; }" % cls._colors['white_off'])
@@ -204,10 +204,9 @@ class GuiProps:
 
         screen = Gdk.Screen.get_default()
 
-        for css_str in css_list:
+        for css_item in css_list:
             provider = Gtk.CssProvider()
-            css = css_str.encode('utf-8')
+            css = css_item.encode('utf-8')
             provider.load_from_data(css)
             style_context = Gtk.StyleContext()
             style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
