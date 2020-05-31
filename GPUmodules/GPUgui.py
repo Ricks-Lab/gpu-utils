@@ -52,8 +52,12 @@ logger = logging.getLogger('gpu-utils')
 
 
 class GuiProps:
+    """
+    Class to manage style properties of Gtk widgets.
+    """
     _colors: ColorDict = {'white':     '#FFFFFF',
                           'white_off': '#FDFDFD',
+                          'white_pp':  '#F0E5D3',
                           'cream':     '#FFFDD1',
                           'gray95':    '#0D0D0D',
                           'gray80':    '#333333',
@@ -61,6 +65,8 @@ class GuiProps:
                           'gray20':    '#CCCCCC',
                           'black':     '#000000',
                           'green':     '#8EC3A7',
+                          'teal':      '#218C8D',
+                          'olive':     '#6C9040',
                           'red_old':   '#DC5355',
                           'red':       '#B73743',
                           'orange':    '#E86850',
@@ -74,7 +80,25 @@ class GuiProps:
                           'slate_dk':  '#5D5D67'}
 
     @staticmethod
+    def color_name_to_hex(value: str) -> str:
+        """
+        Return the hex code for the given string.  The specified string must exist in the project color list.
+        :param value: Color name
+        :return: Color hex code
+        """
+        if value not in GuiProps._colors.keys():
+            raise ValueError('Invalid color name {} not in {}'.format(value, GuiProps._colors))
+        return GuiProps._colors[value]
+
+    @staticmethod
     def color_name_to_rgba(value: str) -> Tuple[float, ...]:
+        """
+        Convert the given color name to a color tuple.  The given color string mus exist in the project
+        color list.
+
+        :param value:  Color name
+        :return: Color tuple
+        """
         if value not in GuiProps._colors.keys():
             raise ValueError('Invalid color name {} not in {}'.format(value, GuiProps._colors))
         return GuiProps.hex_to_rgba(GuiProps._colors[value])
@@ -99,8 +123,7 @@ class GuiProps:
     @staticmethod
     def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None,
                      left: int = None, width: int = None, width_chars: int = None, width_max: int = None,
-                     max_length: int = None, bg_color: str = None, color: str = None,
-                     align: tuple = None, xalign: float = None) -> None:
+                     max_length: int = None, align: tuple = None, xalign: float = None) -> None:
         """
         Set properties of Gtk objects.
 
@@ -113,8 +136,6 @@ class GuiProps:
         :param width_chars: Width of label
         :param width_max: Max Width of object
         :param max_length: max length of entry
-        :param bg_color: Background color
-        :param color: Font color
         :param align: Alignment parameters
         :param xalign: X Alignment parameter
         """
@@ -142,41 +163,29 @@ class GuiProps:
             if align:
                 # FIXME - This is deprecated in latest Gtk, need to use halign
                 gui_item.set_alignment(*align)
-            if bg_color:
-                # FIXME - This is deprecated in latest Gtk, need to use css.
-                if re.fullmatch(r'^#[0-9a-fA-F]{6}', bg_color):
-                    gtk_color = GuiProps.hex_to_rgba(bg_color)
-                else:
-                    gtk_color = GuiProps.color_name_to_rgba(bg_color)
-                gui_item.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(*gtk_color))
-            if color:
-                # FIXME - This is deprecated in latest Gtk, need to use css.
-                if re.fullmatch(r'^#[0-9a-fA-F]{6}', color):
-                    gtk_color = GuiProps.hex_to_rgba(color)
-                else:
-                    gtk_color = GuiProps.color_name_to_rgba(color)
-                gui_item.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(*gtk_color))
 
     @classmethod
-    def set_style(cls, css_str=None, widget=None, name=None) -> None:
+    def set_style(cls, css_str=None) -> None:
         """
-        Set css for widgets.
+        Set the specified css style, or set default styles if no css string is specified.
 
-        :param css_str:
-        :param widget:
-        :param name:
-        :return:
+        :param css_str: A valid css format string.
         """
         css_list = []
         if css_str is None:
             # Initialize formatting colors.
             css_list.append("grid { background-image: image(%s); }" % cls._colors['gray80'])
+            css_list.append("#light_grid { background-image: image(%s); }" % cls._colors['gray20'])
+            css_list.append("#dark_grid { background-image: image(%s); }" % cls._colors['gray70'])
             css_list.append("#dark_box { background-image: image(%s); }" % cls._colors['slate_dk'])
             css_list.append("#med_box { background-image: image(%s); }" % cls._colors['slate_md'])
+            css_list.append("#light_box { background-image: image(%s); }" % cls._colors['slate_lt'])
             css_list.append("#head_box { background-image: image(%s); }" % cls._colors['blue'])
+            css_list.append("#warn_box { background-image: image(%s); }" % cls._colors['red'])
             css_list.append("#button_box { background-image: image(%s); }" % cls._colors['gray80'])
             css_list.append("#message_box { background-image: image(%s); }" % cls._colors['gray70'])
             css_list.append("#message_label { color: %s; }" % cls._colors['white_off'])
+            css_list.append("#warn_label { color: %s; }" % cls._colors['white_pp'])
             css_list.append("#white_label { color: %s; }" % cls._colors['white_off'])
             css_list.append("#black_label { color: %s; }" % cls._colors['gray95'])
             css_list.append("#ppm_combo { background-image: image(%s); color: %s; }" %
@@ -198,10 +207,6 @@ class GuiProps:
             provider = Gtk.CssProvider()
             css = css_str.encode('utf-8')
             provider.load_from_data(css)
-            style_context = widget.get_style_context() if widget else Gtk.StyleContext()
-
-            if widget:
-                style_context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-            else:
-                style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            style_context = Gtk.StyleContext()
+            style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 

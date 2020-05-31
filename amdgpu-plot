@@ -181,7 +181,7 @@ class GuiComponents:
                             'sclk_f_val': '#000000', 'mclk_f_val': '#000000',
                             'loading': '#FFFFFF', 'power': '#FFFFFF', 'power_cap': '#FFFFFF',
                             'vddgfx_val': '#000000', 'temp_val': '#000000'}
-        gpu_color_list = ['#B52735', '#EBB035', '#06A2CB', '#218559', '#D0C6B1', '#E18A07', '#336688', '#7C821E']
+        gpu_color_list = ['#B73743', '#8EC3A7', '#C9A100', '#E86850', '#6264A7', '#587498', '#218C8D', '#6C9040']
         plot_item_list = ['loading', 'power', 'power_cap', 'temp_val', 'vddgfx_val', 'sclk_f_val', 'mclk_f_val']
 
         self.plot_items = {'loading': True, 'power': True, 'power_cap': True,
@@ -256,12 +256,13 @@ class GPUPlotWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title=__program_name__)
         self.set_border_width(0)
+        GPUgui.GuiProps.set_style()
+
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-plot.icon.png')
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
 
         grid = Gtk.Grid()
-        set_gtk_prop(grid, bg_color='gray80')
         self.add(grid)
 
         # Get deep copy of current df
@@ -269,23 +270,21 @@ class GPUPlotWindow(Gtk.Window):
 
         row = 0
         # Top Bar - info
-        gc.gui_components['info_bar']['gtk_obj'] = Gtk.Label()
+        gc.gui_components['info_bar']['gtk_obj'] = Gtk.Label(name='white_label')
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>{} Plot</b></big>'.format(__program_name__))
-        set_gtk_prop(gc.gui_components['info_bar']['gtk_obj'], align=(0.5, 0.5),
-                     top=1, bottom=1, right=4, left=4, color='white')
-        lbox = Gtk.Box(spacing=box_spacing_val)
-        set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
+        set_gtk_prop(gc.gui_components['info_bar']['gtk_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
+        lbox = Gtk.Box(spacing=box_spacing_val, name='head_box')
+        set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['info_bar']['gtk_obj'], True, True, 0)
         grid.attach(lbox, 1, row, 4, 1)
         row += 1
 
         # Legend
-        gc.gui_components['legend']['gtk_obj'] = Gtk.Label()
+        gc.gui_components['legend']['gtk_obj'] = Gtk.Label(name='white_label')
         gc.gui_components['legend']['gtk_obj'].set_markup('<big><b>Plot Items</b></big>')
-        set_gtk_prop(gc.gui_components['legend']['gtk_obj'], align=(0.5, 0.5),
-                     top=1, bottom=1, right=4, left=4, color='white')
-        lbox = Gtk.Box(spacing=box_spacing_val)
-        set_gtk_prop(lbox, bg_color='slate_dk', top=1, bottom=1, right=1, left=1)
+        set_gtk_prop(gc.gui_components['legend']['gtk_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
+        lbox = Gtk.Box(spacing=box_spacing_val, name='dark_box')
+        set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for k, v in gc.gui_components['legend']['plot_items'].items():
             but_color = gc.colors[k]
@@ -293,7 +292,7 @@ class GPUPlotWindow(Gtk.Window):
             gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
             gc.gui_components['legend']['buttons'][k].set_name(but_color[1:])
             GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
-                but_color[1:], but_color, but_font_color), widget=gc.gui_components['legend']['buttons'][k])
+                but_color[1:], but_color, but_font_color))
             for child in gc.gui_components['legend']['buttons'][k].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(k))
                 child.set_use_markup(True)
@@ -304,8 +303,7 @@ class GPUPlotWindow(Gtk.Window):
         main_last_row = row
 
         # Set up bar plots
-        grid_bar = Gtk.Grid()
-        set_gtk_prop(grid_bar, bg_color='gray20')
+        grid_bar = Gtk.Grid(name='dark_grid')
         grid.attach(grid_bar, 1, main_last_row, 1, 1)
         brow = 0
         fig_num = 0
@@ -314,12 +312,11 @@ class GPUPlotWindow(Gtk.Window):
                   gc.gui_components['mclk_pstate_status'],
                   gc.gui_components['temp_status']]:
             # Add Bar Plots Titles
-            v['title_obj'] = Gtk.Label()
+            v['title_obj'] = Gtk.Label(name='white_label')
             v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(v['df_name']))
-            set_gtk_prop(v['title_obj'],
-                         align=(0.5, 0.5), top=1, bottom=1, right=4, left=4, color='white')
-            lbox = Gtk.Box(spacing=box_spacing_val)
-            set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
+            lbox = Gtk.Box(spacing=box_spacing_val, name='head_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['title_obj'], True, True, 0)
 
             grid_bar.attach(lbox, 1, brow, 1, 1)
@@ -343,16 +340,15 @@ class GPUPlotWindow(Gtk.Window):
             v['canvas'] = FigureCanvas(v['figure'])  # a Gtk.DrawingArea
             v['canvas'].set_size_request(def_bp_x_size, bp_y_size)
 
-            lbox = Gtk.Box(spacing=box_spacing_val)
-            set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
+            lbox = Gtk.Box(spacing=box_spacing_val, name='med_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['canvas'], True, True, 0)
 
             grid_bar.attach(lbox, 1, brow, 1, 1)
             brow += 1
 
         # Set up gpu plots
-        grid_plot = Gtk.Grid()
-        set_gtk_prop(grid_plot, bg_color='gray20')
+        grid_plot = Gtk.Grid(name='dark_grid')
         grid.attach(grid_plot, 2, main_last_row, 3, 1)
         prow = 0
         # row = plot_top_row
@@ -360,12 +356,13 @@ class GPUPlotWindow(Gtk.Window):
             data_val = ldf[ldf['Card#'].isin([k])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
-            v['title_obj'] = Gtk.Label()
+            v['title_obj'] = Gtk.Label(name='white_label')
             v['title_obj'].set_markup('<big><b>Card   {}    {}    Energy:  {}</b></big>'.format(k, model_val, data_val))
-            set_gtk_prop(v['title_obj'], align=(0.5, 0.5),
-                         top=1, bottom=1, right=4, left=4, color='white')
-            lbox = Gtk.Box(spacing=box_spacing_val)
-            set_gtk_prop(lbox, bg_color=v['color'], top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
+            box_name = v['color'][1:]
+            lbox = Gtk.Box(spacing=box_spacing_val, name=box_name)
+            GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); }" % (box_name, v['color']))
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['title_obj'], True, True, 0)
 
             grid_plot.attach(lbox, 1, prow, 1, 1)
@@ -394,8 +391,9 @@ class GPUPlotWindow(Gtk.Window):
             v['canvas'] = FigureCanvas(v['figure'])  # a Gtk.DrawingArea
             v['canvas'].set_size_request(def_gp_x_size, gp_y_size)
 
-            lbox = Gtk.Box(spacing=box_spacing_val)
-            set_gtk_prop(lbox, bg_color='white', top=1, bottom=1, right=1, left=1)
+            lbox = Gtk.Box(spacing=box_spacing_val, name='light_box')
+            #set_gtk_prop(lbox, bg_color='white', top=1, bottom=1, right=1, left=1)
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['canvas'], True, True, 0)
 
             grid_plot.attach(lbox, 1, prow, 1, 1)

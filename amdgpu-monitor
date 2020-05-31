@@ -102,56 +102,54 @@ class MonitorWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title='amdgpu-monitor')
         self.set_border_width(0)
+        GPUgui.GuiProps.set_style()
+
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
         logger.debug('Icon file: [%s]', icon_file)
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
-        set_gtk_prop(grid, bg_color='gray80')
         self.add(grid)
 
         col = 0
         row = 0
         num_amd_gpus = gpu_list.num_gpus()['total']
         if env.GUT_CONST.DEBUG:
-            debug_label = Gtk.Label()
+            debug_label = Gtk.Label(name='warn_label')
             debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
-            set_gtk_prop(debug_label, color='white_off')
-            lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(debug_label, bg_color='red', top=1, bottom=1, right=1, left=1)
+            lbox = Gtk.Box(spacing=6, name='warn_box')
+            set_gtk_prop(debug_label, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(debug_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
         if env.GUT_CONST.LOG:
-            log_label = Gtk.Label()
+            log_label = Gtk.Label(name='warn_label')
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
-            set_gtk_prop(log_label, color='white_off')
-            lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(log_label, bg_color='red', top=1, bottom=1, right=1, left=1)
+            lbox = Gtk.Box(spacing=6, name='warn_box')
+            set_gtk_prop(log_label, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(log_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
         row_start = row
 
         row = row_start
-        row_labels = {'card_num': Gtk.Label()}
+        row_labels = {'card_num': Gtk.Label(name='white_label')}
         row_labels['card_num'].set_markup('<b>Card #</b>')
-        set_gtk_prop(row_labels['card_num'], color='white_off')
         for k, v in gpu_list.table_param_labels().items():
-            row_labels[k] = Gtk.Label()
+            row_labels[k] = Gtk.Label(name='white_label')
             row_labels[k].set_markup('<b>{}</b>'.format(v))
-            set_gtk_prop(row_labels[k], color='white_off')
         for v in row_labels.values():
-            lbox = Gtk.Box(spacing=6)
-            set_gtk_prop(lbox, bg_color='blue', top=1, bottom=1, right=1, left=1)
+            lbox = Gtk.Box(spacing=6, name='head_box')
+            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             set_gtk_prop(v, top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
         for v in gpu_list.list.values():
-            devices[v.prm.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')))}
+            devices[v.prm.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')),
+                                                          name='white_label')}
             for cv in gpu_list.table_param_labels():
-                devices[v.prm.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)))
+                devices[v.prm.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)), name='white_label')
                 devices[v.prm.uuid][cv].set_width_chars(10)
                 set_gtk_prop(devices[v.prm.uuid][cv], width_chars=10)
 
@@ -160,11 +158,9 @@ class MonitorWindow(Gtk.Window):
             row = row_start
             for lv in dv.values():
                 lv.set_text('')
-                lbox = Gtk.Box(spacing=6)
-                # set_gtk_prop(lbox, bg_color=(0.06, 0.06, 0.06, 0.06), top=1, bottom=1, right=1, left=1)
-                # set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
-                set_gtk_prop(lbox, bg_color='slate_md', top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(lv, color='white_off', top=1, bottom=1, right=3, left=3, width_chars=17)
+                lbox = Gtk.Box(spacing=6, name='med_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+                set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
                 lbox.pack_start(lv, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
