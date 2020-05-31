@@ -181,7 +181,7 @@ class GuiComponents:
                             'sclk_f_val': '#000000', 'mclk_f_val': '#000000',
                             'loading': '#FFFFFF', 'power': '#FFFFFF', 'power_cap': '#FFFFFF',
                             'vddgfx_val': '#000000', 'temp_val': '#000000'}
-        gpu_color_list = ['#B73743', '#8EC3A7', '#C9A100', '#E86850', '#6264A7', '#587498', '#218C8D', '#6C9040']
+        gpu_color_list = ['#B73743', '#6A907C', '#C9A100', '#E86850', '#6264A7', '#587498', '#218C8D', '#6C9040']
         plot_item_list = ['loading', 'power', 'power_cap', 'temp_val', 'vddgfx_val', 'sclk_f_val', 'mclk_f_val']
 
         self.plot_items = {'loading': True, 'power': True, 'power_cap': True,

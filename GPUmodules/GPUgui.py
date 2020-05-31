@@ -65,6 +65,7 @@ class GuiProps:
                           'gray20':    '#CCCCCC',
                           'black':     '#000000',
                           'green':     '#8EC3A7',
+                          'green_dk':  '#6A907C',
                           'teal':      '#218C8D',
                           'olive':     '#6C9040',
                           'red_old':   '#DC5355',
