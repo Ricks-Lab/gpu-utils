@@ -129,6 +129,10 @@ class GpuItem:
     _GPU_Param_Labels.update({'sep3': '#',
                               'loading': 'Current GPU Loading (%)',
                               'mem_loading': 'Current Memory Loading (%)',
+                              'mem_gtt_used': 'Current Memory Used (GB)',
+                              'mem_gtt_total': '  Total Memory (GB)',
+                              'mem_vram_used': 'Current VRAM Used (GB)',
+                              'mem_vram_total': '  Total VRAM (GB)',
                               'temperatures': 'Current Temps (C)',
                               'temp_crit': '   Critical Temp (C)',
                               'voltages': 'Current Voltages (V)',
@@ -168,6 +172,10 @@ class GpuItem:
                                    'unique_id': {'type': 'st', 'cf': None, 'sensor': ['unique_id']},
                                    'loading': {'type': 'st', 'cf': None, 'sensor': ['gpu_busy_percent']},
                                    'mem_loading': {'type': 'st', 'cf': None, 'sensor': ['mem_busy_percent']},
+                                   'mem_vram_total': {'type': 'st', 'cf': None, 'sensor': ['mem_info_vram_total']},
+                                   'mem_vram_used': {'type': 'st', 'cf': None, 'sensor': ['mem_info_vram_used']},
+                                   'mem_gtt_total': {'type': 'st', 'cf': None, 'sensor': ['mem_info_gtt_total']},
+                                   'mem_gtt_used': {'type': 'st', 'cf': None, 'sensor': ['mem_info_gtt_used']},
                                    'link_spd': {'type': 'st', 'cf': None, 'sensor': ['current_link_speed']},
                                    'link_wth': {'type': 'st', 'cf': None, 'sensor': ['current_link_width']},
                                    'sclk_ps': {'type': 'ml', 'cf': None, 'sensor': ['pp_dpm_sclk']},
@@ -244,6 +252,10 @@ class GpuItem:
                             'frequencies': None,
                             'loading': None,
                             'mem_loading': None,
+                            'mem_vram_total': None,
+                            'mem_vram_used': None,
+                            'mem_gtt_total': None,
+                            'mem_gtt_used': None,
                             'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
                             'mclk_mask': '',
@@ -333,6 +345,8 @@ class GpuItem:
             logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
+        elif re.fullmatch(r'^mem_(gtt|vram)_.*', name):
+            self.prm[name] = int(value) / (1024*1024*1024)
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
             self.prm.model_device_decode = self.read_pciid_model()
@@ -859,12 +873,14 @@ class GpuItem:
         param_list_static_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range']}
         param_list_dynamic = {'HWMON': ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
         param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
-        param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios']}
-        param_list_state = {'DEVICE': ['loading', 'mem_loading', 'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
-                                       'power_dpm_force']}
-        param_list_state_mon = {'DEVICE': ['loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
+        param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']}
+        param_list_state = {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force']}
+        param_list_state_mon = {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                           'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
         param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
-                                     'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force'],
+                                     'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
+                                     'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
                           'HWMON': ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
                                     'voltages', 'frequencies']}
         param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
