@@ -1064,41 +1064,41 @@ class GpuList:
         _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                              'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
                              'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-        _table_param_labels = {'model_display': 'Model',
-                               'loading': 'GPU Load %',
-                               'mem_loading': 'Mem Load %',
+        _table_param_labels = {'model_display':  'Model',
+                               'loading':        'GPU Load %',
+                               'mem_loading':    'Mem Load %',
                                'mem_vram_usage': 'VRAM Usage %',
-                               'mem_gtt_usage': 'GTT Usage %',
-                               'power': 'Power (W)',
-                               'power_cap': 'Power Cap (W)',
-                               'energy': 'Energy (kWh)',
-                               'temp_val': 'T (C)',
-                               'vddgfx_val': 'VddGFX (mV)',
-                               'fan_pwm': 'Fan Spd (%)',
-                               'sclk_f_val': 'Sclk (MHz)',
-                               'sclk_ps_val': 'Sclk Pstate',
-                               'mclk_f_val': 'Mclk (MHz)',
-                               'mclk_ps_val': 'Mclk Pstate',
-                               'ppm': 'Perf Mode'}
+                               'mem_gtt_usage':  'GTT Usage %',
+                               'power':          'Power (W)',
+                               'power_cap':      'Power Cap (W)',
+                               'energy':         'Energy (kWh)',
+                               'temp_val':       'T (C)',
+                               'vddgfx_val':     'VddGFX (mV)',
+                               'fan_pwm':        'Fan Spd (%)',
+                               'sclk_f_val':     'Sclk (MHz)',
+                               'sclk_ps_val':    'Sclk Pstate',
+                               'mclk_f_val':     'Mclk (MHz)',
+                               'mclk_ps_val':    'Mclk Pstate',
+                               'ppm':            'Perf Mode'}
     else:
         _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                              'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
                              'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-        _table_param_labels = {'model_display': 'Model',
-                               'loading': 'Load %',
-                               'mem_loading': 'Mem Load %',
+        _table_param_labels = {'model_display':  'Model',
+                               'loading':        'Load %',
+                               'mem_loading':    'Mem Load %',
                                'mem_vram_usage': 'VRAM Usage %',
-                               'mem_gtt_usage': 'GTT Usage %',
-                               'power': 'Power (W)',
-                               'power_cap': 'Power Cap (W)',
-                               'energy': 'Energy (kWh)',
-                               'temp_val': 'T (C)',
-                               'vddgfx_val': 'VddGFX (mV)',
-                               'sclk_f_val': 'Sclk (MHz)',
-                               'sclk_ps_val': 'Sclk Pstate',
-                               'mclk_f_val': 'Mclk (MHz)',
-                               'mclk_ps_val': 'Mclk Pstate',
-                               'ppm': 'Perf Mode'}
+                               'mem_gtt_usage':  'GTT Usage %',
+                               'power':          'Power (W)',
+                               'power_cap':      'Power Cap (W)',
+                               'energy':         'Energy (kWh)',
+                               'temp_val':       'T (C)',
+                               'vddgfx_val':     'VddGFX (mV)',
+                               'sclk_f_val':     'Sclk (MHz)',
+                               'sclk_ps_val':    'Sclk Pstate',
+                               'mclk_f_val':     'Mclk (MHz)',
+                               'mclk_ps_val':    'Mclk Pstate',
+                               'ppm':            'Perf Mode'}
 
     def __repr__(self) -> dict:
         return self.list
@@ -1197,13 +1197,13 @@ class GpuList:
         for pcie_id in pcie_ids:
             gpu_uuid = uuid4().hex
             self.add(GpuItem(gpu_uuid))
-            logger.debug(f'GPU: {pcie_id}')
+            logger.debug('GPU: %s', pcie_id)
             readable = writable = compute = False
             try:
                 lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
                                                       shell=True).decode().split('\n')
             except (subprocess.CalledProcessError, OSError) as except_err:
-                logger.debug(f'Fatal error [{except_err}]: Can not get GPU details with lspci.')
+                logger.debug('Fatal error [%s]: Can not get GPU details with lspci.', except_err)
                 print('Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err))
                 sys.exit(-1)
             logger.debug('lspci output items:\n %s', lspci_items)
@@ -1260,8 +1260,7 @@ class GpuList:
             # Get Driver Name
             driver_module = 'UNKNOWN'
             for lspci_line in lspci_items:
-                srch_obj = re.search(r'(Kernel|kernel)', lspci_line)
-                if srch_obj:
+                if re.search(r'(Kernel|kernel)', lspci_line):
                     driver_module_items = lspci_line.split(': ')
                     if len(driver_module_items) >= 2:
                         driver_module = driver_module_items[1].strip()
@@ -1322,19 +1321,19 @@ class GpuList:
 
         # Clinfo Keywords and related opencl_map key.
         ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
-                        'CL_DEVICE_MAX_WORK_GROUP_SIZE': 'max_wg_size',
-                        'CL_DEVICE_PREFERRED_WORK_GROUP_SIZE': 'prf_wg_size',
-                        'CL_DEVICE_MAX_WORK_ITEM_SIZES': 'max_wi_sizes',
-                        'CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS': 'max_wi_dim',
-                        'CL_DEVICE_MAX_MEM_ALLOC_SIZE': 'max_mem_allocation',
-                        'CL_DEVICE_SIMD_INSTRUCTION_WIDTH': 'simd_ins_width',
-                        'CL_DEVICE_SIMD_WIDTH': 'simd_width',
-                        'CL_DEVICE_SIMD_PER_COMPUTE_UNIT': 'simd_per_cu',
-                        'CL_DEVICE_MAX_COMPUTE_UNITS': 'max_cu',
-                        'CL_DEVICE_NAME': 'device_name',
-                        'CL_DEVICE_OPENCL_C_VERSION': 'opencl_version',
-                        'CL_DRIVER_VERSION': 'driver_version',
-                        'CL_DEVICE_VERSION': 'device_version'}
+                        'CL_DEVICE_MAX_WORK_GROUP_SIZE':                'max_wg_size',
+                        'CL_DEVICE_PREFERRED_WORK_GROUP_SIZE':          'prf_wg_size',
+                        'CL_DEVICE_MAX_WORK_ITEM_SIZES':                'max_wi_sizes',
+                        'CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS':           'max_wi_dim',
+                        'CL_DEVICE_MAX_MEM_ALLOC_SIZE':                 'max_mem_allocation',
+                        'CL_DEVICE_SIMD_INSTRUCTION_WIDTH':             'simd_ins_width',
+                        'CL_DEVICE_SIMD_WIDTH':                         'simd_width',
+                        'CL_DEVICE_SIMD_PER_COMPUTE_UNIT':              'simd_per_cu',
+                        'CL_DEVICE_MAX_COMPUTE_UNITS':                  'max_cu',
+                        'CL_DEVICE_NAME':                               'device_name',
+                        'CL_DEVICE_OPENCL_C_VERSION':                   'opencl_version',
+                        'CL_DRIVER_VERSION':                            'driver_version',
+                        'CL_DEVICE_VERSION':                            'device_version'}
 
         def init_temp_map() -> dict:
             """
