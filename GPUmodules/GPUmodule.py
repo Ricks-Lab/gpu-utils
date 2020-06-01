@@ -78,6 +78,16 @@ class GpuItem:
     """
     # pylint: disable=attribute-defined-outside-init
     _finalized = False
+    _button_labels = {'loading':    'Load%',
+                      'power':      'Power',
+                      'power_cap':  'PowerCap',
+                      'temp_val':   'Temp',
+                      'vddgfx_val': 'VddGfx',
+                      'sclk_ps_val': 'SCLK Pstate',
+                      'sclk_f_val': 'SCLK',
+                      'mclk_ps_val': 'MCLK Pstate',
+                      'mclk_f_val': 'MCLK'}
+
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
@@ -314,6 +324,18 @@ class GpuItem:
             for fan_item in cls._fan_item_list:
                 if fan_item in cls._GPU_Param_Labels.keys():
                     del cls._GPU_Param_Labels[fan_item]
+
+    @classmethod
+    def get_button_label(cls, name) -> str:
+        """
+        Return button label for given parameter name.
+
+        :param name: Parameter name
+        :return:  Button label
+        """
+        if name not in cls._button_labels.keys():
+            raise KeyError('{} not in button_label dict'.format(name))
+        return cls._button_labels[name]
 
     def set_params_value(self, name: str, value: Union[int, str, list]) -> None:
         """

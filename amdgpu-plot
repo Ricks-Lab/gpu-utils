@@ -236,7 +236,7 @@ class GPUPlotWindow(Gtk.Window):
         else:
             def_gp_y_size = 250
             def_bp_y_size = 250
-        def_gp_x_size = 600
+        def_gp_x_size = 650
         def_bp_x_size = 250
         def_lab_y_size = 28
         if gc.num_gpus > num_bar_plots:
@@ -284,6 +284,7 @@ class GPUPlotWindow(Gtk.Window):
         set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for k, v in gc.gui_components['legend']['plot_items'].items():
+            but_label = gpu.GpuItem.get_button_label(k)
             but_color = gc.colors[k]
             but_font_color = gc.font_colors[k]
             gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
@@ -291,7 +292,7 @@ class GPUPlotWindow(Gtk.Window):
             GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
                 but_color[1:], but_color, but_font_color))
             for child in gc.gui_components['legend']['buttons'][k].get_children():
-                child.set_label('<big><b>{}</b></big>'.format(k))
+                child.set_label('<big><b>{}</b></big>'.format(but_label))
                 child.set_use_markup(True)
             gc.gui_components['legend']['buttons'][k].connect('clicked', self.toggle_plot_item, gc, k)
             lbox.pack_start(gc.gui_components['legend']['buttons'][k], True, True, 0)
@@ -310,7 +311,8 @@ class GPUPlotWindow(Gtk.Window):
                   gc.gui_components['temp_status']]:
             # Add Bar Plots Titles
             v['title_obj'] = Gtk.Label(name='white_label')
-            v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(v['df_name']))
+            bar_plot_name = gpu.GpuItem.get_button_label(v['df_name'])
+            v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(bar_plot_name))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             lbox = Gtk.Box(spacing=box_spacing_val, name='head_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
