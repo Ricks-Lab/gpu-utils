@@ -41,19 +41,6 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 
-try:
-    import gi
-    gi.require_version('Gtk', '3.0')
-    from gi.repository import GLib, Gtk, Gdk
-except ModuleNotFoundError as error:
-    print('gi import error: {}'.format(error))
-    print('gi is required for {}'.format(__program_name__))
-    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
-    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
-    import sys
-
-    sys.exit(0)
-
 import sys
 import gc as garbcollect
 import argparse
@@ -62,8 +49,18 @@ import threading
 import os
 import logging
 import time
-from typing import Tuple
 import numpy as np
+
+try:
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import GLib, Gtk
+except ModuleNotFoundError as error:
+    print('gi import error: {}'.format(error))
+    print('gi is required for {}'.format(__program_name__))
+    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
+    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
+    sys.exit(0)
 
 try:
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
@@ -83,12 +80,12 @@ except ModuleNotFoundError as error:
     print('Then pip install pandas: \'pip3 install pandas\'')
     sys.exit(0)
 from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
 
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
+register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 logger = logging.getLogger('gpu-utils')
 
@@ -337,7 +334,7 @@ class GPUPlotWindow(Gtk.Window):
             else:
                 plt.yticks(np.arange(0, 9, 1))
 
-            v['canvas'] = FigureCanvas(v['figure'])  # a Gtk.DrawingArea
+            v['canvas'] = FigureCanvas(v['figure'])
             v['canvas'].set_size_request(def_bp_x_size, bp_y_size)
 
             lbox = Gtk.Box(spacing=box_spacing_val, name='med_box')
@@ -392,7 +389,6 @@ class GPUPlotWindow(Gtk.Window):
             v['canvas'].set_size_request(def_gp_x_size, gp_y_size)
 
             lbox = Gtk.Box(spacing=box_spacing_val, name='light_box')
-            #set_gtk_prop(lbox, bg_color='white', top=1, bottom=1, right=1, left=1)
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(v['canvas'], True, True, 0)
 
@@ -723,6 +719,8 @@ def main() -> None:
 
     env.GUT_CONST.set_args(args)
     logger.debug('########## %s %s', __program_name__, __version__)
+    logger.debug('pandas version: %s', pd.__version__)
+    logger.debug('numpy version: %s', np.__version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
@@ -782,7 +780,7 @@ def main() -> None:
         _readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
-    while len(plot_data.df.index) < 9:
+    while len(plot_data.df.index) < 2:
         print('.', end='', flush=True)
         time.sleep(args.sleep/4.0)
     print('')

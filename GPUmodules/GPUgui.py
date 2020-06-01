@@ -33,19 +33,19 @@ from typing import Tuple, Dict
 import sys
 import logging
 import warnings
+
 try:
     import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, Gdk
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
     print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
 
 ColorDict = Dict[str, str]
-
 logger = logging.getLogger('gpu-utils')
 
 

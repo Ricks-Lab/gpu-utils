@@ -103,7 +103,6 @@ class GutConst:
 
         :param args: The object return by args parser.
         """
-        # ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
         self.args = args
         for target_arg in self._all_args:
             if target_arg in self.args:
@@ -270,7 +269,7 @@ class GutConst:
         """
         Read the AMD driver version and store in GutConst object.
 
-        :return: True on success>
+        :return: True on success.
         """
         if not self.cmd_dpkg:
             print('Can not access package read utility to verify AMD driver.')

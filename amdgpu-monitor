@@ -42,18 +42,6 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 
-try:
-    import gi
-    gi.require_version('Gtk', '3.0')
-    from gi.repository import GLib, Gtk
-except ModuleNotFoundError as error:
-    print('gi import error: {}'.format(error))
-    print('gi is required for {}'.format(__program_name__))
-    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
-    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
-    import sys
-    sys.exit(0)
-
 import argparse
 import subprocess
 import threading
@@ -65,8 +53,19 @@ import time
 import signal
 from typing import Callable
 
+try:
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import GLib, Gtk
+except ModuleNotFoundError as error:
+    print('gi import error: {}'.format(error))
+    print('gi is required for {}'.format(__program_name__))
+    print('   In a venv, first install vext:  pip install --no-cache-dir vext')
+    print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
+    sys.exit(0)
+
 from GPUmodules import GPUgui
-from GPUmodules import GPUmodule as gpu
+from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
@@ -172,7 +171,7 @@ class MonitorWindow(Gtk.Window):
         self.quit = True
 
 
-def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
+def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
     """
     Update monitor data with data read from GPUs.
 
@@ -218,7 +217,7 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     ########################
 
 
-def refresh(refreshtime: int, update_data_func: Callable, gpu_list: gpu.GpuList, devices: dict,
+def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList, devices: dict,
             cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
     """
     Method called for monitor refresh.
@@ -282,7 +281,7 @@ def main() -> None:
         sys.exit(-1)
 
     # Get list of AMD GPUs and get basic non-driver details
-    gpu_list = gpu.GpuList()
+    gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list()
 
     # Check list of GPUs
