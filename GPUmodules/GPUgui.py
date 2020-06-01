@@ -31,6 +31,7 @@ __docformat__ = 'reStructuredText'
 
 from typing import Tuple, Dict
 import sys
+import re
 import logging
 import warnings
 
@@ -114,11 +115,13 @@ class GuiProps:
 
         .. note:: Code copied from Stack Overflow
         """
+        if not re.fullmatch(r'^#[0-9a-fA-F]{6}', value):
+            raise ValueError('Invalid hex color format in {}'.format(value))
         value = value.lstrip('#')
         if len(value) != 6:
             raise ValueError('Invalid hex color format in {}'.format(value))
         (r1, g1, b1, a1) = tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2)) + (1,)
-        (r1, g1, b1, a1) = (r1 / 255.00000, g1 / 255.00000, b1 / 255.00000, a1)
+        (r1, g1, b1, a1) = (r1 / 255.0, g1 / 255.0, b1 / 255.0, a1)
         return tuple([r1, g1, b1, a1])
 
     @staticmethod

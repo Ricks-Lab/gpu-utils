@@ -78,15 +78,15 @@ class GpuItem:
     """
     # pylint: disable=attribute-defined-outside-init
     _finalized = False
-    _button_labels = {'loading':    'Load%',
-                      'power':      'Power',
-                      'power_cap':  'PowerCap',
-                      'temp_val':   'Temp',
-                      'vddgfx_val': 'VddGfx',
+    _button_labels = {'loading':     'Load%',
+                      'power':       'Power',
+                      'power_cap':   'PowerCap',
+                      'temp_val':    'Temp',
+                      'vddgfx_val':  'VddGfx',
                       'sclk_ps_val': 'SCLK Pstate',
-                      'sclk_f_val': 'SCLK',
+                      'sclk_f_val':  'SCLK',
                       'mclk_ps_val': 'MCLK Pstate',
-                      'mclk_f_val': 'MCLK'}
+                      'mclk_f_val':  'MCLK'}
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
@@ -107,7 +107,7 @@ class GpuItem:
                           'max_wi_sizes':       '   Max Work Item Sizes',
                           'max_wg_size':        '   Max Work Group Size',
                           'prf_wg_size':        '   Preferred Work Group Size',
-                          'prf_wg_multiple': '   Preferred Work Group Multiple'}
+                          'prf_wg_multiple':    '   Preferred Work Group Multiple'}
     _GPU_Param_Labels = {'card_num':            'Card Number',
                          'vendor':              'Vendor',
                          'readable':            'Readable',
