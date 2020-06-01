@@ -145,8 +145,9 @@ class MonitorWindow(Gtk.Window):
             grid.attach(lbox, col, row, 1, 1)
             row += 1
         for v in gpu_list.list.values():
-            devices[v.prm.uuid] = {'card_num':  Gtk.Label(label='card{}'.format(v.get_params_value('card_num')),
-                                                          name='white_label')}
+            devices[v.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
+            devices[v.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(v.get_params_value('card_num')))
+            devices[v.prm.uuid]['card_num'].set_use_markup(True)
             for cv in gpu_list.table_param_labels():
                 devices[v.prm.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)), name='white_label')
                 devices[v.prm.uuid][cv].set_width_chars(10)
@@ -155,9 +156,12 @@ class MonitorWindow(Gtk.Window):
         for dv in devices.values():
             col += 1
             row = row_start
-            for lv in dv.values():
+            for lk, lv in dv.items():
                 lv.set_text('')
-                lbox = Gtk.Box(spacing=6, name='med_box')
+                if lk == 'card_num':
+                    lbox = Gtk.Box(spacing=6, name='head_box')
+                else:
+                    lbox = Gtk.Box(spacing=6, name='med_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
                 set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
                 lbox.pack_start(lv, True, True, 0)
@@ -200,14 +204,14 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     for dk, dv in devices.items():
         for lk, lv in dv.items():
             if lk == 'card_num':
-                data_value = 'card{}'.format(gpu_list.list[dk].get_params_value('card_num'))[:16]
+                lv.set_markup('<b>Card{}</b>'.format(gpu_list.list[dk].get_params_value('card_num')))
             else:
                 data_value_raw = gpu_list.list[dk].get_params_value(lk)
                 logger.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
                 data_value = str(data_value_raw)[:16]
-            lv.set_text(data_value)
+                lv.set_text(data_value)
             set_gtk_prop(lv, width_chars=17)
 
     while Gtk.events_pending():
