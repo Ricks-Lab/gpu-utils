@@ -36,7 +36,7 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, IO
+from typing import Union, List, Dict, TextIO, IO, Tuple
 from pathlib import Path
 from uuid import uuid4
 import glob
@@ -80,69 +80,71 @@ class GpuItem:
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     _GPU_CLINFO_Labels = {'sep4': '#',
-                          'opencl_version': '   Device OpenCL C Version',
-                          'device_name': '   Device Name',
-                          'device_version': '   Device Version',
-                          'driver_version': '   Driver Version',
-                          'max_cu': '   Max Compute Units',
-                          'simd_per_cu': '   SIMD per CU',
-                          'simd_width': '   SIMD Width',
-                          'simd_ins_width': '   SIMD Instruction Width',
+                          'opencl_version':     '   Device OpenCL C Version',
+                          'device_name':        '   Device Name',
+                          'device_version':     '   Device Version',
+                          'driver_version':     '   Driver Version',
+                          'max_cu':             '   Max Compute Units',
+                          'simd_per_cu':        '   SIMD per CU',
+                          'simd_width':         '   SIMD Width',
+                          'simd_ins_width':     '   SIMD Instruction Width',
                           'max_mem_allocation': '   CL Max Memory Allocation',
-                          'max_wi_dim': '   Max Work Item Dimensions',
-                          'max_wi_sizes': '   Max Work Item Sizes',
-                          'max_wg_size': '   Max Work Group Size',
-                          'prf_wg_size': '   Preferred Work Group Size',
+                          'max_wi_dim':         '   Max Work Item Dimensions',
+                          'max_wi_sizes':       '   Max Work Item Sizes',
+                          'max_wg_size':        '   Max Work Group Size',
+                          'prf_wg_size':        '   Preferred Work Group Size',
                           'prf_wg_multiple': '   Preferred Work Group Multiple'}
-    _GPU_Param_Labels = {'card_num': 'Card Number',
-                         'vendor': 'Vendor',
-                         'readable': 'Readable',
-                         'writable': 'Writable',
-                         'compute': 'Compute',
-                         'unique_id': 'GPU UID',
-                         'id': 'Device ID',
+    _GPU_Param_Labels = {'card_num':            'Card Number',
+                         'vendor':              'Vendor',
+                         'readable':            'Readable',
+                         'writable':            'Writable',
+                         'compute':             'Compute',
+                         'unique_id':           'GPU UID',
+                         'id':                  'Device ID',
                          'model_device_decode': 'Decoded Device ID',
-                         'model': 'Card Model',
-                         'model_display': 'Display Card Model',
-                         'pcie_id': 'PCIe ID',
-                         'link_spd': '   Link Speed',
-                         'link_wth': '   Link Width',
-                         'sep1': '#',
-                         'driver': 'Driver',
-                         'vbios': 'vBIOS Version',
-                         'compute_platform': 'Compute Platform',
-                         'gpu_type': 'GPU Frequency/Voltage Control Type',
-                         'hwmon_path': 'HWmon',
-                         'card_path': 'Card Path',
-                         'sep2': '#',
-                         'power': 'Current Power (W)',
-                         'power_cap': 'Power Cap (W)',
-                         'power_cap_range': '   Power Cap Range (W)'}
+                         'model':               'Card Model',
+                         'model_display':       'Display Card Model',
+                         'pcie_id':             'PCIe ID',
+                         'link_spd':            '   Link Speed',
+                         'link_wth':            '   Link Width',
+                         'sep1':                '#',
+                         'driver':              'Driver',
+                         'vbios':               'vBIOS Version',
+                         'compute_platform':    'Compute Platform',
+                         'gpu_type':            'GPU Frequency/Voltage Control Type',
+                         'hwmon_path':          'HWmon',
+                         'card_path':           'Card Path',
+                         'sep2':                '#',
+                         'power':               'Current Power (W)',
+                         'power_cap':           'Power Cap (W)',
+                         'power_cap_range':     '   Power Cap Range (W)'}
     if env.GUT_CONST.show_fans:
-        _GPU_Param_Labels.update({'fan_enable': 'Fan Enable',
-                                  'pwm_mode': 'Fan PWM Mode',
-                                  'fan_target': 'Fan Target Speed (rpm)',
-                                  'fan_speed': 'Current Fan Speed (rpm)',
-                                  'fan_pwm': 'Current Fan PWM (%)',
+        _GPU_Param_Labels.update({'fan_enable':      'Fan Enable',
+                                  'pwm_mode':        'Fan PWM Mode',
+                                  'fan_target':      'Fan Target Speed (rpm)',
+                                  'fan_speed':       'Current Fan Speed (rpm)',
+                                  'fan_pwm':         'Current Fan PWM (%)',
                                   'fan_speed_range': '   Fan Speed Range (rpm)',
-                                  'fan_pwm_range': '   Fan PWM Range (%)'})
+                                  'fan_pwm_range':   '   Fan PWM Range (%)'})
     _GPU_Param_Labels.update({'sep3': '#',
-                              'loading': 'Current GPU Loading (%)',
-                              'mem_loading': 'Current Memory Loading (%)',
-                              'mem_gtt_used': 'Current Memory Used (GB)',
-                              'mem_gtt_total': '   Total Memory (GB)',
-                              'mem_vram_used': 'Current VRAM Used (GB)',
-                              'mem_vram_total': '   Total VRAM (GB)',
-                              'temperatures': 'Current Temps (C)',
-                              'temp_crit': '   Critical Temp (C)',
-                              'voltages': 'Current Voltages (V)',
-                              'vddc_range': '   Vddc Range',
-                              'frequencies': 'Current Clk Frequencies (MHz)',
-                              'sclk_ps': 'Current SCLK P-State',
-                              'sclk_f_range': '   SCLK Range',
-                              'mclk_ps': 'Current MCLK P-State',
-                              'mclk_f_range': '   MCLK Range',
-                              'ppm': 'Power Profile Mode',
+                              'loading':         'Current GPU Loading (%)',
+                              'mem_loading':     'Current Memory Loading (%)',
+                              'mem_gtt_usage':   'Current System Memory Usage (%)',
+                              'mem_gtt_used':    '   Current Sys Memory Used (GB)',
+                              'mem_gtt_total':   '   Total Sys Memory (GB)',
+                              'mem_vram_usage':  'Current VRAM Usage (%)',
+                              'mem_vram_used':   '   Current VRAM Used (GB)',
+                              'mem_vram_total':  '   Total VRAM (GB)',
+                              'temperatures':    'Current Temps (C)',
+                              'temp_crit':       '   Critical Temp (C)',
+                              'voltages':        'Current Voltages (V)',
+                              'vddc_range':      '   Vddc Range',
+                              'frequencies':     'Current Clk Frequencies (MHz)',
+                              'sclk_ps':         'Current SCLK P-State',
+                              'sclk_f_range':    '   SCLK Range',
+                              'mclk_ps':         'Current MCLK P-State',
+                              'mclk_f_range':    '   MCLK Range',
+                              'ppm':             'Power Profile Mode',
                               'power_dpm_force': 'Power DPM Force Performance Level'})
 
     # HWMON sensor reading details
@@ -254,8 +256,10 @@ class GpuItem:
                             'mem_loading': None,
                             'mem_vram_total': None,
                             'mem_vram_used': None,
+                            'mem_vram_usage': None,
                             'mem_gtt_total': None,
                             'mem_gtt_used': None,
+                            'mem_gtt_usage': None,
                             'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
                             'mclk_mask': '',
@@ -266,7 +270,6 @@ class GpuItem:
                             'link_wth': '',
                             'ppm': '',
                             'power_dpm_force': '',
-                            # auto, low, high, manual, profile_standard, profile_min_sclk, profile_min_mclk, profile_peak
                             'vbios': ''})
         self.clinfo = ObjDict({'device_name': '',
                                'device_version': '',
@@ -347,6 +350,7 @@ class GpuItem:
             self.prm.fan_pwm = int(value)
         elif re.fullmatch(r'^mem_(gtt|vram)_.*', name):
             self.prm[name] = int(value) / (1024*1024*1024)
+            self.set_memory_usage()
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
             self.prm.model_device_decode = self.read_pciid_model()
@@ -355,6 +359,22 @@ class GpuItem:
                 self.prm.model_display = self.prm.model_device_decode
         else:
             self.prm[name] = value
+
+    def set_memory_usage(self) -> None:
+        """
+        Get system and vram memory usage percentage.
+
+        :return: A tuple of the system and vram memory usage percentage.
+        """
+        if self.prm.mem_gtt_used is None or self.prm.mem_gtt_total is None:
+            self.prm.mem_gtt_usage = None
+        else:
+            self.prm.mem_gtt_usage = 100.0 * self.prm.mem_gtt_used / self.prm.mem_gtt_total
+
+        if self.prm.mem_vram_used is None or self.prm.mem_vram_total is None:
+            self.prm.mem_vram_usage = None
+        else:
+            self.prm.mem_vram_usage = 100.0 * self.prm.mem_vram_used / self.prm.mem_vram_total
 
     def read_pciid_model(self) -> str:
         """
@@ -996,7 +1016,10 @@ class GpuItem:
                     continue
             if self.prm.gpu_type == 2 and k == 'vddc_range':
                 continue
-            print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
+            if isinstance(self.get_params_value(k), float):
+                print('{}{}: {:.3f}'.format(pre, v, self.get_params_value(k)))
+            else:
+                print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
         if clflag and self.prm.compute:
             for k, v in self._GPU_CLINFO_Labels.items():
                 if re.search(r'sep[0-9]', k):
