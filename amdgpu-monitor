@@ -203,9 +203,11 @@ def update_data(gpu_list: gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
             if lk == 'card_num':
                 data_value = 'card{}'.format(gpu_list.list[dk].get_params_value('card_num'))[:16]
             else:
-                data_value = str(gpu_list.list[dk].get_params_value(lk))[:16]
-                if data_value == '-1':
-                    data_value = ''
+                data_value_raw = gpu_list.list[dk].get_params_value(lk)
+                logger.debug('raw data value: %s', data_value_raw)
+                if isinstance(data_value_raw, float):
+                    data_value_raw = round(data_value_raw, 3)
+                data_value = str(data_value_raw)[:16]
             lv.set_text(data_value)
             set_gtk_prop(lv, width_chars=17)
 

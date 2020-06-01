@@ -889,22 +889,22 @@ class GpuItem:
                 else:
                     dict1.update({st: dict2[st]})
 
-        param_list_static = {'HWMON': ['power_cap_range', 'temp_crit']}
-        param_list_static_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range']}
-        param_list_dynamic = {'HWMON': ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
+        param_list_static = {'HWMON':      ['power_cap_range', 'temp_crit']}
+        param_list_static_fan = {'HWMON':  ['fan_speed_range', 'fan_pwm_range']}
+        param_list_dynamic = {'HWMON':     ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
         param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
-        param_list_info = {'DEVICE': ['id', 'unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']}
-        param_list_state = {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
-                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force']}
-        param_list_state_mon = {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
-                                           'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
-        param_list_all = {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
-                                     'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
-                                     'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
-                          'HWMON': ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
-                                    'voltages', 'frequencies']}
-        param_list_all_fan = {'HWMON': ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                        'pwm_mode', 'fan_pwm']}
+        param_list_info = {'DEVICE':       ['id', 'unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']}
+        param_list_state = {'DEVICE':      ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                            'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force']}
+        param_list_state_mon = {'DEVICE':  ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                            'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
+        param_list_all = {'DEVICE':        ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
+                                            'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
+                                            'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
+                          'HWMON':         ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
+                                            'voltages', 'frequencies']}
+        param_list_all_fan = {'HWMON':     ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target',
+                                            'fan_speed', 'pwm_mode', 'fan_pwm']}
 
         if data_type == 'Static':
             param_list = param_list_static.copy()
@@ -1057,11 +1057,14 @@ class GpuList:
     """
     # Table parameters labels.
     if env.GUT_CONST.show_fans:
-        _table_parameters = ['model_display', 'loading', 'mem_loading', 'power', 'power_cap', 'energy', 'temp_val',
-                             'vddgfx_val', 'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
+        _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
+                             'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
+                             'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
         _table_param_labels = {'model_display': 'Model',
                                'loading': 'GPU Load %',
                                'mem_loading': 'Mem Load %',
+                               'mem_vram_usage': 'VRAM Usage %',
+                               'mem_gtt_usage': 'SysMem Usage %',
                                'power': 'Power (W)',
                                'power_cap': 'Power Cap (W)',
                                'energy': 'Energy (kWh)',
@@ -1074,11 +1077,14 @@ class GpuList:
                                'mclk_ps_val': 'Mclk Pstate',
                                'ppm': 'Perf Mode'}
     else:
-        _table_parameters = ['model_display', 'loading', 'mem_loading', 'power', 'power_cap', 'energy', 'temp_val',
-                             'vddgfx_val', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
+        _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
+                             'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
+                             'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
         _table_param_labels = {'model_display': 'Model',
                                'loading': 'Load %',
                                'mem_loading': 'Mem Load %',
+                               'mem_vram_usage': 'VRAM Usage %',
+                               'mem_gtt_usage': 'SysMem Usage %',
                                'power': 'Power (W)',
                                'power_cap': 'Power Cap (W)',
                                'energy': 'Energy (kWh)',
@@ -1553,7 +1559,10 @@ class GpuList:
         for table_item in self.table_parameters():
             print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]), end='')
             for v in self.list.values():
-                print('│{:<16}'.format(str(v.get_params_value(table_item))[:16]), end='')
+                data_value_raw = v.get_params_value(table_item)
+                if isinstance(data_value_raw, float):
+                    data_value_raw = round(data_value_raw, 3)
+                print('│{:<16}'.format(str(data_value_raw)[:16]), end='')
             print('│')
 
         print('└', '─'.ljust(13, '─'), sep='', end='')
