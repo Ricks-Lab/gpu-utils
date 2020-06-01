@@ -66,17 +66,19 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 read from the GPU.
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
 * Modified setup to indicate minimum instead of absolute package versions (@smoe).
-* Modified venv requirements to include min/max package versions for major packages.
+* Modified requirements to include min/max package versions for major packages.
 * Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
-* Fixed a crash in pac when no fan details could be read (laptop GPU).
+* Fixed a crash in *amdgpu-pac* when no fan details could be read (laptop GPU).
 * Fixed deprecation warnings for several property setting functions.  Consolidated all
 property setting to a single function in a new module, and ignore warnings for those that
 are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
+* Replaced deprecated set properties statement for colors with css formatting.
 * Implemented a more robust string format of datetime to address datetime conversion for
 pandas in some installations.
 * Implement dubug logging across the project.  Activated with --debug option and output
 saved to a .log file.
 * Updated color scheme of Gtk applications to work in Ubuntu 20.04.
+* Additional memory parameters added to utilities.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
