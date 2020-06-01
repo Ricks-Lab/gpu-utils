@@ -36,10 +36,11 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, IO, Tuple
+from typing import Union, List, Dict, TextIO, IO
 from pathlib import Path
 from uuid import uuid4
 import glob
+
 try:
     from GPUmodules import env
 except ImportError:
@@ -76,6 +77,9 @@ class GpuItem:
     .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
+    _finalized = False
+    _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
+                      'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
@@ -117,35 +121,34 @@ class GpuItem:
                          'sep2':                '#',
                          'power':               'Current Power (W)',
                          'power_cap':           'Power Cap (W)',
-                         'power_cap_range':     '   Power Cap Range (W)'}
-    if env.GUT_CONST.show_fans:
-        _GPU_Param_Labels.update({'fan_enable':      'Fan Enable',
-                                  'pwm_mode':        'Fan PWM Mode',
-                                  'fan_target':      'Fan Target Speed (rpm)',
-                                  'fan_speed':       'Current Fan Speed (rpm)',
-                                  'fan_pwm':         'Current Fan PWM (%)',
-                                  'fan_speed_range': '   Fan Speed Range (rpm)',
-                                  'fan_pwm_range':   '   Fan PWM Range (%)'})
-    _GPU_Param_Labels.update({'sep3': '#',
-                              'loading':         'Current GPU Loading (%)',
-                              'mem_loading':     'Current Memory Loading (%)',
-                              'mem_gtt_usage':   'Current GTT Memory Usage (%)',
-                              'mem_gtt_used':    '   Current GTT Memory Used (GB)',
-                              'mem_gtt_total':   '   Total GTT Memory (GB)',
-                              'mem_vram_usage':  'Current VRAM Usage (%)',
-                              'mem_vram_used':   '   Current VRAM Used (GB)',
-                              'mem_vram_total':  '   Total VRAM (GB)',
-                              'temperatures':    'Current Temps (C)',
-                              'temp_crit':       '   Critical Temp (C)',
-                              'voltages':        'Current Voltages (V)',
-                              'vddc_range':      '   Vddc Range',
-                              'frequencies':     'Current Clk Frequencies (MHz)',
-                              'sclk_ps':         'Current SCLK P-State',
-                              'sclk_f_range':    '   SCLK Range',
-                              'mclk_ps':         'Current MCLK P-State',
-                              'mclk_f_range':    '   MCLK Range',
-                              'ppm':             'Power Profile Mode',
-                              'power_dpm_force': 'Power DPM Force Performance Level'})
+                         'power_cap_range':     '   Power Cap Range (W)',
+                         'fan_enable':          'Fan Enable',
+                         'pwm_mode':            'Fan PWM Mode',
+                         'fan_target':          'Fan Target Speed (rpm)',
+                         'fan_speed':           'Current Fan Speed (rpm)',
+                         'fan_pwm':             'Current Fan PWM (%)',
+                         'fan_speed_range':     '   Fan Speed Range (rpm)',
+                         'fan_pwm_range':       '   Fan PWM Range (%)',
+                         'sep3':                '#',
+                         'loading':             'Current GPU Loading (%)',
+                         'mem_loading':         'Current Memory Loading (%)',
+                         'mem_gtt_usage':       'Current GTT Memory Usage (%)',
+                         'mem_gtt_used':        '   Current GTT Memory Used (GB)',
+                         'mem_gtt_total':       '   Total GTT Memory (GB)',
+                         'mem_vram_usage':      'Current VRAM Usage (%)',
+                         'mem_vram_used':       '   Current VRAM Used (GB)',
+                         'mem_vram_total':      '   Total VRAM (GB)',
+                         'temperatures':        'Current Temps (C)',
+                         'temp_crit':           '   Critical Temp (C)',
+                         'voltages':            'Current Voltages (V)',
+                         'vddc_range':          '   Vddc Range',
+                         'frequencies':         'Current Clk Frequencies (MHz)',
+                         'sclk_ps':             'Current SCLK P-State',
+                         'sclk_f_range':        '   SCLK Range',
+                         'mclk_ps':             'Current MCLK P-State',
+                         'mclk_f_range':        '   MCLK Range',
+                         'ppm':                 'Power Profile Mode',
+                         'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # HWMON sensor reading details
     _sensor_details = {'AMD': {'HWMON': {
@@ -297,6 +300,20 @@ class GpuItem:
         self.vddc_curve = {}        # {'1': ['Mhz', 'mV']}
         self.vddc_curve_range = {}  # {'1': {SCLK: ['val1', 'val2'], VOLT: ['val1', 'val2']}
         self.ppm_modes = {}         # {'1': ['Name', 'Description']}
+        self.finalize_gpu_param_labels()
+
+    @classmethod
+    def finalize_gpu_param_labels(cls):
+        """
+        Finalize class variable of gpu parameters based on command line options.
+        """
+        if cls._finalized:
+            return
+        cls.finalized = True
+        if not env.GUT_CONST.show_fans:
+            for fan_item in cls._fan_item_list:
+                if fan_item in cls._GPU_Param_Labels.keys():
+                    del cls._GPU_Param_Labels[fan_item]
 
     def set_params_value(self, name: str, value: Union[int, str, list]) -> None:
         """
@@ -902,8 +919,8 @@ class GpuItem:
                                             'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force']}
         param_list_state_mon = {'DEVICE':  ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
                                             'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
-        param_list_all = {'DEVICE':        ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd', 'link_wth',
-                                            'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
+        param_list_all = {'DEVICE':        ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd',
+                                            'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
                                             'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
                           'HWMON':         ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
                                             'voltages', 'frequencies']}
@@ -1060,45 +1077,26 @@ class GpuList:
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
     """
     # Table parameters labels.
-    if env.GUT_CONST.show_fans:
-        _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
-                             'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
-                             'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-        _table_param_labels = {'model_display':  'Model',
-                               'loading':        'GPU Load %',
-                               'mem_loading':    'Mem Load %',
-                               'mem_vram_usage': 'VRAM Usage %',
-                               'mem_gtt_usage':  'GTT Usage %',
-                               'power':          'Power (W)',
-                               'power_cap':      'Power Cap (W)',
-                               'energy':         'Energy (kWh)',
-                               'temp_val':       'T (C)',
-                               'vddgfx_val':     'VddGFX (mV)',
-                               'fan_pwm':        'Fan Spd (%)',
-                               'sclk_f_val':     'Sclk (MHz)',
-                               'sclk_ps_val':    'Sclk Pstate',
-                               'mclk_f_val':     'Mclk (MHz)',
-                               'mclk_ps_val':    'Mclk Pstate',
-                               'ppm':            'Perf Mode'}
-    else:
-        _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
-                             'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
-                             'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-        _table_param_labels = {'model_display':  'Model',
-                               'loading':        'Load %',
-                               'mem_loading':    'Mem Load %',
-                               'mem_vram_usage': 'VRAM Usage %',
-                               'mem_gtt_usage':  'GTT Usage %',
-                               'power':          'Power (W)',
-                               'power_cap':      'Power Cap (W)',
-                               'energy':         'Energy (kWh)',
-                               'temp_val':       'T (C)',
-                               'vddgfx_val':     'VddGFX (mV)',
-                               'sclk_f_val':     'Sclk (MHz)',
-                               'sclk_ps_val':    'Sclk Pstate',
-                               'mclk_f_val':     'Mclk (MHz)',
-                               'mclk_ps_val':    'Mclk Pstate',
-                               'ppm':            'Perf Mode'}
+    _finalized = False
+    _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
+                         'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
+                         'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
+    _table_param_labels = {'model_display': 'Model',
+                           'loading': 'GPU Load %',
+                           'mem_loading': 'Mem Load %',
+                           'mem_vram_usage': 'VRAM Usage %',
+                           'mem_gtt_usage': 'GTT Usage %',
+                           'power': 'Power (W)',
+                           'power_cap': 'Power Cap (W)',
+                           'energy': 'Energy (kWh)',
+                           'temp_val': 'T (C)',
+                           'vddgfx_val': 'VddGFX (mV)',
+                           'fan_pwm': 'Fan Spd (%)',
+                           'sclk_f_val': 'Sclk (MHz)',
+                           'sclk_ps_val': 'Sclk Pstate',
+                           'mclk_f_val': 'Mclk (MHz)',
+                           'mclk_ps_val': 'Mclk Pstate',
+                           'ppm': 'Perf Mode'}
 
     def __repr__(self) -> dict:
         return self.list
@@ -1113,6 +1111,21 @@ class GpuList:
         self.amd_wattman = False
         self.amd_writable = False
         self.nv_writable = False
+        self.finalize_table_params()
+
+    @classmethod
+    def finalize_table_params(cls) -> None:
+        """
+        Finalize class variable of table parameters based on command line options.
+        """
+        if cls._finalized:
+            return
+        cls._finalized = True
+        if not env.GUT_CONST.show_fans:
+            if 'fan_pwm' in cls._table_parameters:
+                cls._table_parameters.remove('fan_pwm')
+            if 'fan_pwm' in cls._table_param_labels.keys():
+                del cls._table_param_labels['fan_pwm']
 
     def __getitem__(self, uuid: str) -> GpuItem:
         """
