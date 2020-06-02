@@ -1012,34 +1012,46 @@ class GpuItem:
         if not self.prm.readable:
             logger.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
+        pre = '   '
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
-        print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
-        print('   {}: {}'.format(self._GPU_Param_Labels['card_path'], self.prm.card_path))
-        print('   {}: {}'.format(self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['model'], self.prm.model))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['card_path'], self.prm.card_path))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type))
+
+        # DPM States
         if self.prm.gpu_type == 2:
-            print('   SCLK: {:<17} MCLK:'.format(' '))
+            print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+            print('{}DPM States:'.format(pre))
+            print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
             for k, v in self.sclk_dpm_state.items():
-                print('    {:>1}:  {:<8}            '.format(k, v), end='')
+                print('{} {:>1}:  {:<8}            '.format(pre, k, v), end='')
                 if k in self.mclk_dpm_state.keys():
                     print('{:3>}:  {:<8}'.format(k, self.mclk_dpm_state[k]))
                 else:
                     print('')
-        print('   SCLK: {:<17} MCLK:'.format(' '))
+
+        # pp_od_clk_voltage states
+        print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+        print('{}PP OD States:'.format(pre))
+        print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
         for k, v in self.sclk_state.items():
-            print('    {:>1}:  {:<8}  {:<8}  '.format(k, v[0], v[1]), end='')
+            print('{} {:>1}:  {:<8}  {:<8}  '.format(pre, k, v[0], v[1]), end='')
             if k in self.mclk_state.keys():
                 print('{:3>}:  {:<8}  {:<8}'.format(k, self.mclk_state[k][0], self.mclk_state[k][1]))
             else:
                 print('')
         if self.prm.gpu_type == 2:
-            print('   VDDC_CURVE:')
+            # Curve points
+            print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+            print('{}VDDC_CURVE:'.format(pre))
             for k, v in self.vddc_curve.items():
-                print('    {}: {}'.format(k, v))
+                print('{} {}: {}'.format(pre, k, v))
         print('')
 
     def print(self, clflag: bool = False) -> None:
         """
         Display ls like listing function for GPU parameters.
+
         :param clflag:  Display clinfo data if True
         :type clflag: bool
         :return: None
