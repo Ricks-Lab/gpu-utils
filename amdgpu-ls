@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """ amdgpu-ls  -  Displays details about installed AMD GPUs
 
-    This utility displays most relevant parameters for installed and compatible AMD GPUs. The default
-    behavior is to list relevant parameters by GPU.  OpenCL platform information is added when the
-    *--clinfo* option is used.  A simplified table of current GPU state is displayed with the *--table*
-    option. The *--no_fan* can be used to ignore fan settings.  The *--pstate* option can be used to
-    output the p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
-    is used to output the table of available power/performance modes instead of basic parameters.
+    This utility displays most relevant parameters for installed and compatible AMD GPUs. The
+    default behavior is to list relevant parameters by GPU.  OpenCL platform information is
+    added when the *--clinfo* option is used.  A simplified table of current GPU state is
+    displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
+    *--pstate* option can be used to output the p-state table for each GPU instead of the list
+    of basic parameters.  The *--ppm* option is used to output the table of available
+    power/performance modes instead of basic parameters.
 
     Copyright (C) 2019  RueiKe
 
@@ -28,23 +29,25 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-ls'
-__version__ = 'v3.0.0'
+__version__ = 'v3.2.0-RC1'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Release Candidate'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 
 import argparse
 import sys
+import logging
 from GPUmodules import GPUmodule as gpu
 from GPUmodules import env
 
+logger = logging.getLogger('gpu-utils')
 
-def main():
+
+def main() -> None:
     """
     Main flow for amdgpu-ls.
-    :return:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
@@ -75,13 +78,15 @@ def main():
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.DEBUG = args.debug
-    if args.no_fan:
-        env.GUT_CONST.show_fans = False
+    env.GUT_CONST.set_args(args)
+    logger.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
+
+    if (args.pstates or args.ppm) and args.table:
+        print('The --table option can not be used with --pstate or --ppm, ignoring --table')
 
     # Get list of GPUs and get basic non-driver details
     gpu_list = gpu.GpuList()
