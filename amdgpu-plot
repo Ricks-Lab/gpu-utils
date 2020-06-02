@@ -163,6 +163,35 @@ class GuiComponents:
     """
     Define the gui components of the plot window.
     """
+    _colors = {'plotface':   GPUgui.GuiProps.color_name_to_hex('slate_vdk'),
+               'figface':    GPUgui.GuiProps.color_name_to_hex('slate_md'),
+               'sclk_f_val': GPUgui.GuiProps.color_name_to_hex('br_green'),
+               'mclk_f_val': GPUgui.GuiProps.color_name_to_hex('br_yellow'),
+               'loading':    GPUgui.GuiProps.color_name_to_hex('br_pink'),
+               'power':      GPUgui.GuiProps.color_name_to_hex('br_orange'),
+               'power_cap':  GPUgui.GuiProps.color_name_to_hex('br_red'),
+               'vddgfx_val': GPUgui.GuiProps.color_name_to_hex('br_blue'),
+               'temp_val':   GPUgui.GuiProps.color_name_to_hex('white')}
+
+    _font_colors = {'plotface':   GPUgui.GuiProps.color_name_to_hex('black'),
+                    'figface':    GPUgui.GuiProps.color_name_to_hex('black'),
+                    'sclk_f_val': GPUgui.GuiProps.color_name_to_hex('gray95'),
+                    'mclk_f_val': GPUgui.GuiProps.color_name_to_hex('gray95'),
+                    'loading':    GPUgui.GuiProps.color_name_to_hex('white_off'),
+                    'power':      GPUgui.GuiProps.color_name_to_hex('white_off'),
+                    'power_cap':  GPUgui.GuiProps.color_name_to_hex('white_off'),
+                    'vddgfx_val': GPUgui.GuiProps.color_name_to_hex('gray95'),
+                    'temp_val':   GPUgui.GuiProps.color_name_to_hex('gray95')}
+
+    _gpu_color_list = [GPUgui.GuiProps.color_name_to_hex('red'),
+                       GPUgui.GuiProps.color_name_to_hex('green_dk'),
+                       GPUgui.GuiProps.color_name_to_hex('yellow'),
+                       GPUgui.GuiProps.color_name_to_hex('orange'),
+                       GPUgui.GuiProps.color_name_to_hex('purple'),
+                       GPUgui.GuiProps.color_name_to_hex('blue'),
+                       GPUgui.GuiProps.color_name_to_hex('teal'),
+                       GPUgui.GuiProps.color_name_to_hex('olive')]
+
     def __init__(self, plot_data):
         plot_data.gui_comp = self
         self.ready = False
@@ -170,15 +199,7 @@ class GuiComponents:
         self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
         self.gpu_color = {}
-        self.colors = {'plotface': '#404040', 'figface': '#909090',
-                       'sclk_f_val': '#BED661', 'mclk_f_val': '#89E894',
-                       'loading': '#1E90FF', 'power': '#E12B06', 'power_cap': '#800000',
-                       'vddgfx_val': '#778899', 'temp_val': '#E0E0E0'}
-        self.font_colors = {'plotface': '#000000', 'figface': '#000000',
-                            'sclk_f_val': '#000000', 'mclk_f_val': '#000000',
-                            'loading': '#FFFFFF', 'power': '#FFFFFF', 'power_cap': '#FFFFFF',
-                            'vddgfx_val': '#000000', 'temp_val': '#000000'}
-        gpu_color_list = ['#B73743', '#6A907C', '#C9A100', '#E86850', '#6264A7', '#587498', '#218C8D', '#6C9040']
+        gpu_color_list = self._gpu_color_list
         plot_item_list = ['loading', 'power', 'power_cap', 'temp_val', 'vddgfx_val', 'sclk_f_val', 'mclk_f_val']
 
         self.plot_items = {'loading': True, 'power': True, 'power_cap': True,
@@ -202,6 +223,28 @@ class GuiComponents:
             self.gui_components['card_plots'][gpu_i]['color'] = gpu_color_list[i]
             self.gpu_color[gpu_i] = gpu_color_list[i]
         return
+
+    def get_color(self, color_name: str) -> str:
+        """
+        Get color RGB hex code for the given color name.
+
+        :param color_name: Color Name
+        :return: Color RGB hex code
+        """
+        if color_name not in self._colors.keys():
+            raise KeyError('color name {} not in color dict {}'.format(color_name, self._colors.keys()))
+        return self._colors[color_name]
+
+    def get_font_color(self, color_name: str) -> str:
+        """
+        Get font color RGB hex code for the given color name.
+
+        :param color_name: Color Name
+        :return: Color RGB hex code
+        """
+        if color_name not in self._font_colors.keys():
+            raise KeyError('color name {} not in color dict {}'.format(color_name, self._font_colors.keys()))
+        return self._font_colors[color_name]
 
     def set_ready(self, mode: bool) -> None:
         """
@@ -285,8 +328,8 @@ class GPUPlotWindow(Gtk.Window):
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for k, v in gc.gui_components['legend']['plot_items'].items():
             but_label = gpu.GpuItem.get_button_label(k)
-            but_color = gc.colors[k]
-            but_font_color = gc.font_colors[k]
+            but_color = gc.get_color(k)
+            but_font_color = gc.get_font_color(k)
             gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
             gc.gui_components['legend']['buttons'][k].set_name(but_color[1:])
             GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
@@ -310,8 +353,8 @@ class GPUPlotWindow(Gtk.Window):
                   gc.gui_components['mclk_pstate_status'],
                   gc.gui_components['temp_status']]:
             # Add Bar Plots Titles
-            v['title_obj'] = Gtk.Label(name='white_label')
             bar_plot_name = gpu.GpuItem.get_button_label(v['df_name'])
+            v['title_obj'] = Gtk.Label(name='white_label')
             v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(bar_plot_name))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             lbox = Gtk.Box(spacing=box_spacing_val, name='head_box')
@@ -326,11 +369,11 @@ class GPUPlotWindow(Gtk.Window):
             v['figure_num'] = 100 + fig_num
             fig_num += 1
             v['figure'], v['ax1'] = plt.subplots(num=v['figure_num'])
-            v['figure'].set_facecolor(gc.colors['figface'])
+            v['figure'].set_facecolor(gc.get_color('figface'))
 
             plt.figure(v['figure_num'])
             plt.subplots_adjust(left=0.13, right=0.97, top=0.97, bottom=0.1)
-            v['ax1'].set_facecolor(gc.colors['plotface'])
+            v['ax1'].set_facecolor(gc.get_color('plotface'))
             if v['df_name'] == 'temp_val':
                 plt.yticks(np.arange(20, 91, 10))
             else:
@@ -371,11 +414,11 @@ class GPUPlotWindow(Gtk.Window):
             # Set up plot figure and canvas
             v['figure_num'] = 500 + k
             v['figure'], v['ax1'] = plt.subplots(num=v['figure_num'])
-            v['figure'].set_facecolor(gc.colors['figface'])
+            v['figure'].set_facecolor(gc.get_color('figface'))
             plt.figure(v['figure_num'])
             plt.subplots_adjust(left=0.1, right=0.9, top=0.97, bottom=0.03)
 
-            v['ax1'].set_facecolor(gc.colors['plotface'])
+            v['ax1'].set_facecolor(gc.get_color('plotface'))
             v['ax1'].set_xticks([])
             v['ax1'].set_xticklabels([])
             v['ax1'].set_yticks(np.arange(0, 250, 20))
@@ -473,29 +516,30 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             plt.figure(v['figure_num'])
             v['ax1'].set_xticklabels([])
             v['ax1'].clear()
-            v['ax1'].set_ylabel('Loading/Power/Temp', color='k', fontsize=10)
+            v['ax1'].set_ylabel('Loading/Power/Temp',
+                                color=GPUgui.GuiProps.color_name_to_hex('white_off'), fontsize=10)
             for plot_item in ['loading', 'power_cap', 'power', 'temp_val']:
                 if gc.plot_items[plot_item]:
                     v['ax1'].plot(ldf[ldf['Card#'].isin([k])]['datetime'],
                                   ldf[ldf['Card#'].isin([k])][plot_item],
-                                  color=gc.colors[plot_item], linewidth=0.5)
+                                  color=gc.get_color(plot_item), linewidth=0.5)
                     v['ax1'].text(x=ldf[ldf['Card#'].isin([k])]['datetime'].iloc[-1],
                                   y=ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1],
                                   s=str(int(ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1])),
-                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)), fontsize=6)
 
             v['ax2'].clear()
             v['ax2'].set_xticklabels([])
-            v['ax2'].set_ylabel('MHz/mV', color='k', fontsize=10)
+            v['ax2'].set_ylabel('MHz/mV', color=GPUgui.GuiProps.color_name_to_hex('gray95'), fontsize=10)
             for plot_item in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
                 if gc.plot_items[plot_item]:
                     v['ax2'].plot(ldf[ldf['Card#'].isin([k])]['datetime'],
                                   ldf[ldf['Card#'].isin([k])][plot_item],
-                                  color=gc.colors[plot_item], linewidth=0.5)
+                                  color=gc.get_color(plot_item), linewidth=0.5)
                     v['ax2'].text(x=ldf[ldf['Card#'].isin([k])]['datetime'].iloc[-1],
                                   y=ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1],
                                   s=str(int(ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1])),
-                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.colors[plot_item]), fontsize=6)
+                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)), fontsize=6)
 
             v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, 10))
             v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, 100))
