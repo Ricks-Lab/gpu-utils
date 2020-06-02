@@ -61,7 +61,7 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development on Master  -  v3.1.0
+## New in the Release Candidate on Master  -  v3.2.0
 * Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
 read from the GPU.
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
@@ -77,7 +77,8 @@ are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
 pandas in some installations.
 * Implement dubug logging across the project.  Activated with --debug option and output
 saved to a .log file.
-* Updated color scheme of Gtk applications to work in Ubuntu 20.04.
+* Updated color scheme of Gtk applications to work in Ubuntu 20.04. Unified color scheme
+across all utilities.
 * Additional memory parameters added to utilities.
 
 ## Development Plans

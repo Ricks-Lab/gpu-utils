@@ -21,9 +21,9 @@ __copyright__ = 'Copyright (C) 2020 RueiKe'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.1.0'
+__version__ = 'v3.2.0-RC1'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Release Candidate'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -59,7 +59,7 @@ class GuiProps:
     Class to manage style properties of Gtk widgets.
     """
     _colors: ColorDict = {'white':     '#FFFFFF',
-                          'white_off': '#FDFDFD',
+                          'white_off': '#FCFCFC',
                           'white_pp':  '#F0E5D3',
                           'cream':     '#FFFDD1',
                           'gray20':    '#CCCCCC',
