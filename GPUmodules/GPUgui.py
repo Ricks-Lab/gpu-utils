@@ -50,6 +50,10 @@ ColorDict = Dict[str, str]
 logger = logging.getLogger('gpu-utils')
 
 
+def get_color(value: str) -> str:
+    return GuiProps.color_name_to_hex(value)
+
+
 class GuiProps:
     """
     Class to manage style properties of Gtk widgets.
@@ -58,28 +62,36 @@ class GuiProps:
                           'white_off': '#FDFDFD',
                           'white_pp':  '#F0E5D3',
                           'cream':     '#FFFDD1',
-                          'gray95':    '#0D0D0D',
-                          'gray80':    '#333333',
-                          'gray70':    '#4D4D4D',
-                          'gray60':    '#666666',
-                          'gray50':    '#7F7F7F',
                           'gray20':    '#CCCCCC',
+                          'gray50':    '#7F7F7F',
+                          'gray60':    '#666666',
+                          'gray70':    '#4D4D4D',
+                          'gray80':    '#333333',
+                          'gray95':    '#0D0D0D',
+                          'gray_dk':   '#6A686E',
                           'black':     '#000000',
+                          # Colors Low Contrast - For table fields
                           'green':     '#8EC3A7',
                           'green_dk':  '#6A907C',
                           'teal':      '#218C8D',
                           'olive':     '#6C9040',
-                          'red_old':   '#DC5355',
                           'red':       '#B73743',
                           'orange':    '#E86850',
                           'yellow':    '#C9A100',
                           'blue':      '#587498',
-                          'blue_old':  '#336699',
                           'purple':    '#6264A7',
-                          'gray_dk':   '#6A686E',
+                          # Colors Bright - For plot lines
+                          'br_red':    '#FF2D2D',
+                          'br_orange': '#FF6316',
+                          'br_blue':   '#66CCFF',
+                          'br_pink':   '#CC00FF',
+                          'br_green':  '#99FF99',
+                          'br_yellow': '#FFFF66',
+                          # Slate - For table fields
                           'slate_lt':  '#A0A0AA',
                           'slate_md':  '#80808d',
-                          'slate_dk':  '#5D5D67'}
+                          'slate_dk':  '#5D5D67',
+                          'slate_vdk': '#3A3A40'}
 
     @staticmethod
     def color_name_to_hex(value: str) -> str:
