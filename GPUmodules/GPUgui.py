@@ -46,8 +46,14 @@ except ModuleNotFoundError as error:
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 
+try:
+    from GPUmodules import env
+except ImportError:
+    import env
+
 ColorDict = Dict[str, str]
 logger = logging.getLogger('gpu-utils')
+PATTERNS = env.GutConst.PATTERNS
 
 
 def get_color(value: str) -> str:
@@ -127,7 +133,7 @@ class GuiProps:
 
         .. note:: Code copied from Stack Overflow
         """
-        if not re.fullmatch(r'^#[0-9a-fA-F]{6}', value):
+        if not re.fullmatch(PATTERNS['HEXRGB'], value):
             raise ValueError('Invalid hex color format in {}'.format(value))
         value = value.lstrip('#')
         if len(value) != 6:

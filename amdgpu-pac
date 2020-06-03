@@ -66,6 +66,7 @@ MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 logger = logging.getLogger('gpu-utils')
+PATTERNS = env.GutConst.PATTERNS
 
 
 class PACWindow(Gtk.Window):
@@ -432,12 +433,16 @@ class PACWindow(Gtk.Window):
 
             lbox = Gtk.Box(spacing=6, name='med_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+            devices[v.prm.uuid]['ppm_selection'] = Gtk.Label(name='white_label')
+            devices[v.prm.uuid]['ppm_selection'].set_markup('    PPM Selection:  ')
+            set_gtk_prop(devices[v.prm.uuid]['ppm_selection'], top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
 
             devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(
                 devices[v.prm.uuid]['ppm_modes'])
             devices[v.prm.uuid]['ppm_modes_combo'].get_child().set_name('ppm_combo')
             devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
             devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
+            lbox.pack_start(devices[v.prm.uuid]['ppm_selection'], False, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
@@ -610,12 +615,12 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.sclk_state.items():
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
@@ -624,8 +629,8 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.sclk_state.items():
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                 devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
@@ -635,12 +640,12 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 1:
                 for ps, psd in v.mclk_state.items():
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
@@ -649,8 +654,8 @@ class PACWindow(Gtk.Window):
             elif v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.mclk_state.items():
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                 devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
@@ -660,12 +665,12 @@ class PACWindow(Gtk.Window):
             if v.get_params_value('gpu_type') == 2:
                 for ps, psd in v.vddc_curve.items():
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[0]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[0]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(r'[a-z,A-Z]*', '', str(psd[1]))
-                    item_unit = re.sub(r'[0-9][.]*[0-9]*', '', str(psd[1]))
+                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
 
