@@ -88,6 +88,7 @@ from GPUmodules import env
 register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 logger = logging.getLogger('gpu-utils')
+PATTERNS = env.GutConst.PATTERNS
 
 # SEMAPHORE ############
 PD_SEM = threading.Semaphore()
@@ -597,7 +598,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
                 ll = l.strip()
                 if ll.isnumeric():
                     new_line_item.append(int(ll))
-                elif re.fullmatch(r'[0-9]+.[0-9]*', ll) or re.fullmatch(r'[0-9]*.[0-9]+', ll):
+                elif re.fullmatch(PATTERNS['IS_FLOAT'], ll):
                     new_line_item.append(float(ll))
                 elif ll == '' or ll == '-1' or ll == 'NA' or ll is None:
                     new_line_item.append(np.nan)

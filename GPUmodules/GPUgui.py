@@ -46,9 +46,14 @@ except ModuleNotFoundError as error:
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 
+try:
+    from GPUmodules import env
+except ImportError:
+    import env
+
 ColorDict = Dict[str, str]
 logger = logging.getLogger('gpu-utils')
-PATTERNS = {'HEXRGB':        re.compile(r'^#[0-9a-fA-F]{6}')}
+PATTERNS = env.GutConst.PATTERNS
 
 
 def get_color(value: str) -> str:

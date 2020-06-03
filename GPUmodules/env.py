@@ -52,6 +52,21 @@ class GutConst:
     _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
     _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
+    PATTERNS = {'HEXRGB': re.compile(r'^#[0-9a-fA-F]{6}'),
+                'PCIIID_L0': re.compile(r'^[0-9a-fA-F]{4}.*'),
+                'PCIIID_L1': re.compile(r'^\t[0-9a-fA-F]{4}.*'),
+                'PCIIID_L2': re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
+                'END_IN_ALPHA': re.compile(r'[a-zA-Z]*'),
+                'AMD_GPU': re.compile(r'(AMD|amd|ATI|ati)'),
+                'NV_GPU': re.compile(r'(NVIDIA|nvidia|nVidia)'),
+                'INTC_GPU': re.compile(r'(INTEL|intel|Intel)'),
+                'ASPD_GPU': re.compile(r'(ASPEED|aspeed|Aspeed)'),
+                'MTRX_GPU': re.compile(r'(MATROX|matrox|Matrox)'),
+                'MHz': re.compile(r'M[Hh]z'),
+                'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
+                'IS_FLOAT': re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
+                'VAL_ITEM': re.compile(r'.*_val$'),
+                'GPUMEMTYPE': re.compile(r'^mem_(gtt|vram)_.*')}
 
     def __init__(self):
         self.args = None
