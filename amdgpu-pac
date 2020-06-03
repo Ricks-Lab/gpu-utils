@@ -432,12 +432,16 @@ class PACWindow(Gtk.Window):
 
             lbox = Gtk.Box(spacing=6, name='med_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+            devices[v.prm.uuid]['ppm_selection'] = Gtk.Label(name='white_label')
+            devices[v.prm.uuid]['ppm_selection'].set_markup('    PPM Selection:  ')
+            set_gtk_prop(devices[v.prm.uuid]['ppm_selection'], top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
 
             devices[v.prm.uuid]['ppm_modes_combo'] = Gtk.ComboBox.new_with_model_and_entry(
                 devices[v.prm.uuid]['ppm_modes'])
             devices[v.prm.uuid]['ppm_modes_combo'].get_child().set_name('ppm_combo')
             devices[v.prm.uuid]['ppm_modes_combo'].connect('changed', ppm_select, devices[v.prm.uuid])
             devices[v.prm.uuid]['ppm_modes_combo'].set_entry_text_column(1)
+            lbox.pack_start(devices[v.prm.uuid]['ppm_selection'], False, False, 0)
             lbox.pack_start(devices[v.prm.uuid]['ppm_modes_combo'], False, False, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
