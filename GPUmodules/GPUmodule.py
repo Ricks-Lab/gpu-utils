@@ -1115,22 +1115,22 @@ class GpuList:
     _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                          'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
                          'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-    _table_param_labels = {'model_display': 'Model',
-                           'loading': 'GPU Load %',
-                           'mem_loading': 'Mem Load %',
+    _table_param_labels = {'model_display':  'Model',
+                           'loading':        'GPU Load %',
+                           'mem_loading':    'Mem Load %',
                            'mem_vram_usage': 'VRAM Usage %',
-                           'mem_gtt_usage': 'GTT Usage %',
-                           'power': 'Power (W)',
-                           'power_cap': 'Power Cap (W)',
-                           'energy': 'Energy (kWh)',
-                           'temp_val': 'T (C)',
-                           'vddgfx_val': 'VddGFX (mV)',
-                           'fan_pwm': 'Fan Spd (%)',
-                           'sclk_f_val': 'Sclk (MHz)',
-                           'sclk_ps_val': 'Sclk Pstate',
-                           'mclk_f_val': 'Mclk (MHz)',
-                           'mclk_ps_val': 'Mclk Pstate',
-                           'ppm': 'Perf Mode'}
+                           'mem_gtt_usage':  'GTT Usage %',
+                           'power':          'Power (W)',
+                           'power_cap':      'Power Cap (W)',
+                           'energy':         'Energy (kWh)',
+                           'temp_val':       'T (C)',
+                           'vddgfx_val':     'VddGFX (mV)',
+                           'fan_pwm':        'Fan Spd (%)',
+                           'sclk_f_val':     'Sclk (MHz)',
+                           'sclk_ps_val':    'Sclk Pstate',
+                           'mclk_f_val':     'Mclk (MHz)',
+                           'mclk_ps_val':    'Mclk Pstate',
+                           'ppm':            'Perf Mode'}
 
     def __repr__(self) -> dict:
         return self.list

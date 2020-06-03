@@ -163,15 +163,15 @@ class GuiComponents:
     """
     Define the gui components of the plot window.
     """
-    _colors = {'plotface':   GPUgui.GuiProps.color_name_to_hex('slate_vdk'),
-               'figface':    GPUgui.GuiProps.color_name_to_hex('slate_md'),
-               'sclk_f_val': GPUgui.GuiProps.color_name_to_hex('br_green'),
-               'mclk_f_val': GPUgui.GuiProps.color_name_to_hex('br_yellow'),
-               'loading':    GPUgui.GuiProps.color_name_to_hex('br_pink'),
-               'power':      GPUgui.GuiProps.color_name_to_hex('br_orange'),
-               'power_cap':  GPUgui.GuiProps.color_name_to_hex('br_red'),
-               'vddgfx_val': GPUgui.GuiProps.color_name_to_hex('br_blue'),
-               'temp_val':   GPUgui.GuiProps.color_name_to_hex('white')}
+    _colors = {'plotface':        GPUgui.GuiProps.color_name_to_hex('slate_vdk'),
+               'figface':         GPUgui.GuiProps.color_name_to_hex('slate_md'),
+               'sclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_green'),
+               'mclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_yellow'),
+               'loading':         GPUgui.GuiProps.color_name_to_hex('br_pink'),
+               'power':           GPUgui.GuiProps.color_name_to_hex('br_orange'),
+               'power_cap':       GPUgui.GuiProps.color_name_to_hex('br_red'),
+               'vddgfx_val':      GPUgui.GuiProps.color_name_to_hex('br_blue'),
+               'temp_val':        GPUgui.GuiProps.color_name_to_hex('white')}
 
     _font_colors = {'plotface':   GPUgui.GuiProps.color_name_to_hex('black'),
                     'figface':    GPUgui.GuiProps.color_name_to_hex('black'),
