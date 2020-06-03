@@ -48,6 +48,21 @@ except ImportError:
 
 
 logger = logging.getLogger('gpu-utils')
+PATTERNS = {'HEXRGB':        re.compile(r'^#[0-9a-fA-F]{6}'),
+            'PCIIID_L0':     re.compile(r'^[0-9a-fA-F]{4}.*'),
+            'PCIIID_L1':     re.compile(r'^\t[0-9a-fA-F]{4}.*'),
+            'PCIIID_L2':     re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
+            'END_IN_ALPHA':  re.compile(r'[a-zA-Z]*'),
+            'AMD_GPU':       re.compile(r'(AMD|amd|ATI|ati)'),
+            'NV_GPU':        re.compile(r'(NVIDIA|nvidia|nVidia)'),
+            'INTC_GPU':      re.compile(r'(INTEL|intel|Intel)'),
+            'ASPD_GPU':      re.compile(r'(ASPEED|aspeed|Aspeed)'),
+            'MTRX_GPU':      re.compile(r'(MATROX|matrox|Matrox)'),
+            'MHz':           re.compile(r'M[Hh]z'),
+            'VALID_PS_STR':  re.compile(r'[0-9]+(\s[0-9])*'),
+            'IS_FLOAT':      re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
+            'VAL_ITEM':      re.compile(r'.*_val$'),
+            'GPUMEMTYPE':    re.compile(r'^mem_(gtt|vram)_.*')}
 
 
 class ObjDict(dict):
@@ -370,7 +385,7 @@ class GpuItem:
                     mask += ',' + ps.split(':')[0].strip()
                 sclk_ps = ps.strip('*').strip().split(': ')
                 self.sclk_dpm_state.update({int(sclk_ps[0]): sclk_ps[1]})
-                if re.search(r'\*', ps):
+                if '*' in ps:
                     self.prm.sclk_ps[0] = int(sclk_ps[0])
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
@@ -384,14 +399,14 @@ class GpuItem:
                     mask += ',' + ps.split(':')[0].strip()
                 mclk_ps = ps.strip('*').strip().split(': ')
                 self.mclk_dpm_state.update({int(mclk_ps[0]): mclk_ps[1]})
-                if re.search(r'\*', ps):
+                if '*' in ps:
                     self.prm.mclk_ps[0] = int(mclk_ps[0])
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
             logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
             self.prm.fan_pwm = int(value)
-        elif re.fullmatch(r'^mem_(gtt|vram)_.*', name):
+        elif re.fullmatch(PATTERNS['GPUMEMTYPE'], name):
             self.prm[name] = int(value) / (1024*1024*1024)
             self.set_memory_usage()
         elif name == 'id':
@@ -439,24 +454,24 @@ class GpuItem:
                 if line[0] == '#':
                     continue
                 if level == 0:
-                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L0'], line):
                         if line[:4] == self.prm.id['vendor'].replace('0x', ''):
                             level += 1
                             continue
                 elif level == 1:
-                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L0'], line):
                         break
-                    if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L1'], line):
                         if line[1:5] == self.prm.id['device'].replace('0x', ''):
                             model_str = line[5:]
                             level += 1
                             continue
                 elif level == 2:
-                    if re.fullmatch(r'^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L0'], line):
                         break
-                    if re.fullmatch(r'^\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L1'], line):
                         break
-                    if re.fullmatch(r'^\t\t[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F].*', line):
+                    if re.fullmatch(PATTERNS['PCIIID_L2'], line):
                         if line[2:6] == self.prm.id['subsystem_vendor'].replace('0x', ''):
                             if line[7:11] == self.prm.id['subsystem_device'].replace('0x', ''):
                                 model_str = line[11:]
@@ -470,7 +485,7 @@ class GpuItem:
         :param name:  Parameter name
         :return: Parameter value
         """
-        if re.fullmatch(r'.*_val', name):
+        if re.fullmatch(PATTERNS['VAL_ITEM'], name):
             if name == 'temp_val':
                 if 'edge' in self.prm['temperatures'].keys():
                     return round(self.prm['temperatures']['edge'], 1)
@@ -596,14 +611,14 @@ class GpuItem:
         :return: Return True if valid
         """
         mclk_range = self.prm.mclk_f_range
-        mclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[0])))
-        mclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(mclk_range[1])))
+        mclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[0])))
+        mclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[1])))
         if pstate[1] < mclk_min or pstate[1] > mclk_max:
             return False
         if self.prm.gpu_type != 2:
             vddc_range = self.prm.vddc_range
-            vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
-            vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+            vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
+            vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -616,14 +631,14 @@ class GpuItem:
         :return: Return True if valid
         """
         sclk_range = self.prm.sclk_f_range
-        sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[0])))
-        sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(sclk_range[1])))
+        sclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(sclk_range[0])))
+        sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(sclk_range[1])))
         if pstate[1] < sclk_min or pstate[1] > sclk_max:
             return False
         if self.prm.gpu_type != 2:
             vddc_range = self.prm.vddc_range
-            vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[0])))
-            vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(vddc_range[1])))
+            vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
+            vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -635,10 +650,10 @@ class GpuItem:
         :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if changed
         """
-        if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][0])) != pstate[1]:
+        if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][0])) != pstate[1]:
             return True
         if self.prm.gpu_type != 2:
-            if int(re.sub(r'[a-z,A-Z]*', '', self.sclk_state[pstate[0]][1])) != pstate[2]:
+            if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
 
@@ -649,10 +664,10 @@ class GpuItem:
         :param pstate: pstate = [pstate_number, clk_value, vddc_value]
         :return: Return True if changed
         """
-        if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][0])) != pstate[1]:
+        if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][0])) != pstate[1]:
             return True
         if self.prm.gpu_type != 2:
-            if int(re.sub(r'[a-z,A-Z]*', '', self.mclk_state[pstate[0]][1])) != pstate[2]:
+            if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
 
@@ -663,9 +678,9 @@ class GpuItem:
         :param pstate: curve_point = [point_number, clk_value, vddc_value]
         :return: Return True if changed
         """
-        if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
+        if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.vddc_curve[pstate[0]][0])) != pstate[1]:
             return True
-        if int(re.sub(r'[a-z,A-Z]*', '', self.vddc_curve[pstate[0]][1])) != pstate[2]:
+        if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.vddc_curve[pstate[0]][1])) != pstate[2]:
             return True
         return False
 
@@ -676,12 +691,12 @@ class GpuItem:
         :param curve_pts: curve_point = [point_number, clk_value, vddc_value]
         :return: Return True if valid
         """
-        sclk_min = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][0])))
-        sclk_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][1])))
+        sclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][0])))
+        sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][1])))
         if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
             return False
-        vddc_min = int(re.sub(r'[a-z,A-Z]*', '', str('650mV')))
-        vddc_max = int(re.sub(r'[a-z,A-Z]*', '', str(self.vddc_curve_range[str(curve_pts[0])]['VOLT'][1])))
+        vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str('650mV')))
+        vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['VOLT'][1])))
         if curve_pts[2] < vddc_min or curve_pts[2] > vddc_max:
             return False
         return True
@@ -696,7 +711,7 @@ class GpuItem:
         """
         if ps_str == '':
             return True
-        if not re.fullmatch(r'[0-9]+(\s[0-9])*', ps_str):
+        if not re.fullmatch(PATTERNS['VALID_PS_STR'], ps_str):
             return False
         ps_list = self.prm.mclk_mask.split(',') if clk_name == 'MCLK' else self.prm.sclk_mask.split(',')
         for ps in ps_str.split():
@@ -904,7 +919,7 @@ class GpuItem:
             return ret_dict
         elif sensor_dict[parameter]['type'] == 'st*':
             for item in values:
-                if re.search(r'\*', item):
+                if '*' in item:
                     return item
             return None
         else:  # 'st or st*'
@@ -1094,10 +1109,10 @@ class GpuItem:
                      'Card#': int(self.prm.card_num)}
 
         for table_item in gpu_list.table_parameters():
-            gpu_state_str = str(re.sub('M[Hh]z', '', str(self.get_params_value(table_item)))).strip()
+            gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
             if gpu_state_str.isnumeric():
                 gpu_state[table_item] = int(gpu_state_str)
-            elif re.fullmatch(r'[0-9]+.[0-9]*', gpu_state_str) or re.fullmatch(r'[0-9]*.[0-9]+', gpu_state_str):
+            elif re.fullmatch(PATTERNS['IS_FLOAT'], gpu_state_str):
                 gpu_state[table_item] = float(gpu_state_str)
             elif gpu_state_str == '' or gpu_state_str == '-1' or gpu_state_str == 'NA' or gpu_state_str is None:
                 gpu_state[table_item] = 'NA'
@@ -1272,7 +1287,7 @@ class GpuList:
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
             vendor = 'UNKNOWN'
             opencl_device_version = None if clinfo_flag else 'UNKNOWN'
-            if re.search(r'(AMD|amd|ATI|ati)', gpu_name):
+            if re.search(PATTERNS['AMD_GPU'], gpu_name):
                 vendor = 'AMD'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1281,7 +1296,7 @@ class GpuList:
                             compute = True
                 else:
                     compute = True
-            if re.search(r'(NVIDIA|nvidia|nVidia)', gpu_name):
+            if re.search(PATTERNS['NV_GPU'], gpu_name):
                 vendor = 'NVIDIA'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1290,7 +1305,7 @@ class GpuList:
                             compute = True
                 else:
                     compute = True
-            if re.search(r'(INTEL|intel|Intel)', gpu_name):
+            if re.search(PATTERNS['INTC_GPU'], gpu_name):
                 vendor = 'INTEL'
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
@@ -1299,9 +1314,9 @@ class GpuList:
                             compute = True
                 else:
                     compute = False if re.search(r' 530', gpu_name) else True
-            if re.search(r'(ASPEED|aspeed|Aspeed)', gpu_name):
+            if re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = 'ASPEED'
-            if re.search(r'(MATROX|matrox|Matrox)', gpu_name):
+            if re.search(PATTERNS['MTRX_GPU'], gpu_name):
                 vendor = 'MATROX'
 
             # Get Driver Name
@@ -1428,27 +1443,27 @@ class GpuList:
             param_str = line_items[1]
             # Check item in clinfo_keywords
             for clinfo_keyword, opencl_map_keyword in ocl_keywords.items():
-                if re.search(clinfo_keyword, param_str):
+                if clinfo_keyword in param_str:
                     temp_map[opencl_map_keyword] = line_items[2].strip()
                     logger.debug('openCL map %s: [%s]', clinfo_keyword, temp_map[opencl_map_keyword])
                     continue
 
             # PCIe ID related clinfo_keywords
             # Check for AMD pcie_id details
-            if re.search('CL_DEVICE_TOPOLOGY', param_str):
+            if 'CL_DEVICE_TOPOLOGY' in param_str:
                 ocl_pcie_id = (line_items[2].split()[1]).strip()
                 logger.debug('AMD ocl_pcie_id [%s]', ocl_pcie_id)
                 continue
 
             # Check for NV pcie_id details
-            if re.search('CL_DEVICE_PCI_BUS_ID_NV', param_str):
+            if 'CL_DEVICE_PCI_BUS_ID_NV' in param_str:
                 ocl_pcie_bus_id = hex(int(line_items[2].strip()))
                 if ocl_pcie_slot_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
                     logger.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
                 continue
-            if re.search('CL_DEVICE_PCI_SLOT_ID_NV', param_str):
+            if 'CL_DEVICE_PCI_SLOT_ID_NV' in param_str:
                 ocl_pcie_slot_id = hex(int(line_items[2].strip()))
                 if ocl_pcie_bus_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
@@ -1653,7 +1668,7 @@ class GpuList:
             print('{}|{}'.format(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT), v.prm.card_num),
                   sep='', end='', file=log_file_ptr)
             for table_item in self.table_parameters():
-                print('|{}'.format(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)).strip())),
+                print('|{}'.format(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)).strip())),
                       sep='', end='', file=log_file_ptr)
             print('', file=log_file_ptr)
         return True
@@ -1692,7 +1707,7 @@ class GpuList:
         for v in self.list.values():
             line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)), v.prm.card_num)]
             for table_item in self.table_parameters():
-                line_str_item.append('|' + str(re.sub('M[Hh]z', '', str(v.get_params_value(table_item)))).strip())
+                line_str_item.append('|' + str(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)))).strip())
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
             log_file_ptr.write(line_str.encode('utf-8'))

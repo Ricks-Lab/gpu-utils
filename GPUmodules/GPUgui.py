@@ -48,6 +48,7 @@ except ModuleNotFoundError as error:
 
 ColorDict = Dict[str, str]
 logger = logging.getLogger('gpu-utils')
+PATTERNS = {'HEXRGB':        re.compile(r'^#[0-9a-fA-F]{6}')}
 
 
 def get_color(value: str) -> str:
@@ -127,7 +128,7 @@ class GuiProps:
 
         .. note:: Code copied from Stack Overflow
         """
-        if not re.fullmatch(r'^#[0-9a-fA-F]{6}', value):
+        if not re.fullmatch(PATTERNS['HEXRGB'], value):
             raise ValueError('Invalid hex color format in {}'.format(value))
         value = value.lstrip('#')
         if len(value) != 6:
