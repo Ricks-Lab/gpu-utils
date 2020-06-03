@@ -314,7 +314,7 @@ class GpuItem:
         self.finalize_gpu_param_labels()
 
     @classmethod
-    def finalize_gpu_param_labels(cls):
+    def finalize_gpu_param_labels(cls) -> None:
         """
         Finalize class variable of gpu parameters based on command line options.
         """

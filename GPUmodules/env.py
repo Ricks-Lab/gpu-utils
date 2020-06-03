@@ -52,21 +52,21 @@ class GutConst:
     _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
     _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
-    PATTERNS = {'HEXRGB': re.compile(r'^#[0-9a-fA-F]{6}'),
-                'PCIIID_L0': re.compile(r'^[0-9a-fA-F]{4}.*'),
-                'PCIIID_L1': re.compile(r'^\t[0-9a-fA-F]{4}.*'),
-                'PCIIID_L2': re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
+    PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
+                'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
+                'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
+                'PCIIID_L2':    re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
                 'END_IN_ALPHA': re.compile(r'[a-zA-Z]*'),
-                'AMD_GPU': re.compile(r'(AMD|amd|ATI|ati)'),
-                'NV_GPU': re.compile(r'(NVIDIA|nvidia|nVidia)'),
-                'INTC_GPU': re.compile(r'(INTEL|intel|Intel)'),
-                'ASPD_GPU': re.compile(r'(ASPEED|aspeed|Aspeed)'),
-                'MTRX_GPU': re.compile(r'(MATROX|matrox|Matrox)'),
-                'MHz': re.compile(r'M[Hh]z'),
+                'AMD_GPU':      re.compile(r'(AMD|amd|ATI|ati)'),
+                'NV_GPU':       re.compile(r'(NVIDIA|nvidia|nVidia)'),
+                'INTC_GPU':     re.compile(r'(INTEL|intel|Intel)'),
+                'ASPD_GPU':     re.compile(r'(ASPEED|aspeed|Aspeed)'),
+                'MTRX_GPU':     re.compile(r'(MATROX|matrox|Matrox)'),
+                'MHz':          re.compile(r'M[Hh]z'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
-                'IS_FLOAT': re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
-                'VAL_ITEM': re.compile(r'.*_val$'),
-                'GPUMEMTYPE': re.compile(r'^mem_(gtt|vram)_.*')}
+                'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
+                'VAL_ITEM':     re.compile(r'.*_val$'),
+                'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     def __init__(self):
         self.args = None
@@ -230,11 +230,11 @@ class GutConst:
             lsbr_out = subprocess.check_output(shlex.split('{} -a'.format(self.cmd_lsb_release)),
                                                shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             for lsbr_line in lsbr_out:
-                if re.search('Distributor ID', lsbr_line):
+                if 'Distributor ID' in lsbr_line:
                     lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
                     logger.debug('Using Linux Distro: %s', lsbr_item)
                     self.distro['Distributor'] = lsbr_item.strip()
-                if re.search('Description', lsbr_line):
+                if 'Description' in lsbr_line:
                     lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
                     logger.debug('Linux Distro Description: %s', lsbr_item)
                     self.distro['Description'] = lsbr_item.strip()
@@ -310,7 +310,7 @@ class GutConst:
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                if re.search('!!!', dpkg_line):
+                if '!!!' in dpkg_line:
                     continue
                 for driverpkg in ['amdgpu', 'rocm']:
                     if re.search('Searching', dpkg_line):
