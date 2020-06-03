@@ -8,7 +8,7 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
  - [Using amdgpu-monitor](#using-amdgpu-monitor)
  - [Using amdgpu-plot](#using-amdgpu-plot)
  - [Using amdgpu-pac](#using-amdgpu-pac)
- - [Updating the PCI ID decode file](#Updating-the-PCI-ID-decode-file)
+ - [Updating the PCI ID decode file](#updating-the-PCI-ID-decode-file)
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
  - [Running Startup PAC Bash Files](#running-startup-pac-bash-files)
 
@@ -78,65 +78,71 @@ listing your GPU details with the *amdgpu-ls* command.  It first attempts to det
 of amdgpu drivers you have installed and then check compatibility of installed AMD GPUs.  Its
 default behavior is to list basic GPU details for all compatible cards:
 ```
-Detected GPUs: AMD: 1, ASPEED: 1
-AMD: rocm version: 3.0.6
+Detected GPUs: INTEL: 1, AMD: 1
+AMD: amdgpu version: 20.10-1048554
 AMD: Wattman features enabled: 0xfffd7fff
 2 total GPUs, 1 rw, 0 r-only, 0 w-only
+
+Card Number: 0
+   Vendor: INTEL
+   Readable: False
+   Writable: False
+   Compute: False
+   Card Model: Intel Corporation 8th Gen Core Processor Gaussian Mixture Model
+   PCIe ID: 00:02.0
+   Driver: i915
+   Card Path: /sys/class/drm/card0/device
 
 Card Number: 1
    Vendor: AMD
    Readable: True
    Writable: True
    Compute: True
-   GPU UID: a5e4788172dc768b
-   Device ID: {'vendor': '0x1002', 'device': '0x66af', 'subsystem_vendor': '0x1458', 'subsystem_device': '0x1000'}
-   Decoded Device ID: Vega 20
-   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Vega 20 (rev c1)
-   Display Card Model: Vega 20
-   PCIe ID: 43:00.0
-      Link Speed: 8 GT/s
+   GPU UID: 
+   Device ID: {'vendor': '0x1002', 'device': '0x731f', 'subsystem_vendor': '0x1da2', 'subsystem_device': '0xe411'}
+   Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
+   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] (rev ca)
+   Display Card Model: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
+   PCIe ID: 03:00.0
+      Link Speed: 16 GT/s
       Link Width: 16
    ##################################################
    Driver: amdgpu
-   vBIOS Version: 113-D3600200-106
-   Compute Platform: OpenCL 2.0
+   vBIOS Version: 113-5E4111U-X4G
+   Compute Platform: OpenCL 2.0 AMD-APP (3075.10)
    GPU Frequency/Voltage Control Type: 2
-   HWmon: /sys/class/drm/card1/device/hwmon/hwmon2
+   HWmon: /sys/class/drm/card1/device/hwmon/hwmon3
    Card Path: /sys/class/drm/card1/device
    ##################################################
-   Current Power (W): 82.0
-   Power Cap (W): 150.0
-      Power Cap Range (W): [0, 300]
+   Current Power (W): 109.000
+   Power Cap (W): 160.000
+      Power Cap Range (W): [0, 192]
    Fan Enable: 0
    Fan PWM Mode: [2, 'Dynamic']
-   Fan Target Speed (rpm): 0
-   Current Fan Speed (rpm): 0
-   Current Fan PWM (%): 0
-      Fan Speed Range (rpm): [0, 3850]
+   Fan Target Speed (rpm): 735
+   Current Fan Speed (rpm): 735
+   Current Fan PWM (%): 21
+      Fan Speed Range (rpm): [0, 3200]
       Fan PWM Range (%): [0, 100]
    ##################################################
-   Current GPU Loading (%): 93
-   Current Memory Loading (%): 25
-   Current Temps (C): {'mem': 31.0, 'edge': 33.0, 'junction': 39.0}
-      Critical Temp (C): 100.0
-   Current Voltages (V): {'vddgfx': 1006}
-   Current Clk Frequencies (MHz): {'sclk': 1633.0, 'mclk': 1051.0}
-   Current SCLK P-State: [8, '1651Mhz']
-      SCLK Range: ['808Mhz', '2200Mhz']
-   Current MCLK P-State: [2, '1051Mhz']
-      MCLK Range: ['801Mhz', '1200Mhz']
-   Power Performance Mode: 5-COMPUTE
-   Power Force Performance Level: manual
-
-Card Number: 0
-   Vendor: ASPEED
-   Readable: False
-   Writable: False
-   Compute: False
-   Card Model: ASPEED Technology, Inc. ASPEED Graphics Family (rev 41)
-   PCIe ID: c4:00.0
-   Driver: ast
-   Card Path: /sys/class/drm/card0/device
+   Current GPU Loading (%): 99
+   Current Memory Loading (%): 84
+   Current GTT Memory Usage (%): 0.953
+      Current GTT Memory Used (GB): 0.057
+      Total GTT Memory (GB): 5.984
+   Current VRAM Usage (%): 35.269
+      Current VRAM Used (GB): 2.111
+      Total VRAM (GB): 5.984
+   Current Temps (C): {'mem': 92.0, 'edge': 63.0, 'junction': 70.0}
+      Critical Temp (C): 118.000
+   Current Voltages (V): {'vddgfx': 875}
+   Current Clk Frequencies (MHz): {'sclk': 1700.0, 'mclk': 875.0}
+   Current SCLK P-State: [2, '1700Mhz']
+      SCLK Range: ['800Mhz', '1820Mhz']
+   Current MCLK P-State: [3, '875Mhz']
+      MCLK Range: ['625Mhz', '930Mhz']
+   Power Profile Mode: 0-BOOTUP_DEFAULT
+   Power DPM Force Performance Level: manual
 ```
 
 If everything is working fine, you should see no warning or errors.  The listing utility
@@ -171,8 +177,10 @@ AMD: Wattman features enabled: 0xfffd7fff
 
 Card Number: 1
    Card Model: Vega 20
-   Card: /sys/class/drm/card1/device
-   Type: 2
+   Card Path: /sys/class/drm/card1/device
+   GPU Frequency/Voltage Control Type: 2
+   ##################################################
+   DPM States: 
    SCLK:                   MCLK:
     0:  701Mhz              0:  351Mhz  
     1:  809Mhz              1:  801Mhz  
@@ -183,9 +191,12 @@ Card Number: 1
     6:  1606Mhz             
     7:  1627Mhz             
     8:  1651Mhz             
+   ##################################################
+   PP OD States:
    SCLK:                   MCLK:
     0:  808Mhz    -         
     1:  1650Mhz   -         1:  1050Mhz   -       
+   ################################################## 
    VDDC_CURVE:
     0: ['808Mhz', '724mV']
     1: ['1304Mhz', '822mV']
@@ -235,7 +246,7 @@ is readable and type 0 if it is not.  For GPUs of Vega20 architecture or newer, 
 are defined with three points on a Voltage vs. Frequency curve.  These GPU's are classified as type 2.
 
 With the *amdgpu-ls* tool, you can determine if your card is of type 1 or 2. Here are the relevant lines from the 
-output for and RX Vega64 GPU and the Radeon VII:
+output for different types of GPUs:
 ```
 Decoded Device ID: R9 290X DirectCU II
 GPU Frequency/Voltage Control Type: 0
@@ -244,6 +255,9 @@ Decoded Device ID: RX Vega64
 GPU Frequency/Voltage Control Type: 1
 
 Decoded Device ID: Radeon VII
+GPU Frequency/Voltage Control Type: 2
+
+Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
 GPU Frequency/Voltage Control Type: 2
 ```
 
@@ -271,22 +285,24 @@ every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by defa
 water cooling, you can use the *--no_fans* to remove fan functionality.
 ```
 ┌─────────────┬────────────────┬────────────────┐
-│Card #       │card1           │card2           │
+│Card #       │card0           │card1           │
 ├─────────────┼────────────────┼────────────────┤
 │Model        │Radeon RX 570   │Radeon RX 570   │
 │GPU Load %   │100             │100             │
-│Mem Load %   │26              │96              │
-│Power (W)    │77.1            │87.0            │
+│Mem Load %   │61              │91              │
+│VRAM Usage % │52.64           │52.144          │
+│GTT Usage %  │3.218           │3.053           │
+│Power (W)    │76.2            │84.2            │
 │Power Cap (W)│120.0           │120.0           │
-│Energy (kWh) │1e-06           │2e-06           │
-│T (C)        │74.0            │74.0            │
-│VddGFX (mV)  │918             │912             │
-│Fan Spd (%)  │44              │41              │
-│Sclk (MHz)   │1087            │1092            │
+│Energy (kWh) │0.005           │0.005           │
+│T (C)        │75.0            │72.0            │
+│VddGFX (mV)  │906             │906             │
+│Fan Spd (%)  │54              │48              │
+│Sclk (MHz)   │1071            │1071            │
 │Sclk Pstate  │6               │6               │
 │Mclk (MHz)   │1850            │1850            │
 │Mclk Pstate  │2               │2               │
-│Perf Mode    │5-COMPUTE       │5-COMPUTE       │
+│Perf Mode    │1-3D_FULL_SCREEN│1-3D_FULL_SCREEN│
 └─────────────┴────────────────┴────────────────┘
 ```
 The fields are the same as the GUI version of the display, available with the *--gui* option.
@@ -447,14 +463,14 @@ P-state and mclk P-state are 0. Possible consequences with making changes under 
 stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot will be needed to restore
 full GPU functions. Note that when you change a P-state mask, default mask values will reappear in the field
 after Save, but your specified changes will have been implemented on the card and show up in *amdgpu-monitor*.
-Some changes may not persist when a card has a connected display. 
+Some changes may not persist when a card has a connected display. When changing P-state MHz or mV, the desired P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
 
-When changing P-state MHz or mV, the desired P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
+For Type 2 cards, although changes to p-state masks cannot be made through *amdgpu-pac*, changes to all other fields can be made on-the-fly while the card is under load.
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save
 changes to the GPU.
 
-## Updating the PCI ID decode file
+## Updating the PCI ID decode file 
 In determining the GPU display name, *amdgpu-utils* will examine 2 sources.  The output of *lspci -k -s nn:nn.n* is
 used to generate a complete name and an algorithm is used to generate a shortened version.  From the driver files, a
 set of files (vendor, device, subsystem_vendor, subsystem_device) contain a 4 parts of the Device ID are read and used
@@ -483,33 +499,10 @@ changes in your hardware or graphic drivers may cause potentially serious proble
 PAC bash files are generated following the changes. Review the [Using amdgpu-pac](#using-amdgpu-pac) section
 before proceeding.
 
-One approach to automatically execute a saved PAC bash file at startup or reboot is to run it as a cron job. To
-do this, first create a PAC bash file of your optimized GPU settings using the *amdgpu-pac --force-write* option.
-The executable file will be named *pac_writer_[string-of-characters].sh* and will be created in your current
-amdgpu-utils directory. A separate file is needed for each GPU card. Copy the file(s) to a convenient directory,
-without renaming or changing attributes. (If you leave it in the amdgpu-utils directory, then it may be lost with
-the next distribution update.) In the example here, two bash files were copied to a new directory, `/etc/cron.custom`.
-Now open crontab, the table that drives cron, using the command `~$ sudo crontab -e`. This will open crontab
-in your default terminal text editor. (You may be prompted to choose an editor like *nano* or *vi*.) Add a line
-like this, including an explicit path for each card's bash file:
-```
-@reboot /etc/cron.custom/pac_writer_[string for 1st card].sh
-@reboot /etc/cron.custom/pac_writer_[string for 2nd card].sh
-```
-then save and exit. The next time you reboot, or the system restarts after a power outage, your GPU card(s) will
-be ready to run with optimized settings.  Because some PAC parameters can't be changed when a card is under load,
-you will want to make sure that the PAC bash script executes before the card begins computing. For example, if you
-have a *boinc-client* that automatically runs on startup, then consider delaying it for 30 seconds using the
-cc_config.xml option *<start_delay>30</start_delay>*.
+One approach is to execute PAC bash scripts as a systemd startup service. As with setting up files for crontab, from *amdgpu-pac --force_write* set your optimal configurations for each GPU, then Save All. You may need to change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
 
-Another approach, perhaps a more reliable one, is to execute PAC bash scripts as a systemd startup service. As
-with setting up files for crontab, from *amdgpu-pac --force_write* set your optimal configurations for each GPU,
-then Save All. Change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
-
-For each bash file, create a symlink (soft link) that corresponds to the card number referenced in each linked
-bash file, using simple descriptive names, *e.g.*, pac_writer_card1, pac_writer_card2, *etc.*. These links are
-optional, but can make management of new startup bash files easier. Links are used in the startup service example,
-below. Don't forget to reform the link(s) each time a new PAC bash file is written for a card. 
+For each bash file, you could create a symlink (soft link) that corresponds to the card number referenced in each linked bash file, using simple descriptive names, *e.g.*, pac_writer_card1, pac_writer_card2, *etc.*. These links are
+optional, but can make management of new or edited startup bash files easier. Links are used in the startup service example, below. Don't forget to reform the link(s) each time a new PAC bash file is written for a card. 
  
 Next, create a .service file named something like, amdgpu-pac-startup.service and give it the following content:
 ```
@@ -544,17 +537,14 @@ The last command should produce a terminal stdout like this:
 On the next reboot or restart, the GPU(s) will be set with the PAC run parameters. If you want to test the bash
 script(s) before rebooting, run: `~$ sudo systemctl start amdgpu-pac-startup.service`. 
 
-One or more of your cards' numbers that are assigned by amdgpu drivers may change following a system or driver
+If you have a Type 1 card where some PAC parameters can't be changed when it is under load, you will want to make sure that the PAC bash script executes before the card begins computing. If you have a *boinc-client* that automatically runs on startup, for example, then consider delaying it for 20 seconds using the cc_config.xml option *<start_delay>30</start_delay>*.
+
+One or more card numbers that are assigned by amdgpu drivers may change following a system or driver
 update and restart. With subsequent updates or restarts, a card can switch back to its original number. When a
 switch occurs, the bash file written for a previous card number will still be read at startup, but will have no
-effect, causing the renumbered card to run at its default settings. To deal with this possibility, whether using
-crontab or systemd, you can create an alternative PAC bash file after a renumbering event and add these alternative
-files in your crontab or systemd service. You will probably just need two alternative bash files for a card that is
-subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and
-*amdgpu-plot*. Card reindexing does not affect a card's PCI ID number, which corresponds to its PCIe slot number
-on the motherboard. PCI IDs are listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.
+effect, causing the renumbered card to run at its default settings. To deal with this possibility, you can create an alternative PAC bash file after a renumbering event and add these alternative files in your systemd service. You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and *amdgpu-plot*. A card's PCI IDs is listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.
 
-You may find a card running at startup with default power limits and Fan PWM settings instead of what is prescribed in its startup PAC bash file. If so, it may be that the card's hwmon# is different from what is hard coded in the bash file, because the hwmon index for devices can change with each reboot. To work around this, you can edit a card's bash file to define hwmon# as a variable and modify the hwmon lines to use it. Here is an example for card1:
+You may find a card running at startup with default power limits and Fan PWM settings instead of what is prescribed in its startup PAC bash file. If so, it may be that the card's hwmon# is different from what is hard coded in the bash file, because the hwmon index for devices can also change upon reboot. To work around this, you can edit a card's bash file to define hwmon# as a variable and modify the hwmon lines to use it. Here is an example for card1:
 ```
 set -x
 HWMON=$(ls /sys/class/drm/card1/device/hwmon/)
