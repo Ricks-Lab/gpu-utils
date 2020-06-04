@@ -39,6 +39,7 @@ import logging
 from typing import Union, List, Dict, TextIO, IO
 from pathlib import Path
 from uuid import uuid4
+from enum import Enum
 import glob
 
 try:
@@ -162,6 +163,7 @@ class GpuItem:
                          'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # HWMON sensor reading details
+    SensorType = Enum('type', 'SingleParam SingleString MinMax MLSS InputLabel InputLabel* MLMS')
     _sensor_details = {'AMD': {'HWMON': {
                                    'power':           {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
                                    'power_cap':       {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
