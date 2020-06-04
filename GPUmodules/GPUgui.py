@@ -57,6 +57,12 @@ PATTERNS = env.GutConst.PATTERNS
 
 
 def get_color(value: str) -> str:
+    """
+    Get the rgb hex string for the provided color name.
+
+    :param value: A valid project color name.
+    :return: rrb value as a hex string.
+    """
     return GuiProps.color_name_to_hex(value)
 
 
@@ -138,9 +144,9 @@ class GuiProps:
         value = value.lstrip('#')
         if len(value) != 6:
             raise ValueError('Invalid hex color format in {}'.format(value))
-        (r1, g1, b1, a1) = tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2)) + (1,)
-        (r1, g1, b1, a1) = (r1 / 255.0, g1 / 255.0, b1 / 255.0, a1)
-        return tuple([r1, g1, b1, a1])
+        (r_1, g_1, b_1, a_1) = tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2)) + (1,)
+        (r_1, g_1, b_1, a_1) = (r_1 / 255.0, g_1 / 255.0, b_1 / 255.0, a_1)
+        return tuple([r_1, g_1, b_1, a_1])
 
     @staticmethod
     def set_gtk_prop(gui_item, top: int = None, bottom: int = None, right: int = None,
