@@ -172,7 +172,7 @@ class GuiComponents:
                'power':           GPUgui.GuiProps.color_name_to_hex('br_orange'),
                'power_cap':       GPUgui.GuiProps.color_name_to_hex('br_red'),
                'vddgfx_val':      GPUgui.GuiProps.color_name_to_hex('br_blue'),
-               'temp_val':        GPUgui.GuiProps.color_name_to_hex('white')}
+               'temp_val':        GPUgui.GuiProps.color_name_to_hex('slate_md')}
 
     _font_colors = {'plotface':   GPUgui.GuiProps.color_name_to_hex('black'),
                     'figface':    GPUgui.GuiProps.color_name_to_hex('black'),
@@ -182,7 +182,7 @@ class GuiComponents:
                     'power':      GPUgui.GuiProps.color_name_to_hex('white_off'),
                     'power_cap':  GPUgui.GuiProps.color_name_to_hex('white_off'),
                     'vddgfx_val': GPUgui.GuiProps.color_name_to_hex('gray95'),
-                    'temp_val':   GPUgui.GuiProps.color_name_to_hex('gray95')}
+                    'temp_val':   GPUgui.GuiProps.color_name_to_hex('white_off')}
 
     _gpu_color_list = [GPUgui.GuiProps.color_name_to_hex('red'),
                        GPUgui.GuiProps.color_name_to_hex('green_dk'),
