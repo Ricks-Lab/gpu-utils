@@ -163,49 +163,78 @@ class GpuItem:
                          'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # HWMON sensor reading details
-    SensorType = Enum('type', 'SingleParam SingleString MinMax MLSS InputLabel InputLabel* MLMS')
+    SensorType = Enum('type', 'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS')
+    _gbcf = 1.0/(1024*1024*1024)
     _sensor_details = {'AMD': {'HWMON': {
-                                   'power':           {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_average']},
-                                   'power_cap':       {'type': 'sp', 'cf': 0.000001, 'sensor': ['power1_cap']},
-                                   'power_cap_range': {'type': 'mm', 'cf': 0.000001,
-                                                       'sensor': ['power1_cap_min', 'power1_cap_max']},
-                                   'fan_enable':      {'type': 'sp', 'cf': 1, 'sensor': ['fan1_enable']},
-                                   'fan_target':      {'type': 'sp', 'cf': 1, 'sensor': ['fan1_target']},
-                                   'fan_speed':       {'type': 'sp', 'cf': 1, 'sensor': ['fan1_input']},
-                                   'fan_speed_range': {'type': 'mm', 'cf': 1, 'sensor': ['fan1_min', 'fan1_max']},
-                                   'pwm_mode':        {'type': 'sp', 'cf': 1, 'sensor': ['pwm1_enable']},
-                                   'fan_pwm':         {'type': 'sp', 'cf': 0.39216, 'sensor': ['pwm1']},
-                                   'fan_pwm_range':   {'type': 'mm', 'cf': 0.39216, 'sensor': ['pwm1_min', 'pwm1_max']},
-                                   'temp':            {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_input']},
-                                   'temp_crit':       {'type': 'sp', 'cf': 0.001, 'sensor': ['temp1_crit']},
-                                   'freq1':           {'type': 'sl', 'cf': 0.000001,
-                                                       'sensor': ['freq1_input', 'freq1_label']},
-                                   'freq2':           {'type': 'sl', 'cf': 0.000001,
-                                                       'sensor': ['freq2_input', 'freq2_label']},
-                                   'frequencies':     {'type': 'sl*', 'cf': 0.000001, 'sensor': ['freq*_input']},
-                                   'voltages':        {'type': 'sl*', 'cf': 1, 'sensor': ['in*_input']},
-                                   'temperatures':    {'type': 'sl*', 'cf': 0.001, 'sensor': ['temp*_input']},
-                                   'vddgfx':          {'type': 'sl', 'cf': 0.001,
-                                                       'sensor': ['in0_input', 'in0_label']}},
+                                   'power':           {'type': SensorType.SingleParam,
+                                                       'cf': 0.000001, 'sensor': ['power1_average']},
+                                   'power_cap':       {'type': SensorType.SingleParam,
+                                                       'cf': 0.000001, 'sensor': ['power1_cap']},
+                                   'power_cap_range': {'type': SensorType.MinMax,
+                                                       'cf': 0.000001, 'sensor': ['power1_cap_min', 'power1_cap_max']},
+                                   'fan_enable':      {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['fan1_enable']},
+                                   'fan_target':      {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['fan1_target']},
+                                   'fan_speed':       {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['fan1_input']},
+                                   'fan_speed_range': {'type': SensorType.MinMax,
+                                                       'cf': 1, 'sensor': ['fan1_min', 'fan1_max']},
+                                   'pwm_mode':        {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['pwm1_enable']},
+                                   'fan_pwm':         {'type': SensorType.SingleParam,
+                                                       'cf': 0.39216, 'sensor': ['pwm1']},
+                                   'fan_pwm_range':   {'type': SensorType.MinMax,
+                                                       'cf': 0.39216, 'sensor': ['pwm1_min', 'pwm1_max']},
+                                   'temp':            {'type': SensorType.SingleParam,
+                                                       'cf': 0.001, 'sensor': ['temp1_input']},
+                                   'temp_crit':       {'type': SensorType.SingleParam,
+                                                       'cf': 0.001, 'sensor': ['temp1_crit']},
+                                   'freq1':           {'type': SensorType.InputLabel,
+                                                       'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
+                                   'freq2':           {'type': SensorType.InputLabel,
+                                                       'cf': 0.000001, 'sensor': ['freq2_input', 'freq2_label']},
+                                   'frequencies':     {'type': SensorType.InputLabelX,
+                                                       'cf': 0.000001, 'sensor': ['freq*_input']},
+                                   'voltages':        {'type': SensorType.InputLabelX,
+                                                       'cf': 1, 'sensor': ['in*_input']},
+                                   'temperatures':    {'type': SensorType.InputLabelX,
+                                                       'cf': 0.001, 'sensor': ['temp*_input']},
+                                   'vddgfx':          {'type': SensorType.InputLabel,
+                                                       'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}},
                                'DEVICE': {
-                                   'id':              {'type': 'mt', 'cf': None,
-                                                       'sensor': ['vendor', 'device',
-                                                                  'subsystem_vendor', 'subsystem_device']},
-                                   'unique_id':       {'type': 'st', 'cf': None, 'sensor': ['unique_id']},
-                                   'loading':         {'type': 'st', 'cf': None, 'sensor': ['gpu_busy_percent']},
-                                   'mem_loading':     {'type': 'st', 'cf': None, 'sensor': ['mem_busy_percent']},
-                                   'mem_vram_total':  {'type': 'st', 'cf': None, 'sensor': ['mem_info_vram_total']},
-                                   'mem_vram_used':   {'type': 'st', 'cf': None, 'sensor': ['mem_info_vram_used']},
-                                   'mem_gtt_total':   {'type': 'st', 'cf': None, 'sensor': ['mem_info_gtt_total']},
-                                   'mem_gtt_used':    {'type': 'st', 'cf': None, 'sensor': ['mem_info_gtt_used']},
-                                   'link_spd':        {'type': 'st', 'cf': None, 'sensor': ['current_link_speed']},
-                                   'link_wth':        {'type': 'st', 'cf': None, 'sensor': ['current_link_width']},
-                                   'sclk_ps':         {'type': 'ml', 'cf': None, 'sensor': ['pp_dpm_sclk']},
-                                   'mclk_ps':         {'type': 'ml', 'cf': None, 'sensor': ['pp_dpm_mclk']},
-                                   'power_dpm_force': {'type': 'st', 'cf': None,
+                                   'id':              {'type': SensorType.MLMS,
+                                                       'cf': None, 'sensor': ['vendor', 'device',
+                                                                              'subsystem_vendor', 'subsystem_device']},
+                                   'unique_id':       {'type': SensorType.SingleString,
+                                                       'cf': None, 'sensor': ['unique_id']},
+                                   'loading':         {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['gpu_busy_percent']},
+                                   'mem_loading':     {'type': SensorType.SingleParam,
+                                                       'cf': 1, 'sensor': ['mem_busy_percent']},
+                                   'mem_vram_total':  {'type': SensorType.SingleParam,
+                                                       'cf': _gbcf, 'sensor': ['mem_info_vram_total']},
+                                   'mem_vram_used':   {'type': SensorType.SingleParam,
+                                                       'cf': _gbcf, 'sensor': ['mem_info_vram_used']},
+                                   'mem_gtt_total':   {'type': SensorType.SingleParam,
+                                                       'cf': _gbcf, 'sensor': ['mem_info_gtt_total']},
+                                   'mem_gtt_used':    {'type': SensorType.SingleParam,
+                                                       'cf': _gbcf, 'sensor': ['mem_info_gtt_used']},
+                                   'link_spd':        {'type': SensorType.SingleString,
+                                                       'cf': None, 'sensor': ['current_link_speed']},
+                                   'link_wth':        {'type': SensorType.SingleString,
+                                                       'cf': None, 'sensor': ['current_link_width']},
+                                   'sclk_ps':         {'type': SensorType.MLSS,
+                                                       'cf': None, 'sensor': ['pp_dpm_sclk']},
+                                   'mclk_ps':         {'type': SensorType.MLSS,
+                                                       'cf': None, 'sensor': ['pp_dpm_mclk']},
+                                   'power_dpm_force': {'type': SensorType.SingleString,
+                                                       'cf': None,
                                                        'sensor': ['power_dpm_force_performance_level']},
-                                   'ppm':             {'type': 'st*', 'cf': None, 'sensor': ['pp_power_profile_mode']},
-                                   'vbios':           {'type': 'st', 'cf': None, 'sensor': ['vbios_version']}}}}
+                                   'ppm':             {'type': SensorType.SingleStringSelect,
+                                                       'cf': None, 'sensor': ['pp_power_profile_mode']},
+                                   'vbios':           {'type': SensorType.SingleString,
+                                                       'cf': None, 'sensor': ['vbios_version']}}}}
 
     def __repr__(self) -> dict:
         """
@@ -393,9 +422,9 @@ class GpuItem:
                 self.prm.mclk_mask = mask
             logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
-            self.prm.fan_pwm = int(value)
+            self.prm.fan_pwm = value
         elif re.fullmatch(PATTERNS['GPUMEMTYPE'], name):
-            self.prm[name] = int(value) / (1024*1024*1024)
+            self.prm[name] = value
             self.set_memory_usage()
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
@@ -473,6 +502,7 @@ class GpuItem:
         :param name:  Parameter name
         :return: Parameter value
         """
+        # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
             if name == 'temp_val':
                 if 'edge' in self.prm['temperatures'].keys():
@@ -860,22 +890,23 @@ class GpuItem:
         values = []
         ret_value = []
         ret_dict = {}
-        if sensor_dict[parameter]['type'] == 'sl*':
-            sensor_files = glob.glob(os.path.join(sensor_path, sensor_dict[parameter]['sensor'][0]))
+        target_sensor = sensor_dict[parameter]
+        if target_sensor['type'] == self.SensorType.InputLabelX:
+            sensor_files = glob.glob(os.path.join(sensor_path, target_sensor['sensor'][0]))
         else:
-            sensor_files = sensor_dict[parameter]['sensor']
+            sensor_files = target_sensor['sensor']
         for sensor_file in sensor_files:
             file_path = os.path.join(sensor_path, sensor_file)
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
-                        if sensor_dict[parameter]['type'] == 'st*' or sensor_dict[parameter]['type'] == 'ml':
+                        if target_sensor['type'] in [self.SensorType.SingleStringSelect, self.SensorType.MLSS]:
                             lines = hwmon_file.readlines()
                             for line in lines:
                                 values.append(line.strip())
                         else:
                             values.append(hwmon_file.readline().strip())
-                    if sensor_dict[parameter]['type'] == 'sl*':
+                    if target_sensor['type'] == self.SensorType.InputLabelX:
                         with open(file_path.replace('input', 'label')) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
                 except OSError as err:
@@ -887,31 +918,33 @@ class GpuItem:
                 self.read_disabled.append(parameter)
                 return False
 
-        if sensor_dict[parameter]['type'] == 'sp':
-            if sensor_dict[parameter]['cf'] == 1:
+        if target_sensor['type'] == self.SensorType.SingleParam:
+            if target_sensor['cf'] == 1:
                 return int(values[0])
-            return int(values[0])*sensor_dict[parameter]['cf']
-        elif sensor_dict[parameter]['type'] == 'sl':
-            ret_value.append(int(values[0])*sensor_dict[parameter]['cf'])
+            return int(values[0]) * target_sensor['cf']
+        elif target_sensor['type'] == self.SensorType.InputLabel:
+            ret_value.append(int(values[0]) * target_sensor['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
-        elif sensor_dict[parameter]['type'] == 'mt' or sensor_dict[parameter]['type'] == 'ml':
+        elif target_sensor['type'] in [self.SensorType.MLSS, self.SensorType.MLMS]:
             return values
-        elif sensor_dict[parameter]['type'] == 'mm':
-            ret_value.append(int(int(values[0])*sensor_dict[parameter]['cf']))
-            ret_value.append(int(int(values[1])*sensor_dict[parameter]['cf']))
+        elif target_sensor['type'] == self.SensorType.MinMax:
+            ret_value.append(int(int(values[0]) * target_sensor['cf']))
+            ret_value.append(int(int(values[1]) * target_sensor['cf']))
             return tuple(ret_value)
-        elif sensor_dict[parameter]['type'] == 'sl*':
+        elif target_sensor['type'] == self.SensorType.InputLabelX:
             for i in range(0, len(values), 2):
-                ret_dict.update({values[i+1]: int(values[i])*sensor_dict[parameter]['cf']})
+                ret_dict.update({values[i+1]: int(values[i]) * target_sensor['cf']})
             return ret_dict
-        elif sensor_dict[parameter]['type'] == 'st*':
+        elif target_sensor['type'] == self.SensorType.SingleStringSelect:
             for item in values:
                 if '*' in item:
                     return item
             return None
-        else:  # 'st or st*'
+        elif target_sensor['type'] == self.SensorType.SingleString:
             return values[0]
+        else:
+            raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
     def read_gpu_sensor_data(self, data_type: str = 'All') -> None:
         """
