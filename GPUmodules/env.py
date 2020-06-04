@@ -49,7 +49,7 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros: Dict[str, str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
+    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
     _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
@@ -63,6 +63,8 @@ class GutConst:
                 'ASPD_GPU':     re.compile(r'(ASPEED|aspeed|Aspeed)'),
                 'MTRX_GPU':     re.compile(r'(MATROX|matrox|Matrox)'),
                 'MHz':          re.compile(r'M[Hh]z'),
+                'PPM_CHK':      re.compile(r'[*].*'),
+                'PPM_NOTCHK':   re.compile(r'[ ]+'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
