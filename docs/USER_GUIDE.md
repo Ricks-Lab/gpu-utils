@@ -1,7 +1,7 @@
 # amdgpu-utils - User Guide
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-## Current amdgpu-utils Version: 3.0.x
+## Current amdgpu-utils Version: 3.2.x
  - [Getting Started](#getting-started)
  - [Using amdgpu-ls](#using-amdgpu-ls)
  - [GPU Type Dependent Behavior](#gpu-type-dependent-behavior)
@@ -435,11 +435,8 @@ The default behavior since v2.4.0 is to write only changes.  The *--force_write*
 that can be execute to set your cards to a known state. As an example, you could use such a file to configure your
 GPUs on boot up (see [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)).
 
-### The amdgpu-pac interface for Type 1 cards
-![](amdgpu-pac_type1.png)
-
-### The amdgpu-pac interface for Type 2 cards
-![](amdgpu-pac_type2.png)
+### The amdgpu-pac interface for Type 1 and Type 2 cards
+![](amdgpu-pac_scrshot.png)
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In most cases, the
 values in these fields will be the current values, but in the case of P-state masks, it will show the default value
