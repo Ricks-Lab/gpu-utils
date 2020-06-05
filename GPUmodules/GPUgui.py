@@ -21,13 +21,13 @@ __copyright__ = 'Copyright (C) 2020 RueiKe'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.2.0-RC1'
+__version__ = 'v3.2.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Release Candidate'
+__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: bad-continuation
+# pylint: disable=bad-continuation
 
 from typing import Tuple, Dict
 import sys

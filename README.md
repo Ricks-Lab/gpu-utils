@@ -3,25 +3,26 @@ A set of utilities for monitoring AMD GPU performance and modifying control sett
 
 In order to use any of these utilities, you must have the *amdgpu* open source driver
 package installed. You also must first set your Linux machine to boot with
-amdgpu.ppfeaturemask=0xffff7fff or 0xfffd7fff.  This can be accomplished by adding
-amdgpu.ppfeaturemask=0xffff7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
+amdgpu.ppfeaturemask=0xfffd7fff.  This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
 /etc/default/grub and executing *sudo update-grub*
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
+Download latest official release: [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
 
 ## amdgpu-chk
 This utility verifies if the environment is compatible with *amdgpu-util*s.
 
 ## amdgpu-ls
-This utility displays most relevant parameters for installed and compatible AMD GPUs. The default
-behavior is to list relevant parameters by GPU.  OpenCL platform information is added when the
-*--clinfo* option is used.  A simplified table of current GPU state is displayed with the *--table*
-option. The *--no_fan* can be used to ignore fan settings.  The *--pstate* option can be used to
-output the p-state table for each GPU instead of the list of basic parameters.  The *--ppm* option
-is used to output the table of available power/performance modes instead of basic parameters.
-
+This utility displays most relevant parameters for installed and compatible AMD GPUs. The
+default behavior is to list relevant parameters by GPU.  OpenCL platform information is
+added when the *--clinfo* option is used.  A simplified table of current GPU state is
+displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
+*--pstate* option can be used to output the p-state table for each GPU instead of the list
+of basic parameters.  The *--ppm* option is used to output the table of available
+power/performance modes instead of basic parameters.
+    
 ## amdgpu-monitor
 A utility to give the current state of all compatible AMD GPUs. The default behavior
 is to continuously update a text based table in the current window until Ctrl-C is
@@ -61,7 +62,7 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in the Release Candidate on Master  -  v3.2.0
+## New in this Release  -  [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
 * Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
 read from the GPU.
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).
@@ -91,8 +92,8 @@ across all utilities.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
 * *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
-* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows
-actual values instead of set values.
+* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac
+interface shows actual values instead of set values.
 
 ## References
 * Original inspiration for this project: 

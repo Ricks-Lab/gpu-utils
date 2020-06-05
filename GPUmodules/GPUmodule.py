@@ -22,13 +22,14 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.2.0-RC1'
+__version__ = 'v3.2.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Release Candidate'
+__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
+# pylint: disable=bad-continuation
 
 import re
 import subprocess
