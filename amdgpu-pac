@@ -834,8 +834,8 @@ class PACWindow(Gtk.Window):
             pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
             old_pwm = v.get_params_value('fan_pwm')
             logger.debug('Current pwm value: %s', old_pwm)
-            if not isinstance(old_pwm, (int, float)):
-                old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
+            #if not isinstance(old_pwm, (int, float)):
+                #old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
             if new_pwm_str.lower() == 'reset':

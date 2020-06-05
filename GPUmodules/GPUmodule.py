@@ -423,7 +423,14 @@ class GpuItem:
                 self.prm.mclk_mask = mask
             logger.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
-            self.prm.fan_pwm = value
+            if isinstance(value, int):
+                self.prm.fan_pwm = value
+            elif isinstance(value, float):
+                self.prm.fan_pwm = int(value)
+            elif isinstance(value, str):
+                self.prm.fan_pwm = int(value) if value.isnumeric() else None
+            else:
+                self.prm.fan_pwm = None
         elif re.fullmatch(PATTERNS['GPUMEMTYPE'], name):
             self.prm[name] = value
             self.set_memory_usage()
