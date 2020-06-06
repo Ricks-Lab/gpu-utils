@@ -151,8 +151,8 @@ class GpuItem:
                          'mem_vram_usage':      'Current VRAM Usage (%)',
                          'mem_vram_used':       '   Current VRAM Used (GB)',
                          'mem_vram_total':      '   Total VRAM (GB)',
-                         'temperatures':        'Current Temps (C)',
-                         'temp_crit':           '   Critical Temp (C)',
+                         'temperatures':        'Current  Temps (C)',
+                         'temp_crits':          'Critical Temps (C)',
                          'voltages':            'Current Voltages (V)',
                          'vddc_range':          '   Vddc Range',
                          'frequencies':         'Current Clk Frequencies (MHz)',
@@ -187,22 +187,16 @@ class GpuItem:
                                                        'cf': 0.39216, 'sensor': ['pwm1']},
                                    'fan_pwm_range':   {'type': SensorType.MinMax,
                                                        'cf': 0.39216, 'sensor': ['pwm1_min', 'pwm1_max']},
-                                   'temp':            {'type': SensorType.SingleParam,
-                                                       'cf': 0.001, 'sensor': ['temp1_input']},
-                                   'temp_crit':       {'type': SensorType.SingleParam,
-                                                       'cf': 0.001, 'sensor': ['temp1_crit']},
-                                   'freq1':           {'type': SensorType.InputLabel,
-                                                       'cf': 0.000001, 'sensor': ['freq1_input', 'freq1_label']},
-                                   'freq2':           {'type': SensorType.InputLabel,
-                                                       'cf': 0.000001, 'sensor': ['freq2_input', 'freq2_label']},
+                                   'temp_crits':      {'type': SensorType.InputLabelX,
+                                                       'cf': 0.001, 'sensor': ['temp*_crit']},
                                    'frequencies':     {'type': SensorType.InputLabelX,
                                                        'cf': 0.000001, 'sensor': ['freq*_input']},
                                    'voltages':        {'type': SensorType.InputLabelX,
                                                        'cf': 1, 'sensor': ['in*_input']},
                                    'temperatures':    {'type': SensorType.InputLabelX,
                                                        'cf': 0.001, 'sensor': ['temp*_input']},
-                                   'vddgfx':          {'type': SensorType.InputLabel,
-                                                       'cf': 0.001, 'sensor': ['in0_input', 'in0_label']}},
+                                   'vddgfx':          {'type': SensorType.InputLabelX,
+                                                       'cf': 0.001, 'sensor': ['in*_input']}},
                                'DEVICE': {
                                    'id':              {'type': SensorType.MLMS,
                                                        'cf': None, 'sensor': ['vendor', 'device',
@@ -296,7 +290,7 @@ class GpuItem:
                             'fan_pwm_range': [None, None],
                             'fan_target': None,
                             'temp': None,
-                            'temp_crit': None,
+                            'temp_crits': None,
                             'vddgfx': None,
                             'vddc_range': ['', ''],
                             'temperatures': None,
@@ -438,7 +432,7 @@ class GpuItem:
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
             self.prm.model_device_decode = self.read_pciid_model()
             if (self.prm.model_device_decode != 'UNDETERMINED' and
-                    len(self.prm.model_device_decode) < 1.2*len(self.prm.model_short)):
+                    len(self.prm.model_device_decode) < 1.2 * len(self.prm.model_short)):
                 self.prm.model_display = self.prm.model_device_decode
         else:
             self.prm[name] = value
@@ -503,18 +497,22 @@ class GpuItem:
                                 break
         return model_str.strip()
 
-    def get_params_value(self, name: str) -> Union[int, str, list]:
+    def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
         """
         Get parameter value for give name.
 
         :param name:  Parameter name
+        :param num_as_int: Convert float to in if True
         :return: Parameter value
         """
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
             if name == 'temp_val':
                 if 'edge' in self.prm['temperatures'].keys():
-                    return round(self.prm['temperatures']['edge'], 1)
+                    if num_as_int:
+                        return int(self.prm['temperatures']['edge'])
+                    else:
+                        return round(self.prm['temperatures']['edge'], 1)
                 return self.prm['temperatures'].keys()[0]
             if name == 'vddgfx_val':
                 return int(self.prm['voltages']['vddgfx'])
@@ -530,6 +528,18 @@ class GpuItem:
                 if 'mclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['mclk'])
                 return self.prm['mclk_ps'][1]
+
+        # Set type for params that could be float or int
+        if name in ['fan_pwm', 'fan_speed', 'power_cap', 'power']:
+            if num_as_int:
+                if isinstance(self.prm[name], int):
+                    return self.prm[name]
+                elif isinstance(self.prm[name], float):
+                    return int(self.prm[name])
+                elif isinstance(self.prm[name], str):
+                    return int(self.prm[name]) if self.prm[name].isnumeric() else None
+                else:
+                    return self.prm[name]
         return self.prm[name]
 
     def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: str, driver_module: str,
@@ -915,7 +925,13 @@ class GpuItem:
                         else:
                             values.append(hwmon_file.readline().strip())
                     if target_sensor['type'] == self.SensorType.InputLabelX:
-                        with open(file_path.replace('input', 'label')) as hwmon_file:
+                        if '_input' in file_path:
+                            file_path = file_path.replace('_input', '_label')
+                        elif '_crit' in file_path:
+                            file_path = file_path.replace('_crit', '_label')
+                        else:
+                            print('Error in sensor label pair: {}'.format(target_sensor))
+                        with open(file_path) as hwmon_file:
                             values.append(hwmon_file.readline().strip())
                 except OSError as err:
                     logger.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
@@ -976,7 +992,7 @@ class GpuItem:
                 else:
                     dict1.update({st: dict2[st]})
 
-        param_list_static = {'HWMON':      ['power_cap_range', 'temp_crit']}
+        param_list_static = {'HWMON':      ['power_cap_range', 'temp_crits']}
         param_list_static_fan = {'HWMON':  ['fan_speed_range', 'fan_pwm_range']}
         param_list_dynamic = {'HWMON':     ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
         param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
@@ -988,7 +1004,7 @@ class GpuItem:
         param_list_all = {'DEVICE':        ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd',
                                             'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
                                             'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
-                          'HWMON':         ['power_cap_range', 'temp_crit', 'power', 'power_cap', 'temperatures',
+                          'HWMON':         ['power_cap_range', 'temp_crits', 'power', 'power_cap', 'temperatures',
                                             'voltages', 'frequencies']}
         param_list_all_fan = {'HWMON':     ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target',
                                             'fan_speed', 'pwm_mode', 'fan_pwm']}
