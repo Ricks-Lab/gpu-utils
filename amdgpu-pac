@@ -601,15 +601,12 @@ class PACWindow(Gtk.Window):
 
         for v in gpu_list.list.values():
             devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {}W    Set: '.format(
-                                                          v.get_params_value('power_cap')))
-            devices[v.prm.uuid]['power_cap_ent'].set_text(str(int(v.get_params_value('power_cap'))))
+                                                          v.get_params_value('power_cap', num_as_int=True)))
+            devices[v.prm.uuid]['power_cap_ent'].set_text(str(v.get_params_value('power_cap', num_as_int=True)))
             if env.GUT_CONST.show_fans:
                 devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
-                                                            v.get_params_value('fan_pwm')))
-                try:
-                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
-                except TypeError:
-                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm')))
+                                                            v.get_params_value('fan_pwm', num_as_int=True)))
+                devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm', num_as_int=True)))
                 logger.debug('Refresh got current pwm speed: %s', devices[v.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
             if v.get_params_value('gpu_type') == 1:
@@ -801,7 +798,7 @@ class PACWindow(Gtk.Window):
 
         # Power Cap
         power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
-        old_power_cap = int(v.get_params_value('power_cap'))
+        old_power_cap = v.get_params_value('power_cap', num_as_int=True)
         new_power_cap_str = devices[uuid]['power_cap_ent'].get_text()
         if new_power_cap_str.lower() == 'reset':
             changed += 1
@@ -832,10 +829,8 @@ class PACWindow(Gtk.Window):
             # Fan PWM
             pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
             pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
-            old_pwm = v.get_params_value('fan_pwm')
+            old_pwm = v.get_params_value('fan_pwm', num_as_int=True)
             logger.debug('Current pwm value: %s', old_pwm)
-            #if not isinstance(old_pwm, (int, float)):
-                #old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
             if new_pwm_str.lower() == 'reset':
