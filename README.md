@@ -110,7 +110,7 @@ interface shows actual values instead of set values.
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
-## New in Previous Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
+#### New in Previous Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid*  and removed all related code.
 * Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
