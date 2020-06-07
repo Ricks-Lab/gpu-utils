@@ -36,8 +36,8 @@ dpkg -l 'rocm*'
 You also must set your Linux machine to boot with the feature mask set to support the functionality
 that these tools depend on.  Do do this, you must set amdgpu.ppfeaturemask=0xfffd7fff.  This
 can be accomplished by adding amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT
-value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or your favorite
-command line editor:
+value in /etc/default/grub and executing *sudo update-grub* as in the following example, using *vi* or
+your favorite command line editor:
 ```
 cd /etc/default
 sudo vi grub
@@ -215,7 +215,8 @@ Card Number: 1
     6:           CUSTOM
    -1:             AUTO
 ```
-Different generations of cards will provide different information with the --ppm option. Here is an example for Ellsmere and Polaris cards:
+Different generations of cards will provide different information with the --ppm option. Here is an example for
+Ellesmere and Polaris cards:
 ```
 ./amdgpu-ls --ppm
 Detected GPUs: INTEL: 1, AMD: 2
@@ -241,13 +242,16 @@ Card Number: 1
 AMD GPU's compatible with the amdgpu open source drivers are of three different types in terms of how frequency/voltage
 is managed.  GPUs of Vega10 and earlier architecture rely on the definition of specific power states to determine
 the clock frequency and voltage.  The GPU will operate only at the specific Frequency/Voltage states that are defined, 
-and move between states based on power, temperature, and loading.  These GPU's are classified as `Type: PStates` if the P-state table is readable and as `Type: Undefined` if it is not.  For GPUs of Vega20 architecture or newer, Voltage/Frequency curves can be defined with three points on a Voltage vs. Frequency curve.  These GPU's are classified as `Type: CurvePts`.
+and move between states based on power, temperature, and loading.  These GPU's are classified as `Type: PStates` if
+the P-state table is readable and as `Type: PSatesNE` if it is not.  For GPUs of Vega20 architecture or newer,
+Voltage/Frequency curves can be defined with three points on a Voltage vs. Frequency curve.  These GPU's are
+classified as `Type: CurvePts`.
 
 With the *amdgpu-ls* tool, you can determine the type of your card. Here are examples of relevant lines from the 
 output for different types of GPUs:
 ```
 Decoded Device ID: R9 290X DirectCU II
-GPU Frequency/Voltage Control Type: Undefined
+GPU Frequency/Voltage Control Type: PStatesNE
 
 Decoded Device ID: RX Vega64
 GPU Frequency/Voltage Control Type: PStates
@@ -260,17 +264,18 @@ GPU Frequency/Voltage Control Type: CurvePts
 ```
 
 Monitor and Control utilities will differ between the three types.
-* For type Undefined, you can monitor the P-state details with monitor utilities, but you can NOT define P-states or set
-P-state masks.
+* For type Undefined, you can monitor the P-state details with monitor utilities, but you can NOT define P-states
+or set P-state masks.
 * For type PStates, you can monitor the P-state details with monitor utilities, and you can define P-states and set
 P-state masks.
-* For Type CurvePts, you can monitor current Clocks frequency and P-states, with latest amdgpu drivers.  The SCLK and MCLK
-curve end points can be controlled, which has the effect of limiting the frequency range, similar to P-state masking
-for Type PStates cards.  The option of p-state masking is also available for Type CurvePts cards.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the
-3rd point would be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a
-curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this
-time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default
-settings. 
+* For Type CurvePts, you can monitor current Clocks frequency and P-states, with latest amdgpu drivers.  The SCLK and
+MCLK curve end points can be controlled, which has the effect of limiting the frequency range, similar to P-state
+masking for Type PStates cards.  The option of p-state masking is also available for Type CurvePts cards.  You are
+also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but
+I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is
+effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage
+doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for
+curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
@@ -457,9 +462,12 @@ P-state and mclk P-state are 0. Possible consequences with making changes under 
 stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot will be needed to restore
 full GPU functions. Note that when you change a P-state mask, default mask values will reappear in the field
 after Save, but your specified changes will have been implemented on the card and show up in *amdgpu-monitor*.
-Some changes may not persist when a card has a connected display. When changing P-state MHz or mV, the desired P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
+Some changes may not persist when a card has a connected display. When changing P-state MHz or mV, the desired
+P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to
+be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
 
-For Type CurvePts cards, although changes to p-state masks cannot be made through *amdgpu-pac*, changes to all other fields can be made on-the-fly while the card is under load.
+For Type CurvePts cards, although changes to p-state masks cannot be made through *amdgpu-pac*, changes to all
+other fields can be made on-the-fly while the card is under load.
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save
 changes to the GPU.
@@ -493,10 +501,14 @@ changes in your hardware or graphic drivers may cause potentially serious proble
 PAC bash files are generated following the changes. Review the [Using amdgpu-pac](#using-amdgpu-pac) section
 before proceeding.
 
-One approach is to execute PAC bash scripts as a systemd startup service. As with setting up files for crontab, from *amdgpu-pac --force_write* set your optimal configurations for each GPU, then Save All. You may need to change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
+One approach is to execute PAC bash scripts as a systemd startup service. As with setting up files for crontab,
+from *amdgpu-pac --force_write* set your optimal configurations for each GPU, then Save All. You may need to
+change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
 
-For each bash file, you could create a symlink (soft link) that corresponds to the card number referenced in each linked bash file, using simple descriptive names, *e.g.*, pac_writer_card1, pac_writer_card2, *etc.*. These links are
-optional, but can make management of new or edited startup bash files easier. Links are used in the startup service example, below. Don't forget to reform the link(s) each time a new PAC bash file is written for a card. 
+For each bash file, you could create a symlink (soft link) that corresponds to the card number referenced in each
+linked bash file, using simple descriptive names, *e.g.*, pac_writer_card1, pac_writer_card2, *etc.*. These links are
+optional, but can make management of new or edited startup bash files easier. Links are used in the startup service
+example, below. Don't forget to reform the link(s) each time a new PAC bash file is written for a card. 
  
 Next, create a .service file named something like, amdgpu-pac-startup.service and give it the following content:
 ```
@@ -531,14 +543,24 @@ The last command should produce a terminal stdout like this:
 On the next reboot or restart, the GPU(s) will be set with the PAC run parameters. If you want to test the bash
 script(s) before rebooting, run: `~$ sudo systemctl start amdgpu-pac-startup.service`. 
 
-If you have a Type PStates card where some PAC parameters can't be changed when it is under load, you will want to make sure that the PAC bash script executes before the card begins computing. If you have a *boinc-client* that automatically runs on startup, for example, then consider delaying it for 20 seconds using the cc_config.xml option *<start_delay>30</start_delay>*.
+If you have a Type PStates card where some PAC parameters can't be changed when it is under load, you will want
+to make sure that the PAC bash script executes before the card begins computing. If you have a *boinc-client* that
+automatically runs on startup, for example, then consider delaying it for 20 seconds using the cc_config.xml
+option *<start_delay>30</start_delay>*.
 
 One or more card numbers that are assigned by amdgpu drivers may change following a system or driver
 update and restart. With subsequent updates or restarts, a card can switch back to its original number. When a
 switch occurs, the bash file written for a previous card number will still be read at startup, but will have no
-effect, causing the renumbered card to run at its default settings. To deal with this possibility, you can create an alternative PAC bash file after a renumbering event and add these alternative files in your systemd service. You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and *amdgpu-plot*. A card's PCI IDs is listed by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.
+effect, causing the renumbered card to run at its default settings. To deal with this possibility, you can create
+an alternative PAC bash file after a renumbering event and add these alternative files in your systemd service.
+You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's
+number is shown by *amdgpu-ls* and also appears in *amdgpu-monitor* and *amdgpu-plot*. A card's PCI IDs is listed
+by *amdgpu-ls*. If you know what causes GPU card index switching, let me know.
 
-You may find a card running at startup with default power limits and Fan PWM settings instead of what is prescribed in its startup PAC bash file. If so, it may be that the card's hwmon# is different from what is hard coded in the bash file, because the hwmon index for devices can also change upon reboot. To work around this, you can edit a card's bash file to define hwmon# as a variable and modify the hwmon lines to use it. Here is an example for card1:
+You may find a card running at startup with default power limits and Fan PWM settings instead of what is prescribed
+in its startup PAC bash file. If so, it may be that the card's hwmon# is different from what is hard coded in the
+bash file, because the hwmon index for devices can also change upon reboot. To work around this, you can edit a
+card's bash file to define hwmon# as a variable and modify the hwmon lines to use it. Here is an example for card1:
 ```
 set -x
 HWMON=$(ls /sys/class/drm/card1/device/hwmon/)
