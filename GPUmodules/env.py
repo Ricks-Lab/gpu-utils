@@ -68,6 +68,7 @@ class GutConst:
                 'PPM_NOTCHK':   re.compile(r'[ ]+'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
+                'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 

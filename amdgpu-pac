@@ -804,7 +804,7 @@ class PACWindow(Gtk.Window):
             changed += 1
             print('# Powercap entry: {}, Resetting to default'.format(new_power_cap_str), file=fileptr)
             print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
-        elif re.fullmatch(r'^[0-9]+', new_power_cap_str):
+        elif re.fullmatch(PATTERNS['DIGITS'], new_power_cap_str):
             new_power_cap = int(new_power_cap_str)
             power_cap_range = v.get_params_value('power_cap_range')
             print('# Powercap Old: {}'.format(old_power_cap), end='', file=fileptr)
@@ -842,7 +842,7 @@ class PACWindow(Gtk.Window):
                 changed += 1
                 print('# PWM entry: {}, Disabling fan control'.format(new_pwm_str), file=fileptr)
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
-            elif re.fullmatch(r'^[0-9]+', new_pwm_str):
+            elif re.fullmatch(PATTERNS['DIGITS'], new_pwm_str):
                 new_pwm = int(new_pwm_str)
                 print('# Fan PWM Old: {}'.format(old_pwm), end='', file=fileptr)
                 print(' New: {}'.format(new_pwm), end='', file=fileptr)

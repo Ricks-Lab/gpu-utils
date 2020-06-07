@@ -53,6 +53,11 @@ logger = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
 
 
+class GpuEnum(Enum):
+    def __str__(self):
+        return self.name
+
+
 class ObjDict(dict):
     """
     Allow access of dictionary keys by key name.
@@ -96,7 +101,8 @@ class GpuItem:
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
-    GPU_Type = Enum('type', 'Undefined PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined PStatesNE PStates CurvePts')
+    GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
                           'device_name':        '   Device Name',
@@ -167,7 +173,8 @@ class GpuItem:
     # HWMON sensor reading details
     SensorType = Enum('type', 'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS')
     _gbcf = 1.0/(1024*1024*1024)
-    _sensor_details = {'AMD': {'HWMON': {
+    _sensor_details = {GPU_Vendor.AMD: {
+                               'HWMON': {
                                    'power':           {'type': SensorType.SingleParam,
                                                        'cf': 0.000001, 'sensor': ['power1_average']},
                                    'power_cap':       {'type': SensorType.SingleParam,
@@ -266,7 +273,7 @@ class GpuItem:
                             'card_num': '',
                             'pcie_id': '',
                             'driver': '',
-                            'vendor': '',
+                            'vendor': self.GPU_Vendor.Undefined,
                             'readable': False,
                             'writable': False,
                             'compute': False,
@@ -542,7 +549,7 @@ class GpuItem:
                     return self.prm[name]
         return self.prm[name]
 
-    def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: str, driver_module: str,
+    def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: GpuEnum, driver_module: str,
                  card_path: str, hwmon_path: str, readable: bool, writable: bool, compute: bool, ocl_ver: str) -> None:
         """
         Populate elements of a GpuItem.
@@ -550,7 +557,7 @@ class GpuItem:
         :param pcie_id: The pcid ID of the GPU.
         :param gpu_name:  Model name of the GPU
         :param short_gpu_name:  Short Model name of the GPU
-        :param vendor:  The make of the GPU (AMD, NVIDIA, ...)
+        :param vendor:  GpuEnum representation make of the GPU (AMD, NVIDIA, ...)
         :param driver_module: The name of the driver.
         :param card_path: The path to the GPU.
         :param hwmon_path: Path to the hardware monitor files.
@@ -791,7 +798,7 @@ class GpuItem:
                     self.ppm_modes[line_items[0]] = line_items[1:]
             self.ppm_modes['-1'] = ['AUTO', 'Auto']
 
-        rdata = self.read_gpu_sensor('power_dpm_force', vendor='AMD', sensor_type='DEVICE')
+        rdata = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
         if rdata is False:
             print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
             logger.debug('Card file does not exist: %s', file_path)
@@ -876,14 +883,14 @@ class GpuItem:
                         else:
                             print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
 
-    def read_gpu_sensor(self, parameter: str, vendor: str = 'AMD',
+    def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
         """
         Read sensor for the given parameter name.  Process per sensor_details dict using the specified
         vendor name and sensor_type.
 
         :param parameter: GpuItem parameter name (AMD)
-        :param vendor: GPU vendor name
+        :param vendor: GPU vendor name enum object
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
@@ -1326,10 +1333,10 @@ class GpuList:
                     gpu_name = 'Radeon Fiji Pro Duo'
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
-            vendor = 'UNKNOWN'
+            vendor = GpuItem.GPU_Vendor.Undefined
             opencl_device_version = None if clinfo_flag else 'UNKNOWN'
             if re.search(PATTERNS['AMD_GPU'], gpu_name):
-                vendor = 'AMD'
+                vendor = GpuItem.GPU_Vendor.AMD
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1338,7 +1345,7 @@ class GpuList:
                 else:
                     compute = True
             if re.search(PATTERNS['NV_GPU'], gpu_name):
-                vendor = 'NVIDIA'
+                vendor = GpuItem.GPU_Vendor.NVIDIA
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1347,7 +1354,7 @@ class GpuList:
                 else:
                     compute = True
             if re.search(PATTERNS['INTC_GPU'], gpu_name):
-                vendor = 'INTEL'
+                vendor = GpuItem.GPU_Vendor.INTEL
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1356,9 +1363,9 @@ class GpuList:
                 else:
                     compute = False if re.search(r' 530', gpu_name) else True
             if re.search(PATTERNS['ASPD_GPU'], gpu_name):
-                vendor = 'ASPEED'
+                vendor = GpuItem.GPU_Vendor.ASPEED
             if re.search(PATTERNS['MTRX_GPU'], gpu_name):
-                vendor = 'MATROX'
+                vendor = GpuItem.GPU_Vendor.MATROX
 
             # Get Driver Name
             driver_module = 'UNKNOWN'
@@ -1387,7 +1394,7 @@ class GpuList:
                 logger.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
 
             # Check AMD write capability
-            if vendor == 'AMD':
+            if vendor == GpuItem.GPU_Vendor.AMD:
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
                 if os.path.isfile(pp_od_clk_voltage_file):
                     readable = True
@@ -1537,22 +1544,26 @@ class GpuList:
                 if not v.prm.writable:
                     continue
             if v.prm.vendor not in results_dict.keys():
-                results_dict.update({v.prm.vendor: 1})
+                results_dict.update({v.prm.vendor.name: 1})
             else:
-                results_dict[v.prm.vendor] += 1
+                results_dict[v.prm.vendor.name] += 1
         return results_dict
 
-    def num_gpus(self, vendor: str = 'All') -> Dict[str, int]:
+    def num_gpus(self, vendor: str = 'ALL') -> Dict[str, int]:
         """
         Return the count of GPUs by total, rw, r-only or w-only.
 
-        :param vendor: Only count vendor GPUs of specfic vendor or all.
+        :param vendor: Only count vendor GPUs of specific vendor or all.
         :return: Dictionary of GPU counts
         """
+        try:
+            _ = GpuItem.GPU_Vendor[vendor]
+        except KeyError:
+            raise KeyError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
         results_dict = {'vendor': vendor, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for v in self.list.values():
-            if vendor != 'All':
-                if vendor != v.prm.vendor:
+            if vendor != 'ALL':
+                if vendor != v.prm.vendor.name:
                     continue
             if v.prm.readable and v.prm.writable:
                 results_dict['rw'] += 1
@@ -1563,7 +1574,7 @@ class GpuList:
             results_dict['total'] += 1
         return results_dict
 
-    def list_gpus(self, vendor: str = 'All', compatibility: str = 'total') -> 'class GpuList':
+    def list_gpus(self, vendor: str = 'ALL', compatibility: str = 'total') -> 'class GpuList':
         """
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
@@ -1572,10 +1583,14 @@ class GpuList:
         :param compatibility: Only count GPUs with specified compatibility (total, readable, writable)
         :return: GpuList of compatible GPUs
         """
+        try:
+            _ = GpuItem.GPU_Vendor[vendor]
+        except KeyError:
+            raise KeyError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
         result_list = GpuList()
         for k, v in self.list.items():
-            if vendor != 'All':
-                if vendor != v.prm.vendor:
+            if vendor != 'ALL':
+                if vendor != v.prm.vendor.name:
                     continue
             if compatibility == 'readable':
                 if v.prm.readable:
