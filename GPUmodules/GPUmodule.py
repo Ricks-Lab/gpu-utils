@@ -96,6 +96,7 @@ class GpuItem:
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
+    GPU_Type = Enum('type', 'Undefined PStatesNE PStates CurvePts')
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
                           'device_name':        '   Device Name',
@@ -270,7 +271,7 @@ class GpuItem:
                             'writable': False,
                             'compute': False,
                             'compute_platform': None,
-                            'gpu_type': 0,
+                            'gpu_type': self.GPU_Type.Undefined,
                             'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                             'model_device_decode': 'UNDETERMINED',
                             'model': '',
@@ -289,7 +290,6 @@ class GpuItem:
                             'fan_speed_range': [None, None],
                             'fan_pwm_range': [None, None],
                             'fan_target': None,
-                            'temp': None,
                             'temp_crits': None,
                             'vddgfx': None,
                             'vddc_range': ['', ''],
@@ -651,7 +651,7 @@ class GpuItem:
         mclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[1])))
         if pstate[1] < mclk_min or pstate[1] > mclk_max:
             return False
-        if self.prm.gpu_type != 2:
+        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             vddc_range = self.prm.vddc_range
             vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
             vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
@@ -671,7 +671,7 @@ class GpuItem:
         sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(sclk_range[1])))
         if pstate[1] < sclk_min or pstate[1] > sclk_max:
             return False
-        if self.prm.gpu_type != 2:
+        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             vddc_range = self.prm.vddc_range
             vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
             vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
@@ -688,7 +688,7 @@ class GpuItem:
         """
         if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][0])) != pstate[1]:
             return True
-        if self.prm.gpu_type != 2:
+        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
@@ -702,7 +702,7 @@ class GpuItem:
         """
         if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][0])) != pstate[1]:
             return True
-        if self.prm.gpu_type != 2:
+        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
@@ -807,7 +807,6 @@ class GpuItem:
         if not self.prm.readable:
             return
         range_mode = False
-        type_unknown = True
 
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
@@ -829,14 +828,11 @@ class GpuItem:
                 line = re.sub(r'@', ' ', line)
                 lineitems = line.split()
                 lineitems_len = len(lineitems)
-                if type_unknown:
+                if self.prm.gpu_type == self.GPU_Type.Undefined:
                     if len(lineitems) == 3:
-                        # type 1 GPU
-                        self.prm.gpu_type = 1
-                        type_unknown = False
+                        self.prm.gpu_type = self.GPU_Type.PStates
                     elif len(lineitems) == 2:
-                        self.prm.gpu_type = 2
-                        type_unknown = False
+                        self.prm.gpu_type = self.GPU_Type.CurvePts
                     else:
                         print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
                               os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
@@ -844,7 +840,7 @@ class GpuItem:
                         continue
                 if not range_mode:
                     lineitems[0] = int(re.sub(':', '', lineitems[0]))
-                    if self.prm.gpu_type == 0 or self.prm.gpu_type == 1:
+                    if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
                         if clk_name == 'OD_SCLK:':
                             self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
                         elif clk_name == 'OD_MCLK:':
@@ -1076,10 +1072,10 @@ class GpuItem:
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['model'], self.prm.model))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['card_path'], self.prm.card_path))
-        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type.name))
 
         # DPM States
-        if self.prm.gpu_type == 2:
+        if self.prm.gpu_type == self.GPU_Type.CurvePts:
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}DPM States:'.format(pre))
             print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
@@ -1100,7 +1096,7 @@ class GpuItem:
                 print('{:3>}:  {:<8}  {:<8}'.format(k, self.mclk_state[k][0], self.mclk_state[k][1]))
             else:
                 print('')
-        if self.prm.gpu_type == 2:
+        if self.prm.gpu_type == self.GPU_Type.CurvePts:
             # Curve points
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}VDDC_CURVE:'.format(pre))
@@ -1129,7 +1125,7 @@ class GpuItem:
             if k == 'unique_id':
                 if self.prm.unique_id is None:
                     continue
-            if self.prm.gpu_type == 2 and k == 'vddc_range':
+            if self.prm.gpu_type == self.GPU_Type.CurvePts and k == 'vddc_range':
                 continue
             if isinstance(self.get_params_value(k), float):
                 print('{}{}: {:.3f}'.format(pre, v, self.get_params_value(k)))
