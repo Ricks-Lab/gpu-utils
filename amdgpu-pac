@@ -30,13 +30,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-pac'
-__version__ = 'v3.2.0-RC1'
+__version__ = 'v3.2.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Release Candidate'
+__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: bad-continuation
+# pylint: disable=bad-continuation
 
 import argparse
 import re
@@ -171,7 +171,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-            if v.get_params_value('gpu_type') == 1:
+            if v.get_params_value('gpu_type') in [v.GPU_Type.PStatesNE, v.GPU_Type.PStates]:
                 # Sclk P-States
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label(name='white_label')
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
@@ -218,7 +218,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            elif v.get_params_value('gpu_type') == 2:
+            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 # Sclk Curve End Points
                 devices[v.prm.uuid]['sclk_range'] = Gtk.Label(name='white_label')
                 devices[v.prm.uuid]['sclk_range'].set_markup('<b>Sclk Curve End Points: </b> Ranges {}-{} '.format(
@@ -253,7 +253,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
+            if v.get_params_value('gpu_type') in [v.GPU_Type.CurvePts, v.GPU_Type.PStates]:
                 # SCLK P-State Mask
                 devices[v.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label(name='white_label')
                 set_gtk_prop(devices[v.prm.uuid]['sclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
@@ -267,7 +267,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-            if v.get_params_value('gpu_type') == 1:
+            if v.get_params_value('gpu_type') == v.GPU_Type.PStates:
                 # Mclk P-States
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label(name='white_label')
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
@@ -313,7 +313,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            elif v.get_params_value('gpu_type') == 2:
+            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 # Mclk Curve End points
                 devices[v.prm.uuid]['mclk_range'] = Gtk.Label(name='white_label')
                 devices[v.prm.uuid]['mclk_range'].set_markup('<b>Mclk Curve End Points: </b> Ranges {}-{} '.format(
@@ -348,7 +348,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
+            if v.get_params_value('gpu_type') in [v.GPU_Type.CurvePts, v.GPU_Type.PStates]:
                 # MCLK P-State Mask
                 devices[v.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label(name='white_label')
                 set_gtk_prop(devices[v.prm.uuid]['mclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
@@ -362,7 +362,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-            if v.get_params_value('gpu_type') == 2:
+            if v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 # VDDC Curve Points
                 devices[v.prm.uuid]['vddc_curve_range'] = Gtk.Label(name='white_label')
                 devices[v.prm.uuid]['vddc_curve_range'].set_markup(
@@ -600,19 +600,16 @@ class PACWindow(Gtk.Window):
         gpu_list.read_gpu_ppm_table()
 
         for v in gpu_list.list.values():
-            devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {}W    Set: '.format(
-                                                          v.get_params_value('power_cap')))
-            devices[v.prm.uuid]['power_cap_ent'].set_text(str(int(v.get_params_value('power_cap'))))
+            devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {:3d}W    Set: '.format(
+                                                          v.get_params_value('power_cap', num_as_int=True)))
+            devices[v.prm.uuid]['power_cap_ent'].set_text(str(v.get_params_value('power_cap', num_as_int=True)))
             if env.GUT_CONST.show_fans:
-                devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {}%    Set: '.format(
-                                                            v.get_params_value('fan_pwm')))
-                try:
-                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(int(v.get_params_value('fan_pwm'))))
-                except TypeError:
-                    devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm')))
+                devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {:3d}%    Set: '.format(
+                                                            v.get_params_value('fan_pwm', num_as_int=True)))
+                devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm', num_as_int=True)))
                 logger.debug('Refresh got current pwm speed: %s', devices[v.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
-            if v.get_params_value('gpu_type') == 1:
+            if v.get_params_value('gpu_type') in [v.GPU_Type.PStates]:
                 for ps, psd in v.sclk_state.items():
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -626,7 +623,7 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
                     '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
                 devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
-            elif v.get_params_value('gpu_type') == 2:
+            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 for ps, psd in v.sclk_state.items():
                     devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -637,7 +634,7 @@ class PACWindow(Gtk.Window):
                     '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
                 devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
             # MCLK
-            if v.get_params_value('gpu_type') == 1:
+            if v.get_params_value('gpu_type') in [v.GPU_Type.PStates]:
                 for ps, psd in v.mclk_state.items():
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -651,7 +648,7 @@ class PACWindow(Gtk.Window):
                 devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
                     '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
                 devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
-            elif v.get_params_value('gpu_type') == 2:
+            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 for ps, psd in v.mclk_state.items():
                     devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -662,7 +659,7 @@ class PACWindow(Gtk.Window):
                     '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
                 devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
             # VDDC CURVE
-            if v.get_params_value('gpu_type') == 2:
+            if v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
                 for ps, psd in v.vddc_curve.items():
                     devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -801,13 +798,13 @@ class PACWindow(Gtk.Window):
 
         # Power Cap
         power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
-        old_power_cap = int(v.get_params_value('power_cap'))
+        old_power_cap = v.get_params_value('power_cap', num_as_int=True)
         new_power_cap_str = devices[uuid]['power_cap_ent'].get_text()
         if new_power_cap_str.lower() == 'reset':
             changed += 1
             print('# Powercap entry: {}, Resetting to default'.format(new_power_cap_str), file=fileptr)
             print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
-        elif re.fullmatch(r'^[0-9]+', new_power_cap_str):
+        elif re.fullmatch(PATTERNS['DIGITS'], new_power_cap_str):
             new_power_cap = int(new_power_cap_str)
             power_cap_range = v.get_params_value('power_cap_range')
             print('# Powercap Old: {}'.format(old_power_cap), end='', file=fileptr)
@@ -832,10 +829,8 @@ class PACWindow(Gtk.Window):
             # Fan PWM
             pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
             pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
-            old_pwm = v.get_params_value('fan_pwm')
+            old_pwm = v.get_params_value('fan_pwm', num_as_int=True)
             logger.debug('Current pwm value: %s', old_pwm)
-            if not isinstance(old_pwm, int):
-                old_pwm = int(v.get_params_value('fan_pwm')) if v.get_params_value('fan_pwm').isnumeric() else None
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
             if new_pwm_str.lower() == 'reset':
@@ -847,7 +842,7 @@ class PACWindow(Gtk.Window):
                 changed += 1
                 print('# PWM entry: {}, Disabling fan control'.format(new_pwm_str), file=fileptr)
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
-            elif re.fullmatch(r'^[0-9]+', new_pwm_str):
+            elif re.fullmatch(PATTERNS['DIGITS'], new_pwm_str):
                 new_pwm = int(new_pwm_str)
                 print('# Fan PWM Old: {}'.format(old_pwm), end='', file=fileptr)
                 print(' New: {}'.format(new_pwm), end='', file=fileptr)
@@ -876,7 +871,7 @@ class PACWindow(Gtk.Window):
 
         device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
         commit_needed = False
-        if v.get_params_value('gpu_type') == 1:
+        if v.get_params_value('gpu_type') == v.GPU_Type.PStates:
             # Sclk P-states
             for pk, pv in devices[uuid]['sclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -922,7 +917,7 @@ class PACWindow(Gtk.Window):
                 else:
                     print('# Invalid mclk pstate values', file=fileptr)
                     print('Invalid mclk pstate values')
-        elif v.get_params_value('gpu_type') == 2:
+        elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
             # Sclk Curve End Points
             for pk, pv in devices[uuid]['sclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -1013,7 +1008,7 @@ class PACWindow(Gtk.Window):
         else:
             print('# No clock changes made, commit skipped', file=fileptr)
 
-        if v.get_params_value('gpu_type') == 1 or v.get_params_value('gpu_type') == 2:
+        if v.get_params_value('gpu_type') in [v.GPU_Type.PStates, v.GPU_Type.CurvePts]:
             # Writes of pstate Masks must come after commit of pstate changes
             # Sclk Mask
             sclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_sclk')

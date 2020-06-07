@@ -22,12 +22,13 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.2.0-RC1'
+__version__ = 'v3.2.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Release Candidate'
+__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
+# pylint: disable=bad-continuation
 
 import re
 import subprocess
@@ -67,6 +68,7 @@ class GutConst:
                 'PPM_NOTCHK':   re.compile(r'[ ]+'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
+                'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
