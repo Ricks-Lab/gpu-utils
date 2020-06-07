@@ -1543,7 +1543,7 @@ class GpuList:
             if compatibility == 'w-only':
                 if not v.prm.writable:
                     continue
-            if v.prm.vendor not in results_dict.keys():
+            if v.prm.vendor.name not in results_dict.keys():
                 results_dict.update({v.prm.vendor.name: 1})
             else:
                 results_dict[v.prm.vendor.name] += 1
