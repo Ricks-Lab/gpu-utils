@@ -395,7 +395,7 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
 
     @classmethod
-    def get_button_label(cls, name) -> str:
+    def get_button_label(cls, name: str) -> str:
         """
         Return button label for given parameter name.
 
@@ -524,7 +524,7 @@ class GpuItem:
 
     def set_memory_usage(self) -> None:
         """
-        Get system and vram memory usage percentage.
+        Set system and vram memory usage percentage.
 
         :return: A tuple of the system and vram memory usage percentage.
         """
