@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPUmodules  -  classes used in amdgpu-utils
+"""GPUmodules  -  Classes to represent GPUs and sets of GPUs ueed in amdgpu-utils.
 
 
     Copyright (C) 2019  RueiKe
@@ -54,6 +54,9 @@ PATTERNS = env.GutConst.PATTERNS
 
 
 class GpuEnum(Enum):
+    """
+    Replace __str__ method of Enum so that name excludes type and can be used as key in other dicts.
+    """
     def __str__(self):
         return self.name
 
@@ -444,6 +447,49 @@ class GpuItem:
         else:
             self.prm[name] = value
 
+    def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
+        """
+        Get parameter value for give name.
+
+        :param name:  Parameter name
+        :param num_as_int: Convert float to in if True
+        :return: Parameter value
+        """
+        # Parameters with '_val' as a suffix are derived from a direct source.
+        if re.fullmatch(PATTERNS['VAL_ITEM'], name):
+            if name == 'temp_val':
+                if 'edge' in self.prm['temperatures'].keys():
+                    if num_as_int:
+                        return int(self.prm['temperatures']['edge'])
+                    return round(self.prm['temperatures']['edge'], 1)
+                return self.prm['temperatures'].keys()[0]
+            if name == 'vddgfx_val':
+                return int(self.prm['voltages']['vddgfx'])
+            if name == 'sclk_ps_val':
+                return self.prm['sclk_ps'][0]
+            if name == 'sclk_f_val':
+                if 'sclk' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['sclk'])
+                return self.prm['sclk_ps'][1]
+            if name == 'mclk_ps_val':
+                return self.prm['mclk_ps'][0]
+            if name == 'mclk_f_val':
+                if 'mclk' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['mclk'])
+                return self.prm['mclk_ps'][1]
+
+        # Set type for params that could be float or int
+        if name in ['fan_pwm', 'fan_speed', 'power_cap', 'power']:
+            if num_as_int:
+                if isinstance(self.prm[name], int):
+                    return self.prm[name]
+                elif isinstance(self.prm[name], float):
+                    return int(self.prm[name])
+                elif isinstance(self.prm[name], str):
+                    return int(self.prm[name]) if self.prm[name].isnumeric() else None
+                return self.prm[name]
+        return self.prm[name]
+
     def set_memory_usage(self) -> None:
         """
         Get system and vram memory usage percentage.
@@ -503,51 +549,6 @@ class GpuItem:
                                 model_str = line[11:]
                                 break
         return model_str.strip()
-
-    def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
-        """
-        Get parameter value for give name.
-
-        :param name:  Parameter name
-        :param num_as_int: Convert float to in if True
-        :return: Parameter value
-        """
-        # Parameters with '_val' as a suffix are derived from a direct source.
-        if re.fullmatch(PATTERNS['VAL_ITEM'], name):
-            if name == 'temp_val':
-                if 'edge' in self.prm['temperatures'].keys():
-                    if num_as_int:
-                        return int(self.prm['temperatures']['edge'])
-                    else:
-                        return round(self.prm['temperatures']['edge'], 1)
-                return self.prm['temperatures'].keys()[0]
-            if name == 'vddgfx_val':
-                return int(self.prm['voltages']['vddgfx'])
-            if name == 'sclk_ps_val':
-                return self.prm['sclk_ps'][0]
-            if name == 'sclk_f_val':
-                if 'sclk' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['sclk'])
-                return self.prm['sclk_ps'][1]
-            if name == 'mclk_ps_val':
-                return self.prm['mclk_ps'][0]
-            if name == 'mclk_f_val':
-                if 'mclk' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['mclk'])
-                return self.prm['mclk_ps'][1]
-
-        # Set type for params that could be float or int
-        if name in ['fan_pwm', 'fan_speed', 'power_cap', 'power']:
-            if num_as_int:
-                if isinstance(self.prm[name], int):
-                    return self.prm[name]
-                elif isinstance(self.prm[name], float):
-                    return int(self.prm[name])
-                elif isinstance(self.prm[name], str):
-                    return int(self.prm[name]) if self.prm[name].isnumeric() else None
-                else:
-                    return self.prm[name]
-        return self.prm[name]
 
     def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: GpuEnum, driver_module: str,
                  card_path: str, hwmon_path: str, readable: bool, writable: bool, compute: bool, ocl_ver: str) -> None:
@@ -1579,7 +1580,7 @@ class GpuList:
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
 
-        :param vendor: Only count vendor GPUs or All by default (All, AMD, INTEL, NV, ...)
+        :param vendor: Only count vendor GPUs or ALL by default (ALL, AMD, INTEL, NVIDIA, ...)
         :param compatibility: Only count GPUs with specified compatibility (total, readable, writable)
         :return: GpuList of compatible GPUs
         """
@@ -1763,7 +1764,8 @@ class GpuList:
         for v in self.list.values():
             line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)), v.prm.card_num)]
             for table_item in self.table_parameters():
-                line_str_item.append('|' + str(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)))).strip())
+                line_str_item.append('|' +
+                                     str(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)))).strip())
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
             log_file_ptr.write(line_str.encode('utf-8'))
