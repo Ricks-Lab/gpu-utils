@@ -322,7 +322,7 @@ def main() -> None:
     if num_gpus['r-only'] + num_gpus['rw'] < 1:
         print('No readable GPUs, exiting...')
         sys.exit(0)
-    com_gpu_list = gpu_list.list_gpus(compatibility='readable')
+    com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
 
     if args.log:
         env.GUT_CONST.LOG = True

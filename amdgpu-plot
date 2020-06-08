@@ -83,7 +83,7 @@ except ModuleNotFoundError as error:
 from pandas.plotting import register_matplotlib_converters
 
 from GPUmodules import GPUgui
-from GPUmodules import GPUmodule as gpu
+from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 register_matplotlib_converters()
@@ -127,7 +127,7 @@ class PlotData:
         self.consec_reader = 0
         self.gpu_list = ''
         self.num_gpus = 1
-        self.com_gpu_list = gpu.GpuList()
+        self.com_gpu_list = Gpu.GpuList()
 
     def set_gpus(self) -> None:
         """
@@ -329,7 +329,7 @@ class GPUPlotWindow(Gtk.Window):
         set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for k, v in gc.gui_components['legend']['plot_items'].items():
-            but_label = gpu.GpuItem.get_button_label(k)
+            but_label = Gpu.GpuItem.get_button_label(k)
             but_color = gc.get_color(k)
             but_font_color = gc.get_font_color(k)
             gc.gui_components['legend']['buttons'][k] = Gtk.Button(label='')
@@ -355,7 +355,7 @@ class GPUPlotWindow(Gtk.Window):
                   gc.gui_components['mclk_pstate_status'],
                   gc.gui_components['temp_status']]:
             # Add Bar Plots Titles
-            bar_plot_name = gpu.GpuItem.get_button_label(v['df_name'])
+            bar_plot_name = Gpu.GpuItem.get_button_label(v['df_name'])
             v['title_obj'] = Gtk.Label(name='white_label')
             v['title_obj'].set_markup('<big><b>Card {}</b></big>'.format(bar_plot_name))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
@@ -779,7 +779,7 @@ def main() -> None:
 
     if not args.stdin:
         # Get list of AMD GPUs and get basic non-driver details
-        gpu_list = gpu.GpuList()
+        gpu_list = Gpu.GpuList()
         gpu_list.set_gpu_list()
 
         # Check list of GPUs
@@ -811,7 +811,7 @@ def main() -> None:
                                                                     num_gpus['r-only'], num_gpus['w-only']))
 
         # Check number of compatible GPUs again
-        com_gpu_list = gpu_list.list_gpus(compatibility='readable')
+        com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
         readable_gpus = com_gpu_list.num_gpus()['total']
         if not readable_gpus:
             print('None are readable, exiting...')

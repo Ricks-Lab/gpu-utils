@@ -59,7 +59,7 @@ except ModuleNotFoundError as error:
     sys.exit(0)
 
 from GPUmodules import GPUgui
-from GPUmodules import GPUmodule as gpu
+from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 MAX_CHAR = 54
@@ -573,7 +573,7 @@ class PACWindow(Gtk.Window):
             Gtk.main_iteration_do(True)
         return
 
-    def refresh_all_cards(self, _, gpu_list: gpu.GpuList, devices: dict, reset_message: bool = False) -> None:
+    def refresh_all_cards(self, _, gpu_list: Gpu.GpuList, devices: dict, reset_message: bool = False) -> None:
         """
         Refresh all cards by calling card level refresh.
 
@@ -585,7 +585,7 @@ class PACWindow(Gtk.Window):
         self.refresh_pac(gpu_list, devices, reset_message)
         return
 
-    def refresh_pac(self, gpu_list: gpu.GpuList, devices: dict, refresh_message: bool = False) -> None:
+    def refresh_pac(self, gpu_list: Gpu.GpuList, devices: dict, refresh_message: bool = False) -> None:
         """
         Update device data from gpuList data.
 
@@ -681,7 +681,7 @@ class PACWindow(Gtk.Window):
             Gtk.main_iteration_do(True)
         return
 
-    def save_all_cards(self, parent, gpu_list: gpu.GpuList, devices: dict) -> None:
+    def save_all_cards(self, parent, gpu_list: Gpu.GpuList, devices: dict) -> None:
         """
         Save modified data for all GPUs.
 
@@ -722,7 +722,7 @@ class PACWindow(Gtk.Window):
         self.refresh_all_cards(parent, gpu_list, devices)
         return
 
-    def save_card(self, _, gpu_list: gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
+    def save_card(self, _, gpu_list: Gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
         Save modified data for specified GPU.
 
@@ -1091,7 +1091,7 @@ class PACWindow(Gtk.Window):
             print('')
         return changed
 
-    def reset_all_cards(self, parent, gpu_list: gpu.GpuList, devices: dict) -> None:
+    def reset_all_cards(self, parent, gpu_list: Gpu.GpuList, devices: dict) -> None:
         """
         Reset data for all GPUs.
 
@@ -1122,7 +1122,7 @@ class PACWindow(Gtk.Window):
         self.refresh_all_cards(parent, gpu_list, devices)
         return
 
-    def reset_card(self, _, gpu_list: gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
+    def reset_card(self, _, gpu_list: Gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
         Reset data for specified GPU.
 
@@ -1264,7 +1264,7 @@ def main() -> None:
         sys.exit(-1)
 
     # Get list of GPUs and get basic non-driver details
-    gpu_list = gpu.GpuList()
+    gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list()
 
     # Check list of GPUs
@@ -1296,7 +1296,7 @@ def main() -> None:
                                                                 num_gpus['r-only'], num_gpus['w-only']))
 
     # Check number of compatible GPUs again
-    com_gpu_list = gpu_list.list_gpus(compatibility='writable')
+    com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Writable)
     writable_gpus = com_gpu_list.num_gpus()['total']
     if not writable_gpus:
         print('None are writable, exiting...')

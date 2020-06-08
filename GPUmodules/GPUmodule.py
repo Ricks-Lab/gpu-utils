@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPUmodules  -  Classes to represent GPUs and sets of GPUs ueed in amdgpu-utils.
+"""GPUmodules  -  Classes to represent GPUs and sets of GPUs used in amdgpu-utils.
 
 
     Copyright (C) 2019  RueiKe
@@ -84,8 +84,6 @@ class ObjDict(dict):
 
 class GpuItem:
     """An object to store GPU details.
-
-    .. note:: GPU Frequency/Voltage Control Type: 0 = None, 1 = P-states, 2 = Curve
     """
     # pylint: disable=attribute-defined-outside-init
     _finalized = False
@@ -105,6 +103,7 @@ class GpuItem:
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined PStatesNE PStates CurvePts')
+    GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
@@ -174,6 +173,27 @@ class GpuItem:
                          'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # HWMON sensor reading details
+    SensorSet = Enum('set', 'None Test Static Dynamic Info State StateMonitor All')
+    sensor_sets = {SensorSet.Static:       {'HWMON':  ['power_cap_range', 'temp_crits',
+                                                       'fan_speed_range', 'fan_pwm_range']},
+                   SensorSet.Dynamic:      {'HWMON':  ['power', 'power_cap', 'temperatures', 'voltages',
+                                                       'frequencies', 'fan_enable', 'fan_target',
+                                                       'fan_speed', 'pwm_mode', 'fan_pwm']},
+                   SensorSet.Info:         {'DEVICE': ['id', 'unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']},
+                   SensorSet.State:        {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
+                                                       'power_dpm_force']},
+                   SensorSet.StateMonitor: {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                                       'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']},
+                   SensorSet.All:          {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading',
+                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
+                                                       'power_dpm_force', 'mem_vram_total', 'mem_gtt_total',
+                                                       'mem_vram_used', 'mem_gtt_used'],
+                                            'HWMON':  ['power_cap_range', 'temp_crits', 'power', 'power_cap',
+                                                       'temperatures', 'voltages', 'frequencies',
+                                                       'fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target',
+                                                       'fan_speed', 'pwm_mode', 'fan_pwm']}}
+
     SensorType = Enum('type', 'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS')
     _gbcf = 1.0/(1024*1024*1024)
     _sensor_details = {GPU_Vendor.AMD: {
@@ -347,20 +367,28 @@ class GpuItem:
         self.vddc_curve = {}        # {'1': ['Mhz', 'mV']}
         self.vddc_curve_range = {}  # {'1': {SCLK: ['val1', 'val2'], VOLT: ['val1', 'val2']}
         self.ppm_modes = {}         # {'1': ['Name', 'Description']}
-        self.finalize_gpu_param_labels()
+        self.finalize_fan_option()
 
     @classmethod
-    def finalize_gpu_param_labels(cls) -> None:
+    def finalize_fan_option(cls) -> None:
         """
-        Finalize class variable of gpu parameters based on command line options.
+        Finalize class variables of gpu parameters based on command line options.
         """
         if cls._finalized:
             return
         cls.finalized = True
         if not env.GUT_CONST.show_fans:
             for fan_item in cls._fan_item_list:
+                # Remove fan params from GPU_Param_Labels
                 if fan_item in cls._GPU_Param_Labels.keys():
                     del cls._GPU_Param_Labels[fan_item]
+                # Remove fan params from SensorSets
+                if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
+                    cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
+                if fan_item in cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON']:
+                    cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON'].remove(fan_item)
+                if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
+                    cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
 
     @classmethod
     def get_button_label(cls, name) -> str:
@@ -1526,22 +1554,27 @@ class GpuList:
         self.opencl_map.update({ocl_pcie_id: temp_map})
         return True
 
-    def num_vendor_gpus(self, compatibility: str = 'total') -> Dict[str, int]:
+    def num_vendor_gpus(self, compatibility: Enum = GpuItem.GPU_Comp.ALL) -> Dict[str, int]:
         """
         Return the count of GPUs by vendor.  Counts total by default, but can also by rw, ronly, or wonly.
 
         :param compatibility: Only count vendor GPUs if True.
         :return: Dictionary of GPU counts
         """
+        try:
+            _ = compatibility.name
+        except AttributeError:
+            raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
+                                 compatibility, GpuItem.GPU_Comp))
         results_dict = {}
         for v in self.list.values():
-            if compatibility == 'rw':
+            if compatibility == GpuItem.GPU_Comp.ReadWrite:
                 if not v.prm.readable or not v.prm.writable:
                     continue
-            if compatibility == 'r-only':
+            if compatibility == GpuItem.GPU_Comp.ReadOnly:
                 if not v.prm.readable:
                     continue
-            if compatibility == 'w-only':
+            if compatibility == GpuItem.GPU_Comp.WriteOnly:
                 if not v.prm.writable:
                     continue
             if v.prm.vendor.name not in results_dict.keys():
@@ -1550,21 +1583,21 @@ class GpuList:
                 results_dict[v.prm.vendor.name] += 1
         return results_dict
 
-    def num_gpus(self, vendor: str = 'ALL') -> Dict[str, int]:
+    def num_gpus(self, vendor: Enum = GpuItem.GPU_Vendor.ALL) -> Dict[str, int]:
         """
         Return the count of GPUs by total, rw, r-only or w-only.
 
-        :param vendor: Only count vendor GPUs of specific vendor or all.
+        :param vendor: Only count vendor GPUs of specific vendor or all vendors by default.
         :return: Dictionary of GPU counts
         """
         try:
-            _ = GpuItem.GPU_Vendor[vendor]
-        except KeyError:
-            raise KeyError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
-        results_dict = {'vendor': vendor, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
+            vendor_name = vendor.name
+        except AttributeError:
+            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
+        results_dict = {'vendor': vendor_name, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for v in self.list.values():
-            if vendor != 'ALL':
-                if vendor != v.prm.vendor.name:
+            if vendor != GpuItem.GPU_Vendor.ALL:
+                if vendor != v.prm.vendor:
                     continue
             if v.prm.readable and v.prm.writable:
                 results_dict['rw'] += 1
@@ -1575,28 +1608,34 @@ class GpuList:
             results_dict['total'] += 1
         return results_dict
 
-    def list_gpus(self, vendor: str = 'ALL', compatibility: str = 'total') -> 'class GpuList':
+    def list_gpus(self, vendor: Enum = GpuItem.GPU_Vendor.ALL,
+                  compatibility: Enum = GpuItem.GPU_Comp.ALL) -> 'class GpuList':
         """
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
 
-        :param vendor: Only count vendor GPUs or ALL by default (ALL, AMD, INTEL, NVIDIA, ...)
-        :param compatibility: Only count GPUs with specified compatibility (total, readable, writable)
+        :param vendor: Only count vendor GPUs or ALL by default.
+        :param compatibility: Only count GPUs with specified compatibility (all, readable, writable)
         :return: GpuList of compatible GPUs
         """
         try:
-            _ = GpuItem.GPU_Vendor[vendor]
-        except KeyError:
-            raise KeyError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
+            _ = compatibility.name
+        except AttributeError:
+            raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
+                compatibility, GpuItem.GPU_Comp))
+        try:
+            _ = vendor.name
+        except AttributeError:
+            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
         result_list = GpuList()
         for k, v in self.list.items():
-            if vendor != 'ALL':
-                if vendor != v.prm.vendor.name:
+            if vendor != GpuItem.GPU_Vendor.ALL:
+                if vendor != v.prm.vendor:
                     continue
-            if compatibility == 'readable':
+            if compatibility == GpuItem.GPU_Comp.Readable:
                 if v.prm.readable:
                     result_list.list[k] = v
-            elif compatibility == 'writable':
+            elif compatibility == GpuItem.GPU_Comp.Writable:
                 if v.prm.writable:
                     result_list.list[k] = v
             else:

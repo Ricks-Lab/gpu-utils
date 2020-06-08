@@ -40,7 +40,7 @@ __docformat__ = 'reStructuredText'
 import argparse
 import sys
 import logging
-from GPUmodules import GPUmodule as gpu
+from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 logger = logging.getLogger('gpu-utils')
@@ -90,7 +90,7 @@ def main() -> None:
         print('The --table option can not be used with --pstate or --ppm, ignoring --table')
 
     # Get list of GPUs and get basic non-driver details
-    gpu_list = gpu.GpuList()
+    gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list(clinfo_flag=True)
 
     # Check list of GPUs
@@ -136,7 +136,7 @@ def main() -> None:
     if not args.pstates and not args.ppm:
         gpu_list.read_gpu_pstates()
         if args.table:
-            com_gpu_list = gpu_list.list_gpus(compatibility='readable')
+            com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
             com_gpu_list.print_table(title='Status of Readable GPUs:')
         else:
             gpu_list.print(args.clinfo)
