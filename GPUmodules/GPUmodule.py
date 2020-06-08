@@ -173,7 +173,7 @@ class GpuItem:
                          'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # HWMON sensor reading details
-    SensorSet = Enum('set', 'None Test Static Dynamic Info State StateMonitor All')
+    SensorSet = Enum('set', 'None Test Static Dynamic Info State Monitor All')
     sensor_sets = {SensorSet.Static:       {'HWMON':  ['power_cap_range', 'temp_crits',
                                                        'fan_speed_range', 'fan_pwm_range']},
                    SensorSet.Dynamic:      {'HWMON':  ['power', 'power_cap', 'temperatures', 'voltages',
@@ -183,8 +183,10 @@ class GpuItem:
                    SensorSet.State:        {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
                                                        'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
                                                        'power_dpm_force']},
-                   SensorSet.StateMonitor: {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
-                                                       'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']},
+                   SensorSet.Monitor:      {'HWMON':  ['power', 'power_cap', 'temperatures', 'voltages',
+                                                       'frequencies', 'fan_pwm'],
+                                            'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
+                                                       'sclk_ps', 'mclk_ps', 'ppm']},
                    SensorSet.All:          {'DEVICE': ['id', 'unique_id', 'vbios', 'loading', 'mem_loading',
                                                        'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
                                                        'power_dpm_force', 'mem_vram_total', 'mem_gtt_total',
@@ -387,6 +389,8 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON'].remove(fan_item)
+                if fan_item in cls.sensor_sets[cls.SensorSet.Monitor]['HWMON']:
+                    cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
 
@@ -1002,67 +1006,17 @@ class GpuItem:
         else:
             raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
-    def read_gpu_sensor_data(self, data_type: str = 'All') -> None:
+    def read_gpu_sensor_data(self, data_type: Enum = SensorSet.All) -> None:
         """
-        Read GPU static data from HWMON path.
+        Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
+        by data_type.
 
-        :param data_type: Test, Static, Dynamic, Info, State, or All
+        :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
         """
         if not self.prm.readable:
             return None
 
-        def concat_sensor_dicts(dict1: dict, dict2: dict) -> None:
-            """
-            Concatenate dict2 onto dict1
-
-            :param dict1:
-            :param dict2:
-            """
-            for st in dict2.keys():
-                if st in dict1.keys():
-                    dict1[st] += dict2[st]
-                else:
-                    dict1.update({st: dict2[st]})
-
-        param_list_static = {'HWMON':      ['power_cap_range', 'temp_crits']}
-        param_list_static_fan = {'HWMON':  ['fan_speed_range', 'fan_pwm_range']}
-        param_list_dynamic = {'HWMON':     ['power', 'power_cap', 'temperatures', 'voltages', 'frequencies']}
-        param_list_dynamic_fan = {'HWMON': ['fan_enable', 'fan_target', 'fan_speed', 'pwm_mode', 'fan_pwm']}
-        param_list_info = {'DEVICE':       ['id', 'unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']}
-        param_list_state = {'DEVICE':      ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
-                                            'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force']}
-        param_list_state_mon = {'DEVICE':  ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
-                                            'sclk_ps', 'mclk_ps', 'power_dpm_force', 'ppm']}
-        param_list_all = {'DEVICE':        ['id', 'unique_id', 'vbios', 'loading', 'mem_loading', 'link_spd',
-                                            'link_wth', 'sclk_ps', 'mclk_ps', 'ppm', 'power_dpm_force',
-                                            'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used'],
-                          'HWMON':         ['power_cap_range', 'temp_crits', 'power', 'power_cap', 'temperatures',
-                                            'voltages', 'frequencies']}
-        param_list_all_fan = {'HWMON':     ['fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target',
-                                            'fan_speed', 'pwm_mode', 'fan_pwm']}
-
-        if data_type == 'Static':
-            param_list = param_list_static.copy()
-            if env.GUT_CONST.show_fans:
-                concat_sensor_dicts(param_list, param_list_static_fan)
-        elif data_type == 'DynamicM':
-            param_list = param_list_dynamic.copy()
-            if env.GUT_CONST.show_fans:
-                concat_sensor_dicts(param_list, param_list_dynamic_fan)
-        elif data_type == 'Dynamic':
-            param_list = param_list_dynamic.copy()
-            if env.GUT_CONST.show_fans:
-                concat_sensor_dicts(param_list, param_list_dynamic_fan)
-        elif data_type == 'Info':
-            param_list = param_list_info
-        elif data_type == 'StateM':
-            param_list = param_list_state_mon
-        elif data_type == 'State':
-            param_list = param_list_state
-        else:   # '== All'
-            param_list = param_list_all.copy()
-            if env.GUT_CONST.show_fans:
-                concat_sensor_dicts(param_list, param_list_all_fan)
+        param_list = self.sensor_sets[data_type]
 
         for sensor_type, param_names in param_list.items():
             for param in param_names:
