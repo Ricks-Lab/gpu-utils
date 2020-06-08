@@ -866,7 +866,7 @@ class GpuItem:
                         range_mode = True
                     continue
                 line = re.sub(r'@', ' ', line)
-                lineitems = line.split()
+                lineitems: List[any] = line.split()
                 lineitems_len = len(lineitems)
                 if self.prm.gpu_type == self.GPU_Type.Undefined:
                     if len(lineitems) == 3:
