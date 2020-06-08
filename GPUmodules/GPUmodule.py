@@ -1152,6 +1152,9 @@ class GpuItem:
         return gpu_state
 
 
+GpuDict = Dict[str, GpuItem]
+
+
 class GpuList:
     """
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
@@ -1185,7 +1188,7 @@ class GpuList:
         return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
 
     def __init__(self) -> None:
-        self.list = {}
+        self.list: GpuDict = {}
         self.opencl_map = {}
         self.amd_featuremask = None
         self.amd_wattman = False
@@ -1626,9 +1629,11 @@ class GpuList:
         for v in self.list.values():
             v.print_pstates()
 
-    def read_gpu_sensor_data(self, data_type='All') -> None:
+    def read_gpu_sensor_data(self, data_type: Enum = GpuItem.SensorSet.All) -> None:
         """
-        Read sensor data from GPUs.
+        Read sensor data from all GPUs in self.list.
+
+        :param data_type: Specifies the sensor set to use in the read.
         """
         for v in self.list.values():
             if v.prm.readable:
