@@ -968,7 +968,7 @@ class GpuItem:
                             with open(file_path) as hwmon_file:
                                 values.append(hwmon_file.readline().strip())
                         else:
-                            values.append('unnamed')
+                            values.append(sensor_file)
                 except OSError as err:
                     logger.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
                     self.read_disabled.append(parameter)
