@@ -590,35 +590,24 @@ class GpuItem:
                                 break
         return model_str.strip()
 
-    def populate(self, pcie_id: str, gpu_name: str, short_gpu_name: str, vendor: GpuEnum, driver_module: str,
-                 card_path: str, hwmon_path: str, readable: bool, writable: bool, compute: bool, ocl_ver: str) -> None:
+    def populate_prm_from_dict(self, params: Dict[str, any]) -> None:
         """
-        Populate elements of a GpuItem.
+        Populate elements of a GpuItem with items from a dict with keys that align to elements of GpuItem.
 
-        :param pcie_id: The pcid ID of the GPU.
-        :param gpu_name:  Model name of the GPU
-        :param short_gpu_name:  Short Model name of the GPU
-        :param vendor:  GpuEnum representation make of the GPU (AMD, NVIDIA, ...)
-        :param driver_module: The name of the driver.
-        :param card_path: The path to the GPU.
-        :param hwmon_path: Path to the hardware monitor files.
-        :param readable: readable compatibility flag
-        :param writable: writable compatibility flag
-        :param compute: Compute compatibility flag
-        :param ocl_ver: Compute platform Name
+        :param params: A dictionary of parameters with keys that align to GpuItem elements.
         """
-        self.prm.pcie_id = pcie_id
-        self.prm.model = gpu_name
-        self.prm.model_short = short_gpu_name
-        self.prm.vendor = vendor
-        self.prm.driver = driver_module
-        self.prm.card_path = card_path
-        self.prm.card_num = int(card_path.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', ''))
-        self.prm.hwmon_path = hwmon_path
-        self.prm.readable = readable
-        self.prm.writable = writable
-        self.prm.compute = compute
-        self.prm.compute_platform = ocl_ver if compute else 'None'
+        set_ocl_ver = None
+        for source_name, source_value in params.items():
+            if source_name not in self.prm.keys():
+                raise KeyError('Populate dict contains unmatched key: {}'.format(source_name))
+            self.prm[source_name] = source_value
+            if source_name == 'card_path':
+                self.prm.card_num = int(
+                    source_value.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', ''))
+            if source_name == 'compute_platform':
+                set_ocl_ver = source_value
+        if set_ocl_ver:
+            self.prm.compute_platform = set_ocl_ver if self.prm.compute else 'None'
 
     def populate_ocl(self, ocl_dict: dict) -> None:
         """
@@ -1412,8 +1401,12 @@ class GpuList:
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
                     logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
-            self[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
-                                    card_path, hwmon_path, readable, writable, compute, opencl_device_version)
+            self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
+                                                   'model_short': short_gpu_name, 'vendor': vendor,
+                                                   'driver': driver_module, 'card_path': card_path,
+                                                   'hwmon_path': hwmon_path, 'readable': readable,
+                                                   'writable': writable, 'compute': compute,
+                                                   'compute_platform': opencl_device_version})
             # Read GPU ID
             rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
             if rdata:
