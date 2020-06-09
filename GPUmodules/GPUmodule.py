@@ -101,7 +101,8 @@ class GpuItem:
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
-                        'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed']
+                        'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
+                        'fan_speed', 'voltages', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'hwmon_path', 'pcie_id', 'driver']
     # Define Class Labels
