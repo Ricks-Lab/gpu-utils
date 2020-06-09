@@ -101,7 +101,7 @@ class GpuItem:
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
-                        'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed']
+                        'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'hwmon_path', 'pcie_id', 'driver']
     # Define Class Labels
@@ -970,8 +970,11 @@ class GpuItem:
                             file_path = file_path.replace('_crit', '_label')
                         else:
                             print('Error in sensor label pair: {}'.format(target_sensor))
-                        with open(file_path) as hwmon_file:
-                            values.append(hwmon_file.readline().strip())
+                        if os.path.isfile(file_path):
+                            with open(file_path) as hwmon_file:
+                                values.append(hwmon_file.readline().strip())
+                        else:
+                            values.append('unnamed')
                 except OSError as err:
                     logger.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
                     self.read_disabled.append(parameter)
