@@ -844,7 +844,7 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
-        if not self.prm.readable:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
             return
         range_mode = False
 
@@ -1388,8 +1388,11 @@ class GpuList:
                     readable = True
                     self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
                 if logger.getEffectiveLevel() == logging.DEBUG:
-                    with open(pp_od_clk_voltage_file, 'r') as fp:
-                        pp_od_file_details = fp.read()
+                    if os.path.isfile(pp_od_clk_voltage_file):
+                        with open(pp_od_clk_voltage_file, 'r') as fp:
+                            pp_od_file_details = fp.read()
+                    else:
+                        pp_od_file_details = 'The file {} does not exist'.format(pp_od_clk_voltage_file)
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
                     logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
