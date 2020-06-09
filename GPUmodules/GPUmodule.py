@@ -99,8 +99,11 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
+                        'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
+                        'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
-                          'card_path', 'pcie_id', 'driver']
+                          'card_path', 'hwmon_path', 'pcie_id', 'driver']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Legacy PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
@@ -1102,6 +1105,9 @@ class GpuItem:
         """
         pre = ''
         for k, v in self._GPU_Param_Labels.items():
+            if self.prm.gpu_type == self.GPU_Type.Legacy:
+                if k in self.LEGACY_Skip_List:
+                    continue
             if not self.prm.readable:
                 if k not in self.get_nc_params_list():
                     continue
@@ -1387,6 +1393,7 @@ class GpuList:
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
                     readable = True
                     self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
+                    self[gpu_uuid].read_disabled = GpuItem.LEGACY_Skip_List[:]
                 if logger.getEffectiveLevel() == logging.DEBUG:
                     if os.path.isfile(pp_od_clk_voltage_file):
                         with open(pp_od_clk_voltage_file, 'r') as fp:
