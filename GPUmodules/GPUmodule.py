@@ -102,9 +102,9 @@ class GpuItem:
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
-                        'fan_speed', 'voltages', 'frequencies', 'sclk_f_range', 'mclk_f_range']
+                        'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
-                          'card_path', 'hwmon_path', 'pcie_id', 'driver']
+                          'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Legacy PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
@@ -1409,6 +1409,10 @@ class GpuList:
 
             self[gpu_uuid].populate(pcie_id, gpu_name, short_gpu_name, vendor, driver_module,
                                     card_path, hwmon_path, readable, writable, compute, opencl_device_version)
+            # Read GPU ID
+            rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
+            if rdata:
+                self[gpu_uuid].set_params_value('id', rdata)
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
                     self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
