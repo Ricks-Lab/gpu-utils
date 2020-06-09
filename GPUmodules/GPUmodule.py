@@ -102,7 +102,7 @@ class GpuItem:
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'pcie_id', 'driver']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Legacy PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
@@ -1099,8 +1099,6 @@ class GpuItem:
         Display ls like listing function for GPU parameters.
 
         :param clflag:  Display clinfo data if True
-        :type clflag: bool
-        :return: None
         """
         pre = ''
         for k, v in self._GPU_Param_Labels.items():
@@ -1386,6 +1384,9 @@ class GpuList:
                     readable = True
                     if self.amd_writable:
                         writable = True
+                elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
+                    readable = True
+                    self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
                 if logger.getEffectiveLevel() == logging.DEBUG:
                     with open(pp_od_clk_voltage_file, 'r') as fp:
                         pp_od_file_details = fp.read()
