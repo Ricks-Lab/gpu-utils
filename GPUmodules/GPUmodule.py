@@ -493,12 +493,16 @@ class GpuItem:
         """
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
+            if self.prm.gpu_type == self.GPU_Type.Legacy:
+                return None
             if name == 'temp_val':
                 if 'edge' in self.prm['temperatures'].keys():
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
                     return round(self.prm['temperatures']['edge'], 1)
-                return self.prm['temperatures'].keys()[0]
+                if self.prm['temperatures'].keys():
+                    return self.prm['temperatures'].keys()[0]
+                return None
             if name == 'vddgfx_val':
                 return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
