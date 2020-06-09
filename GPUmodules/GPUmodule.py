@@ -818,7 +818,7 @@ class GpuItem:
         """
         Read the ppm table.
         """
-        if not self.prm.readable:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
             return
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
@@ -1049,7 +1049,7 @@ class GpuItem:
         """
         Print human friendly table of ppm parameters.
         """
-        if not self.prm.readable:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
             logger.debug('PPM for card number %s not readable.', self.prm.card_num)
             return
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
@@ -1066,7 +1066,7 @@ class GpuItem:
         """
         Print human friendly table of p-states.
         """
-        if not self.prm.readable:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
             logger.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
         pre = '   '
@@ -1399,6 +1399,7 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
+                    # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
                     readable = True
                     self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
                     self[gpu_uuid].read_disabled = GpuItem.LEGACY_Skip_List[:]
@@ -1613,6 +1614,7 @@ class GpuList:
                 if vendor != v.prm.vendor:
                     continue
             if compatibility == GpuItem.GPU_Comp.Readable:
+                # Skip Legacy GPU type, since most parameters can not be read.
                 if v.prm.gpu_type != GpuItem.GPU_Type.Legacy:
                     if v.prm.readable:
                         result_list.list[k] = v
