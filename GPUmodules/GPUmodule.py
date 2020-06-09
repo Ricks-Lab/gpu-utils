@@ -1613,8 +1613,9 @@ class GpuList:
                 if vendor != v.prm.vendor:
                     continue
             if compatibility == GpuItem.GPU_Comp.Readable:
-                if v.prm.readable:
-                    result_list.list[k] = v
+                if v.prm.gpu_type != GpuItem.GPU_Type.Legacy:
+                    if v.prm.readable:
+                        result_list.list[k] = v
             elif compatibility == GpuItem.GPU_Comp.Writable:
                 if v.prm.writable:
                     result_list.list[k] = v
