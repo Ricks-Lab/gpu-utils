@@ -268,11 +268,11 @@ class GpuItem:
                                    'vbios':           {'type': SensorType.SingleString,
                                                        'cf': None, 'sensor': ['vbios_version']}}}}
 
-    def __repr__(self) -> dict:
+    def __repr__(self) -> Dict[str, any]:
         """
         Return dictionary representing all parts of the GpuItem object.
 
-        :return: Dictionary of GPU item
+        :return: Dictionary of core GPU parameters.
         """
         return {'params': self.prm, 'clinfo': self.clinfo,
                 'sclk_state': self.sclk_state, 'mclk_state': self.mclk_state,
@@ -378,7 +378,8 @@ class GpuItem:
     @classmethod
     def finalize_fan_option(cls) -> None:
         """
-        Finalize class variables of gpu parameters based on command line options.
+        Finalize class variables of gpu parameters based on command line options. This must be
+        done after setting of env.  Doing at at the instantiation of a GpuItem assures that.
         """
         if cls._finalized:
             return
@@ -410,7 +411,7 @@ class GpuItem:
             raise KeyError('{} not in button_label dict'.format(name))
         return cls._button_labels[name]
 
-    def set_params_value(self, name: str, value: Union[int, str, list]) -> None:
+    def set_params_value(self, name: str, value: Union[int, float, str, list, None]) -> None:
         """
         Set parameter value for give name.
 
@@ -1360,7 +1361,7 @@ class GpuList:
             # Get Driver Name
             driver_module = 'UNKNOWN'
             for lspci_line in lspci_items:
-                if re.search(r'(Kernel|kernel)', lspci_line):
+                if re.search(r'([kK]ernel)', lspci_line):
                     driver_module_items = lspci_line.split(': ')
                     if len(driver_module_items) >= 2:
                         driver_module = driver_module_items[1].strip()
@@ -1775,7 +1776,7 @@ class GpuList:
         Print the plot data.
 
         :param log_file_ptr: File pointer for target output.
-        :return: True if success
+        :return: True on success
         """
         if self.num_gpus()['total'] < 1:
             return False
@@ -1784,8 +1785,7 @@ class GpuList:
         for v in self.list.values():
             line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)), v.prm.card_num)]
             for table_item in self.table_parameters():
-                line_str_item.append('|' +
-                                     str(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)))).strip())
+                line_str_item.append('|' + re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item))).strip())
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
             log_file_ptr.write(line_str.encode('utf-8'))
