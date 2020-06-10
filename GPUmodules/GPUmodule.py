@@ -1120,6 +1120,9 @@ class GpuItem:
                 continue
             if isinstance(self.get_params_value(k), float):
                 print('{}{}: {:.3f}'.format(pre, v, self.get_params_value(k)))
+            elif isinstance(self.get_params_value(k), dict):
+                param_dict = self.get_params_value(k)
+                print('{}{}: {}'.format(pre, v, {key: param_dict[key] for key in sorted(param_dict)}))
             else:
                 print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
         if clflag and self.prm.compute:
