@@ -145,14 +145,14 @@ class MonitorWindow(Gtk.Window):
             lbox.pack_start(v, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
-        for v in gpu_list.list.values():
-            devices[v.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
-            devices[v.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(v.get_params_value('card_num')))
-            devices[v.prm.uuid]['card_num'].set_use_markup(True)
+        for gpu in gpu_list.gpus():
+            devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
+            devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
+            devices[gpu.prm.uuid]['card_num'].set_use_markup(True)
             for cv in gpu_list.table_param_labels():
-                devices[v.prm.uuid][cv] = Gtk.Label(label=v.get_params_value(str(cv)), name='white_label')
-                devices[v.prm.uuid][cv].set_width_chars(10)
-                set_gtk_prop(devices[v.prm.uuid][cv], width_chars=10)
+                devices[gpu.prm.uuid][cv] = Gtk.Label(label=gpu.get_params_value(str(cv)), name='white_label')
+                devices[gpu.prm.uuid][cv].set_width_chars(10)
+                set_gtk_prop(devices[gpu.prm.uuid][cv], width_chars=10)
 
         for dv in devices.values():
             col += 1
@@ -201,12 +201,12 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
             env.GUT_CONST.PLOT = False
 
     # update gui
-    for dk, dv in devices.items():
+    for uuid, dv in devices.items():
         for lk, lv in dv.items():
             if lk == 'card_num':
-                lv.set_markup('<b>Card{}</b>'.format(gpu_list.list[dk].get_params_value('card_num')))
+                lv.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
             else:
-                data_value_raw = gpu_list.list[dk].get_params_value(lk)
+                data_value_raw = gpu_list[uuid].get_params_value(lk)
                 logger.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)

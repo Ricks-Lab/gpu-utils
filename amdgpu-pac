@@ -87,7 +87,7 @@ class PACWindow(Gtk.Window):
         num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
         row = col = 0
-        for v in gpu_list.list.values():
+        for v in gpu_list.gpus():
             row = 0
             # Card Number in top center of box
             devices[v.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
@@ -599,81 +599,81 @@ class PACWindow(Gtk.Window):
         gpu_list.read_gpu_pstates()
         gpu_list.read_gpu_ppm_table()
 
-        for v in gpu_list.list.values():
-            devices[v.prm.uuid]['power_cap_cur'].set_text('    Current: {:3d}W    Set: '.format(
-                                                          v.get_params_value('power_cap', num_as_int=True)))
-            devices[v.prm.uuid]['power_cap_ent'].set_text(str(v.get_params_value('power_cap', num_as_int=True)))
+        for gpu in gpu_list.gpus():
+            devices[gpu.prm.uuid]['power_cap_cur'].set_text('    Current: {:3d}W    Set: '.format(
+                                                          gpu.get_params_value('power_cap', num_as_int=True)))
+            devices[gpu.prm.uuid]['power_cap_ent'].set_text(str(gpu.get_params_value('power_cap', num_as_int=True)))
             if env.GUT_CONST.show_fans:
-                devices[v.prm.uuid]['fan_pwm_cur'].set_text('    Current: {:3d}%    Set: '.format(
-                                                            v.get_params_value('fan_pwm', num_as_int=True)))
-                devices[v.prm.uuid]['fan_pwm_ent'].set_text(str(v.get_params_value('fan_pwm', num_as_int=True)))
-                logger.debug('Refresh got current pwm speed: %s', devices[v.prm.uuid]['fan_pwm_ent'].get_text())
+                devices[gpu.prm.uuid]['fan_pwm_cur'].set_text('    Current: {:3d}%    Set: '.format(
+                                                            gpu.get_params_value('fan_pwm', num_as_int=True)))
+                devices[gpu.prm.uuid]['fan_pwm_ent'].set_text(str(gpu.get_params_value('fan_pwm', num_as_int=True)))
+                logger.debug('Refresh got current pwm speed: %s', devices[gpu.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
-            if v.get_params_value('gpu_type') in [v.GPU_Type.PStates]:
-                for ps, psd in v.sclk_state.items():
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates]:
+                for ps, psd in gpu.sclk_state.items():
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
-                    '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
-            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
-                for ps, psd in v.sclk_state.items():
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                devices[gpu.prm.uuid]['sclk_pst_mask_cur'].set_text(
+                    '    SCLK Default: {}    Set Mask: '.format(gpu.prm.sclk_mask))
+                devices[gpu.prm.uuid]['sclk_pst_mask_ent'].set_text(gpu.prm.sclk_mask)
+            elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+                for ps, psd in gpu.sclk_state.items():
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                devices[v.prm.uuid]['sclk_pst_mask_cur'].set_text(
-                    '    SCLK Default: {}    Set Mask: '.format(v.prm.sclk_mask))
-                devices[v.prm.uuid]['sclk_pst_mask_ent'].set_text(v.prm.sclk_mask)
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                devices[gpu.prm.uuid]['sclk_pst_mask_cur'].set_text(
+                    '    SCLK Default: {}    Set Mask: '.format(gpu.prm.sclk_mask))
+                devices[gpu.prm.uuid]['sclk_pst_mask_ent'].set_text(gpu.prm.sclk_mask)
             # MCLK
-            if v.get_params_value('gpu_type') in [v.GPU_Type.PStates]:
-                for ps, psd in v.mclk_state.items():
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates]:
+                for ps, psd in gpu.mclk_state.items():
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
-                    '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
-            elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
-                for ps, psd in v.mclk_state.items():
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                devices[gpu.prm.uuid]['mclk_pst_mask_cur'].set_text(
+                    '    MCLK Default: {}    Set Mask: '.format(gpu.prm.mclk_mask))
+                devices[gpu.prm.uuid]['mclk_pst_mask_ent'].set_text(gpu.prm.mclk_mask)
+            elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+                for ps, psd in gpu.mclk_state.items():
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                devices[v.prm.uuid]['mclk_pst_mask_cur'].set_text(
-                    '    MCLK Default: {}    Set Mask: '.format(v.prm.mclk_mask))
-                devices[v.prm.uuid]['mclk_pst_mask_ent'].set_text(v.prm.mclk_mask)
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                devices[gpu.prm.uuid]['mclk_pst_mask_cur'].set_text(
+                    '    MCLK Default: {}    Set Mask: '.format(gpu.prm.mclk_mask))
+                devices[gpu.prm.uuid]['mclk_pst_mask_ent'].set_text(gpu.prm.mclk_mask)
             # VDDC CURVE
-            if v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
-                for ps, psd in v.vddc_curve.items():
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
+            if gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+                for ps, psd in gpu.vddc_curve.items():
+                    devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
+                    devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
+                    devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
                     item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
-                    devices[v.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
+                    devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
+                    devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
 
             # refresh active mode item
-            devices[v.prm.uuid]['ppm_modes_combo'].set_active(
-                devices[v.prm.uuid]['ppm_mode_items'][v.get_current_ppm_mode()[0]])
+            devices[gpu.prm.uuid]['ppm_modes_combo'].set_active(
+                devices[gpu.prm.uuid]['ppm_mode_items'][gpu.get_current_ppm_mode()[0]])
 
         if refresh_message:
             self.update_message(devices, 'Refresh complete.\n', 'gray')
@@ -700,8 +700,8 @@ class PACWindow(Gtk.Window):
         self.update_message(devices, message, 'red')
 
         # save each card
-        for gk in gpu_list.list.keys():
-            changed += self.save_card(parent, gpu_list, devices, gk, refresh=False)
+        for uuid in gpu_list.uuids():
+            changed += self.save_card(parent, gpu_list, devices, uuid, refresh=False)
 
         # Write finish message
         time.sleep(1.0)
@@ -773,10 +773,10 @@ class PACWindow(Gtk.Window):
         print('###########################################################################', file=fileptr)
 
         changed = 0
-        v = gpu_list.list[uuid]
+        gpu = gpu_list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(v.prm.card_num, v.get_params_value('model')), file=fileptr)
-        print('# {}'.format(v.prm.card_path), file=fileptr)
+        print('# Card{}  {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
+        print('# {}'.format(gpu.prm.card_path), file=fileptr)
         if not env.GUT_CONST.write_delta_only:
             print('# Force Write mode.')
         else:
@@ -786,19 +786,19 @@ class PACWindow(Gtk.Window):
 
         # Check/set power_dpm_force_performance_level
         # Mode of manual required to change ppm or clock masks
-        curr_power_dpm_force = v.get_params_value('power_dpm_force').lower()
+        curr_power_dpm_force = gpu.get_params_value('power_dpm_force').lower()
         if curr_power_dpm_force == 'manual' and env.GUT_CONST.write_delta_only:
             print('# Power DPM Force Performance Level: already [{}], skipping.'.format(curr_power_dpm_force),
                   file=fileptr)
         else:
-            power_dpm_force_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
+            power_dpm_force_file = os.path.join(gpu.prm.card_path, 'power_dpm_force_performance_level')
             print('# Power DPM Force Performance Level: [{}] change to [manual]'.format(curr_power_dpm_force),
                   file=fileptr)
             print("sudo sh -c \"echo \'manual\' >  {}\"".format(power_dpm_force_file), file=fileptr)
 
         # Power Cap
-        power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
-        old_power_cap = v.get_params_value('power_cap', num_as_int=True)
+        power_cap_file = os.path.join(gpu.prm.hwmon_path, 'power1_cap')
+        old_power_cap = gpu.get_params_value('power_cap', num_as_int=True)
         new_power_cap_str = devices[uuid]['power_cap_ent'].get_text()
         if new_power_cap_str.lower() == 'reset':
             changed += 1
@@ -806,7 +806,7 @@ class PACWindow(Gtk.Window):
             print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
         elif re.fullmatch(PATTERNS['DIGITS'], new_power_cap_str):
             new_power_cap = int(new_power_cap_str)
-            power_cap_range = v.get_params_value('power_cap_range')
+            power_cap_range = gpu.get_params_value('power_cap_range')
             print('# Powercap Old: {}'.format(old_power_cap), end='', file=fileptr)
             print(' New: {}'.format(new_power_cap), end='', file=fileptr)
             print(' Min: {}'.format(power_cap_range[0]), end='', file=fileptr)
@@ -814,7 +814,7 @@ class PACWindow(Gtk.Window):
             if new_power_cap == old_power_cap and env.GUT_CONST.write_delta_only:
                 print('# No Powercap changes, skipped', file=fileptr)
             else:
-                if v.is_valid_power_cap(new_power_cap):
+                if gpu.is_valid_power_cap(new_power_cap):
                     changed += 1
                     print("sudo sh -c \"echo \'{}\' >  {}\"".format((int(1000000 * new_power_cap)), power_cap_file),
                           file=fileptr)
@@ -827,9 +827,9 @@ class PACWindow(Gtk.Window):
 
         if env.GUT_CONST.show_fans:
             # Fan PWM
-            pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
-            pwm_file = os.path.join(v.prm.hwmon_path, 'pwm1')
-            old_pwm = v.get_params_value('fan_pwm', num_as_int=True)
+            pwm_enable_file = os.path.join(gpu.prm.hwmon_path, 'pwm1_enable')
+            pwm_file = os.path.join(gpu.prm.hwmon_path, 'pwm1')
+            old_pwm = gpu.get_params_value('fan_pwm', num_as_int=True)
             logger.debug('Current pwm value: %s', old_pwm)
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
             logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
@@ -846,7 +846,7 @@ class PACWindow(Gtk.Window):
                 new_pwm = int(new_pwm_str)
                 print('# Fan PWM Old: {}'.format(old_pwm), end='', file=fileptr)
                 print(' New: {}'.format(new_pwm), end='', file=fileptr)
-                pwm_range = v.get_params_value('fan_pwm_range')
+                pwm_range = gpu.get_params_value('fan_pwm_range')
                 print(' Min: {}'.format(pwm_range[0]), end='', file=fileptr)
                 print(' Max: {}\n'.format(pwm_range[1]), end='', file=fileptr)
                 if new_pwm == old_pwm and env.GUT_CONST.write_delta_only:
@@ -857,7 +857,7 @@ class PACWindow(Gtk.Window):
                     print('# Specified PWM value below min safe limit of 20%, skipped', file=fileptr)
                     logger.debug('Unsafe PWM value skipped: %s', new_pwm_str)
                 else:
-                    if v.is_valid_fan_pwm(new_pwm):
+                    if gpu.is_valid_fan_pwm(new_pwm):
                         changed += 1
                         new_pwm_value = int(255 * new_pwm / 100)
                         print("sudo sh -c \"echo \'1\' >  {}\"".format(pwm_enable_file), file=fileptr)
@@ -869,9 +869,9 @@ class PACWindow(Gtk.Window):
                 print('# PWM entry: {}, invalid input, ignoring'.format(new_pwm_str), file=fileptr)
                 new_pwm = old_pwm
 
-        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
+        device_file = os.path.join(gpu.prm.card_path, 'pp_od_clk_voltage')
         commit_needed = False
-        if v.get_params_value('gpu_type') == v.GPU_Type.PStates:
+        if gpu.get_params_value('gpu_type') == gpu.GPU_Type.PStates:
             # Sclk P-states
             for pk, pv in devices[uuid]['sclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -883,8 +883,8 @@ class PACWindow(Gtk.Window):
                     print('# Invalid sclk pstate entry: {}'.format(pv['gtk_ent_v_obj'].get_text()))
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
                 print('#sclk p-state: {} : {} MHz, {} mV'.format(pstate[0], pstate[1], pstate[2]), file=fileptr)
-                if v.is_valid_sclk_pstate(pstate):
-                    if v.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
+                if gpu.is_valid_sclk_pstate(pstate):
+                    if gpu.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'s {} {} {}\' >  {}\"".format(pstate[0], pstate[1],
@@ -906,8 +906,8 @@ class PACWindow(Gtk.Window):
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
                 print('#mclk p-state: {} : {} MHz, {} mV'.format(pstate[0], pstate[1], pstate[2]), file=fileptr)
-                if v.is_valid_mclk_pstate(pstate):
-                    if v.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
+                if gpu.is_valid_mclk_pstate(pstate):
+                    if gpu.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'m {} {} {}\' >  {}\"".format(pstate[0], pstate[1],
@@ -917,7 +917,7 @@ class PACWindow(Gtk.Window):
                 else:
                     print('# Invalid mclk pstate values', file=fileptr)
                     print('Invalid mclk pstate values')
-        elif v.get_params_value('gpu_type') == v.GPU_Type.CurvePts:
+        elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
             # Sclk Curve End Points
             for pk, pv in devices[uuid]['sclk_pstate'].items():
                 if not pv['gtk_ent_f_obj'].get_text().isnumeric():
@@ -927,8 +927,8 @@ class PACWindow(Gtk.Window):
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
                 print('# Sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
-                if v.is_valid_sclk_pstate(pstate):
-                    if v.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
+                if gpu.is_valid_sclk_pstate(pstate):
+                    if gpu.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'s {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
@@ -947,8 +947,8 @@ class PACWindow(Gtk.Window):
                     continue
                 pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
                 print('# Mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
-                if v.is_valid_mclk_pstate(pstate):
-                    if v.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
+                if gpu.is_valid_mclk_pstate(pstate):
+                    if gpu.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
                         changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'m {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
@@ -971,8 +971,8 @@ class PACWindow(Gtk.Window):
                 curve_pts = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
                 print('# Vddc curve point: {} : {} MHz, {} mV'.format(curve_pts[0], curve_pts[1], curve_pts[2]),
                       file=fileptr)
-                if v.is_valid_vddc_curve_pts(curve_pts):
-                    if v.is_changed_vddc_curve_pt(curve_pts) or not env.GUT_CONST.write_delta_only:
+                if gpu.is_valid_vddc_curve_pts(curve_pts):
+                    if gpu.is_changed_vddc_curve_pt(curve_pts) or not env.GUT_CONST.write_delta_only:
                         changed += 1
                         commit_needed = True
                         print("sudo sh -c \"echo \'vc {} {} {}\' >  {}\"".format(curve_pts[0], curve_pts[1],
@@ -984,7 +984,7 @@ class PACWindow(Gtk.Window):
                     print('Invalid Vddc curve point values')
 
         # PPM
-        ppm_mode_file = os.path.join(v.prm.card_path, 'pp_power_profile_mode')
+        ppm_mode_file = os.path.join(gpu.prm.card_path, 'pp_power_profile_mode')
 
         tree_iter = devices[uuid]['ppm_modes_combo'].get_active_iter()
         if tree_iter is not None:
@@ -993,7 +993,7 @@ class PACWindow(Gtk.Window):
             selected_mode = devices[uuid]['new_ppm'][0]
             print('# Selected: ID={}, name={}'.format(devices[uuid]['new_ppm'][0], devices[uuid]['new_ppm'][1]),
                   file=fileptr)
-            if v.get_current_ppm_mode()[0] != devices[uuid]['new_ppm'][0] or not env.GUT_CONST.write_delta_only:
+            if gpu.get_current_ppm_mode()[0] != devices[uuid]['new_ppm'][0] or not env.GUT_CONST.write_delta_only:
                 changed += 1
                 print("sudo sh -c \"echo \'{}\' >  {}\"".format(devices[uuid]['new_ppm'][0], ppm_mode_file),
                       file=fileptr)
@@ -1001,18 +1001,18 @@ class PACWindow(Gtk.Window):
                 print('# PPM mode {} unchanged, skipping'.format(devices[uuid]['new_ppm'][1]), file=fileptr)
 
         # Commit changes
-        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
+        device_file = os.path.join(gpu.prm.card_path, 'pp_od_clk_voltage')
         if commit_needed:
             changed += 1
             print("sudo sh -c \"echo \'c\' >  {}\"".format(device_file), file=fileptr)
         else:
             print('# No clock changes made, commit skipped', file=fileptr)
 
-        if v.get_params_value('gpu_type') in [v.GPU_Type.PStates, v.GPU_Type.CurvePts]:
+        if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates, gpu.GPU_Type.CurvePts]:
             # Writes of pstate Masks must come after commit of pstate changes
             # Sclk Mask
-            sclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_sclk')
-            old_sclk_mask = v.prm.sclk_mask.replace(',', ' ')
+            sclk_mask_file = os.path.join(gpu.prm.card_path, 'pp_dpm_sclk')
+            old_sclk_mask = gpu.prm.sclk_mask.replace(',', ' ')
             new_sclk_mask = devices[uuid]['sclk_pst_mask_ent'].get_text().replace(' ', '').strip()
             new_sclk_mask = new_sclk_mask.replace(',', ' ').strip()
             print('# Sclk P-State Mask Default: {}'.format(old_sclk_mask), end='', file=fileptr)
@@ -1020,7 +1020,7 @@ class PACWindow(Gtk.Window):
             if new_sclk_mask == old_sclk_mask and env.GUT_CONST.write_delta_only:
                 print('# No changes, skipped', file=fileptr)
             else:
-                if v.is_valid_pstate_list_str(new_sclk_mask, 'SCLK'):
+                if gpu.is_valid_pstate_list_str(new_sclk_mask, 'SCLK'):
                     changed += 1
                     if new_sclk_mask == '':
                         # reset
@@ -1033,8 +1033,8 @@ class PACWindow(Gtk.Window):
                     print('Invalid sclk mask parameter values: {}'.format(new_sclk_mask))
 
             # Mclk Mask
-            mclk_mask_file = os.path.join(v.prm.card_path, 'pp_dpm_mclk')
-            old_mclk_mask = v.prm.mclk_mask.replace(',', ' ')
+            mclk_mask_file = os.path.join(gpu.prm.card_path, 'pp_dpm_mclk')
+            old_mclk_mask = gpu.prm.mclk_mask.replace(',', ' ')
             new_mclk_mask = devices[uuid]['mclk_pst_mask_ent'].get_text().replace(' ', '').strip()
             new_mclk_mask = new_mclk_mask.replace(',', ' ').strip()
             print('# Mclk P-State Mask Default: {}'.format(old_mclk_mask), end='', file=fileptr)
@@ -1042,7 +1042,7 @@ class PACWindow(Gtk.Window):
             if new_mclk_mask == old_mclk_mask and env.GUT_CONST.write_delta_only:
                 print('# No changes, skipped', file=fileptr)
             else:
-                if v.is_valid_pstate_list_str(new_mclk_mask, 'MCLK'):
+                if gpu.is_valid_pstate_list_str(new_mclk_mask, 'MCLK'):
                     changed += 1
                     if new_mclk_mask == '':
                         # reset
@@ -1060,7 +1060,7 @@ class PACWindow(Gtk.Window):
         print('Batch file completed: {}'.format(out_filename))
         if env.GUT_CONST.execute_pac:
             # Execute bash file
-            print('Writing {} changes to GPU {}'.format(changed, v.prm.card_path))
+            print('Writing {} changes to GPU {}'.format(changed, gpu.prm.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print('PAC execution complete.')
@@ -1087,7 +1087,7 @@ class PACWindow(Gtk.Window):
                 else:
                     message = 'No PAC commands to write bash file.\nNo changes specified.'
                 self.update_message(devices, message, 'yellow')
-            print('Execute to write changes to GPU {}'.format(v.prm.card_path))
+            print('Execute to write changes to GPU {}'.format(gpu.prm.card_path))
             print('')
         return changed
 
@@ -1109,8 +1109,8 @@ class PACWindow(Gtk.Window):
         self.update_message(devices, message, 'red')
 
         # reset each card
-        for gk in gpu_list.list.keys():
-            self.reset_card(parent, gpu_list, devices, gk, refresh=False)
+        for uuid in gpu_list.uuids():
+            self.reset_card(parent, gpu_list, devices, uuid, refresh=False)
 
         # Write finish message
         if env.GUT_CONST.execute_pac:
@@ -1171,18 +1171,18 @@ class PACWindow(Gtk.Window):
         print('#    along with this program.  If not, see <https://www.gnu.org/licenses/>.', file=fileptr)
         print('###########################################################################', file=fileptr)
 
-        v = gpu_list.list[uuid]
+        gpu = gpu_list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(v.prm.card_num, v.get_params_value('model')), file=fileptr)
-        print('# {}'.format(v.prm.card_path), file=fileptr)
+        print('# Card{}  {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
+        print('# {}'.format(gpu.prm.card_path), file=fileptr)
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
 
         # Commit changes
-        power_cap_file = os.path.join(v.prm.hwmon_path, 'power1_cap')
-        pwm_enable_file = os.path.join(v.prm.hwmon_path, 'pwm1_enable')
-        device_file = os.path.join(v.prm.card_path, 'pp_od_clk_voltage')
-        power_dpm_force_file = os.path.join(v.prm.card_path, 'power_dpm_force_performance_level')
+        power_cap_file = os.path.join(gpu.prm.hwmon_path, 'power1_cap')
+        pwm_enable_file = os.path.join(gpu.prm.hwmon_path, 'pwm1_enable')
+        device_file = os.path.join(gpu.prm.card_path, 'pp_od_clk_voltage')
+        power_dpm_force_file = os.path.join(gpu.prm.card_path, 'power_dpm_force_performance_level')
         print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
         if env.GUT_CONST.show_fans:
             print("sudo sh -c \"echo \'2\' >  {}\"".format(pwm_enable_file), file=fileptr)
@@ -1196,7 +1196,7 @@ class PACWindow(Gtk.Window):
         os.chmod(out_filename, 0o744)
         print('Batch file completed: {}'.format(out_filename))
         if env.GUT_CONST.execute_pac:
-            print('Writing changes to GPU {}'.format(v.prm.card_path))
+            print('Writing changes to GPU {}'.format(gpu.prm.card_path))
             cmd = subprocess.Popen(out_filename, shell=True)
             cmd.wait()
             print('')
@@ -1207,7 +1207,7 @@ class PACWindow(Gtk.Window):
             self.refresh_pac(gpu_list, devices)
             os.remove(out_filename)
         else:
-            print('Execute to write changes to GPU {}.\n'.format(v.prm.card_path))
+            print('Execute to write changes to GPU {}.\n'.format(gpu.prm.card_path))
             if refresh:
                 # Dismiss execute_pac message
                 message = 'Write reset commands to bash file complete.\nRun bash file with sudo to execute changes.'
