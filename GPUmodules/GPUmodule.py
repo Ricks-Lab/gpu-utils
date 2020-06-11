@@ -106,7 +106,7 @@ class GpuItem:
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
                           'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Legacy PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Unsupported Legacy PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
@@ -1371,21 +1371,26 @@ class GpuList:
             device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
+                logger.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
                 if pcie_id == sysfspath[-7:]:
                     card_path = device_dir
 
+            if card_path is None:
+                self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
+
             # Get full hwmon path
             hwmon_path = None
-            hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
-            logger.debug('HW file search: %s', hw_file_srch)
-            if len(hw_file_srch) > 1:
-                print('More than one hwmon file found: ', hw_file_srch)
-            elif len(hw_file_srch) == 1:
-                hwmon_path = hw_file_srch[0]
-                logger.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
+            if card_path:
+                hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
+                logger.debug('HW file search: %s', hw_file_srch)
+                if len(hw_file_srch) > 1:
+                    print('More than one hwmon file found: ', hw_file_srch)
+                elif len(hw_file_srch) == 1:
+                    hwmon_path = hw_file_srch[0]
+                    logger.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
 
             # Check AMD write capability
-            if vendor == GpuItem.GPU_Vendor.AMD:
+            if vendor == GpuItem.GPU_Vendor.AMD and card_path:
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
                 if os.path.isfile(pp_od_clk_voltage_file):
                     readable = True
