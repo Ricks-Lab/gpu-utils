@@ -546,7 +546,7 @@ script(s) before rebooting, run: `~$ sudo systemctl start amdgpu-pac-startup.ser
 If you have a Type PStates card where some PAC parameters can't be changed when it is under load, you will want
 to make sure that the PAC bash script executes before the card begins computing. If you have a *boinc-client* that
 automatically runs on startup, for example, then consider delaying it for 20 seconds using the cc_config.xml
-option *<start_delay>20</start_delay>*.
+option *<start_delay>30</start_delay>*.
 
 One or more card numbers that are assigned by amdgpu drivers may change following a system or driver
 update and restart. With subsequent updates or restarts, a card can switch back to its original number. When a
