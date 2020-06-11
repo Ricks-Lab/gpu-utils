@@ -933,7 +933,7 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported, GpuItem.GPU_Type.Undefined]:
+        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported]:
             return None
         if not self.prm.readable and parameter != 'id':
             return None
