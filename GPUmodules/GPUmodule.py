@@ -1380,10 +1380,11 @@ class GpuList:
                     logger.debug('card_path set to: %s', device_dir)
 
             if card_path is None:
+                # No card path could be found.  Set readable/writable to False and type to Unsupported
                 logger.debug('card_path not set for: %s', pcie_id)
-                logger.debug('GPU[{}] type set to Unsupported', gpu_uuid)
+                logger.debug('GPU[%s] type set to Unsupported', gpu_uuid)
                 self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
-                readable = False
+                readable = writable = False
 
             # Get full hwmon path
             hwmon_path = None
@@ -1638,31 +1639,31 @@ class GpuList:
         """
         Read GPU ppm data and populate GpuItem.
         """
-        for v in self.list.values():
-            if v.prm.readable:
-                v.read_gpu_ppm_table()
+        for gpu in self.list.values():
+            if gpu.prm.readable:
+                gpu.read_gpu_ppm_table()
 
     def print_ppm_table(self) -> None:
         """
         Print the GpuItem ppm data.
         """
-        for v in self.list.values():
-            v.print_ppm_table()
+        for gpu in self.list.values():
+            gpu.print_ppm_table()
 
     def read_gpu_pstates(self) -> None:
         """
         Read GPU p-state data and populate GpuItem.
         """
-        for v in self.list.values():
-            if v.prm.readable:
-                v.read_gpu_pstates()
+        for gpu in self.list.values():
+            if gpu.prm.readable:
+                gpu.read_gpu_pstates()
 
     def print_pstates(self) -> None:
         """
         Print the GpuItem p-state data.
         """
-        for v in self.list.values():
-            v.print_pstates()
+        for gpu in self.list.values():
+            gpu.print_pstates()
 
     def read_gpu_sensor_data(self, data_type: Enum = GpuItem.SensorSet.All) -> None:
         """
@@ -1671,7 +1672,7 @@ class GpuList:
         :param data_type: Specifies the sensor set to use in the read.
         """
         for gpu in self.list.values():
-            if gpu.prm.readable and gpu.prm.gpu_type != GpuItem.GPU_Type.Unsupported:
+            if gpu.prm.readable:
                 gpu.read_gpu_sensor_data(data_type)
 
     # Printing Methods follow.
@@ -1681,8 +1682,8 @@ class GpuList:
 
         :param clflag: If true, print clinfo
         """
-        for v in self.list.values():
-            v.print(clflag)
+        for gpu in self.list.values():
+            gpu.print(clflag)
 
     def print_table(self, title: Union[str, None] = None) -> bool:
         """
