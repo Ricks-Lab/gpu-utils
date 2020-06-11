@@ -82,6 +82,7 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
+    if args.short: args.no_fan = True
     env.GUT_CONST.set_args(args)
     logger.debug('########## %s %s', __program_name__, __version__)
 
