@@ -602,7 +602,7 @@ class GpuItem:
             if source_name not in self.prm.keys():
                 raise KeyError('Populate dict contains unmatched key: {}'.format(source_name))
             self.prm[source_name] = source_value
-            if source_name == 'card_path':
+            if source_name == 'card_path' and source_value:
                 self.prm.card_num = int(
                     source_value.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', ''))
             if source_name == 'compute_platform':
@@ -808,8 +808,10 @@ class GpuItem:
         """
         Read the ppm table.
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy or \
+                self.prm.gpu_type == GpuItem.GPU_Type.Unsupported:
             return
+
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
             print('Error getting power profile modes: {}'.format(file_path), file=sys.stderr)
@@ -842,10 +844,11 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
+        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy or \
+                self.prm.gpu_type == GpuItem.GPU_Type.Unsupported:
             return
-        range_mode = False
 
+        range_mode = False
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
@@ -1374,6 +1377,7 @@ class GpuList:
                 logger.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
                 if pcie_id == sysfspath[-7:]:
                     card_path = device_dir
+                    logger.debug('card_path set to: %s', device_dir)
 
             if card_path is None:
                 self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
