@@ -1394,7 +1394,7 @@ class GpuList:
                 # No card path could be found.  Set readable/writable to False and type to Unsupported
                 logger.debug('card_path not set for: %s', pcie_id)
                 logger.debug('GPU[%s] type set to Unsupported', gpu_uuid)
-                self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
+                self.list[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
                 readable = writable = False
 
             # Get full hwmon path
@@ -1418,8 +1418,8 @@ class GpuList:
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
                     # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
                     readable = True
-                    self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
-                    self[gpu_uuid].read_disabled = GpuItem.LEGACY_Skip_List[:]
+                    self.list[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
+                    self.list[gpu_uuid].read_disabled = GpuItem.LEGACY_Skip_List[:]
                 if logger.getEffectiveLevel() == logging.DEBUG:
                     if os.path.isfile(pp_od_clk_voltage_file):
                         with open(pp_od_clk_voltage_file, 'r') as fp:
@@ -1429,22 +1429,22 @@ class GpuList:
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
                     logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
-            self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
-                                                   'model_short': short_gpu_name, 'vendor': vendor,
-                                                   'driver': driver_module, 'card_path': card_path,
-                                                   'long_card_path': long_card_path,
-                                                   'hwmon_path': hwmon_path, 'readable': readable,
-                                                   'writable': writable, 'compute': compute,
-                                                   'compute_platform': opencl_device_version})
+            self.list[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
+                                                        'model_short': short_gpu_name, 'vendor': vendor,
+                                                        'driver': driver_module, 'card_path': card_path,
+                                                        'long_card_path': long_card_path,
+                                                        'hwmon_path': hwmon_path, 'readable': readable,
+                                                        'writable': writable, 'compute': compute,
+                                                        'compute_platform': opencl_device_version})
             # Read GPU ID
             logger.debug('Card flags: readable: %s, writable: %s, type: %s',
-                         readable, writable, self[gpu_uuid].prm.gpu_type)
-            rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
+                         readable, writable, self.list[gpu_uuid].prm.gpu_type)
+            rdata = self.list[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
             if rdata:
-                self[gpu_uuid].set_params_value('id', rdata)
+                self.list[gpu_uuid].set_params_value('id', rdata)
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
-                    self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
+                    self.list[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
         return True
 
     def read_gpu_opencl_data(self) -> bool:
