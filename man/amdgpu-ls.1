@@ -37,6 +37,9 @@ for each compatible AMD GPU.
 .BR " \-\-no_fan"
 Will exclude fan information from the display.  Useful with water cooled GPUs.
 .TP
+.BR " \-\-short"
+Will display short list of key descriptive parameters for each installed GPU.
+.TP
 .BR " \-\-table"
 Will display table of basic GPU parameters.
 .TP
@@ -62,9 +65,14 @@ device ID, GPU frequency/voltage control type, decoded device ID, card model, sh
 display card model, card number, card path, PCIe ID, driver, vBIOS version, HWmon path, current power,
 power cap, power cap range, fan enable, fan PWM mode, current fan PWM, current fan speed,
 fan target speed, fan speed range, fan PWM range, current temp, critical temp, current VddGF,
-Vddc range, current loading, link speed, link width, current Sclk p-state, current Sclk frequency,
-Sclk range, current Mclk p-state, current Mclk frequency, Mclk range, power performance mode,  and
-power force performance level.
+Vddc range, current GPU loading, memory details, link speed, link width, current Sclk p-state,
+current Sclk frequency, Sclk range, current Mclk p-state, current Mclk frequency,
+Mclk range, power performance mode, and power force performance level.
+.P
+.B amdgpu-ls \-\-short
+
+.fi
+This will produce a short list of key descriptive parameters for each installed GPU.
 .P
 .B amdgpu-ls \-\-clinfo
 
