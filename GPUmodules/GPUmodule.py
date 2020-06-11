@@ -99,7 +99,7 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
-    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id',
                   'model_display', 'card_path', 'long_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
@@ -1203,12 +1203,6 @@ class GpuList:
                            'mclk_ps_val':    'Mclk Pstate',
                            'ppm':            'Perf Mode'}
 
-    def __repr__(self) -> dict:
-        return self.list
-
-    def __str__(self) -> str:
-        return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
-
     def __init__(self) -> None:
         self.list: GpuDict = {}
         self.opencl_map = {}
@@ -1217,6 +1211,21 @@ class GpuList:
         self.amd_writable = False
         self.nv_writable = False
         self.finalize_table_params()
+
+    def __repr__(self) -> dict:
+        return self.list
+
+    def __str__(self) -> str:
+        return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
+
+    def __getitem__(self, uuid: str) -> GpuItem:
+        if uuid in self.list:
+            return self.list[uuid]
+        else:
+            raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
+
+    def __setitem__(self, uuid: str, value: GpuItem) -> None:
+        self.list[uuid] = value
 
     @classmethod
     def finalize_table_params(cls) -> None:
@@ -1231,15 +1240,6 @@ class GpuList:
                 cls._table_parameters.remove('fan_pwm')
             if 'fan_pwm' in cls._table_param_labels.keys():
                 del cls._table_param_labels['fan_pwm']
-
-    def __getitem__(self, uuid: str) -> GpuItem:
-        """
-        Get GpuItem for specific uuid.
-
-        :param uuid:  Key used in GpuItem dict
-        :return: The matching GpuItem, else None
-        """
-        return self.list.get(uuid, None)
 
     def add(self, gpu_item: GpuItem) -> None:
         """
