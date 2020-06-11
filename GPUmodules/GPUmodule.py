@@ -933,7 +933,9 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if not self.prm.readable:
+        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported, GpuItem.GPU_Type.Undefined]:
+            return None
+        if not self.prm.readable and parameter != 'id':
             return None
         if vendor not in self._sensor_details.keys():
             print('Error: Invalid vendor [{}]'.format(vendor))
@@ -1017,7 +1019,7 @@ class GpuItem:
         else:
             raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
-    def read_gpu_sensor_data(self, data_type: Enum = SensorSet.All) -> None:
+    def read_gpu_sensor_set(self, data_type: Enum = SensorSet.All) -> None:
         """
         Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
         by data_type.
@@ -1681,7 +1683,7 @@ class GpuList:
         for gpu in self.list.values():
             gpu.print_pstates()
 
-    def read_gpu_sensor_data(self, data_type: Enum = GpuItem.SensorSet.All) -> None:
+    def read_gpu_sensor_set(self, data_type: Enum = GpuItem.SensorSet.All) -> None:
         """
         Read sensor data from all GPUs in self.list.
 
@@ -1689,7 +1691,7 @@ class GpuList:
         """
         for gpu in self.list.values():
             if gpu.prm.readable:
-                gpu.read_gpu_sensor_data(data_type)
+                gpu.read_gpu_sensor_set(data_type)
 
     # Printing Methods follow.
     def print(self, short: bool = False, clflag: bool = False) -> None:

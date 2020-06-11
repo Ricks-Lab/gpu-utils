@@ -677,7 +677,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
     while not plot_data.quit:
         ndf = pd.DataFrame()
 
-        plot_data.com_gpu_list.read_gpu_sensor_data(data_type=Gpu.GpuItem.SensorSet.Monitor)
+        plot_data.com_gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
 
         # Process a set of GPUs at a time
         skip_update = False
@@ -802,7 +802,7 @@ def main() -> None:
             sys.exit(-1)
 
         # Read data static/dynamic/info/state driver information for GPUs
-        gpu_list.read_gpu_sensor_data(data_type=Gpu.GpuItem.SensorSet.All)
+        gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
         # Check number of readable/writable GPUs again
         num_gpus = gpu_list.num_gpus()

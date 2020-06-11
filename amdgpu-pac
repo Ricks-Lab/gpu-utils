@@ -594,7 +594,7 @@ class PACWindow(Gtk.Window):
         :param refresh_message:
         """
         # Read sensor and state data from GPUs
-        gpu_list.read_gpu_sensor_data(data_type=Gpu.GpuItem.SensorSet.All)
+        gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
         # Read pstate and ppm table data
         gpu_list.read_gpu_pstates()
         gpu_list.read_gpu_ppm_table()
@@ -1288,7 +1288,7 @@ def main() -> None:
         sys.exit(-1)
 
     # Read data static/dynamic/info/state driver information for GPUs
-    gpu_list.read_gpu_sensor_data(data_type=Gpu.GpuItem.SensorSet.All)
+    gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
     # Check number of readable/writable GPUs again
     num_gpus = gpu_list.num_gpus()
