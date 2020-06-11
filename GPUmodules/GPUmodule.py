@@ -1381,6 +1381,7 @@ class GpuList:
 
             if card_path is None:
                 self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
+                readable = False
 
             # Get full hwmon path
             hwmon_path = None
@@ -1667,9 +1668,9 @@ class GpuList:
 
         :param data_type: Specifies the sensor set to use in the read.
         """
-        for v in self.list.values():
-            if v.prm.readable:
-                v.read_gpu_sensor_data(data_type)
+        for gpu in self.list.values():
+            if gpu.prm.readable and gpu.prm.gpu_type != GpuItem.GPU_Type.Unsupported:
+                gpu.read_gpu_sensor_data(data_type)
 
     # Printing Methods follow.
     def print(self, clflag: bool = False) -> None:
