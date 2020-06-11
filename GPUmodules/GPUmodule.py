@@ -99,11 +99,13 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+                  'model_display', 'card_path', 'long_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
                         'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
-    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
+    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'long_card_path',
                           'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Legacy PStatesNE PStates CurvePts')
@@ -144,6 +146,7 @@ class GpuItem:
                          'gpu_type':            'GPU Frequency/Voltage Control Type',
                          'hwmon_path':          'HWmon',
                          'card_path':           'Card Path',
+                         'long_card_path':      'System Card Path',
                          'sep2':                '#',
                          'power':               'Current Power (W)',
                          'power_cap':           'Power Cap (W)',
@@ -314,6 +317,7 @@ class GpuItem:
                             'model_short': '',
                             'model_display': '',
                             'card_path': '',
+                            'long_card_path': '',
                             'hwmon_path': '',
                             'energy': 0.0,
                             'power': None,
@@ -1099,14 +1103,19 @@ class GpuItem:
                 print('{} {}: {}'.format(pre, k, v))
         print('')
 
-    def print(self, clflag: bool = False) -> None:
+    def print(self, short: bool = False, clflag: bool = False) -> None:
         """
         Display ls like listing function for GPU parameters.
 
         :param clflag:  Display clinfo data if True
+        :param short:  Display short listing
         """
         pre = ''
         for k, v in self._GPU_Param_Labels.items():
+            if short:
+                if k not in self.SHORT_List:
+                    continue
+
             if self.prm.gpu_type == self.GPU_Type.Legacy:
                 if k in self.LEGACY_Skip_List:
                     continue
@@ -1371,13 +1380,14 @@ class GpuList:
                         driver_module = driver_module_items[1].strip()
 
             # Get full card path
-            card_path = None
+            card_path = long_card_path = None
             device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
                 logger.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
                 if pcie_id == sysfspath[-7:]:
                     card_path = device_dir
+                    long_card_path = sysfspath
                     logger.debug('card_path set to: %s', device_dir)
 
             if card_path is None:
@@ -1422,6 +1432,7 @@ class GpuList:
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
                                                    'model_short': short_gpu_name, 'vendor': vendor,
                                                    'driver': driver_module, 'card_path': card_path,
+                                                   'long_card_path': long_card_path,
                                                    'hwmon_path': hwmon_path, 'readable': readable,
                                                    'writable': writable, 'compute': compute,
                                                    'compute_platform': opencl_device_version})
@@ -1561,20 +1572,20 @@ class GpuList:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
                                  compatibility, GpuItem.GPU_Comp))
         results_dict = {}
-        for v in self.list.values():
+        for gpu in self.list.values():
             if compatibility == GpuItem.GPU_Comp.ReadWrite:
-                if not v.prm.readable or not v.prm.writable:
+                if not gpu.prm.readable or not gpu.prm.writable:
                     continue
             if compatibility == GpuItem.GPU_Comp.ReadOnly:
-                if not v.prm.readable:
+                if not gpu.prm.readable:
                     continue
             if compatibility == GpuItem.GPU_Comp.WriteOnly:
-                if not v.prm.writable:
+                if not gpu.prm.writable:
                     continue
-            if v.prm.vendor.name not in results_dict.keys():
-                results_dict.update({v.prm.vendor.name: 1})
+            if gpu.prm.vendor.name not in results_dict.keys():
+                results_dict.update({gpu.prm.vendor.name: 1})
             else:
-                results_dict[v.prm.vendor.name] += 1
+                results_dict[gpu.prm.vendor.name] += 1
         return results_dict
 
     def num_gpus(self, vendor: Enum = GpuItem.GPU_Vendor.ALL) -> Dict[str, int]:
@@ -1589,15 +1600,15 @@ class GpuList:
         except AttributeError:
             raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
         results_dict = {'vendor': vendor_name, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
-        for v in self.list.values():
+        for gpu in self.list.values():
             if vendor != GpuItem.GPU_Vendor.ALL:
-                if vendor != v.prm.vendor:
+                if vendor != gpu.prm.vendor:
                     continue
-            if v.prm.readable and v.prm.writable:
+            if gpu.prm.readable and gpu.prm.writable:
                 results_dict['rw'] += 1
-            elif v.prm.readable:
+            elif gpu.prm.readable:
                 results_dict['r-only'] += 1
-            elif v.prm.writable:
+            elif gpu.prm.writable:
                 results_dict['w-only'] += 1
             results_dict['total'] += 1
         return results_dict
@@ -1622,20 +1633,20 @@ class GpuList:
         except AttributeError:
             raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
         result_list = GpuList()
-        for k, v in self.list.items():
+        for uuid, gpu in self.list.items():
             if vendor != GpuItem.GPU_Vendor.ALL:
-                if vendor != v.prm.vendor:
+                if vendor != gpu.prm.vendor:
                     continue
             if compatibility == GpuItem.GPU_Comp.Readable:
                 # Skip Legacy GPU type, since most parameters can not be read.
-                if v.prm.gpu_type != GpuItem.GPU_Type.Legacy:
-                    if v.prm.readable:
-                        result_list.list[k] = v
+                if gpu.prm.gpu_type != GpuItem.GPU_Type.Legacy:
+                    if gpu.prm.readable:
+                        result_list.list[uuid] = gpu
             elif compatibility == GpuItem.GPU_Comp.Writable:
-                if v.prm.writable:
-                    result_list.list[k] = v
+                if gpu.prm.writable:
+                    result_list.list[uuid] = gpu
             else:
-                result_list.list[k] = v
+                result_list.list[uuid] = gpu
         return result_list
 
     def read_gpu_ppm_table(self) -> None:
@@ -1679,14 +1690,15 @@ class GpuList:
                 gpu.read_gpu_sensor_data(data_type)
 
     # Printing Methods follow.
-    def print(self, clflag: bool = False) -> None:
+    def print(self, short: bool = False, clflag: bool = False) -> None:
         """
         Print all GpuItem.
 
+        :param short: If true, print short report
         :param clflag: If true, print clinfo
         """
         for gpu in self.list.values():
-            gpu.print(clflag)
+            gpu.print(short=short, clflag=clflag)
 
     def print_table(self, title: Union[str, None] = None) -> bool:
         """
@@ -1706,8 +1718,8 @@ class GpuList:
         print('┐')
 
         print('│\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
-        for v in self.list.values():
-            print('│\x1b[1;36mcard{:<12}\x1b[0m'.format(v.prm.card_num), end='')
+        for gpu in self.list.values():
+            print('│\x1b[1;36mcard{:<12}\x1b[0m'.format(gpu.prm.card_num), end='')
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
@@ -1717,8 +1729,8 @@ class GpuList:
 
         for table_item in self.table_parameters():
             print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]), end='')
-            for v in self.list.values():
-                data_value_raw = v.get_params_value(table_item)
+            for gpu in self.list.values():
+                data_value_raw = gpu.get_params_value(table_item)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
                 print('│{:<16}'.format(str(data_value_raw)[:16]), end='')
@@ -1758,11 +1770,11 @@ class GpuList:
             return False
 
         # Print Data
-        for v in self.list.values():
-            print('{}|{}'.format(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT), v.prm.card_num),
+        for gpu in self.list.values():
+            print('{}|{}'.format(gpu.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT), gpu.prm.card_num),
                   sep='', end='', file=log_file_ptr)
             for table_item in self.table_parameters():
-                print('|{}'.format(re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item)).strip())),
+                print('|{}'.format(re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item)).strip())),
                       sep='', end='', file=log_file_ptr)
             print('', file=log_file_ptr)
         return True
@@ -1798,10 +1810,11 @@ class GpuList:
             return False
 
         # Print Data
-        for v in self.list.values():
-            line_str_item = ['{}|{}'.format(str(v.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)), v.prm.card_num)]
+        for gpu in self.list.values():
+            line_str_item = ['{}|{}'.format(str(gpu.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)),
+                                            gpu.prm.card_num)]
             for table_item in self.table_parameters():
-                line_str_item.append('|' + re.sub(PATTERNS['MHz'], '', str(v.get_params_value(table_item))).strip())
+                line_str_item.append('|' + re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item))).strip())
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
             log_file_ptr.write(line_str.encode('utf-8'))

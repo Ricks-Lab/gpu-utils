@@ -17,7 +17,8 @@ This utility verifies if the environment is compatible with *amdgpu-util*s.
 ## amdgpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs. The
 default behavior is to list relevant parameters by GPU.  OpenCL platform information is
-added when the *--clinfo* option is used.  A simplified table of current GPU state is
+added when the *--clinfo* option is used.  A brief listing of key parameters is available with
+the *--short* command line option.  A simplified table of current GPU state is
 displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
 *--pstate* option can be used to output the p-state table for each GPU instead of the list
 of basic parameters.  The *--ppm* option is used to output the table of available

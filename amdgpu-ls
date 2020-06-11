@@ -3,7 +3,8 @@
 
     This utility displays most relevant parameters for installed and compatible AMD GPUs. The
     default behavior is to list relevant parameters by GPU.  OpenCL platform information is
-    added when the *--clinfo* option is used.  A simplified table of current GPU state is
+    added when the *--clinfo* option is used.  A brief listing of key parameters is available with
+    the *--short* command line option.  A simplified table of current GPU state is
     displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
     *--pstate* option can be used to output the p-state table for each GPU instead of the list
     of basic parameters.  The *--ppm* option is used to output the table of available
@@ -52,6 +53,8 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
+                        action='store_true', default=False)
+    parser.add_argument('--short', help='Short listing basic GPU details',
                         action='store_true', default=False)
     parser.add_argument('--table', help='Output table of basic GPU details',
                         action='store_true', default=False)
@@ -134,12 +137,13 @@ def main() -> None:
         gpu_list.read_gpu_ppm_table()
         gpu_list.print_ppm_table()
     if not args.pstates and not args.ppm:
-        gpu_list.read_gpu_pstates()
+        if not args.short:
+            gpu_list.read_gpu_pstates()
         if args.table:
             com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
             com_gpu_list.print_table(title='Status of Readable GPUs:')
         else:
-            gpu_list.print(args.clinfo)
+            gpu_list.print(short=args.short, clflag=args.clinfo)
     sys.exit(0)
 
 
