@@ -597,6 +597,7 @@ class GpuItem:
 
         :param params: A dictionary of parameters with keys that align to GpuItem elements.
         """
+        logger.debug('prm dict:\n%s', params)
         set_ocl_ver = None
         for source_name, source_value in params.items():
             if source_name not in self.prm.keys():
@@ -1425,6 +1426,8 @@ class GpuList:
                                                    'writable': writable, 'compute': compute,
                                                    'compute_platform': opencl_device_version})
             # Read GPU ID
+            logger.debug('Card flags: readable: %s, writable: %s, type: %s',
+                         readable, writable, self[gpu_uuid].prm.gpu_type)
             rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
             if rdata:
                 self[gpu_uuid].set_params_value('id', rdata)
