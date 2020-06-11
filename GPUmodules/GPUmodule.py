@@ -1380,6 +1380,8 @@ class GpuList:
                     logger.debug('card_path set to: %s', device_dir)
 
             if card_path is None:
+                logger.debug('card_path not set for: %s', pcie_id)
+                logger.debug('GPU[{}] type set to Unsupported', gpu_uuid)
                 self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
                 readable = False
 
