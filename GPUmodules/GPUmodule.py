@@ -933,6 +933,8 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
+        if not self.prm.readable:
+            return None
         if vendor not in self._sensor_details.keys():
             print('Error: Invalid vendor [{}]'.format(vendor))
             return None
