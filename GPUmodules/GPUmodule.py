@@ -179,7 +179,7 @@ class GpuItem:
                          'ppm':                 'Power Profile Mode',
                          'power_dpm_force':     'Power DPM Force Performance Level'}
 
-    # HWMON sensor reading details
+    # GPU sensor reading details
     SensorSet = Enum('set', 'None Test Static Dynamic Info State Monitor All')
     sensor_sets = {SensorSet.Static:       {'HWMON':  ['power_cap_range', 'temp_crits',
                                                        'fan_speed_range', 'fan_pwm_range']},
@@ -1499,6 +1499,7 @@ class GpuList:
                     readable = True
                     gpu_type = GpuItem.GPU_Type.Legacy
                 if logger.getEffectiveLevel() == logging.DEBUG:
+                    # Write pp_od_clk_voltage details to debug logger
                     if os.path.isfile(pp_od_clk_voltage_file):
                         with open(pp_od_clk_voltage_file, 'r') as fp:
                             pp_od_file_details = fp.read()
