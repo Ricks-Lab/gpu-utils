@@ -77,11 +77,14 @@ are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
 * Replaced deprecated set properties statement for colors with css formatting.
 * Implemented a more robust string format of datetime to address datetime conversion for
 pandas in some installations.
-* Implement dubug logging across the project.  Activated with --debug option and output
+* Implemented dubug logging across the project.  Activated with --debug option and output
 saved to a .log file.
 * Updated color scheme of Gtk applications to work in Ubuntu 20.04. Unified color scheme
 across all utilities.
 * Additional memory parameters added to utilities.
+* Read ID information for all GPUs and attempt to decode GPU name.  For cards with no card path 
+entry, determine system device path and use for reading ID.  Report system device path in 
+*amdgpu-ls*.  Add *amdgpu-ls --short* report to give brief description of all installed GPUs.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
