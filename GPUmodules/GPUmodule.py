@@ -99,13 +99,13 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
-    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id',
-                  'model_display', 'card_path', 'long_card_path', 'hwmon_path', 'pcie_id']
+    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+                  'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
                         'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
-    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'long_card_path',
+    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
                           'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Legacy PStatesNE PStates CurvePts')
@@ -146,7 +146,7 @@ class GpuItem:
                          'gpu_type':            'GPU Frequency/Voltage Control Type',
                          'hwmon_path':          'HWmon',
                          'card_path':           'Card Path',
-                         'long_card_path':      'System Card Path',
+                         'sys_card_path':      'System Card Path',
                          'sep2':                '#',
                          'power':               'Current Power (W)',
                          'power_cap':           'Power Cap (W)',
@@ -302,7 +302,7 @@ class GpuItem:
         self.write_disabled = []   # List of parameters that failed during write.
         self.prm = ObjDict({'uuid': item_id,
                             'unique_id': '',
-                            'card_num': '',
+                            'card_num': None,
                             'pcie_id': '',
                             'driver': '',
                             'vendor': self.GPU_Vendor.Undefined,
@@ -317,7 +317,7 @@ class GpuItem:
                             'model_short': '',
                             'model_display': '',
                             'card_path': '',
-                            'long_card_path': '',
+                            'sys_card_path': '',
                             'hwmon_path': '',
                             'energy': 0.0,
                             'power': None,
@@ -933,7 +933,7 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported]:
+        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
             return None
         if not self.prm.readable and parameter != 'id':
             return None
@@ -950,7 +950,9 @@ class GpuItem:
         if parameter in self.read_disabled:
             return None
 
-        sensor_path = self.prm.hwmon_path if sensor_type == 'HWMON' else self.prm.card_path
+        device_sensor_path = self.prm.card_path if self.prm.card_path else self.prm.sys_card_path
+        logger.debug('read_gpu_sensor set to [%s]', device_sensor_path)
+        sensor_path = self.prm.hwmon_path if sensor_type == 'HWMON' else device_sensor_path
         values = []
         ret_value = []
         ret_dict = {}
@@ -1141,6 +1143,8 @@ class GpuItem:
             elif isinstance(self.get_params_value(k), dict):
                 param_dict = self.get_params_value(k)
                 print('{}{}: {}'.format(pre, v, {key: param_dict[key] for key in sorted(param_dict)}))
+            elif self.get_params_value(k) == '':
+                print('{}{}: {}'.format(pre, v, None))
             else:
                 print('{}{}: {}'.format(pre, v, self.get_params_value(k)))
         if clflag and self.prm.compute:
@@ -1414,25 +1418,47 @@ class GpuList:
                         driver_module = driver_module_items[1].strip()
 
             # Get full card path
-            card_path = long_card_path = None
+            card_path = ''
+            sys_card_path = ''
             device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
+
+            # Match system device directory to pcie ID.
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
                 logger.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
                 if pcie_id == sysfspath[-7:]:
                     card_path = device_dir
-                    long_card_path = sysfspath
+                    sys_card_path = sysfspath
                     logger.debug('card_path set to: %s', device_dir)
 
-            if card_path is None:
+            if not card_path:
                 # No card path could be found.  Set readable/writable to False and type to Unsupported
                 logger.debug('card_path not set for: %s', pcie_id)
                 logger.debug('GPU[%s] type set to Unsupported', gpu_uuid)
                 self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
                 readable = writable = False
+                sys_card_path = ''
+                try_path = '/sys/devices/pci*:*/'
+                sys_pci_dirs = None
+                for _ in range(6):
+                    search_path = os.path.join(try_path, '????:{}'.format(pcie_id))
+                    sys_pci_dirs = glob.glob(search_path)
+                    if sys_pci_dirs:
+                        break
+                    try_path = os.path.join(try_path, '????:??:??.?')
+                if not sys_pci_dirs:
+                    logger.debug('/sys/device file search found no match to pcie_id: {}', pcie_id)
+                else:
+                    if len(sys_pci_dirs) > 1:
+                        logger.debug('/sys/device file search found multiple matches to pcie_id {}:\n{}',
+                                     pcie_id, sys_pci_dirs)
+                    else:
+                        logger.debug('/sys/device file search found match to pcie_id {}:\n{}',
+                                     pcie_id, sys_pci_dirs)
+                    sys_card_path = sys_pci_dirs[0]
 
             # Get full hwmon path
-            hwmon_path = None
+            hwmon_path = ''
             if card_path:
                 hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 logger.debug('HW file search: %s', hw_file_srch)
@@ -1466,7 +1492,7 @@ class GpuList:
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
                                                    'model_short': short_gpu_name, 'vendor': vendor,
                                                    'driver': driver_module, 'card_path': card_path,
-                                                   'long_card_path': long_card_path,
+                                                   'sys_card_path': sys_card_path,
                                                    'hwmon_path': hwmon_path, 'readable': readable,
                                                    'writable': writable, 'compute': compute,
                                                    'compute_platform': opencl_device_version})
