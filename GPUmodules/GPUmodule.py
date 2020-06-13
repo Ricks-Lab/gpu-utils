@@ -100,15 +100,15 @@ class GpuItem:
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
-                  'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
+                  'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
                         'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
-                          'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
+                          'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Unsupported Legacy PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
@@ -604,14 +604,23 @@ class GpuItem:
         logger.debug('prm dict:\n%s', params)
         set_ocl_ver = None
         for source_name, source_value in params.items():
+            # Set primary parameter
             if source_name not in self.prm.keys():
                 raise KeyError('Populate dict contains unmatched key: {}'.format(source_name))
             self.prm[source_name] = source_value
+
+            # Set secondary parameters
             if source_name == 'card_path' and source_value:
-                self.prm.card_num = int(
-                    source_value.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', ''))
-            if source_name == 'compute_platform':
+                card_num_str = source_value.replace('{}card'.format(env.GUT_CONST.card_root), '').replace('/device', '')
+                self.prm.card_num = int(card_num_str) if card_num_str.isnumeric() else None
+            elif source_name == 'compute_platform':
                 set_ocl_ver = source_value
+            elif source_name == 'gpu_type' and source_value:
+                self.prm.gpu_type = source_value
+                if source_value == GpuItem.GPU_Type.Legacy:
+                    self.read_disabled = GpuItem.LEGACY_Skip_List[:]
+
+        # compute platform requires that the compute bool be set first
         if set_ocl_ver:
             self.prm.compute_platform = set_ocl_ver if self.prm.compute else 'None'
 
@@ -813,8 +822,7 @@ class GpuItem:
         """
         Read the ppm table.
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy or \
-                self.prm.gpu_type == GpuItem.GPU_Type.Unsupported:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             return
 
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
@@ -849,8 +857,7 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy or \
-                self.prm.gpu_type == GpuItem.GPU_Type.Unsupported:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             return
 
         range_mode = False
@@ -874,7 +881,7 @@ class GpuItem:
                 line = re.sub(r'@', ' ', line)
                 lineitems: List[any] = line.split()
                 lineitems_len = len(lineitems)
-                if self.prm.gpu_type == self.GPU_Type.Undefined:
+                if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
                     if len(lineitems) == 3:
                         self.prm.gpu_type = self.GPU_Type.PStates
                     elif len(lineitems) == 2:
@@ -892,7 +899,7 @@ class GpuItem:
                         elif clk_name == 'OD_MCLK:':
                             self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
                     else:
-                        # Type 2
+                        # Type GPU_Type.CurvePts
                         if clk_name == 'OD_SCLK:':
                             self.sclk_state[lineitems[0]] = [lineitems[1], '-']
                         elif clk_name == 'OD_MCLK:':
@@ -1053,13 +1060,16 @@ class GpuItem:
         """
         Print human friendly table of ppm parameters.
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             logger.debug('PPM for card number %s not readable.', self.prm.card_num)
             return
+        pre = '   '
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
-        print('   {}: {}'.format(self._GPU_Param_Labels['model'], self.prm.model))
-        print('   {}: {}'.format(self._GPU_Param_Labels['card_path'], self.prm.card_path))
-        print('   {}: {}'.format(self._GPU_Param_Labels['power_dpm_force'], self.prm.power_dpm_force))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['model'], self.prm.model))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['card_path'], self.prm.card_path))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type.name))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['power_dpm_force'], self.prm.power_dpm_force))
+        print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         with open(file_path, 'r') as file_ptr:
             lines = file_ptr.readlines()
@@ -1070,7 +1080,7 @@ class GpuItem:
         """
         Print human friendly table of p-states.
         """
-        if not self.prm.readable or self.prm.gpu_type == GpuItem.GPU_Type.Legacy:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             logger.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
         pre = '   '
@@ -1347,10 +1357,21 @@ class GpuList:
 
         logger.debug('Found %s GPUs', len(pcie_ids))
         for pcie_id in pcie_ids:
+            # Initial GPU Item
             gpu_uuid = uuid4().hex
             self.add(GpuItem(gpu_uuid))
             logger.debug('GPU: %s', pcie_id)
+            gpu_name = 'UNKNOWN'
+            driver_module = 'UNKNOWN'
+            card_path = ''
+            sys_card_path = ''
+            hwmon_path = ''
             readable = writable = compute = False
+            gpu_type = GpuItem.GPU_Type.Undefined
+            vendor = GpuItem.GPU_Vendor.Undefined
+            opencl_device_version = None if clinfo_flag else 'UNKNOWN'
+
+            # Get more GPU details from lspci -k -s
             try:
                 lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
                                                       shell=True).decode().split('\n')
@@ -1361,7 +1382,6 @@ class GpuList:
             logger.debug('lspci output items:\n %s', lspci_items)
 
             # Get Long GPU Name
-            gpu_name = 'UNKNOWN'
             gpu_name_items = lspci_items[0].split(': ', maxsplit=1)
             if len(gpu_name_items) >= 2:
                 gpu_name = gpu_name_items[1]
@@ -1375,10 +1395,9 @@ class GpuList:
                     gpu_name = 'Radeon Fiji Pro Duo'
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
-            vendor = GpuItem.GPU_Vendor.Undefined
-            opencl_device_version = None if clinfo_flag else 'UNKNOWN'
             if re.search(PATTERNS['AMD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.AMD
+                gpu_type = GpuItem.GPU_Type.Supported
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1388,6 +1407,7 @@ class GpuList:
                     compute = True
             if re.search(PATTERNS['NV_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.NVIDIA
+                gpu_type = GpuItem.GPU_Type.Unsupported
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1397,6 +1417,7 @@ class GpuList:
                     compute = True
             if re.search(PATTERNS['INTC_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.INTEL
+                gpu_type = GpuItem.GPU_Type.Unsupported
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
@@ -1406,11 +1427,12 @@ class GpuList:
                     compute = False if re.search(r' 530', gpu_name) else True
             if re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.ASPEED
+                gpu_type = GpuItem.GPU_Type.Unsupported
             if re.search(PATTERNS['MTRX_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.MATROX
+                gpu_type = GpuItem.GPU_Type.Unsupported
 
             # Get Driver Name
-            driver_module = 'UNKNOWN'
             for lspci_line in lspci_items:
                 if re.search(r'([kK]ernel)', lspci_line):
                     driver_module_items = lspci_line.split(': ')
@@ -1418,10 +1440,7 @@ class GpuList:
                         driver_module = driver_module_items[1].strip()
 
             # Get full card path
-            card_path = ''
-            sys_card_path = ''
             device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
-
             # Match system device directory to pcie ID.
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
@@ -1431,19 +1450,19 @@ class GpuList:
                     sys_card_path = sysfspath
                     logger.debug('card_path set to: %s', device_dir)
 
+            # No card path could be found.  Set readable/writable to False and type to Unsupported
             if not card_path:
-                # No card path could be found.  Set readable/writable to False and type to Unsupported
                 logger.debug('card_path not set for: %s', pcie_id)
                 logger.debug('GPU[%s] type set to Unsupported', gpu_uuid)
-                self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Unsupported
+                gpu_type = GpuItem.GPU_Type.Unsupported
                 readable = writable = False
-                sys_card_path = ''
                 try_path = '/sys/devices/pci*:*/'
                 sys_pci_dirs = None
                 for _ in range(6):
                     search_path = os.path.join(try_path, '????:{}'.format(pcie_id))
                     sys_pci_dirs = glob.glob(search_path)
                     if sys_pci_dirs:
+                        # Found a match
                         break
                     try_path = os.path.join(try_path, '????:??:??.?')
                 if not sys_pci_dirs:
@@ -1458,7 +1477,6 @@ class GpuList:
                     sys_card_path = sys_pci_dirs[0]
 
             # Get full hwmon path
-            hwmon_path = ''
             if card_path:
                 hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 logger.debug('HW file search: %s', hw_file_srch)
@@ -1472,14 +1490,14 @@ class GpuList:
             if vendor == GpuItem.GPU_Vendor.AMD and card_path:
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
                 if os.path.isfile(pp_od_clk_voltage_file):
+                    gpu_type = GpuItem.GPU_Type.Supported
                     readable = True
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
                     # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
                     readable = True
-                    self[gpu_uuid].prm.gpu_type = GpuItem.GPU_Type.Legacy
-                    self[gpu_uuid].read_disabled = GpuItem.LEGACY_Skip_List[:]
+                    gpu_type = GpuItem.GPU_Type.Legacy
                 if logger.getEffectiveLevel() == logging.DEBUG:
                     if os.path.isfile(pp_od_clk_voltage_file):
                         with open(pp_od_clk_voltage_file, 'r') as fp:
@@ -1489,16 +1507,18 @@ class GpuList:
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
                     logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
+            # Set GPU parameters
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
                                                    'model_short': short_gpu_name, 'vendor': vendor,
                                                    'driver': driver_module, 'card_path': card_path,
-                                                   'sys_card_path': sys_card_path,
+                                                   'sys_card_path': sys_card_path, 'gpu_type': gpu_type,
                                                    'hwmon_path': hwmon_path, 'readable': readable,
                                                    'writable': writable, 'compute': compute,
                                                    'compute_platform': opencl_device_version})
-            # Read GPU ID
             logger.debug('Card flags: readable: %s, writable: %s, type: %s',
                          readable, writable, self[gpu_uuid].prm.gpu_type)
+
+            # Read GPU ID
             rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
             if rdata:
                 self[gpu_uuid].set_params_value('id', rdata)
