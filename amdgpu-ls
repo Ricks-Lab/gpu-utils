@@ -131,15 +131,13 @@ def main() -> None:
             args.clinfo = False
 
     # Print out user requested details
+    gpu_list.read_gpu_pstates()
     if args.pstates:
-        gpu_list.read_gpu_pstates()
         gpu_list.print_pstates()
     if args.ppm:
         gpu_list.read_gpu_ppm_table()
         gpu_list.print_ppm_table()
     if not args.pstates and not args.ppm:
-        if not args.short:
-            gpu_list.read_gpu_pstates()
         if args.table:
             com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
             com_gpu_list.print_table(title='Status of Readable GPUs:')
