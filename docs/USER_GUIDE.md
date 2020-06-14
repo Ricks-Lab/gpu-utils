@@ -78,32 +78,52 @@ listing your GPU details with the *amdgpu-ls* command.  It first attempts to det
 of amdgpu drivers you have installed and then check compatibility of installed AMD GPUs.  Its
 default behavior is to list basic GPU details for all compatible cards:
 ```
-Detected GPUs: INTEL: 1, AMD: 1
+Detected GPUs: INTEL: 1, AMD: 2
 AMD: amdgpu version: 20.10-1048554
 AMD: Wattman features enabled: 0xfffd7fff
-2 total GPUs, 1 rw, 0 r-only, 0 w-only
+3 total GPUs, 1 rw, 0 r-only, 0 w-only
 
 Card Number: 0
    Vendor: INTEL
    Readable: False
    Writable: False
    Compute: False
+   Device ID: {'device': '0x3e91', 'subsystem_device': '0x8694', 'subsystem_vendor': '0x1043', 'vendor': '0x8086'}
+   Decoded Device ID: 8th Gen Core Processor Gaussian Mixture Model
    Card Model: Intel Corporation 8th Gen Core Processor Gaussian Mixture Model
    PCIe ID: 00:02.0
    Driver: i915
+   GPU Frequency/Voltage Control Type: Unsupported
+   HWmon: None
    Card Path: /sys/class/drm/card0/device
+   System Card Path: /sys/devices/pci0000:00/0000:00:02.0
+
+Card Number: None
+   Vendor: AMD
+   Readable: False
+   Writable: False
+   Compute: False
+   Device ID: {'device': '0x9498', 'subsystem_device': '0x9498', 'subsystem_vendor': '0x174b', 'vendor': '0x1002'}
+   Decoded Device ID: RV730 PRO [Radeon HD 4650]
+   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] RV730 PRO [Radeon HD 4650]
+   PCIe ID: 01:00.0
+   Driver: radeon
+   GPU Frequency/Voltage Control Type: Unsupported
+   HWmon: None
+   Card Path: None
+   System Card Path: /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0
 
 Card Number: 1
    Vendor: AMD
    Readable: True
    Writable: True
    Compute: True
-   GPU UID: 
-   Device ID: {'vendor': '0x1002', 'device': '0x731f', 'subsystem_vendor': '0x1da2', 'subsystem_device': '0xe411'}
+   GPU UID: None
+   Device ID: {'device': '0x731f', 'subsystem_device': '0xe411', 'subsystem_vendor': '0x1da2', 'vendor': '0x1002'}
    Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
    Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] (rev ca)
    Display Card Model: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
-   PCIe ID: 03:00.0
+   PCIe ID: 04:00.0
       Link Speed: 16 GT/s
       Link Width: 16
    ##################################################
@@ -113,35 +133,36 @@ Card Number: 1
    GPU Frequency/Voltage Control Type: CurvePts
    HWmon: /sys/class/drm/card1/device/hwmon/hwmon3
    Card Path: /sys/class/drm/card1/device
+   System Card Path: /sys/devices/pci0000:00/0000:00:01.1/0000:02:00.0/0000:03:00.0/0000:04:00.0
    ##################################################
-   Current Power (W): 109.000
+   Current Power (W): 112.000
    Power Cap (W): 160.000
       Power Cap Range (W): [0, 192]
    Fan Enable: 0
    Fan PWM Mode: [2, 'Dynamic']
-   Fan Target Speed (rpm): 735
-   Current Fan Speed (rpm): 735
-   Current Fan PWM (%): 21
+   Fan Target Speed (rpm): 1193
+   Current Fan Speed (rpm): 1193
+   Current Fan PWM (%): 36
       Fan Speed Range (rpm): [0, 3200]
       Fan PWM Range (%): [0, 100]
    ##################################################
    Current GPU Loading (%): 99
-   Current Memory Loading (%): 84
-   Current GTT Memory Usage (%): 0.953
-      Current GTT Memory Used (GB): 0.057
+   Current Memory Loading (%): 79
+   Current GTT Memory Usage (%): 0.859
+      Current GTT Memory Used (GB): 0.051
       Total GTT Memory (GB): 5.984
-   Current VRAM Usage (%): 35.269
-      Current VRAM Used (GB): 2.111
+   Current VRAM Usage (%): 35.363
+      Current VRAM Used (GB): 2.116
       Total VRAM (GB): 5.984
-   Current Temps (C): {'mem': 92.0, 'edge': 63.0, 'junction': 70.0}
-      Critical Temp (C): 118.000
-   Current Voltages (V): {'vddgfx': 875}
-   Current Clk Frequencies (MHz): {'sclk': 1700.0, 'mclk': 875.0}
+   Current  Temps (C): {'edge': 63.0, 'junction': 70.0, 'mem': 88.0}
+   Critical Temps (C): {'edge': 118.0, 'junction': 99.0, 'mem': 99.0}
+   Current Voltages (V): {'vddgfx': 900}
+   Current Clk Frequencies (MHz): {'mclk': 875.0, 'sclk': 1700.0}
    Current SCLK P-State: [2, '1700Mhz']
       SCLK Range: ['800Mhz', '1820Mhz']
    Current MCLK P-State: [3, '875Mhz']
       MCLK Range: ['625Mhz', '930Mhz']
-   Power Profile Mode: 0-BOOTUP_DEFAULT
+   Power Profile Mode: 5-COMPUTE
    Power DPM Force Performance Level: manual
 ```
 
