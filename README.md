@@ -63,28 +63,8 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release  -  [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
-* Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
-read from the GPU.
-* Fixed issue in reading pciid file in Gentoo (@CH3CN).
-* Modified setup to indicate minimum instead of absolute package versions (@smoe).
-* Modified requirements to include min/max package versions for major packages.
-* Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
-* Fixed a crash in *amdgpu-pac* when no fan details could be read (laptop GPU).
-* Fixed deprecation warnings for several property setting functions.  Consolidated all
-property setting to a single function in a new module, and ignore warnings for those that
-are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
-* Replaced deprecated set properties statement for colors with css formatting.
-* Implemented a more robust string format of datetime to address datetime conversion for
-pandas in some installations.
-* Implemented dubug logging across the project.  Activated with --debug option and output
-saved to a .log file.
-* Updated color scheme of Gtk applications to work in Ubuntu 20.04. Unified color scheme
-across all utilities.
-* Additional memory parameters added to utilities.
-* Read ID information for all GPUs and attempt to decode GPU name.  For cards with no card path 
-entry, determine system device path and use for reading ID.  Report system device path in 
-*amdgpu-ls*.  Add *amdgpu-ls --short* report to give brief description of all installed GPUs.
+#### New in this Development Branch
+* Display card path details in logger whenever card path exists.
 
 ## Development Plans
 * Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
@@ -114,6 +94,29 @@ interface shows actual values instead of set values.
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+#### New in latest Release  -  [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
+* Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
+read from the GPU.
+* Fixed issue in reading pciid file in Gentoo (@CH3CN).
+* Modified setup to indicate minimum instead of absolute package versions (@smoe).
+* Modified requirements to include min/max package versions for major packages.
+* Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
+* Fixed a crash in *amdgpu-pac* when no fan details could be read (laptop GPU).
+* Fixed deprecation warnings for several property setting functions.  Consolidated all
+property setting to a single function in a new module, and ignore warnings for those that
+are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
+* Replaced deprecated set properties statement for colors with css formatting.
+* Implemented a more robust string format of datetime to address datetime conversion for
+pandas in some installations.
+* Implemented dubug logging across the project.  Activated with --debug option and output
+saved to a .log file.
+* Updated color scheme of Gtk applications to work in Ubuntu 20.04. Unified color scheme
+across all utilities.
+* Additional memory parameters added to utilities.
+* Read ID information for all GPUs and attempt to decode GPU name.  For cards with no card path 
+entry, determine system device path and use for reading ID.  Report system device path in 
+*amdgpu-ls*.  Add *amdgpu-ls --short* report to give brief description of all installed GPUs.
+
 #### New in Previous Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid*  and removed all related code.
