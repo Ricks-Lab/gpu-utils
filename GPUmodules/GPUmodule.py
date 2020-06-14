@@ -1480,6 +1480,7 @@ class GpuList:
 
             # Get full hwmon path
             if card_path:
+                logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
                 hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 logger.debug('HW file search: %s', hw_file_srch)
                 if len(hw_file_srch) > 1:
@@ -1508,7 +1509,6 @@ class GpuList:
                     else:
                         pp_od_file_details = 'The file {} does not exist'.format(pp_od_clk_voltage_file)
                     logger.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
-                    logger.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
 
             # Set GPU parameters
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
