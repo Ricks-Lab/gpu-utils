@@ -66,6 +66,7 @@ class ObjDict(dict):
     Allow access of dictionary keys by key name.
     """
     # pylint: disable=attribute-defined-outside-init
+    # pylint: disable=too-many-instance-attributes
     def __getattr__(self, name):
         if name in self:
             return self[name]
@@ -86,6 +87,7 @@ class GpuItem:
     """An object to store GPU details.
     """
     # pylint: disable=attribute-defined-outside-init
+    # pylint: disable=too-many-instance-attributes
     _finalized = False
     _button_labels = {'loading':     'Load%',
                       'power':       'Power',
