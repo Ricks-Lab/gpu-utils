@@ -1500,7 +1500,7 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
-                    if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')):
+                    if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or 'Picasso' in gpu_name:
                         readable = True
                         gpu_type = GpuItem.GPU_Type.APU
                     elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
