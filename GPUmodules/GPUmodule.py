@@ -113,6 +113,7 @@ class GpuItem:
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
+    _apu_gpus = ['Carrizo', 'Picasso', 'Renoir']
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
                           'device_name':        '   Device Name',
@@ -404,6 +405,19 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
+
+    @classmethod
+    def is_apu(cls, name: str) -> bool:
+        """
+        Check if given GPU name is an APU.
+
+        :param name: Target GPU name
+        :return: True if name matches APU name
+        """
+        for apu_name in cls._apu_gpus:
+            if name in apu_name:
+                return True
+        return False
 
     @classmethod
     def get_button_label(cls, name: str) -> str:
@@ -861,7 +875,9 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                          GpuItem.GPU_Type.Unsupported,
+                                                          GpuItem.GPU_Type.APU]:
             return
 
         range_mode = False
@@ -1054,7 +1070,7 @@ class GpuItem:
                         print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
                               self.prm.card_num))
                 elif rdata is None:
-                    logger.debug('Invalid or disabled parameter: %s', param)
+                    logger.debug('Read data [%s], Invalid or disabled parameter: %s', rdata, param)
                 else:
                     logger.debug('Valid data [%s] for parameter: %s', rdata, param)
                     self.set_params_value(param, rdata)
@@ -1500,7 +1516,7 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
-                    if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or 'Picasso' in gpu_name:
+                    if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or GpuItem.is_apu(gpu_name):
                         readable = True
                         gpu_type = GpuItem.GPU_Type.APU
                     elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
