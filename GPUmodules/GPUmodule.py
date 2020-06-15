@@ -110,7 +110,7 @@ class GpuItem:
     _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
                           'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
     _GPU_CLINFO_Labels = {'sep4': '#',
@@ -621,6 +621,8 @@ class GpuItem:
                 self.prm.gpu_type = source_value
                 if source_value == GpuItem.GPU_Type.Legacy:
                     self.read_disabled = GpuItem.LEGACY_Skip_List[:]
+                elif source_value == GpuItem.GPU_Type.APU:
+                    self.read_disabled = GpuItem._fan_item_list[:]
 
         # compute platform requires that the compute bool be set first
         if set_ocl_ver:
@@ -1498,9 +1500,13 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
-                    # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
-                    readable = True
-                    gpu_type = GpuItem.GPU_Type.Legacy
+                    if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')):
+                        readable = True
+                        gpu_type = GpuItem.GPU_Type.APU
+                    elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
+                        # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
+                        readable = True
+                        gpu_type = GpuItem.GPU_Type.Legacy
                 if logger.getEffectiveLevel() == logging.DEBUG:
                     # Write pp_od_clk_voltage details to debug logger
                     if os.path.isfile(pp_od_clk_voltage_file):
