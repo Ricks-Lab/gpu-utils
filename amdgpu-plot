@@ -490,16 +490,13 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             _rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v['df_name'] == 'temp_val':
                 for a, b in zip(ind, data_val):
-                    v['ax1'].text(x=float(a)-(float(width)/1.8), y=0.90*b, s=' '+str(b), fontsize=8)
+                    v['ax1'].text(x=a, y=0.90*b, s=' '+str(b), fontsize=8, ha='center')
                 plt.ylim((20, 91))
             else:
                 data_val = list(map(int, data_val))
                 for a, b in zip(ind, data_val):
-                    if b == 0:
-                        y_val = b + width
-                    else:
-                        y_val = b - width
-                    v['ax1'].text(x=a-width/4.0, y=y_val, s=str(b), fontsize=10)
+                    y_val = b + width if b == 0 else b - width
+                    v['ax1'].text(x=a, y=y_val, s=str(b), fontsize=10, ha='center')
                 plt.ylim((0, 8))
             v['canvas'].draw()
             v['canvas'].flush_events()
@@ -592,21 +589,20 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
                 header_item = list(line.strip().split('|'))
                 header = False
                 continue
-            line = line.strip()
-            line_item = list(line.strip().split('|'))
-            new_line_item = []
-            for l in line_item:
-                ll = l.strip()
+            line_items = list(line.strip().split('|'))
+            new_line_items = []
+            for ll in line_items:
+                ll = ll.strip()
                 if ll.isnumeric():
-                    new_line_item.append(int(ll))
+                    new_line_items.append(int(ll))
                 elif re.fullmatch(PATTERNS['IS_FLOAT'], ll):
-                    new_line_item.append(float(ll))
+                    new_line_items.append(float(ll))
                 elif ll == '' or ll == '-1' or ll == 'NA' or ll is None:
-                    new_line_item.append(np.nan)
+                    new_line_items.append(np.nan)
                 else:
-                    new_line_item.append(ll)
-            line_item = tuple(new_line_item)
-            rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+                    new_line_items.append(ll)
+            line_items = tuple(new_line_items)
+            rdf = pd.DataFrame.from_records([line_items], columns=header_item)
             rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
