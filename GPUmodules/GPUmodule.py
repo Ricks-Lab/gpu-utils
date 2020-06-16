@@ -1453,6 +1453,8 @@ class GpuList:
                     compute = True
             if re.search(PATTERNS['NV_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.NVIDIA
+                if env.GUT_CONST.cmd_nvidia_smi:
+                    readable = True
                 gpu_type = GpuItem.GPU_Type.Unsupported
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
