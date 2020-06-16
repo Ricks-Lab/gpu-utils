@@ -42,6 +42,7 @@ from pathlib import Path
 from uuid import uuid4
 from enum import Enum
 import glob
+from timeit import default_timer as timer
 
 try:
     from GPUmodules import env
@@ -274,11 +275,39 @@ class GpuItem:
                                    'vbios':           {'type': SensorType.SingleString,
                                                        'cf': None, 'sensor': ['vbios_version']}}}}
 
-    nv_query_items_static = ['power.limit', 'power.max_limit', 'power.default_limit', 'power.min_limit',
-                             'pcie.link.width.max']
-    nv_query_items_dynamic = ['power.draw', 'temperature.gpu', 'temperature.memory', 'clocks.current.graphics',
-                              'clocks.sm', 'clocks.mem', 'utilization.gpu', 'utilization.memory', 'fan.speed',
-                              'pcie.link.width.current']
+    nv_query_items = {SensorSet.Static: {
+                                   'power_cap':        ['power.limit'],
+                                   'power_cap_range':  ['power.min_limit', 'power.max_limit'],
+                                   'mem_vram_total':   ['memory.total'],
+                                   'vbios':            ['vbios_version'],
+                                   'driver':           ['driver_version'],
+                                   'model':            ['name'],
+                                   'unique_id':        ['gpu_uuid']},
+                      SensorSet.Dynamic: {
+                                   'power':            ['power.draw'],
+                                   'temperatures':     ['temperature.gpu', 'temperature.memory'],
+                                   'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
+                                   'loading':          ['utilization.gpu'],
+                                   'mem_loading':      ['utilization.memory'],
+                                   'fan_speed':        ['fan.speed'],
+                                   'link_wth':         ['pcie.link.width.current'],
+                                   'pstates':          ['pstate']},
+                      SensorSet.All: {
+                                   'power_cap':        ['power.limit'],
+                                   'power_cap_range':  ['power.min_limit', 'power.max_limit'],
+                                   'mem_vram_total':   ['memory.total'],
+                                   'vbios':            ['vbios_version'],
+                                   'driver':           ['driver_version'],
+                                   'model':            ['name'],
+                                   'unique_id':        ['gpu_uuid'],
+                                   'power':            ['power.draw'],
+                                   'temperatures':     ['temperature.gpu', 'temperature.memory'],
+                                   'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
+                                   'loading':          ['utilization.gpu'],
+                                   'mem_loading':      ['utilization.memory'],
+                                   'fan_speed':        ['fan.speed'],
+                                   'link_wth':         ['pcie.link.width.current'],
+                                   'pstates':          ['pstate']}}
 
     def __repr__(self) -> Dict[str, any]:
         """
@@ -966,12 +995,31 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
+        if vendor == self.GPU_Vendor.AMD:
+            return self.read_gpu_sensor_amd(parameter, sensor_type)
+        elif vendor == self.GPU_Vendor.NVIDIA:
+            return self.read_gpu_sensor_nv(parameter)
+        else:
+            print('Error: Invalid vendor [{}]'.format(vendor))
+            return None
+
+    def read_gpu_sensor_nv(self, parameter: str) -> Union[None, bool, int, str, tuple, list, dict]:
+        pass
+
+    def read_gpu_sensor_amd(self, parameter: str,
+                            sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
+        """
+        Read sensor for the given parameter name.  Process per sensor_details dict using the specified
+        vendor name and sensor_type.
+
+        :param parameter: GpuItem parameter name (AMD)
+        :param sensor_type: GPU sensor name (HWMON or DEVICE)
+        :return: Value from reading sensor.
+        """
+        vendor = self.GPU_Vendor.AMD
         if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
             return None
         if not self.prm.readable and parameter != 'id':
-            return None
-        if vendor not in self._sensor_details.keys():
-            print('Error: Invalid vendor [{}]'.format(vendor))
             return None
         if sensor_type not in self._sensor_details[vendor].keys():
             print('Error: Invalid sensor_type [{}]'.format(sensor_type))
@@ -984,7 +1032,7 @@ class GpuItem:
             return None
 
         device_sensor_path = self.prm.card_path if self.prm.card_path else self.prm.sys_card_path
-        logger.debug('read_gpu_sensor set to [%s]', device_sensor_path)
+        logger.debug('sensor path set to [%s]', device_sensor_path)
         sensor_path = self.prm.hwmon_path if sensor_type == 'HWMON' else device_sensor_path
         values = []
         ret_value = []
@@ -1054,28 +1102,46 @@ class GpuItem:
         else:
             raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
-    def read_nvgpu_sensor_set(self, data_type: Enum = SensorSet.All) -> bool:
+    def read_gpu_sensor_set(self, data_type: Enum = SensorSet.All) -> bool:
+        """
+        Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
+        by data_type.
+
+        :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
+        """
+        if self.prm.vendor == self.GPU_Vendor.AMD:
+            return self.read_gpu_sensor_set_amd(data_type)
+        elif self.prm.vendor == self.GPU_Vendor.NVIDIA:
+            return self.read_gpu_sensor_set_nv(data_type)
+        return False
+
+    def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
         """
         Use the nvidia_smi tool to query GPU parameters.
 
         :param data_type: Future use
         :return: True if successful
         """
+        if data_type not in [self.SensorSet.Static, self.SensorSet.Dynamic]:
+            raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
+
         nsmi_items = None
-        qry_string = ','.join(GpuItem.nv_query_items_dynamic)
+        query_list = [item for sublist in GpuItem.nv_query_items[data_type].values() for item in sublist]
+        qry_string = ','.join(query_list)
         cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
                     env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
         print('NV command:\n{}'.format(cmd_str))
         try:
-            nsmi_items = subprocess.check_output(cmd_str, shell=True).decode().split('\n')
+            nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
             logger.debug('NV query result: [%s]', nsmi_items)
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
             return False
-        print('NV query result: [{}]'.format(nsmi_items))
+        results = zip(query_list, nsmi_items)
+        print('NV query result: [{}]'.format(results))
         return True
 
-    def read_gpu_sensor_set(self, data_type: Enum = SensorSet.All) -> None:
+    def read_gpu_sensor_set_amd(self, data_type: Enum = SensorSet.All) -> bool:
         """
         Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
         by data_type.
@@ -1083,8 +1149,9 @@ class GpuItem:
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
         """
         if not self.prm.readable:
-            return None
+            return False
 
+        return_status = False
         param_list = self.sensor_sets[data_type]
 
         for sensor_type, param_names in param_list.items():
@@ -1101,7 +1168,8 @@ class GpuItem:
                 else:
                     logger.debug('Valid data [%s] for parameter: %s', rdata, param)
                     self.set_params_value(param, rdata)
-        return None
+                    return_status = True
+        return return_status
 
     def print_ppm_table(self) -> None:
         """
@@ -1270,7 +1338,7 @@ class GpuList:
         self.amd_featuremask = None
         self.amd_wattman = False
         self.amd_writable = False
-        self.nv_writable = False
+        self.nv_readwritable = False
         self.finalize_table_params()
 
     def __repr__(self) -> dict:
@@ -1368,6 +1436,28 @@ class GpuList:
         """
         return self._table_parameters
 
+    @staticmethod
+    def get_gpu_pci_list() -> Union[List[str], None]:
+        """
+        Use call to lspci to get a list of pci addresses of all GPUs.
+
+        :return: List of GPU pci addresses.
+        """
+        pci_list = []
+        try:
+            lspci_output = subprocess.check_output(env.GUT_CONST.cmd_lspci, shell=False).decode().split('\n')
+        except (subprocess.CalledProcessError, OSError) as except_err:
+            print('Error [{}]: lspci failed to find GPUs'.format(except_err))
+            return None
+
+        for lspci_line in lspci_output:
+            if re.search(PATTERNS['PCI_GPU'], lspci_line):
+                logger.debug('Found GPU pci: %s', lspci_line)
+                pciid = re.search(env.GUT_CONST.PATTERNS['PCI_ADD'], lspci_line)
+                if pciid:
+                    pci_list.append(pciid.group(0))
+        return pci_list
+
     def set_gpu_list(self, clinfo_flag: bool = False) -> bool:
         """
         Use lspci to populate list of all installed GPUs.
@@ -1385,21 +1475,17 @@ class GpuList:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             self.amd_wattman = self.amd_writable = False
-
         self.amd_wattman = self.amd_writable = True if (self.amd_featuremask == int(0xffff7fff) or
                                                         self.amd_featuremask == int(0xffffffff) or
                                                         self.amd_featuremask == int(0xfffd7fff)) else False
 
-        # Check NV writability
+        # Check NV read/writability
         if env.GUT_CONST.cmd_nvidia_smi:
-            self.nv_writable = True
+            self.nv_readwritable = True
 
-        try:
-            pcie_ids = subprocess.check_output(('{} | grep -E \"^.*(VGA|3D|Display).*$\" | grep -Eo '
-                                                '\"^([0-9a-fA-F]+:[0-9a-fA-F]+.[0-9a-fA-F])\"').format(
-                                               env.GUT_CONST.cmd_lspci), shell=True).decode().split()
-        except (subprocess.CalledProcessError, OSError) as except_err:
-            print('Error [{}]: lspci failed to find GPUs'.format(except_err))
+        pcie_ids = self.get_gpu_pci_list()
+        if not pcie_ids:
+            print('Error [{}]: lspci failed to find GPUs')
             return False
 
         logger.debug('Found %s GPUs', len(pcie_ids))
@@ -1419,9 +1505,9 @@ class GpuList:
             opencl_device_version = None if clinfo_flag else 'UNKNOWN'
 
             # Get more GPU details from lspci -k -s
+            cmd_str = '{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id)
             try:
-                lspci_items = subprocess.check_output('{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id),
-                                                      shell=True).decode().split('\n')
+                lspci_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
             except (subprocess.CalledProcessError, OSError) as except_err:
                 logger.debug('Fatal error [%s]: Can not get GPU details with lspci.', except_err)
                 print('Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err))
@@ -1573,6 +1659,7 @@ class GpuList:
                          readable, writable, self[gpu_uuid].prm.gpu_type)
 
             # Read GPU ID
+            # TODO - Should add a generic vendor here since this item is readable for all devices.
             rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
             if rdata:
                 self[gpu_uuid].set_params_value('id', rdata)
@@ -1580,7 +1667,7 @@ class GpuList:
                 if pcie_id in self.opencl_map.keys():
                     self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
             if vendor == GpuItem.GPU_Vendor.NVIDIA:
-                self[gpu_uuid].read_nvgpu_sensor_set()
+                self[gpu_uuid].read_gpu_sensor_set_nv()
         return True
 
     def read_gpu_opencl_data(self) -> bool:
