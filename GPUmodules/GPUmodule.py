@@ -113,7 +113,7 @@ class GpuItem:
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
-    GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX')
+    GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus = ['Carrizo', 'Picasso', 'Renoir']
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
@@ -273,7 +273,13 @@ class GpuItem:
                                    'ppm':             {'type': SensorType.SingleStringSelect,
                                                        'cf': None, 'sensor': ['pp_power_profile_mode']},
                                    'vbios':           {'type': SensorType.SingleString,
-                                                       'cf': None, 'sensor': ['vbios_version']}}}}
+                                                       'cf': None, 'sensor': ['vbios_version']}}},
+                       GPU_Vendor.PCIE: {
+                               'DEVICE': {
+                                   'id':              {'type': SensorType.MLMS,
+                                                       'cf': None, 'sensor': ['vendor', 'device',
+                                                                              'subsystem_vendor',
+                                                                              'subsystem_device']}}}}
 
     nv_query_items = {SensorSet.Static: {
                                    'power_cap':        ['power.limit'],
@@ -995,8 +1001,8 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if vendor == self.GPU_Vendor.AMD:
-            return self.read_gpu_sensor_amd(parameter, sensor_type)
+        if vendor in [self.GPU_Vendor.AMD, self.GPU_Vendor.PCIE]:
+            return self.read_gpu_sensor_generic(parameter, vendor, sensor_type)
         elif vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_nv(parameter)
         else:
@@ -1006,17 +1012,17 @@ class GpuItem:
     def read_gpu_sensor_nv(self, parameter: str) -> Union[None, bool, int, str, tuple, list, dict]:
         pass
 
-    def read_gpu_sensor_amd(self, parameter: str,
-                            sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
+    def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
+                                sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
         """
         Read sensor for the given parameter name.  Process per sensor_details dict using the specified
         vendor name and sensor_type.
 
         :param parameter: GpuItem parameter name (AMD)
+        :param vendor: GPU vendor name enum object
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        vendor = self.GPU_Vendor.AMD
         if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
             return None
         if not self.prm.readable and parameter != 'id':
@@ -1137,7 +1143,7 @@ class GpuItem:
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
             return False
-        results = zip(query_list, nsmi_items)
+        results = dict(zip(query_list, nsmi_items))
         print('NV query result: [{}]'.format(results))
         return True
 
@@ -1664,8 +1670,7 @@ class GpuList:
                          readable, writable, self[gpu_uuid].prm.gpu_type)
 
             # Read GPU ID
-            # TODO - Should add a generic vendor here since this item is readable for all devices.
-            rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
+            rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.PCIE, sensor_type='DEVICE')
             if rdata:
                 self[gpu_uuid].set_params_value('id', rdata)
             if clinfo_flag:
