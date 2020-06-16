@@ -65,6 +65,8 @@ class GutConst:
                 'MTRX_GPU':     re.compile(r'(MATROX|matrox|Matrox)'),
                 'MHz':          re.compile(r'M[Hh]z'),
                 'PPM_CHK':      re.compile(r'[*].*'),
+                'PCI_GPU':      re.compile(r'(VGA|3D|Display)'),
+                'PCI_ADD':      re.compile(r'^([0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F])'),
                 'PPM_NOTCHK':   re.compile(r'[ ]+'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
@@ -185,7 +187,7 @@ class GutConst:
             with open(self.featuremask) as fm_file:
                 self.amdfeaturemask = int(fm_file.readline())
         except OSError as err:
-            print('Warning: could not read AMD Featuremask [{}]'.format(err))
+            #print('Warning: could not read AMD Featuremask [{}]'.format(err))
             self.amdfeaturemask = 0
         return self.amdfeaturemask
 
