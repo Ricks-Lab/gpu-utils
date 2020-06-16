@@ -1247,6 +1247,11 @@ class GpuItem:
                 if k not in self.SHORT_List:
                     continue
 
+            if self.prm.gpu_type == self.GPU_Type.APU:
+                if k in self._fan_item_list:
+                    continue
+                if 'Range' in v:
+                    continue
             if self.prm.gpu_type == self.GPU_Type.Legacy:
                 if k in self.LEGACY_Skip_List:
                     continue
