@@ -277,9 +277,8 @@ class GutConst:
         logger.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
         self.cmd_nvidia_smi = shutil.which('nvidia_smi')
-        if not self.cmd_nvidia_smi:
-            pass
-            # print('OS command [nvidia_smi] executable not found.')
+        if self.cmd_nvidia_smi:
+            print('OS command [nvidia_smi] executable found: [{}]'.format(self.cmd_nvidia_smi))
         if command_access_fail:
             return -3
         return 0
