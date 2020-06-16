@@ -1122,7 +1122,7 @@ class GpuItem:
         :param data_type: Future use
         :return: True if successful
         """
-        if data_type not in [self.SensorSet.Static, self.SensorSet.Dynamic]:
+        if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
         nsmi_items = None
