@@ -274,6 +274,12 @@ class GpuItem:
                                    'vbios':           {'type': SensorType.SingleString,
                                                        'cf': None, 'sensor': ['vbios_version']}}}}
 
+    nv_query_items_static = ['power.limit', 'power.max_limit', 'power.default_limit', 'power.min_limit',
+                             'pcie.link.width.max']
+    nv_query_items_dynamic = ['power.draw', 'temperature.gpu', 'temperature.memory', 'clocks.current.graphics',
+                              'clocks.sm', 'clocks.mem', 'utilization.gpu', 'utilization.memory', 'fan.speed',
+                              'pcie.link.width.current']
+
     def __repr__(self) -> Dict[str, any]:
         """
         Return dictionary representing all parts of the GpuItem object.
@@ -1048,6 +1054,26 @@ class GpuItem:
         else:
             raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
+    def read_nvgpu_sensor_set(self, data_type: Enum = SensorSet.All) -> bool:
+        """
+        Use the nvidia.smi tool to query GPU parameters.
+
+        :param data_type: Future use
+        :return: True if successful
+        """
+        nsmi_items = None
+        qry_string = ','.join(GpuItem.nv_query_items_dynamic)
+        try:
+            nsmi_items = subprocess.check_output(
+                '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                    env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string), shell=True).decode().split('\n')
+            logger.debug('NV query result: [%s]', nsmi_items)
+        except (subprocess.CalledProcessError, OSError) as except_err:
+            logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
+            return False
+        print('NV query result: [{}]'.format(nsmi_items))
+        return True
+
     def read_gpu_sensor_set(self, data_type: Enum = SensorSet.All) -> None:
         """
         Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
@@ -1550,6 +1576,8 @@ class GpuList:
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
                     self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
+            if vendor == GpuItem.GPU_Vendor.NVIDIA:
+                self[gpu_uuid].read_nvgpu_sensor_set()
         return True
 
     def read_gpu_opencl_data(self) -> bool:
