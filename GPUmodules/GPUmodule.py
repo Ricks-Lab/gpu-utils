@@ -1056,17 +1056,18 @@ class GpuItem:
 
     def read_nvgpu_sensor_set(self, data_type: Enum = SensorSet.All) -> bool:
         """
-        Use the nvidia.smi tool to query GPU parameters.
+        Use the nvidia_smi tool to query GPU parameters.
 
         :param data_type: Future use
         :return: True if successful
         """
         nsmi_items = None
         qry_string = ','.join(GpuItem.nv_query_items_dynamic)
+        cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                    env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
+        print('NV command:\n{}'.format(cmd_str))
         try:
-            nsmi_items = subprocess.check_output(
-                '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
-                    env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string), shell=True).decode().split('\n')
+            nsmi_items = subprocess.check_output(cmd_str, shell=True).decode().split('\n')
             logger.debug('NV query result: [%s]', nsmi_items)
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
