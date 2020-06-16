@@ -1128,6 +1128,8 @@ class GpuItem:
         :param data_type: Future use
         :return: True if successful
         """
+        if data_type == self.SensorSet.Monitor:
+            data_type = self.SensorSet.All
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
@@ -1143,6 +1145,10 @@ class GpuItem:
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
             return False
+        print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
+        if len(nsmi_items) >= 1:
+            nsmi_items = nsmi_items[0].split()
+        print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
         results = dict(zip(query_list, nsmi_items))
         print('NV query result: [{}]'.format(results))
         return True
