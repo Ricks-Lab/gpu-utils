@@ -1147,10 +1147,19 @@ class GpuItem:
             return False
         print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
         if len(nsmi_items) >= 1:
-            nsmi_items = nsmi_items[0].split()
+            nsmi_items = nsmi_items[0].split(',')
+            new_nsmi_items = [item.strip() for item in nsmi_items]
         print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
-        results = dict(zip(query_list, nsmi_items))
+        print('new_nsmi_items: [{}]\n{}'.format(len(new_nsmi_items), new_nsmi_items))
+        print('query_list: [{}]\n{}'.format(len(query_list), query_list))
+        results = dict(zip(query_list, new_nsmi_items))
         print('NV query result: [{}]'.format(results))
+        # nsmi_items: [2]
+        # ['200.00, 105.00, 292.00, 7979, 90.04.23.00.5F, 440.64, GeForce RTX 2080,
+        # GPU-22b2c6ac-2d49-4863-197c-9c469071178a, 176.98, 45, N/A, 1965, 1965, 7199, 86, 55, 100, 8, P2', '']
+        # nsmi_items: [21]
+        # ['200.00,', '105.00,', '292.00,', '7979,', '90.04.23.00.5F,', '440.64,', 'GeForce', 'RTX', '2080,', 'GPU-22b2c6ac-2d49-4863-197c-9c469071178a,', '176.98,', '45,', 'N/A,', '1965,', '1965,', '7199,', '86,', '55,', '100,', '8,', 'P2']
+        # NV query result: [{'power.limit': '200.00,', 'power.min_limit': '105.00,', 'power.max_limit': '292.00,', 'memory.total': '7979,', 'vbios_version': '90.04.23.00.5F,', 'driver_version': '440.64,', 'name': 'GeForce', 'gpu_uuid': 'RTX', 'power.draw': '2080,', 'temperature.gpu': 'GPU-22b2c6ac-2d49-4863-197c-9c469071178a,', 'temperature.memory': '176.98,', 'clocks.current.graphics': '45,', 'clocks.sm': 'N/A,', 'clocks.mem': '1965,', 'utilization.gpu': '1965,', 'utilization.memory': '7199,', 'fan.speed': '86,', 'pcie.link.width.current': '55,', 'pstate': '100,'}]
         return True
 
     def read_gpu_sensor_set_amd(self, data_type: Enum = SensorSet.All) -> bool:
