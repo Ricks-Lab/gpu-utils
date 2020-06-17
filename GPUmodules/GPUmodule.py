@@ -1154,7 +1154,15 @@ class GpuItem:
         logger.debug('NV query result: %s', results)
         for param_name, sensor_list in sensor_dict.items():
             if param_name == 'power_cap_range':
-                self.prm.power_cap_range = [results['power.min_limit'], results['power.max_limit']]
+                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
+                    power_min = float(results['power.min_limit'])
+                else:
+                    power_min = results['power.min_limit']
+                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
+                    power_max = float(results['power.max_limit'])
+                else:
+                    power_max = results['power.max_limit']
+                self.prm.power_cap_range = [power_min, power_max]
             elif param_name == 'power':
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
                     power = float(results['power.draw'])
@@ -1169,7 +1177,11 @@ class GpuItem:
             elif param_name in ['temperatures', 'voltages', 'frequencies']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
-                    self.prm[param_name].update({sn_k: results[sn_k]})
+                    if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
+                        param_val = float(results[sn_k])
+                    else:
+                        param_val = None
+                    self.prm[param_name].update({sn_k: param_val})
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
