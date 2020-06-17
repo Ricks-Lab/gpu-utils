@@ -102,6 +102,8 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
+                    'pwm_mode']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                   'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
@@ -873,6 +875,8 @@ class GpuItem:
         :return: ppm state
         :rtype: list
         """
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return
         if self.prm.power_dpm_force.lower() == 'auto':
             return [-1, 'AUTO']
         ppm_item = self.prm.ppm.split('-')
@@ -882,6 +886,8 @@ class GpuItem:
         """
         Read the ppm table.
         """
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             return
 
@@ -917,6 +923,8 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
                                                           GpuItem.GPU_Type.Unsupported,
                                                           GpuItem.GPU_Type.APU]:
