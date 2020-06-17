@@ -388,6 +388,7 @@ class GpuItem:
                             'mem_gtt_total': None,
                             'mem_gtt_used': None,
                             'mem_gtt_usage': None,
+                            'pstate': None,
                             'mclk_ps': ['', ''],
                             'mclk_f_range': ['', ''],
                             'mclk_mask': '',
@@ -1133,8 +1134,9 @@ class GpuItem:
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
+        sensor_dict = GpuItem.nv_query_items[data_type]
         nsmi_items = None
-        query_list = [item for sublist in GpuItem.nv_query_items[data_type].values() for item in sublist]
+        query_list = [item for sublist in sensor_dict.values() for item in sublist]
         qry_string = ','.join(query_list)
         cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
                     env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
@@ -1145,21 +1147,36 @@ class GpuItem:
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
             return False
-        print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
         if len(nsmi_items) >= 1:
             nsmi_items = nsmi_items[0].split(',')
-            new_nsmi_items = [item.strip() for item in nsmi_items]
-        print('nsmi_items: [{}]\n{}'.format(len(nsmi_items), nsmi_items))
-        print('new_nsmi_items: [{}]\n{}'.format(len(new_nsmi_items), new_nsmi_items))
-        print('query_list: [{}]\n{}'.format(len(query_list), query_list))
-        results = dict(zip(query_list, new_nsmi_items))
-        print('NV query result: [{}]'.format(results))
-        # nsmi_items: [2]
-        # ['200.00, 105.00, 292.00, 7979, 90.04.23.00.5F, 440.64, GeForce RTX 2080,
-        # GPU-22b2c6ac-2d49-4863-197c-9c469071178a, 176.98, 45, N/A, 1965, 1965, 7199, 86, 55, 100, 8, P2', '']
-        # nsmi_items: [21]
-        # ['200.00,', '105.00,', '292.00,', '7979,', '90.04.23.00.5F,', '440.64,', 'GeForce', 'RTX', '2080,', 'GPU-22b2c6ac-2d49-4863-197c-9c469071178a,', '176.98,', '45,', 'N/A,', '1965,', '1965,', '7199,', '86,', '55,', '100,', '8,', 'P2']
-        # NV query result: [{'power.limit': '200.00,', 'power.min_limit': '105.00,', 'power.max_limit': '292.00,', 'memory.total': '7979,', 'vbios_version': '90.04.23.00.5F,', 'driver_version': '440.64,', 'name': 'GeForce', 'gpu_uuid': 'RTX', 'power.draw': '2080,', 'temperature.gpu': 'GPU-22b2c6ac-2d49-4863-197c-9c469071178a,', 'temperature.memory': '176.98,', 'clocks.current.graphics': '45,', 'clocks.sm': 'N/A,', 'clocks.mem': '1965,', 'utilization.gpu': '1965,', 'utilization.memory': '7199,', 'fan.speed': '86,', 'pcie.link.width.current': '55,', 'pstate': '100,'}]
+            nsmi_items = [item.strip() for item in nsmi_items]
+        results = dict(zip(query_list, nsmi_items))
+        logger.debug('NV query result: %s', results)
+        for param_name, sensor_list in sensor_dict.items():
+            if param_name == 'power_cap_range':
+                self.prm.power_cap_range = [results['power.min_limit'], results['power.max_limit']]
+            elif param_name == 'power':
+                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
+                    power = float(results['power.draw'])
+                else:
+                    power = None
+                self.set_params_value('power', power)
+            elif param_name == 'pstates':
+                pstate_str = re.sub(r'[a-zA-Z]', '', results['pstate'])
+                pstate = int(pstate_str) if pstate_str.isnumeric() else None
+                self.prm['sclk_ps'][0] = pstate
+                self.prm['mclk_ps'][0] = pstate
+            elif param_name in ['temperatures', 'voltages', 'frequencies']:
+                self.prm[param_name] = {}
+                for sn_k in sensor_list:
+                    self.prm[param_name].update({sn_k: results[sn_k]})
+            elif len(sensor_list) == 1:
+                sn_k = sensor_list[0]
+                if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
+                    self.prm[param_name] = float(results[sn_k])
+                elif not results[sn_k]:
+                    self.prm[param_name] = None
+                self.prm[param_name] = results[sn_k]
         return True
 
     def read_gpu_sensor_set_amd(self, data_type: Enum = SensorSet.All) -> bool:
@@ -1568,7 +1585,7 @@ class GpuList:
                 vendor = GpuItem.GPU_Vendor.NVIDIA
                 if env.GUT_CONST.cmd_nvidia_smi:
                     readable = True
-                gpu_type = GpuItem.GPU_Type.Unsupported
+                gpu_type = GpuItem.GPU_Type.Supported
                 if self.opencl_map:
                     if pcie_id in self.opencl_map.keys():
                         if 'device_version' in self.opencl_map[pcie_id].keys():
