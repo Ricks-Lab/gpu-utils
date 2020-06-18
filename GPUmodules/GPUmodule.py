@@ -102,7 +102,7 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
-    AMD_Skip_List = ['frequencies_max']
+    AMD_Skip_List = ['frequencies_max', 'compute_mode']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
                     'pwm_mode', 'mclk_ps', 'mclk_f_range']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
@@ -150,6 +150,7 @@ class GpuItem:
                          'driver':              'Driver',
                          'vbios':               'vBIOS Version',
                          'compute_platform':    'Compute Platform',
+                         'compute_mode':        'Compute Mode',
                          'gpu_type':            'GPU Frequency/Voltage Control Type',
                          'hwmon_path':          'HWmon',
                          'card_path':           'Card Path',
@@ -292,6 +293,7 @@ class GpuItem:
                                    'frequencies_max':  ['clocks.max.gr', 'clocks.max.sm', 
                                                         'clocks.max.mem', 'clocks.max.video'],
                                    'vbios':            ['vbios_version'],
+                                   'compute_mode':     ['compute_mode'],
                                    'driver':           ['driver_version'],
                                    'model':            ['name'],
                                    'unique_id':        ['gpu_uuid']},
@@ -313,6 +315,7 @@ class GpuItem:
                                    'mem_vram_total':   ['memory.total'],
                                    'vbios':            ['vbios_version'],
                                    'driver':           ['driver_version'],
+                                   'compute_mode':     ['compute_mode'],
                                    'model':            ['name'],
                                    'unique_id':        ['gpu_uuid'],
                                    'power':            ['power.draw'],
@@ -368,6 +371,7 @@ class GpuItem:
                             'writable': False,
                             'compute': False,
                             'compute_platform': None,
+                            'compute_mode': None,
                             'gpu_type': self.GPU_Type.Undefined,
                             'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                             'model_device_decode': 'UNDETERMINED',
