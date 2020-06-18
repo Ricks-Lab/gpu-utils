@@ -398,6 +398,7 @@ class GpuItem:
                             'temperatures': None,
                             'voltages': None,
                             'frequencies': None,
+                            'frequencies_max': None,
                             'loading': None,
                             'mem_loading': None,
                             'mem_vram_total': None,
