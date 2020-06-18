@@ -102,8 +102,9 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    AMD_Skip_List = ['frequencies_max']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'pwm_mode', 'ppm']
+                    'pwm_mode', 'ppm', 'mclk_ps', 'mclk_f_range']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                   'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
@@ -178,6 +179,7 @@ class GpuItem:
                          'voltages':            'Current Voltages (V)',
                          'vddc_range':          '   Vddc Range',
                          'frequencies':         'Current Clk Frequencies (MHz)',
+                         'frequencies_max':     'Maximum Clk Frequencies (MHz)',
                          'sclk_ps':             'Current SCLK P-State',
                          'sclk_f_range':        '   SCLK Range',
                          'mclk_ps':             'Current MCLK P-State',
@@ -287,6 +289,8 @@ class GpuItem:
                                    'power_cap':        ['power.limit'],
                                    'power_cap_range':  ['power.min_limit', 'power.max_limit'],
                                    'mem_vram_total':   ['memory.total'],
+                                   'frequencies_max':  ['clocks.max.gr', 'clocks.max.sm', 
+                                                        'clocks.max.mem', 'clocks.max.video'],
                                    'vbios':            ['vbios_version'],
                                    'driver':           ['driver_version'],
                                    'model':            ['name'],
@@ -294,7 +298,7 @@ class GpuItem:
                       SensorSet.Dynamic: {
                                    'power':            ['power.draw'],
                                    'temperatures':     ['temperature.gpu', 'temperature.memory'],
-                                   'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
+                                   'frequencies':      ['clocks.gr', 'clocks.sm', 'clocks.mem', 'clocks.video'],
                                    'loading':          ['utilization.gpu'],
                                    'mem_loading':      ['utilization.memory'],
                                    'mem_vram_used':    ['memory.used'],
@@ -312,7 +316,9 @@ class GpuItem:
                                    'unique_id':        ['gpu_uuid'],
                                    'power':            ['power.draw'],
                                    'temperatures':     ['temperature.gpu', 'temperature.memory'],
-                                   'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
+                                   'frequencies':      ['clocks.gr', 'clocks.sm', 'clocks.mem', 'clocks.video'],
+                                   'frequencies_max':  ['clocks.max.gr', 'clocks.max.sm', 
+                                                        'clocks.max.mem', 'clocks.max.video'],
                                    'loading':          ['utilization.gpu'],
                                    'mem_loading':      ['utilization.memory'],
                                    'mem_vram_used':    ['memory.used'],
@@ -1186,7 +1192,7 @@ class GpuItem:
                 pstate = int(pstate_str) if pstate_str.isnumeric() else None
                 self.prm['sclk_ps'][0] = pstate
                 self.prm['mclk_ps'][0] = pstate
-            elif param_name in ['temperatures', 'voltages', 'frequencies']:
+            elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
                     if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
@@ -1325,6 +1331,9 @@ class GpuItem:
 
             if self.prm.vendor == GpuItem.GPU_Vendor.NVIDIA:
                 if k in self.NV_Skip_List:
+                    continue
+            elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
+                if k in self.AMD_Skip_List:
                     continue
 
             if self.prm.gpu_type == self.GPU_Type.APU:
