@@ -104,7 +104,8 @@ class GpuItem:
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     AMD_Skip_List = ['frequencies_max', 'compute_mode']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'pwm_mode', 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force']
+                    'pwm_mode', 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                    'temp_crits']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                   'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
@@ -1182,10 +1183,9 @@ class GpuItem:
         qry_string = ','.join(query_list)
         cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
                     env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
-        print('NV command:\n{}'.format(cmd_str))
+        logger.debug('NV command:\n%s', cmd_str)
         try:
             nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
-            print('NV query result: [{}]'.format(nsmi_items))
             logger.debug('NV query result: [%s]', nsmi_items)
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
@@ -1230,6 +1230,8 @@ class GpuItem:
                     mem_value = int(results[sn_k]) if results[sn_k].isnumeric else None
                     self.prm[param_name] = mem_value / 1024.0
                 self.set_memory_usage()
+            elif param_name == 'link_spd':
+                self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
                 self.prm.model = results['name']
                 self.prm.model_display = results['name'] \
