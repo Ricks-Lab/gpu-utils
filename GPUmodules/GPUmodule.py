@@ -103,7 +103,7 @@ class GpuItem:
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'pwm_mode']
+                    'pwm_mode', 'ppm']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                   'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
@@ -297,8 +297,10 @@ class GpuItem:
                                    'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
                                    'loading':          ['utilization.gpu'],
                                    'mem_loading':      ['utilization.memory'],
+                                   'mem_vram_used':    ['memory.used'],
                                    'fan_speed':        ['fan.speed'],
                                    'link_wth':         ['pcie.link.width.current'],
+                                   'link_spd':         ['pcie.link.gen.current'],
                                    'pstates':          ['pstate']},
                       SensorSet.All: {
                                    'power_cap':        ['power.limit'],
@@ -313,8 +315,10 @@ class GpuItem:
                                    'frequencies':      ['clocks.current.graphics', 'clocks.sm', 'clocks.mem'],
                                    'loading':          ['utilization.gpu'],
                                    'mem_loading':      ['utilization.memory'],
+                                   'mem_vram_used':    ['memory.used'],
                                    'fan_speed':        ['fan.speed'],
                                    'link_wth':         ['pcie.link.width.current'],
+                                   'link_spd':         ['pcie.link.gen.current'],
                                    'pstates':          ['pstate']}}
 
     def __repr__(self) -> Dict[str, any]:
@@ -1155,7 +1159,7 @@ class GpuItem:
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
             return False
-        if len(nsmi_items) >= 1:
+        if nsmi_items:
             nsmi_items = nsmi_items[0].split(',')
             nsmi_items = [item.strip() for item in nsmi_items]
         results = dict(zip(query_list, nsmi_items))
@@ -1190,6 +1194,14 @@ class GpuItem:
                     else:
                         param_val = None
                     self.prm[param_name].update({sn_k: param_val})
+            elif re.fullmatch(PATTERNS['GPUMEMTYPE'], param_name):
+                mem_value = int(results[param_name]) if results[param_name].isnumeric else None
+                self.prm[param_name] = mem_value / 1024.0
+                self.set_memory_usage()
+            elif param_name == 'model':
+                self.prm.model = results['name']
+                self.prm.model_display = results['name'] \
+                    if len(results['name']) < len(self.prm.model_device_decode) else self.prm.model_device_decode
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
@@ -1233,6 +1245,9 @@ class GpuItem:
         """
         Print human friendly table of ppm parameters.
         """
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return
+
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             logger.debug('PPM for card number %s not readable.', self.prm.card_num)
             return
@@ -1253,6 +1268,9 @@ class GpuItem:
         """
         Print human friendly table of p-states.
         """
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return
+
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
             logger.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
@@ -1303,6 +1321,10 @@ class GpuItem:
         for k, v in self._GPU_Param_Labels.items():
             if short:
                 if k not in self.SHORT_List:
+                    continue
+
+            if self.prm.vendor == GpuItem.GPU_Vendor.NVIDIA:
+                if k in self.NV_Skip_List:
                     continue
 
             if self.prm.gpu_type == self.GPU_Type.APU:
