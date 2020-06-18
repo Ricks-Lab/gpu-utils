@@ -308,6 +308,17 @@ class GpuItem:
                                    'link_wth':         ['pcie.link.width.current'],
                                    'link_spd':         ['pcie.link.gen.current'],
                                    'pstates':          ['pstate']},
+                      SensorSet.Monitor: {
+                                   'power':            ['power.draw'],
+                                   'power_cap':        ['power.limit'],
+                                   'temperatures':     ['temperature.gpu', 'temperature.memory'],
+                                   'frequencies':      ['clocks.gr', 'clocks.sm', 'clocks.mem', 'clocks.video'],
+                                   'loading':          ['utilization.gpu'],
+                                   'mem_loading':      ['utilization.memory'],
+                                   'mem_vram_used':    ['memory.used'],
+                                   'fan_speed':        ['fan.speed'],
+                                   'ppm':              ['gom.current'],
+                                   'pstates':          ['pstate']},
                       SensorSet.All: {
                                    'power_cap':        ['power.limit'],
                                    'power_cap_range':  ['power.min_limit', 'power.max_limit'],
@@ -580,22 +591,32 @@ class GpuItem:
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
                     return round(self.prm['temperatures']['edge'], 1)
+                elif 'gpu' in self.prm['temperatures'].keys():
+                    if num_as_int:
+                        return int(self.prm['temperatures']['gpu'])
+                    return round(self.prm['temperatures']['gpu'], 1)
                 if self.prm['temperatures'].keys():
                     return self.prm['temperatures'].keys()[0]
                 return None
             if name == 'vddgfx_val':
+                if not self.prm['voltages']:
+                    return 0
                 return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
                 if 'sclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['sclk'])
+                elif 'clocks.gr' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['clocks.gr'])
                 return self.prm['sclk_ps'][1]
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
             if name == 'mclk_f_val':
                 if 'mclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['mclk'])
+                if 'clocks.mem' in self.prm['frequencies'].keys():
+                    return int(self.prm['frequencies']['clocks.mem'])
                 return self.prm['mclk_ps'][1]
 
         # Set type for params that could be float or int
@@ -1152,8 +1173,6 @@ class GpuItem:
         :param data_type: Future use
         :return: True if successful
         """
-        if data_type == self.SensorSet.Monitor:
-            data_type = self.SensorSet.All
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
