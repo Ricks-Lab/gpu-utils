@@ -1226,8 +1226,9 @@ class GpuItem:
                         param_val = None
                     self.prm[param_name].update({sn_k: param_val})
             elif re.fullmatch(PATTERNS['GPUMEMTYPE'], param_name):
-                mem_value = int(results['memory.total']) if results['memory.total'].isnumeric else None
-                self.prm[param_name] = mem_value / 1024.0
+                for sn_k in sensor_list:
+                    mem_value = int(results[sn_k]) if results[sn_k].isnumeric else None
+                    self.prm[param_name] = mem_value / 1024.0
                 self.set_memory_usage()
             elif param_name == 'model':
                 self.prm.model = results['name']
