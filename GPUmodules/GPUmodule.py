@@ -42,7 +42,7 @@ from pathlib import Path
 from uuid import uuid4
 from enum import Enum
 import glob
-from timeit import default_timer as timer
+#from timeit import default_timer as timer
 
 try:
     from GPUmodules import env
@@ -102,23 +102,27 @@ class GpuItem:
 
     _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    short_list = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+                  'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
+    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
+                          'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
+
+    # Vendor and Type skip lists for reporting
     AMD_Skip_List = ['frequencies_max', 'compute_mode']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
                     'pwm_mode', 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
                     'temp_crits']
-    SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
-                  'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
                         'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
-    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
-                          'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus = ['Carrizo', 'Picasso', 'Renoir']
+
+    # Complete GPU print items, use skip lists where apporpriate
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
                           'device_name':        '   Device Name',
@@ -754,7 +758,7 @@ class GpuItem:
 
     def get_nc_params_list(self) -> List[str]:
         """
-        Get list of parameter names for use with non-readable cards.
+        Get list of parameter names for use with non-compatible cards.
 
         :return: List of parameter names
         """
@@ -906,14 +910,14 @@ class GpuItem:
                 return False
         return True
 
-    def get_current_ppm_mode(self) -> List[Union[int, str]]:
+    def get_current_ppm_mode(self) -> Union[None, List[Union[int, str]]]:
         """
         Read GPU ppm definitions and current settings from driver files.
         :return: ppm state
         :rtype: list
         """
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return
+            return None
         if self.prm.power_dpm_force.lower() == 'auto':
             return [-1, 'AUTO']
         ppm_item = self.prm.ppm.split('-')
@@ -1051,12 +1055,18 @@ class GpuItem:
             return self.read_gpu_sensor_generic(parameter, vendor, sensor_type)
         elif vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_nv(parameter)
-        else:
-            print('Error: Invalid vendor [{}]'.format(vendor))
-            return None
+        print('Error: Invalid vendor [{}]'.format(vendor))
+        return None
 
     def read_gpu_sensor_nv(self, parameter: str) -> Union[None, bool, int, str, tuple, list, dict]:
-        pass
+        """
+        Function to read a single sensor from NV GPU.
+
+        :param parameter:  Target parameter for reading
+        :return: read results
+        """
+        # TODO - Implement this function
+        raise NotImplementedError('read_gpu_sensor_nv method has not been implemented')
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1354,7 +1364,7 @@ class GpuItem:
         pre = ''
         for k, v in self._GPU_Param_Labels.items():
             if short:
-                if k not in self.SHORT_List:
+                if k not in self.short_list:
                     continue
 
             if self.prm.vendor == GpuItem.GPU_Vendor.NVIDIA:
