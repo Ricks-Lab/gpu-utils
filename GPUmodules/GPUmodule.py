@@ -104,7 +104,7 @@ class GpuItem:
                       'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
     AMD_Skip_List = ['frequencies_max', 'compute_mode']
     NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'pwm_mode', 'mclk_ps', 'mclk_f_range']
+                    'pwm_mode', 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force']
     SHORT_List = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                   'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
@@ -311,8 +311,8 @@ class GpuItem:
                       SensorSet.Monitor: {
                                    'power':            ['power.draw'],
                                    'power_cap':        ['power.limit'],
-                                   'temperatures':     ['temperature.gpu', 'temperature.memory'],
-                                   'frequencies':      ['clocks.gr', 'clocks.sm', 'clocks.mem', 'clocks.video'],
+                                   'temperatures':     ['temperature.gpu'],
+                                   'frequencies':      ['clocks.gr', 'clocks.mem'],
                                    'loading':          ['utilization.gpu'],
                                    'mem_loading':      ['utilization.memory'],
                                    'mem_vram_used':    ['memory.used'],
