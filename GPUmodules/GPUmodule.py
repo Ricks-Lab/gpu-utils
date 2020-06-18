@@ -596,12 +596,12 @@ class GpuItem:
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
                     return round(self.prm['temperatures']['edge'], 1)
-                elif 'gpu' in self.prm['temperatures'].keys():
+                elif 'temperature.gpu' in self.prm['temperatures'].keys():
                     if num_as_int:
-                        return int(self.prm['temperatures']['gpu'])
-                    return round(self.prm['temperatures']['gpu'], 1)
+                        return int(self.prm['temperatures']['temperature.gpu'])
+                    return round(self.prm['temperatures']['temperature.gpu'], 1)
                 if self.prm['temperatures'].keys():
-                    return self.prm['temperatures'].keys()[0]
+                    return list(self.prm['temperatures'].keys())[0]
                 return None
             if name == 'vddgfx_val':
                 if not self.prm['voltages']:
@@ -1240,6 +1240,11 @@ class GpuItem:
                     mem_value = int(results[sn_k]) if results[sn_k].isnumeric else None
                     self.prm[param_name] = mem_value / 1024.0
                 self.set_memory_usage()
+            elif param_name == 'fan_speed':
+                sn_k = sensor_list[0]
+                if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
+                    self.prm[param_name] = float(results[sn_k])
+                    self.prm.fan_pwm = self.prm.fanspeed
             elif param_name == 'link_spd':
                 self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
