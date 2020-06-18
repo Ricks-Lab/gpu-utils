@@ -1168,6 +1168,7 @@ class GpuItem:
         print('NV command:\n{}'.format(cmd_str))
         try:
             nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+            print('NV query result: [{}]'.format(nsmi_items))
             logger.debug('NV query result: [%s]', nsmi_items)
         except (subprocess.CalledProcessError, OSError) as except_err:
             logger.debug('NV query %s error: [%s]', nsmi_items, except_err)
