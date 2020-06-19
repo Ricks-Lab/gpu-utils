@@ -502,7 +502,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             v['canvas'].flush_events()
 
         # Update GPU Plots
-        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].max().max() // 10) + 5
+        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].max().max() // 10) + 15
         y1lim_min_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].min().min() // 10) - 5
         y2lim_max_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].max().max() // 100) + 300
         y2lim_min_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].min().min() // 100) - 100
