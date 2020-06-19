@@ -678,7 +678,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         # Process a set of GPUs at a time
         skip_update = False
         for gpu in plot_data.com_gpu_list.gpus():
-            gpu_plot_data = gpu.get_plot_data(plot_data.com_gpu_list)
+            gpu_plot_data = gpu.get_plot_data()
             logger.debug('gpu_plot_data: %s', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))

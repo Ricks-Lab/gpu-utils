@@ -122,6 +122,27 @@ class GpuItem:
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus = ['Carrizo', 'Picasso', 'Renoir']
 
+    # Table parameters labels.
+    table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
+                        'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
+                        'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
+    _table_param_labels = {'model_display':  'Model',
+                           'loading':        'GPU Load %',
+                           'mem_loading':    'Mem Load %',
+                           'mem_vram_usage': 'VRAM Usage %',
+                           'mem_gtt_usage':  'GTT Usage %',
+                           'power':          'Power (W)',
+                           'power_cap':      'Power Cap (W)',
+                           'energy':         'Energy (kWh)',
+                           'temp_val':       'T (C)',
+                           'vddgfx_val':     'VddGFX (mV)',
+                           'fan_pwm':        'Fan Spd (%)',
+                           'sclk_f_val':     'Sclk (MHz)',
+                           'sclk_ps_val':    'Sclk Pstate',
+                           'mclk_f_val':     'Mclk (MHz)',
+                           'mclk_ps_val':    'Mclk Pstate',
+                           'ppm':            'Perf Mode'}
+
     # Complete GPU print items, use skip lists where apporpriate
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
@@ -471,6 +492,9 @@ class GpuItem:
                 # Remove fan params from GPU_Param_Labels
                 if fan_item in cls._GPU_Param_Labels.keys():
                     del cls._GPU_Param_Labels[fan_item]
+                # Remove fan params from Table_Param_Labels
+                if fan_item in cls._table_param_labels.keys():
+                    del cls._table_param_labels[fan_item]
                 # Remove fan params from SensorSets
                 if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
@@ -480,6 +504,9 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
+                # Remove fan params from table patam list
+                if fan_item in cls.table_parameters:
+                    cls.table_parameters.remove(fan_item)
 
     @classmethod
     def is_apu(cls, name: str) -> bool:
@@ -1417,17 +1444,16 @@ class GpuItem:
                 print('{}: {}'.format(v, self.get_clinfo_value(k)))
         print('')
 
-    def get_plot_data(self, gpu_list: 'class GpuList') -> dict:
+    def get_plot_data(self) -> dict:
         """
         Return a dictionary of dynamic gpu parameters used by amdgpu-plot to populate a df.
 
-        :param gpu_list: GpuList object
         :return: Dictionary of GPU state info for plot data.
         """
         gpu_state = {'Time': str(self.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)),
                      'Card#': int(self.prm.card_num)}
 
-        for table_item in gpu_list.table_parameters():
+        for table_item in self.table_parameters:
             gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
             if gpu_state_str.isnumeric():
                 gpu_state[table_item] = int(gpu_state_str)
@@ -1447,27 +1473,6 @@ class GpuList:
     """
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
     """
-    # Table parameters labels.
-    _finalized = False
-    _table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
-                         'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
-                         'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-    _table_param_labels = {'model_display':  'Model',
-                           'loading':        'GPU Load %',
-                           'mem_loading':    'Mem Load %',
-                           'mem_vram_usage': 'VRAM Usage %',
-                           'mem_gtt_usage':  'GTT Usage %',
-                           'power':          'Power (W)',
-                           'power_cap':      'Power Cap (W)',
-                           'energy':         'Energy (kWh)',
-                           'temp_val':       'T (C)',
-                           'vddgfx_val':     'VddGFX (mV)',
-                           'fan_pwm':        'Fan Spd (%)',
-                           'sclk_f_val':     'Sclk (MHz)',
-                           'sclk_ps_val':    'Sclk Pstate',
-                           'mclk_f_val':     'Mclk (MHz)',
-                           'mclk_ps_val':    'Mclk Pstate',
-                           'ppm':            'Perf Mode'}
 
     def __init__(self) -> None:
         self.list: GpuDict = {}
@@ -1476,7 +1481,6 @@ class GpuList:
         self.amd_wattman = False
         self.amd_writable = False
         self.nv_readwritable = False
-        self.finalize_table_params()
 
     def __repr__(self) -> dict:
         return self.list
@@ -1523,20 +1527,6 @@ class GpuList:
         """
         return self.__iter__()
 
-    @classmethod
-    def finalize_table_params(cls) -> None:
-        """
-        Finalize class variable of table parameters based on command line options.
-        """
-        if cls._finalized:
-            return
-        cls._finalized = True
-        if not env.GUT_CONST.show_fans:
-            if 'fan_pwm' in cls._table_parameters:
-                cls._table_parameters.remove('fan_pwm')
-            if 'fan_pwm' in cls._table_param_labels.keys():
-                del cls._table_param_labels['fan_pwm']
-
     def add(self, gpu_item: GpuItem) -> None:
         """
         Add given GpuItem to the GpuList.
@@ -1557,21 +1547,23 @@ class GpuList:
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
 
-    def table_param_labels(self) -> dict:
+    @staticmethod
+    def table_param_labels() -> dict:
         """
         Get dictionary of parameter labels to be used in table reports.
 
         :return: Dictionary of table parameters/labels
         """
-        return self._table_param_labels
+        return GpuItem._table_param_labels
 
-    def table_parameters(self) -> List[str]:
+    @staticmethod
+    def table_parameters() -> List[str]:
         """
         Get list of parameters to be used in table reports.
 
         :return: List of table parameters
         """
-        return self._table_parameters
+        return GpuItem.table_parameters
 
     @staticmethod
     def get_gpu_pci_list() -> Union[List[str], None]:
