@@ -504,7 +504,7 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
-                # Remove fan params from table patam list
+                # Remove fan params from table param list
                 if fan_item in cls.table_parameters:
                     cls.table_parameters.remove(fan_item)
 
@@ -1473,7 +1473,6 @@ class GpuList:
     """
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
     """
-
     def __init__(self) -> None:
         self.list: GpuDict = {}
         self.opencl_map = {}

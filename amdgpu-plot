@@ -541,7 +541,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                                   bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)), fontsize=6)
 
             v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, 10))
-            v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, 100))
+            tick_inc = int(100 * round(((y2lim_max_val - y2lim_min_val) // 12)/100.0, 0))
+            v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, tick_inc))
 
             v['canvas'].draw()
             v['canvas'].flush_events()
