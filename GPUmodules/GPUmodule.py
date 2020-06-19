@@ -1271,7 +1271,7 @@ class GpuItem:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
                     self.prm[param_name] = float(results[sn_k])
-                    self.prm.fan_pwm = self.prm.fanspeed
+                    self.prm.fan_pwm = self.prm.fan_speed
             elif param_name == 'link_spd':
                 self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
