@@ -34,9 +34,9 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-plot'
-__version__ = 'v3.2.0'
+__version__ = 'v3.3.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -117,6 +117,7 @@ class PlotData:
     """
     def __init__(self):
         self.df = pd.DataFrame()
+        self.pcie_dict = {}
         self.gui_comp = None
         self.gui_ready = False
         self.length = 200
@@ -125,16 +126,38 @@ class PlotData:
         self.reader = False
         self.consec_writer = 0
         self.consec_reader = 0
-        self.gpu_list = ''
+        self.gpu_name_list = ''
         self.num_gpus = 1
         self.com_gpu_list = Gpu.GpuList()
 
     def set_gpus(self) -> None:
         """
-        Populate num_gpus and gpu_list from dataframe member.
+        Populate num_gpus and gpu_name_list from dataframe member.
         """
         self.num_gpus = self.df['Card#'].nunique()
-        self.gpu_list = self.df['Card#'].unique()
+        self.gpu_name_list = self.df['Card#'].unique()
+
+    def set_com_gpu_list(self, gpu_list: Gpu.GpuList) -> None:
+        """
+        Set plot data gpu_list object and initialize pcie decode dict.
+
+        :param gpu_list:
+        """
+        self.com_gpu_list = gpu_list
+        self.pcie_dict = gpu_list.get_pcie_map()
+        #for gpu in self.com_gpu_list.gpus():
+        #    self.pcie_dict.update({gpu.prm.card_num: gpu.prm.pcie_id})
+
+    def get_gpu_pcieid(self, card_num: int) -> str:
+        """
+        Return the pcie id for a given card number.
+
+        :param card_num:
+        :return: the pcie id as a string
+        """
+        if card_num in self.pcie_dict.keys():
+            return self.pcie_dict[card_num]
+        return 'Error'
 
     def get_plot_data(self) -> pd.DataFrame:
         """
@@ -197,7 +220,7 @@ class GuiComponents:
     def __init__(self, plot_data):
         plot_data.gui_comp = self
         self.ready = False
-        self.gpu_list = plot_data.gpu_list
+        self.gpu_name_list = plot_data.gpu_name_list
         self.num_gpus = plot_data.num_gpus
         self.gui_components = {}
         self.gpu_color = {}
@@ -220,7 +243,7 @@ class GuiComponents:
         self.gui_components['temp_status'] = {}
         self.gui_components['temp_status']['df_name'] = 'temp_val'
         self.gui_components['card_plots'] = {}
-        for i, gpu_i in enumerate(self.gpu_list):
+        for i, gpu_i in enumerate(self.gpu_name_list):
             self.gui_components['card_plots'][gpu_i] = {}
             self.gui_components['card_plots'][gpu_i]['color'] = gpu_color_list[i]
             self.gpu_color[gpu_i] = gpu_color_list[i]
@@ -377,7 +400,7 @@ class GPUPlotWindow(Gtk.Window):
             plt.subplots_adjust(left=0.13, right=0.97, top=0.97, bottom=0.1)
             v['ax1'].set_facecolor(gc.get_color('plotface'))
             if v['df_name'] == 'temp_val':
-                plt.yticks(np.arange(20, 91, 10))
+                plt.yticks(np.arange(15, 99, 10))
             else:
                 plt.yticks(np.arange(0, 9, 1))
 
@@ -401,7 +424,8 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             v['title_obj'] = Gtk.Label(name='white_label')
-            v['title_obj'].set_markup('<big><b>Card   {}    {}    Energy:  {}</b></big>'.format(k, model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             box_name = v['color'][1:]
             lbox = Gtk.Box(spacing=box_spacing_val, name=box_name)
@@ -466,7 +490,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
     ldf = plot_data.df
     try:
-        time_val = ldf[ldf['Card#'].isin([plot_data.gpu_list[0]])]['Time'].iloc[-1]
+        time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
         # Update Bar Plots
         for v in [gc.gui_components['sclk_pstate_status'],
@@ -476,7 +500,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             label_val = []
             bar_col = []
             # Set Plot Parameters
-            for k in plot_data.gpu_list:
+            for k in plot_data.gpu_name_list:
                 l, d = ldf[ldf['Card#'].isin([k])][['Card#', v['df_name']]].iloc[-1]
                 label_val.append(int(l))
                 data_val.append(float(d))
@@ -490,29 +514,27 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             _rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v['df_name'] == 'temp_val':
                 for a, b in zip(ind, data_val):
-                    v['ax1'].text(x=float(a)-(float(width)/1.8), y=0.90*b, s=' '+str(b), fontsize=8)
-                plt.ylim((20, 91))
+                    v['ax1'].text(x=a, y=0.85 * b, s=str(b), fontsize=8, ha='center')
+                plt.ylim((15, 99))
             else:
                 data_val = list(map(int, data_val))
                 for a, b in zip(ind, data_val):
-                    if b == 0:
-                        y_val = b + width
-                    else:
-                        y_val = b - width
-                    v['ax1'].text(x=a-width/4.0, y=y_val, s=str(b), fontsize=10)
-                plt.ylim((0, 8))
+                    y_val = b + width if b == 0 else b - width
+                    v['ax1'].text(x=a, y=y_val, s=str(b), fontsize=10, ha='center')
+                plt.ylim((0, 9))
             v['canvas'].draw()
             v['canvas'].flush_events()
 
         # Update GPU Plots
-        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].max().max() // 10) + 5
+        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].max().max() // 10) + 10
         y1lim_min_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].min().min() // 10) - 5
         y2lim_max_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].max().max() // 100) + 300
         y2lim_min_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].min().min() // 100) - 100
         for k, v in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([k])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
-            v['title_obj'].set_markup('<big><b>Card   {}    {}    Energy:  {}</b></big>'.format(k, model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
 
             # Plot GPUs
             plt.figure(v['figure_num'])
@@ -543,8 +565,10 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                                   s=str(int(ldf[ldf['Card#'].isin([k])][plot_item].iloc[-1])),
                                   bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)), fontsize=6)
 
-            v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, 10))
-            v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, 100))
+            tick_inc = int(10 * round(((y1lim_max_val - y1lim_min_val) // 12)/10.0, 0))
+            v['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, tick_inc))
+            tick_inc = int(100 * round(((y2lim_max_val - y2lim_min_val) // 12)/100.0, 0))
+            v['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, tick_inc))
 
             v['canvas'].draw()
             v['canvas'].flush_events()
@@ -592,21 +616,20 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
                 header_item = list(line.strip().split('|'))
                 header = False
                 continue
-            line = line.strip()
-            line_item = list(line.strip().split('|'))
-            new_line_item = []
-            for l in line_item:
-                ll = l.strip()
+            line_items = list(line.strip().split('|'))
+            new_line_items = []
+            for ll in line_items:
+                ll = ll.strip()
                 if ll.isnumeric():
-                    new_line_item.append(int(ll))
+                    new_line_items.append(int(ll))
                 elif re.fullmatch(PATTERNS['IS_FLOAT'], ll):
-                    new_line_item.append(float(ll))
+                    new_line_items.append(float(ll))
                 elif ll == '' or ll == '-1' or ll == 'NA' or ll is None:
-                    new_line_item.append(np.nan)
+                    new_line_items.append(np.nan)
                 else:
-                    new_line_item.append(ll)
-            line_item = tuple(new_line_item)
-            rdf = pd.DataFrame.from_records([line_item], columns=header_item)
+                    new_line_items.append(ll)
+            line_items = tuple(new_line_items)
+            rdf = pd.DataFrame.from_records([line_items], columns=header_item)
             rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
@@ -682,7 +705,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         # Process a set of GPUs at a time
         skip_update = False
         for gpu in plot_data.com_gpu_list.gpus():
-            gpu_plot_data = gpu.get_plot_data(plot_data.com_gpu_list)
+            gpu_plot_data = gpu.get_plot_data()
             logger.debug('gpu_plot_data: %s', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
@@ -775,12 +798,13 @@ def main() -> None:
 
     # Define graph gui and data components
     plot_data = PlotData()
+    # Get list of Compatible GPUs and get basic non-driver details
+    gpu_list = Gpu.GpuList()
+    gpu_list.set_gpu_list()
+    com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
+    plot_data.set_com_gpu_list(com_gpu_list)
 
     if not args.stdin:
-        # Get list of AMD GPUs and get basic non-driver details
-        gpu_list = Gpu.GpuList()
-        gpu_list.set_gpu_list()
-
         # Check list of GPUs
         num_gpus = gpu_list.num_vendor_gpus()
         print('Detected GPUs: ', end='')
@@ -810,14 +834,12 @@ def main() -> None:
                                                                     num_gpus['r-only'], num_gpus['w-only']))
 
         # Check number of compatible GPUs again
-        com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
         readable_gpus = com_gpu_list.num_gpus()['total']
         if not readable_gpus:
             print('None are readable, exiting...')
             sys.exit(-1)
 
-        # Generate a new list of only compatible GPUs
-        plot_data.com_gpu_list = com_gpu_list
+        # Set gpu quantity in plot_data
         plot_data.num_gpus = readable_gpus
     # end of if args.stdin == False
 

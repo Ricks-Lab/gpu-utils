@@ -22,9 +22,9 @@ __copyright__ = 'Copyright (C) 2019 RueiKe'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.2.0'
+__version__ = 'v3.3.0'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
+__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -65,6 +65,8 @@ class GutConst:
                 'MTRX_GPU':     re.compile(r'(MATROX|matrox|Matrox)'),
                 'MHz':          re.compile(r'M[Hh]z'),
                 'PPM_CHK':      re.compile(r'[*].*'),
+                'PCI_GPU':      re.compile(r'(VGA|3D|Display)'),
+                'PCI_ADD':      re.compile(r'^([0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F])'),
                 'PPM_NOTCHK':   re.compile(r'[ ]+'),
                 'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
@@ -185,7 +187,7 @@ class GutConst:
             with open(self.featuremask) as fm_file:
                 self.amdfeaturemask = int(fm_file.readline())
         except OSError as err:
-            print('Warning: could not read AMD Featuremask [{}]'.format(err))
+            #print('Warning: could not read AMD Featuremask [{}]'.format(err))
             self.amdfeaturemask = 0
         return self.amdfeaturemask
 
@@ -276,10 +278,9 @@ class GutConst:
             self.cmd_dpkg = None
         logger.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
-        self.cmd_nvidia_smi = shutil.which('nvidia_smi')
-        if not self.cmd_nvidia_smi:
-            pass
-            # print('OS command [nvidia_smi] executable not found.')
+        self.cmd_nvidia_smi = shutil.which('nvidia-smi')
+        if self.cmd_nvidia_smi:
+            print('OS command [nvidia-smi] executable found: [{}]'.format(self.cmd_nvidia_smi))
         if command_access_fail:
             return -3
         return 0
