@@ -109,9 +109,10 @@ class GpuItem:
 
     # Vendor and Type skip lists for reporting
     AMD_Skip_List = ['frequencies_max', 'compute_mode']
-    NV_Skip_List = ['fan_enable', 'fan_pwm', 'fan_pwm_range', 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'pwm_mode', 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                    'temp_crits']
+    NV_Skip_List = ['fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+                    'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
+                    'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                    'temp_crits', 'voltages']
     LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
                         'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
                         'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
