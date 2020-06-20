@@ -145,8 +145,6 @@ class PlotData:
         """
         self.com_gpu_list = gpu_list
         self.pcie_dict = gpu_list.get_pcie_map()
-        #for gpu in self.com_gpu_list.gpus():
-        #    self.pcie_dict.update({gpu.prm.card_num: gpu.prm.pcie_id})
 
     def get_gpu_pcieid(self, card_num: int) -> str:
         """
@@ -514,7 +512,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             _rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v['df_name'] == 'temp_val':
                 for a, b in zip(ind, data_val):
-                    v['ax1'].text(x=a, y=0.85 * b, s=str(b), fontsize=8, ha='center')
+                    v['ax1'].text(x=a, y=b-5, s=str(b), fontsize=8, ha='center')
                 plt.ylim((15, 99))
             else:
                 data_val = list(map(int, data_val))
