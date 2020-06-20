@@ -1535,6 +1535,17 @@ class GpuList:
         self[gpu_item.prm.uuid] = gpu_item
         logger.debug('Added GPU Item %s to GPU List', gpu_item.prm.uuid)
 
+    def get_pcie_map(self) -> dict:
+        """
+        Get mapping of card number to pcie address as dict.
+
+        :return: dict of num: pcieid
+        """
+        pcie_dict = {}
+        for gpu in self.gpus():
+            pcie_dict.update({gpu.prm.card_num: gpu.prm.pcie_id})
+        return pcie_dict
+
     def wattman_status(self) -> str:
         """
         Display Wattman status.
