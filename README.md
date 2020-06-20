@@ -65,11 +65,15 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 #### New in this Development Branch
 * Display card path details in logger whenever card path exists.
+* Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.
+* Added APU type and tuned parameters read/displayed for AMD APU integrated GPU.
+* Read generic pcie sensors for all types of GPUs.
+* Improved lspci search by using a no-shell call and using compiled regex.
 
 ## Development Plans
-* Enhance formatting in Gtk monitor tool. Need to improve my Gtk skills!
 * Optimize plot utilities for performance.
-* Add status read capabilities for Nvidia GPUs.
+* Add status read capabilities for Intel GPUs.
+* Add pac capabilities for Nvidia GPUs.
 
 ## Known Issues
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
