@@ -19,7 +19,8 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RueiKe'
-__credits__ = ['Craig Echt - Testing, Debug, and Verification']
+__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
+               'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
 __version__ = 'v3.3.0'
@@ -108,7 +109,7 @@ class GpuItem:
                           'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
 
     # Vendor and Type skip lists for reporting
-    AMD_Skip_List = ['frequencies_max', 'compute_mode']
+    AMD_Skip_List = ['frequencies_max', 'compute_mode', 'serial_number', 'card_index']
     NV_Skip_List = ['fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
                     'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
                     'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
@@ -166,10 +167,12 @@ class GpuItem:
                          'writable':            'Writable',
                          'compute':             'Compute',
                          'unique_id':           'GPU UID',
+                         'serial_number':       'GPU S/N',
                          'id':                  'Device ID',
                          'model_device_decode': 'Decoded Device ID',
                          'model':               'Card Model',
                          'model_display':       'Display Card Model',
+                         'card_index':          'Card Index',
                          'pcie_id':             'PCIe ID',
                          'link_spd':            '   Link Speed',
                          'link_wth':            '   Link Width',
@@ -178,7 +181,7 @@ class GpuItem:
                          'vbios':               'vBIOS Version',
                          'compute_platform':    'Compute Platform',
                          'compute_mode':        'Compute Mode',
-                         'gpu_type':            'GPU Frequency/Voltage Control Type',
+                         'gpu_type':            'GPU Type',
                          'hwmon_path':          'HWmon',
                          'card_path':           'Card Path',
                          'sys_card_path':      'System Card Path',
@@ -322,6 +325,8 @@ class GpuItem:
                                    'compute_mode':     ['compute_mode'],
                                    'driver':           ['driver_version'],
                                    'model':            ['name'],
+                                   'serial_number':    ['serial'],
+                                   'card_index':       ['index'],
                                    'unique_id':        ['gpu_uuid']},
                       SensorSet.Dynamic: {
                                    'power':            ['power.draw'],
@@ -354,6 +359,8 @@ class GpuItem:
                                    'driver':           ['driver_version'],
                                    'compute_mode':     ['compute_mode'],
                                    'model':            ['name'],
+                                   'serial_number':    ['serial'],
+                                   'card_index':       ['index'],
                                    'unique_id':        ['gpu_uuid'],
                                    'power':            ['power.draw'],
                                    'temperatures':     ['temperature.gpu', 'temperature.memory'],
@@ -414,6 +421,8 @@ class GpuItem:
                             'model': '',
                             'model_short': '',
                             'model_display': '',
+                            'serial_number': '',
+                            'card_index': '',
                             'card_path': '',
                             'sys_card_path': '',
                             'hwmon_path': '',
