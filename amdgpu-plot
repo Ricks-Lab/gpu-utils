@@ -422,8 +422,8 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             v['title_obj'] = Gtk.Label(name='white_label')
-            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
-                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val[:30], data_val))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             box_name = v['color'][1:]
             lbox = Gtk.Box(spacing=box_spacing_val, name=box_name)
@@ -531,8 +531,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         for k, v in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([k])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
-            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
-                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val[:30], data_val))
 
             # Plot GPUs
             plt.figure(v['figure_num'])
