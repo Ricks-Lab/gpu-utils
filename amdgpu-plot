@@ -145,8 +145,6 @@ class PlotData:
         """
         self.com_gpu_list = gpu_list
         self.pcie_dict = gpu_list.get_pcie_map()
-        #for gpu in self.com_gpu_list.gpus():
-        #    self.pcie_dict.update({gpu.prm.card_num: gpu.prm.pcie_id})
 
     def get_gpu_pcieid(self, card_num: int) -> str:
         """
@@ -424,8 +422,8 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             v['title_obj'] = Gtk.Label(name='white_label')
-            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
-                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val[:30], data_val))
             set_gtk_prop(v['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             box_name = v['color'][1:]
             lbox = Gtk.Box(spacing=box_spacing_val, name=box_name)
@@ -514,7 +512,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             _rects1 = v['ax1'].bar(ind, data_val, width, color=bar_col, tick_label=label_val)
             if v['df_name'] == 'temp_val':
                 for a, b in zip(ind, data_val):
-                    v['ax1'].text(x=a, y=0.85 * b, s=str(b), fontsize=8, ha='center')
+                    v['ax1'].text(x=a, y=b-5, s=str(b), fontsize=8, ha='center')
                 plt.ylim((15, 99))
             else:
                 data_val = list(map(int, data_val))
@@ -533,8 +531,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         for k, v in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([k])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([k])]['model_display'].iloc[-1]
-            v['title_obj'].set_markup('<big><b>Card  {}  [{}]    {}    Energy:  {}</b></big>'.format(
-                                      k, plot_data.get_gpu_pcieid(k), model_val, data_val))
+            v['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
+                                      k, plot_data.get_gpu_pcieid(k), model_val[:30], data_val))
 
             # Plot GPUs
             plt.figure(v['figure_num'])

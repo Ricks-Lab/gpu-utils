@@ -553,7 +553,7 @@ class GpuItem:
             self.prm[name] = re.sub(PATTERNS['PPM_NOTCHK'], '-', self.prm[name])
         elif name == 'power':
             time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
-            self.prm[name] = round(value, 1)
+            self.prm[name] = value
             delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
             self.energy['tn'] = time_n
             self.energy['cumulative'] += delta_hrs * value / 1000
