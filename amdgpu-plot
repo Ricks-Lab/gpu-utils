@@ -31,7 +31,8 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RueiKe'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
+__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
+               'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-plot'
 __version__ = 'v3.3.0'
@@ -88,7 +89,7 @@ from GPUmodules import env
 
 register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
-logger = logging.getLogger('gpu-utils')
+LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
 
 # SEMAPHORE ############
@@ -607,7 +608,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
                 read_time = tmp_read_time
 
             if line == '':
-                logger.debug('Error: Null input line')
+                LOGGER.debug('Error: Null input line')
                 plot_data.kill_thread()
                 break
             if header:
@@ -633,13 +634,13 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             del rdf
             sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
-        logger.debug('dataFrame %s:\n%s',
+        LOGGER.debug('dataFrame %s:\n%s',
                      env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string())
 
         if not env.GUT_CONST.SIMLOG:
             if read_time < 0.003:
                 skip_update = True
-                logger.debug('skipping update')
+                LOGGER.debug('skipping update')
 
         # SEMAPHORE ############
         PD_SEM.acquire()
@@ -679,7 +680,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             PD_SEM.release()
             ########################
             garbcollect.collect()
-        logger.debug('update stack size: %s', get_stack_size())
+        LOGGER.debug('update stack size: %s', get_stack_size())
 
     # Quit
     print('exit stack size: {}'.format(get_stack_size()))
@@ -704,7 +705,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         skip_update = False
         for gpu in plot_data.com_gpu_list.gpus():
             gpu_plot_data = gpu.get_plot_data()
-            logger.debug('gpu_plot_data: %s', gpu_plot_data)
+            LOGGER.debug('gpu_plot_data: %s', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
             rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
@@ -750,7 +751,7 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
             PD_SEM.release()
             ########################
             garbcollect.collect()
-        logger.debug('update stack size: %s', get_stack_size())
+        LOGGER.debug('update stack size: %s', get_stack_size())
         time.sleep(refreshtime)
 
     # Quit
@@ -786,9 +787,9 @@ def main() -> None:
         sys.exit(0)
 
     env.GUT_CONST.set_args(args)
-    logger.debug('########## %s %s', __program_name__, __version__)
-    logger.debug('pandas version: %s', pd.__version__)
-    logger.debug('numpy version: %s', np.__version__)
+    LOGGER.debug('########## %s %s', __program_name__, __version__)
+    LOGGER.debug('pandas version: %s', pd.__version__)
+    LOGGER.debug('numpy version: %s', np.__version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

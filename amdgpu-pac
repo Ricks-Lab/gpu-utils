@@ -65,7 +65,7 @@ from GPUmodules import env
 MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
-logger = logging.getLogger('gpu-utils')
+LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
 
 
@@ -606,7 +606,7 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['fan_pwm_cur'].set_text('    Current: {:3d}%    Set: '.format(
                                                             gpu.get_params_value('fan_pwm', num_as_int=True)))
                 devices[gpu.prm.uuid]['fan_pwm_ent'].set_text(str(gpu.get_params_value('fan_pwm', num_as_int=True)))
-                logger.debug('Refresh got current pwm speed: %s', devices[gpu.prm.uuid]['fan_pwm_ent'].get_text())
+                LOGGER.debug('Refresh got current pwm speed: %s', devices[gpu.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
             if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates]:
                 for ps, psd in gpu.sclk_state.items():
@@ -829,9 +829,9 @@ class PACWindow(Gtk.Window):
             pwm_enable_file = os.path.join(gpu.prm.hwmon_path, 'pwm1_enable')
             pwm_file = os.path.join(gpu.prm.hwmon_path, 'pwm1')
             old_pwm = gpu.get_params_value('fan_pwm', num_as_int=True)
-            logger.debug('Current pwm value: %s', old_pwm)
+            LOGGER.debug('Current pwm value: %s', old_pwm)
             new_pwm_str = devices[uuid]['fan_pwm_ent'].get_text()
-            logger.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
+            LOGGER.debug('Original pwm value %s, entered value %s', old_pwm, new_pwm_str)
             if new_pwm_str.lower() == 'reset':
                 changed += 1
                 print('# PWM entry: {}, Resetting to default mode of dynamic'.format(new_pwm_str), file=fileptr)
@@ -854,7 +854,7 @@ class PACWindow(Gtk.Window):
                     print('# No PWM changes, None to Zero skipped', file=fileptr)
                 elif new_pwm < 20:
                     print('# Specified PWM value below min safe limit of 20%, skipped', file=fileptr)
-                    logger.debug('Unsafe PWM value skipped: %s', new_pwm_str)
+                    LOGGER.debug('Unsafe PWM value skipped: %s', new_pwm_str)
                 else:
                     if gpu.is_valid_fan_pwm(new_pwm):
                         changed += 1
@@ -1256,7 +1256,7 @@ def main() -> None:
         sys.exit(0)
 
     env.GUT_CONST.set_args(args)
-    logger.debug('########## %s %s', __program_name__, __version__)
+    LOGGER.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

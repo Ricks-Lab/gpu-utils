@@ -32,7 +32,8 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RueiKe'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
+__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
+               'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-monitor'
 __version__ = 'v3.3.0'
@@ -70,7 +71,7 @@ from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
-logger = logging.getLogger('gpu-utils')
+LOGGER = logging.getLogger('gpu-utils')
 
 
 def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
@@ -80,7 +81,7 @@ def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
     :param target_signal: Target signal name
     :param _frame: Ignored
     """
-    logger.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
+    LOGGER.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
     print('Setting quit flag...')
     MonitorWindow.quit = True
 
@@ -105,7 +106,7 @@ class MonitorWindow(Gtk.Window):
         GPUgui.GuiProps.set_style()
 
         icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
-        logger.debug('Icon file: [%s]', icon_file)
+        LOGGER.debug('Icon file: [%s]', icon_file)
         if os.path.isfile(icon_file):
             self.set_icon_from_file(icon_file)
         grid = Gtk.Grid()
@@ -186,7 +187,7 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     """
     # SEMAPHORE ############
     if not UD_SEM.acquire(blocking=False):
-        logger.debug('Update while updating, skipping new update')
+        LOGGER.debug('Update while updating, skipping new update')
         return
     ########################
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
@@ -196,7 +197,7 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
         try:
             gpu_list.print_plot(cmd.stdin)
         except (OSError, KeyboardInterrupt) as except_err:
-            logger.debug('amdgpu-plot has closed: [%s]', except_err)
+            LOGGER.debug('amdgpu-plot has closed: [%s]', except_err)
             print('amdgpu-plot has closed')
             env.GUT_CONST.PLOT = False
 
@@ -207,7 +208,7 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
                 lv.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
             else:
                 data_value_raw = gpu_list[uuid].get_params_value(lk)
-                logger.debug('raw data value: %s', data_value_raw)
+                LOGGER.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
                 data_value = str(data_value_raw)[:16]
@@ -278,7 +279,7 @@ def main() -> None:
         print('Invalid value for sleep specified.  Must be an integer great than zero')
         sys.exit(-1)
     env.GUT_CONST.set_args(args)
-    logger.debug('########## %s %s', __program_name__, __version__)
+    LOGGER.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')

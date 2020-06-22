@@ -52,7 +52,7 @@ except ImportError:
     import env
 
 ColorDict = Dict[str, str]
-logger = logging.getLogger('gpu-utils')
+LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
 
 
@@ -227,7 +227,7 @@ class GuiProps:
                             (cls._colors['yellow'], cls._colors['white']))
         else:
             css_list.append(css_str)
-        logger.info('css %s', css_list)
+        LOGGER.info('css %s', css_list)
 
         screen = Gdk.Screen.get_default()
 
