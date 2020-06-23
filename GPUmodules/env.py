@@ -74,22 +74,34 @@ class GutConst:
                 'VAL_ITEM':     re.compile(r'.*_val$'),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
+    _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
+    _local_icon_list = ['~/.local/share/ricks-amdgpu-utils/icons', '/usr/share/ricks-amdgpu-utils/icons']
+    featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
+    card_root = '/sys/class/drm/'
+    hwmon_sub = 'hwmon/hwmon'
+
     def __init__(self):
         self.args = None
         self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
         self.repository_path = os.path.join(self.repository_module_path, '..')
-        self.dist_share = '/usr/share/ricks-amdgpu-utils/'
-        self.sys_pciid = '/usr/share/misc/pci.ids'
-        self.sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-        self.dist_icons = os.path.join(self.dist_share, 'icons')
-        if os.path.isdir(self.dist_icons):
-            self.icon_path = self.dist_icons
-        else:
-            self.icon_path = os.path.join(self.repository_path, 'icons')
-        self.featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
+
+        # Set pciid Path
+        self.sys_pciid = None
+        for try_pciid_path in GutConst._sys_pciid_list:
+            if os.path.isfile(try_pciid_path):
+                self.sys_pciid = try_pciid_path
+        LOGGER.debug('pciid path set to: %s', self.sys_pciid)
+
+        # Set Icon Path
+        self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
+        self.icon_path = None
+        for try_icon_path in GutConst._local_icon_list:
+            if os.path.isdir(try_icon_path):
+                self.icon_path = try_icon_path
+        LOGGER.debug('Icon path set to: %s', self.icon_path)
+        print(self.icon_path)
+
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
-        self.card_root = '/sys/class/drm/'
-        self.hwmon_sub = 'hwmon/hwmon'
         self.amdfeaturemask = ''
         self.log_file_ptr = ''
         # From args
@@ -253,10 +265,10 @@ class GutConst:
             print('OS command [lsb_release] executable not found.')
 
         # Check which pci-ids file is to be used
-        for test_sys_pciid in self.sys_pciid_list:
-            if os.path.isfile(test_sys_pciid):
-                self.sys_pciid = test_sys_pciid
-                break
+        #for test_sys_pciid in self.sys_pciid_list:
+            #if os.path.isfile(test_sys_pciid):
+                #self.sys_pciid = test_sys_pciid
+                #break
 
         # Check access/paths to system commands
         command_access_fail = False
