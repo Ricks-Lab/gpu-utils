@@ -75,7 +75,8 @@ class GutConst:
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _local_icon_list = ['~/.local/share/ricks-amdgpu-utils/icons', '/usr/share/ricks-amdgpu-utils/icons']
+    _local_icon_list = ['{}/.local/share/ricks-amdgpu-utils/icons'.format(str(Path.home())),
+                        '/usr/share/ricks-amdgpu-utils/icons']
     featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root = '/sys/class/drm/'
     hwmon_sub = 'hwmon/hwmon'
@@ -98,8 +99,9 @@ class GutConst:
         for try_icon_path in GutConst._local_icon_list:
             if os.path.isdir(try_icon_path):
                 self.icon_path = try_icon_path
+            else:
+                LOGGER.debug('Icon path [%s] not found', try_icon_path)
         LOGGER.debug('Icon path set to: %s', self.icon_path)
-        print(self.icon_path)
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''
