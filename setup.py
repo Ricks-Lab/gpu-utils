@@ -9,7 +9,7 @@ if sys.version_info < (3, 6):
 
 
 setup(name='ricks-amdgpu-utils',
-      version='3.2.4',
+      version='3.3.0',
       description='Ricks-Lab AMD GPU Utilities',
       long_description='A set of utilities for monitoring AMD GPU performance and modifying control settings.',
       author='RueiKe',

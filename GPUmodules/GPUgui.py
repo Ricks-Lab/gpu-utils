@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ amdgpu-utils: GPUgui module to support gui in amdgpu-utils.
 
-    Copyright (C) 2020  RueiKe
+    Copyright (C) 2020  RicksLab
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __author__ = 'RueiKe'
-__copyright__ = 'Copyright (C) 2020 RueiKe'
+__copyright__ = 'Copyright (C) 2020 RicksLab'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'

@@ -2,7 +2,7 @@
 """env.py - sets environment for amdgpu-utils and establishes global variables
 
 
-    Copyright (C) 2019  RueiKe
+    Copyright (C) 2019  RicksLab
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __author__ = 'RueiKe'
-__copyright__ = 'Copyright (C) 2019 RueiKe'
+__copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
