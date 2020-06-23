@@ -78,9 +78,11 @@ class PACWindow(Gtk.Window):
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
 
-        icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
-        if os.path.isfile(icon_file):
-            self.set_icon_from_file(icon_file)
+        if env.GUT_CONST.icon_path:
+            icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
+            if os.path.isfile(icon_file):
+                self.set_icon_from_file(icon_file)
+
         grid = Gtk.Grid()
         self.add(grid)
 
