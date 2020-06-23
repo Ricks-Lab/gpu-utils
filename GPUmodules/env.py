@@ -91,6 +91,7 @@ class GutConst:
         for try_pciid_path in GutConst._sys_pciid_list:
             if os.path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
+                break
 
         # Set Icon Path
         self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
@@ -98,8 +99,7 @@ class GutConst:
         for try_icon_path in GutConst._local_icon_list:
             if os.path.isdir(try_icon_path):
                 self.icon_path = try_icon_path
-            else:
-                print('Icon path [{}] not found'.format(try_icon_path))
+                break
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''
