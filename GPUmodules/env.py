@@ -91,7 +91,6 @@ class GutConst:
         for try_pciid_path in GutConst._sys_pciid_list:
             if os.path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
-        LOGGER.debug('pciid path set to: %s', self.sys_pciid)
 
         # Set Icon Path
         self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
@@ -100,8 +99,7 @@ class GutConst:
             if os.path.isdir(try_icon_path):
                 self.icon_path = try_icon_path
             else:
-                LOGGER.debug('Icon path [%s] not found', try_icon_path)
-        LOGGER.debug('Icon path set to: %s', self.icon_path)
+                print('Icon path [{}] not found'.format(try_icon_path))
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''
@@ -167,6 +165,8 @@ class GutConst:
             LOGGER.addHandler(file_handler)
         LOGGER.debug('Command line arguments:\n  %s', args)
         LOGGER.debug('Local TZ: %s', self.LTZ)
+        LOGGER.debug('pciid path set to: %s', self.sys_pciid)
+        LOGGER.debug('Icon path set to: %s', self.icon_path)
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
