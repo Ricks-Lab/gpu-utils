@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# from distutils.core import setup
+
 import sys
 from setuptools import setup
 
@@ -7,9 +7,10 @@ if sys.version_info < (3, 6):
     print('ricks-amdgpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
+VERSION = '3.3.9'
 
 setup(name='ricks-amdgpu-utils',
-      version='3.3.0',
+      version=VERSION,
       description='Ricks-Lab AMD GPU Utilities',
       long_description='A set of utilities for monitoring AMD GPU performance and modifying control settings.',
       author='RueiKe',

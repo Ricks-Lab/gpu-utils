@@ -21,7 +21,6 @@ __copyright__ = 'Copyright (C) 2020 RicksLab'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.3.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -51,6 +50,7 @@ try:
 except ImportError:
     import env
 
+__version__ = env.GUT_CONST.version
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS

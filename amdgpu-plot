@@ -35,7 +35,6 @@ __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-plot'
-__version__ = 'v3.3.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -87,6 +86,7 @@ from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
+__version__ = env.GUT_CONST.version
 register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')

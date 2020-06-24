@@ -36,7 +36,6 @@ __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-monitor'
-__version__ = 'v3.3.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -51,6 +50,7 @@ import os
 import logging
 import sys
 import shlex
+import shutil
 import time
 import signal
 from typing import Callable
@@ -70,6 +70,7 @@ from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
+__version__ = env.GUT_CONST.version
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -345,9 +346,8 @@ def main() -> None:
         cmd = None
         if args.plot:
             env.GUT_CONST.PLOT = True
-            if os.path.isfile('/usr/bin/amdgpu-plot'):
-                plot_util = '/usr/bin/amdgpu-plot'
-            else:
+            plot_util = shutil.which('amdgpu-plot')
+            if not plot_util:
                 plot_util = os.path.join(env.GUT_CONST.repository_path, 'amdgpu-plot')
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
@@ -356,6 +356,8 @@ def main() -> None:
                     cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 com_gpu_list.print_plot_header(cmd.stdin)
+            else:
+                print('Fatal Error: amdgpu-plot not found.')
 
         # Start thread to update Monitor
         _ = threading.Thread(target=refresh, daemon=True,
