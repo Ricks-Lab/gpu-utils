@@ -10,7 +10,7 @@
     fan details from the utility. The *--force_write* option can be used to force all configuration
     parameters to be written to the GPU.  The default behavior is to only write changes.
 
-    Copyright (C) 2019  RueiKe
+    Copyright (C) 2019  RicksLab
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __author__ = 'RueiKe'
-__copyright__ = 'Copyright (C) 2019 RueiKe'
+__copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-pac'
@@ -78,9 +78,11 @@ class PACWindow(Gtk.Window):
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
 
-        icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
-        if os.path.isfile(icon_file):
-            self.set_icon_from_file(icon_file)
+        if env.GUT_CONST.icon_path:
+            icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
+            if os.path.isfile(icon_file):
+                self.set_icon_from_file(icon_file)
+
         grid = Gtk.Grid()
         self.add(grid)
 

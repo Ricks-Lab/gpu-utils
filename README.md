@@ -1,15 +1,23 @@
 # amdgpu-utils
 A set of utilities for monitoring AMD GPU performance and modifying control settings.
 
-In order to use any of these utilities, you must have the *amdgpu* open source driver
-package installed. You also must first set your Linux machine to boot with
-amdgpu.ppfeaturemask=0xfffd7fff.  This can be accomplished by adding
-amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in 
-/etc/default/grub and executing *sudo update-grub*
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, you should have `nvidia.smi` installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible 
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+`amdgpu.ppfeaturemask=0xfffd7fff` to the `GRUB_CMDLINE_LINUX_DEFAULT` value in 
+`/etc/default/grub` and executing `sudo update-grub`
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
 Download latest official release: [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
+or install the latest package from [PyPI](https://pypi.org/project/ricks-amdgpu-utils/) with the following
+command:
+```shell script
+pip3 install ricks-amdgpu-utils
+```
 
 ## amdgpu-chk
 This utility verifies if the environment is compatible with *amdgpu-util*s.
@@ -63,12 +71,14 @@ terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to e
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-#### New in this Development Branch
+#### New in this Development Branch  -  V3.3.0
 * Display card path details in logger whenever card path exists.
 * Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.
 * Added APU type and tuned parameters read/displayed for AMD APU integrated GPU.
 * Read generic pcie sensors for all types of GPUs.
 * Improved lspci search by using a no-shell call and using compiled regex.
+* Implement PyPI package for easy installation.
+* More robust handling of missing Icon and PCIID files.
 
 ## Development Plans
 * Optimize plot utilities for performance.
