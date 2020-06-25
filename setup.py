@@ -7,7 +7,7 @@ if sys.version_info < (3, 6):
     print('rickslab-gpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
-VERSION = '3.3.10'
+VERSION = '3.4.0'
 
 setup(name='rickslab-gpu-utils',
       version=VERSION,
@@ -22,7 +22,7 @@ setup(name='rickslab-gpu-utils',
       scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
       python_requires='>=3.6',
-      classifiers=['Development Status :: 5 - Production/Stable',
+      classifiers=['Development Status :: 3 - Alpha',
                    'Operating System :: POSIX',
                    'Natural Language :: English',
                    'Programming Language :: Python :: 3',
@@ -38,13 +38,13 @@ setup(name='rickslab-gpu-utils',
                         'ruamel.yaml==0.16.10',
                         'ruamel.yaml.clib==0.2.0',
                         'six>=1.11.0'],
-      data_files=[('share/rickslab-gpu-utils/icons', ['icons/gpu-monitor.icon.png',
+      data_files=[('share/rickslab-gpu-utils/icons', ['icons/gpu-mon.icon.png',
                                                       'icons/gpu-pac.icon.png',
                                                       'icons/gpu-plot.icon.png']),
-                  ('share/rickslab-amdgpu-utils/doc', ['README.md', 'LICENSE']),
+                  ('share/rickslab-gpu-utils/doc', ['README.md', 'LICENSE']),
                   ('share/man/man1', ['man/gpu-chk.1',
                                       'man/gpu-ls.1',
-                                      'man/gpu-monitor.1',
+                                      'man/gpu-mon.1',
                                       'man/gpu-pac.1',
                                       'man/gpu-plot.1'])
                   ]

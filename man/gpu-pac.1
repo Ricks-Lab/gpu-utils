@@ -1,7 +1,7 @@
 .TH GPU\-PAC 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
 .nh
 .SH NAME
-gpu-pac \- program and control compatible AMD GPUs
+gpu-pac \- program and control compatible GPUs
 
 .SH SYNOPSIS
 .B gpu-pac
@@ -11,14 +11,18 @@ gpu-pac \- program and control compatible AMD GPUs
 .RB [ \-\-execute_pac "] [" \-\-no_fan "] [" \-\-force_write "] [" \-\-debug "]
 
 .SH CONFIGURATION
-All rickslab-gpu-utils require that compatible GPU cards and drivers are installed and that
-the feature to access them is enabled.  This can be accomplished by adding
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing update-grub.
+/etc/default/grub and executing sudo update-grub.
 
 .SH DESCRIPTION
 .B gpu-pac
-will present the user with a gui to modify the operating conditions of compatible AMD GPUs.
+will present the user with a gui to modify the operating conditions of compatible GPUs.
 With this utility, the user can change GPU power limit, S-Clk and M-Clk P-state/Curve definitions,
 P-state masks, fan speed, and power performance mode.
 By default, the commands to program and control a GPU are written to a bash file for the user to inspect
@@ -31,7 +35,7 @@ Will display details about
 .B gpu-pac\fP.
 .TP
 .BR " \-\-execute_pac"
-Will execute a bash file created with commands written to the AMD driver files to modify the operating
+Will execute a bash file created with commands written to the driver files to modify the operating
 conditions of the selected GPU/GPUs.  The default behavior is to only create the bash files for the user
 to execute.
 .TP
@@ -55,7 +59,7 @@ Display help text and exit.
 
 .fi
 Will open a Gtk based user interface which will display current or default values for modifiable GPU operating
-parameters.  The interface supports entry of new values for all compatible AMD GPUs.  The user can select to save
+parameters.  The interface supports entry of new values for all compatible GPUs.  The user can select to save
 or reset values for individual or all GPUs. It is suggested that \fBgpu-mon\fR be used
 to make sure the changes are made as expected.
 .P
@@ -76,7 +80,7 @@ creating bash files used to put GPU's into a known state which is convenient for
 .PP
 .TP
 \fB/usr/share/misc/pci.ids\fR
-The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+The system list of all known PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR

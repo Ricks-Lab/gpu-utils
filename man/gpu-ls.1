@@ -14,14 +14,18 @@ gpu-ls \- display details about gpu compatible GPU cards
 .RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
 
 .SH CONFIGURATION
-All gpu-utils require that compatible GPU cards and drivers are installed and that
-the feature to access them is enabled.  This can be accomplished by adding
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing update-grub.
+/etc/default/grub and executing sudo update-grub.
 
 .SH DESCRIPTION
 .B gpu-ls
-displays most relevant parameters for installed and compatible AMD GPUs.
+displays most relevant parameters for installed and compatible GPUs.
 The default behavior is to list relevant base parameters by GPU.
 
 .SH OPTIONS
@@ -32,7 +36,7 @@ Will display details about
 .TP
 .BR " \-\-clinfo"
 If the clinfo package is installed, openCL details will be included in the output
-for each compatible AMD GPU.
+for each compatible GPU.
 .TP
 .BR " \-\-no_fan"
 Will exclude fan information from the display.  Useful with water cooled GPUs.
@@ -60,7 +64,7 @@ Display help text and exit.
 .B gpu-ls
 
 .fi
-This will display the basic parameters for all compatible AMD GPUs.  These include
+This will display the basic parameters for all compatible GPUs.  These include
 device ID, GPU frequency/voltage control type, decoded device ID, card model, short card model,
 display card model, card number, card path, PCIe ID, driver, vBIOS version, HWmon path, current power,
 power cap, power cap range, fan enable, fan PWM mode, current fan PWM, current fan speed,
@@ -77,7 +81,7 @@ This will produce a short list of key descriptive parameters for each installed 
 .B gpu-ls \-\-clinfo
 
 .fi
-In addition to the basic parameters, openCL parameters are also displayed for each compatible AMD GPU.
+In addition to the basic parameters, openCL parameters are also displayed for each compatible GPU.
 This option is dependent on the installation of \fBclinfo\fR.
 .P
 .B gpu-ls \-\-ppm
@@ -95,11 +99,11 @@ Instead of the basic parameters, a table of power states or curve points is disp
 .PP
 .TP
 \fB/usr/share/misc/pci.ids\fR
-The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+The system list of all known PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
-Special driver file for each GPU required for \fBrickslab-gpu-utils\fR.
+Special driver file for each AMD GPU required by some \fBrickslab-gpu-utils\fR.
 .TP
 \fB/etc/default/grub\fR
 The grub defaults file where amdgpu.ppfeaturemask needs to be set.

@@ -1,5 +1,5 @@
 # amdgpu-utils
-A set of utilities for monitoring AMD GPU performance and modifying control settings.
+A set of utilities for monitoring GPU performance and modifying control settings.
 
 In order to get maximum capability of these utilities, you should be running with a kernel that
 provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
@@ -13,17 +13,17 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
 Download latest official release: [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
-or install the latest package from [PyPI](https://pypi.org/project/ricks-amdgpu-utils/) with the following
+or install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 command:
 ```shell script
-pip3 install ricks-amdgpu-utils
+pip3 install rickslab-gpu-utils
 ```
 
 ## gpu-chk
 This utility verifies if the environment is compatible with *rickslab-gpu-utils*.
 
 ## gpu-ls
-This utility displays most relevant parameters for installed and compatible AMD GPUs. The
+This utility displays most relevant parameters for installed and compatible GPUs. The
 default behavior is to list relevant parameters by GPU.  OpenCL platform information is
 added when the *--clinfo* option is used.  A brief listing of key parameters is available with
 the *--short* command line option.  A simplified table of current GPU state is
@@ -33,7 +33,7 @@ of basic parameters.  The *--ppm* option is used to output the table of availabl
 power/performance modes instead of basic parameters.
     
 ## gpu-mon
-A utility to give the current state of all compatible AMD GPUs. The default behavior
+A utility to give the current state of all compatible GPUs. The default behavior
 is to continuously update a text based table in the current window until Ctrl-C is
 pressed.  With the *--gui* option, a table of relevant parameters will be updated
 in a Gtk window.  You can specify the delay between updates with the *--sleep N*
@@ -49,7 +49,7 @@ The *--ltz* option results in the use of local time instead of UTC.
 
 ## gpu-plot
 A utility to continuously plot the trend of critical GPU parameters for all compatible 
-AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot* 
+GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot* 
 utility has 2 modes of operation.  The default mode is to read the GPU driver details 
 directly, which is useful as a standalone utility.  The *--stdin* option causes 
 *gpu-plot* to read GPU data from stdin.  This is how *gpu-mon* produces the 
@@ -57,12 +57,12 @@ plot and can also be used to pipe your own data into the process.  The *--simlog
 option can be used with the *--stdin* when a monitor log file is piped as stdin. 
 This is useful for troubleshooting and can be used to display saved log results.
 The *--ltz* option results in the use of local time instead of UTC.  If you plan
-to run both *gpu-plot* and *gpu-monitor*, then the *--plot* option of the
+to run both *gpu-plot* and *gpu-mon*, then the *--plot* option of the
 *gpu-mon* utility should be used instead of both utilities in order reduce
 data reads by a factor of 2.
 
 ## gpu-pac
-Program and Control compatible AMD GPUs with this utility.  By default, the commands to
+Program and Control compatible GPUs with this utility.  By default, the commands to
 be written to a GPU are written to a bash file for the user to inspect and run.  If you
 have confidence, the *--execute_pac* option can be used to execute and then delete the 
 saved bash file.  Since the GPU device files are writable only by root, sudo is used to

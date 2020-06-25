@@ -1,7 +1,7 @@
-.TH GPU\-CHK 1 "June 2020" "gpu-utils" "RICKSLAB-GPU-UTILS Manual"
+.TH GPU\-CHK 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
 .nh
 .SH NAME
-gpu-chk \- verifies if the user's environment is compatible with gpu-utils
+gpu-chk \- verifies if the user's environment is compatible with rickslab-gpu-utils
 
 .SH SYNOPSIS
 .B gpu-chk
@@ -11,14 +11,18 @@ gpu-chk \- verifies if the user's environment is compatible with gpu-utils
 .RB [ \-\-help " | " \-\-about "]"
 
 .SH CONFIGURATION
-All gpu-utils require that compatible GPU cards and drivers are installed and that
-the feature to access them is enabled.  This can be accomplished by adding
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing update-grub.
+/etc/default/grub and executing sudo update-grub.
 
 .SH DESCRIPTION
 .B gpu-chk
-will check the user environment for compatibility with gpu-utils.
+will check the user environment for compatibility with rickslab-gpu-utils.
 
 .SH OPTIONS
 .TP

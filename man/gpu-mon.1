@@ -11,14 +11,18 @@ gpu-mon \- continuously update a table with the state of all compatible GPUs
 .RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
 
 .SH CONFIGURATION
-All gpu-utils require that compatible GPU cards and drivers are installed and that
-the feature to access them is enabled.  This can be accomplished by adding
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing update-grub.
+/etc/default/grub and executing sudo update-grub.
 
 .SH DESCRIPTION
 .B gpu-mon
-will continuously display the current state of all compatible AMD GPUs. The default
+will continuously display the current state of all compatible GPUs. The default
 behavior is to update a text based table in the current window until Ctrl-C is pressed.
 Command line options can alter this behaviour allowing the use of GUI, modifying update
 interval, excluding fans, writing to a log, selecting UTC or local time zone, and
@@ -87,7 +91,7 @@ GPU data.
 .PP
 .TP
 \fB/usr/share/misc/pci.ids\fR
-The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
+The system list of all known PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
