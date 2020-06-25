@@ -1,4 +1,4 @@
-.TH GPU\-MON 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
+.TH GPU\-MON 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
 gpu-mon \- continuously update a table with the state of all compatible GPUs
@@ -69,9 +69,9 @@ Display help text and exit.
 .fi
 Will display a continuously updating table of GPU operating parameters updating with an interval of 5 sec. All
 parameters will be written to a logfile which will be indicated in the table.
-The displayed parameters include GPU model, load percentage, power, power cap, energy consumption, temperature,
-voltage, fan speed, Sclk frequency/p-state, Mclk frequency/pstate, and performance mode.
-Updating of the table will continue until ctrl-c is pressed.
+The displayed parameters include GPU model, GPU and memory load percentage, power, power cap, energy consumption,
+temperature, voltage (not available for NV), fan speed, Sclk frequency/p-state, Mclk frequency/pstate, and
+performance mode. Updating of the table will continue until ctrl-c is pressed.
 .P
 .B gpu-mon \-\-gui
 
@@ -95,7 +95,7 @@ The system list of all known PCI ID's (vendors, devices, classes and subclasses)
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
-Special driver file for each GPU required for \fBgpu-utils\fR.
+Special driver file for each AMD GPU required by some \fBrickslab-gpu-utils\fR.
 .TP
 \fB/etc/default/grub\fR
 The grub defaults file where amdgpu.ppfeaturemask needs to be set.

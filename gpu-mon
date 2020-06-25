@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ gpu-mon  -  Displays current status of all active GPUs
 
-    A utility to give the current state of all compatible AMD GPUs. The default behavior
+    A utility to give the current state of all compatible GPUs. The default behavior
     is to continuously update a text based table in the current window until Ctrl-C is
     pressed.  With the *--gui* option, a table of relevant parameters will be updated
     in a Gtk window.  You can specify the delay between updates with the *--sleep N*
@@ -102,7 +102,7 @@ class MonitorWindow(Gtk.Window):
 
     def __init__(self, gpu_list, devices):
 
-        Gtk.Window.__init__(self, title='RicksLab GPU Utils')
+        Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
 

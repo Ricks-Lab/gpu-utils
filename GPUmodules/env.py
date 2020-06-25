@@ -80,6 +80,7 @@ class GutConst:
     featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root = '/sys/class/drm/'
     hwmon_sub = 'hwmon/hwmon'
+    gui_window_title = 'Ricks-Lab GPU Utilities'
 
     def __init__(self):
         self.args = None

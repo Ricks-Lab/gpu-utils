@@ -1,4 +1,4 @@
-.TH GPU-PLOT 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
+.TH GPU-PLOT 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
 gpu-plot \- continuously update and plot critical GPU parameters as a function of time
@@ -22,7 +22,7 @@ amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 
 .SH DESCRIPTION
 .B gpu-plot
-will continuously plot a trend of critical GPU parameters for all compatible AMD GPUs.
+will continuously plot a trend of critical GPU parameters for all compatible GPUs.
 
 .SH OPTIONS
 .TP
@@ -57,7 +57,7 @@ Display help text and exit.
 .B gpu-plot \-\-sleep 5 \-\-ltz
 
 .fi
-Will open a Gtk window that will display plots of operation parameters for all compatible AMD GPU's that updates
+Will open a Gtk window that will display plots of operation parameters for all compatible GPU's that updates
 every 5s.  Time stamps displayed will use local time zone.
 .P
 .B cat \fIlogfile\fR | \fBgpu-plot \-\-stdin \-\-simlog \-\-sleep 1
@@ -93,5 +93,5 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 .BR lspci (8)
 
 .SH AVAILABILITY
-The gpu-plot command is part of the gpu-utils package and is available from
+The gpu-plot command is part of the rickslab-gpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils
