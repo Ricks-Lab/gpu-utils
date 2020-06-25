@@ -7,7 +7,7 @@ if sys.version_info < (3, 6):
     print('ricks-amdgpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
-VERSION = '3.3.9'
+VERSION = '3.3.10'
 
 setup(name='ricks-amdgpu-utils',
       version=VERSION,

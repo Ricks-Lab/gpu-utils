@@ -101,11 +101,11 @@ def main() -> None:
     # Check list of GPUs
     num_gpus = gpu_list.num_vendor_gpus()
     print('Detected GPUs: ', end='')
-    for i, (k, v) in enumerate(num_gpus.items()):
+    for i, (type_name, type_value) in enumerate(num_gpus.items()):
         if i:
-            print(', {}: {}'.format(k, v), end='')
+            print(', {}: {}'.format(type_name, type_value), end='')
         else:
-            print('{}: {}'.format(k, v), end='')
+            print('{}: {}'.format(type_name, type_value), end='')
     print('')
     if 'AMD' in num_gpus.keys():
         env.GUT_CONST.read_amd_driver_version()

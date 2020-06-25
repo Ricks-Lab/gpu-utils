@@ -22,7 +22,7 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'amdgpu-utils'
-__version__ = 'v3.3.9'
+__version__ = 'v3.3.10'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -105,6 +105,7 @@ class GutConst:
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''
         self.log_file_ptr = ''
+
         # From args
         self.execute_pac = False
         self.DEBUG = False
@@ -202,7 +203,7 @@ class GutConst:
             with open(self.featuremask) as fm_file:
                 self.amdfeaturemask = int(fm_file.readline())
         except OSError as err:
-            #print('Warning: could not read AMD Featuremask [{}]'.format(err))
+            LOGGER.debug('Could not read AMD Featuremask [%s]', err)
             self.amdfeaturemask = 0
         return self.amdfeaturemask
 
@@ -266,12 +267,6 @@ class GutConst:
                 else: print('Unverified')
         else:
             print('OS command [lsb_release] executable not found.')
-
-        # Check which pci-ids file is to be used
-        #for test_sys_pciid in self.sys_pciid_list:
-            #if os.path.isfile(test_sys_pciid):
-                #self.sys_pciid = test_sys_pciid
-                #break
 
         # Check access/paths to system commands
         command_access_fail = False

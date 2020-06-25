@@ -139,37 +139,38 @@ class MonitorWindow(Gtk.Window):
         row = row_start
         row_labels = {'card_num': Gtk.Label(name='white_label')}
         row_labels['card_num'].set_markup('<b>Card #</b>')
-        for k, v in gpu_list.table_param_labels().items():
-            row_labels[k] = Gtk.Label(name='white_label')
-            row_labels[k].set_markup('<b>{}</b>'.format(v))
-        for v in row_labels.values():
+        for param_name, param_label in gpu_list.table_param_labels().items():
+            row_labels[param_name] = Gtk.Label(name='white_label')
+            row_labels[param_name].set_markup('<b>{}</b>'.format(param_label))
+        for row_label_item in row_labels.values():
             lbox = Gtk.Box(spacing=6, name='head_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-            set_gtk_prop(v, top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
-            lbox.pack_start(v, True, True, 0)
+            set_gtk_prop(row_label_item, top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
+            lbox.pack_start(row_label_item, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
         for gpu in gpu_list.gpus():
             devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
             devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
             devices[gpu.prm.uuid]['card_num'].set_use_markup(True)
-            for cv in gpu_list.table_param_labels():
-                devices[gpu.prm.uuid][cv] = Gtk.Label(label=gpu.get_params_value(str(cv)), name='white_label')
-                devices[gpu.prm.uuid][cv].set_width_chars(10)
-                set_gtk_prop(devices[gpu.prm.uuid][cv], width_chars=10)
+            for param_name in gpu_list.table_param_labels():
+                devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
+                                                              name='white_label')
+                devices[gpu.prm.uuid][param_name].set_width_chars(10)
+                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=10)
 
-        for dv in devices.values():
+        for gui_component in devices.values():
             col += 1
             row = row_start
-            for lk, lv in dv.items():
-                lv.set_text('')
-                if lk == 'card_num':
+            for comp_name, comp_item in gui_component.items():
+                comp_item.set_text('')
+                if comp_name == 'card_num':
                     lbox = Gtk.Box(spacing=6, name='head_box')
                 else:
                     lbox = Gtk.Box(spacing=6, name='med_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(lv, top=1, bottom=1, right=3, left=3, width_chars=17)
-                lbox.pack_start(lv, True, True, 0)
+                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=17)
+                lbox.pack_start(comp_item, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
@@ -205,18 +206,18 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
             env.GUT_CONST.PLOT = False
 
     # update gui
-    for uuid, dv in devices.items():
-        for lk, lv in dv.items():
-            if lk == 'card_num':
-                lv.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
+    for uuid, gui_component in devices.items():
+        for comp_name, comp_item in gui_component.items():
+            if comp_name == 'card_num':
+                comp_item.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
             else:
-                data_value_raw = gpu_list[uuid].get_params_value(lk)
+                data_value_raw = gpu_list[uuid].get_params_value(comp_name)
                 LOGGER.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
                 data_value = str(data_value_raw)[:16]
-                lv.set_text(data_value)
-            set_gtk_prop(lv, width_chars=17)
+                comp_item.set_text(data_value)
+            set_gtk_prop(comp_item, width_chars=17)
 
     while Gtk.events_pending():
         Gtk.main_iteration_do(True)
@@ -295,11 +296,11 @@ def main() -> None:
     # Check list of GPUs
     num_gpus = gpu_list.num_vendor_gpus()
     print('Detected GPUs: ', end='')
-    for i, (k, v) in enumerate(num_gpus.items()):
+    for i, (type_name, type_value) in enumerate(num_gpus.items()):
         if i:
-            print(', {}: {}'.format(k, v), end='')
+            print(', {}: {}'.format(type_name, type_value), end='')
         else:
-            print('{}: {}'.format(k, v), end='')
+            print('{}: {}'.format(type_name, type_value), end='')
     print('')
     if 'AMD' in num_gpus.keys():
         env.GUT_CONST.read_amd_driver_version()

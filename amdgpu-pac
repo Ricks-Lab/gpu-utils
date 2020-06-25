@@ -874,15 +874,19 @@ class PACWindow(Gtk.Window):
         commit_needed = False
         if gpu.get_params_value('gpu_type') == gpu.GPU_Type.PStates:
             # Sclk P-states
-            for pk, pv in devices[uuid]['sclk_pstate'].items():
-                if not pv['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid sclk pstate entry: {}'.format(pv['gtk_ent_f_obj'].get_text()), file=fileptr)
-                    print('# Invalid sclk pstate entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
+            for comp_name, comp_item in devices[uuid]['sclk_pstate'].items():
+                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                    print('# Invalid sclk pstate entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid sclk pstate entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
                     continue
-                if not pv['gtk_ent_v_obj'].get_text().isnumeric():
-                    print('# Invalid sclk pstate entry: {}'.format(pv['gtk_ent_v_obj'].get_text()), file=fileptr)
-                    print('# Invalid sclk pstate entry: {}'.format(pv['gtk_ent_v_obj'].get_text()))
-                pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
+                if not comp_item['gtk_ent_v_obj'].get_text().isnumeric():
+                    print('# Invalid sclk pstate entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid sclk pstate entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()))
+                pstate = [comp_name,
+                          int(comp_item['gtk_ent_f_obj'].get_text()),
+                          int(comp_item['gtk_ent_v_obj'].get_text())]
                 print('#sclk p-state: {} : {} MHz, {} mV'.format(pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if gpu.is_valid_sclk_pstate(pstate):
                     if gpu.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
@@ -891,21 +895,25 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'s {} {} {}\' >  {}\"".format(pstate[0], pstate[1],
                               pstate[2], device_file), file=fileptr)
                     else:
-                        print('# Sclk pstate {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Sclk pstate {} unchanged, skipping'.format(comp_name), file=fileptr)
                 else:
                     print('# Invalid sclk pstate values', file=fileptr)
                     print('Invalid sclk pstate values')
             # Mclk P-states
-            for pk, pv in devices[uuid]['mclk_pstate'].items():
-                if not pv['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid mclk pstate entry: {}'.format(pv['gtk_ent_f_obj'].get_text()), file=fileptr)
-                    print('# Invalid mclk pstate entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
+            for comp_name, comp_item in devices[uuid]['mclk_pstate'].items():
+                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                    print('# Invalid mclk pstate entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid mclk pstate entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
                     continue
-                if not pv['gtk_ent_v_obj'].get_text().isnumeric():
-                    print('# Invalid mclk pstate entry: {}'.format(pv['gtk_ent_v_obj'].get_text()), file=fileptr)
-                    print('# Invalid mclk pstate entry: {}'.format(pv['gtk_ent_v_obj'].get_text()))
+                if not comp_item['gtk_ent_v_obj'].get_text().isnumeric():
+                    print('# Invalid mclk pstate entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid mclk pstate entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()))
                     continue
-                pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
+                pstate = [comp_name,
+                          int(comp_item['gtk_ent_f_obj'].get_text()),
+                          int(comp_item['gtk_ent_v_obj'].get_text())]
                 print('#mclk p-state: {} : {} MHz, {} mV'.format(pstate[0], pstate[1], pstate[2]), file=fileptr)
                 if gpu.is_valid_mclk_pstate(pstate):
                     if gpu.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
@@ -914,19 +922,19 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'m {} {} {}\' >  {}\"".format(pstate[0], pstate[1],
                               pstate[2], device_file), file=fileptr)
                     else:
-                        print('# Mclk pstate {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Mclk pstate {} unchanged, skipping'.format(comp_name), file=fileptr)
                 else:
                     print('# Invalid mclk pstate values', file=fileptr)
                     print('Invalid mclk pstate values')
         elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
             # Sclk Curve End Points
-            for pk, pv in devices[uuid]['sclk_pstate'].items():
-                if not pv['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid sclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()),
+            for comp_name, comp_item in devices[uuid]['sclk_pstate'].items():
+                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                    print('# Invalid sclk curve end point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
                           file=fileptr)
-                    print('# Invalid sclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
+                    print('# Invalid sclk curve end point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
                     continue
-                pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
+                pstate = [comp_name, int(comp_item['gtk_ent_f_obj'].get_text()), '-']
                 print('# Sclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if gpu.is_valid_sclk_pstate(pstate):
                     if gpu.is_changed_sclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
@@ -935,18 +943,18 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'s {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
                               file=fileptr)
                     else:
-                        print('# Sclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Sclk curve point {} unchanged, skipping'.format(comp_name), file=fileptr)
                 else:
                     print('# Invalid sclk curve end point values', file=fileptr)
                     print('Invalid sclk curve end point values')
             # Mclk Curve End Points
-            for pk, pv in devices[uuid]['mclk_pstate'].items():
-                if not pv['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid mclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()),
+            for comp_name, comp_item in devices[uuid]['mclk_pstate'].items():
+                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                    print('# Invalid mclk curve end point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
                           file=fileptr)
-                    print('# Invalid mclk curve end point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
+                    print('# Invalid mclk curve end point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
                     continue
-                pstate = [pk, int(pv['gtk_ent_f_obj'].get_text()), '-']
+                pstate = [comp_name, int(comp_item['gtk_ent_f_obj'].get_text()), '-']
                 print('# Mclk curve end point: {} : {} MHz'.format(pstate[0], pstate[1]), file=fileptr)
                 if gpu.is_valid_mclk_pstate(pstate):
                     if gpu.is_changed_mclk_pstate(pstate) or not env.GUT_CONST.write_delta_only:
@@ -955,21 +963,25 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'m {} {}\' >  {}\"".format(pstate[0], pstate[1], device_file),
                               file=fileptr)
                     else:
-                        print('# Mclk curve point {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Mclk curve point {} unchanged, skipping'.format(comp_name), file=fileptr)
                 else:
                     print('# Invalid mclk curve end point values', file=fileptr)
                     print('Invalid mclk curve end point values')
             # VDDC Curve Points
-            for pk, pv in devices[uuid]['vddc_curve_pt'].items():
-                if not pv['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid vddc curve point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()), file=fileptr)
-                    print('# Invalid vddc curve point entry: {}'.format(pv['gtk_ent_f_obj'].get_text()))
+            for comp_name, comp_item in devices[uuid]['vddc_curve_pt'].items():
+                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
                     continue
-                if not pv['gtk_ent_v_obj'].get_text().isnumeric():
-                    print('# Invalid vddc curve point entry: {}'.format(pv['gtk_ent_v_obj'].get_text()), file=fileptr)
-                    print('# Invalid vddc curve point entry: {}'.format(pv['gtk_ent_v_obj'].get_text()))
+                if not comp_item['gtk_ent_v_obj'].get_text().isnumeric():
+                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()),
+                          file=fileptr)
+                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()))
                     continue
-                curve_pts = [pk, int(pv['gtk_ent_f_obj'].get_text()), int(pv['gtk_ent_v_obj'].get_text())]
+                curve_pts = [comp_name,
+                             int(comp_item['gtk_ent_f_obj'].get_text()),
+                             int(comp_item['gtk_ent_v_obj'].get_text())]
                 print('# Vddc curve point: {} : {} MHz, {} mV'.format(curve_pts[0], curve_pts[1], curve_pts[2]),
                       file=fileptr)
                 if gpu.is_valid_vddc_curve_pts(curve_pts):
@@ -979,7 +991,7 @@ class PACWindow(Gtk.Window):
                         print("sudo sh -c \"echo \'vc {} {} {}\' >  {}\"".format(curve_pts[0], curve_pts[1],
                               curve_pts[2], device_file), file=fileptr)
                     else:
-                        print('# Vddc curve point {} unchanged, skipping'.format(pk), file=fileptr)
+                        print('# Vddc curve point {} unchanged, skipping'.format(comp_name), file=fileptr)
                 else:
                     print('# Invalid Vddc curve point values', file=fileptr)
                     print('Invalid Vddc curve point values')
@@ -1271,11 +1283,11 @@ def main() -> None:
     # Check list of GPUs
     num_gpus = gpu_list.num_vendor_gpus()
     print('Detected GPUs: ', end='')
-    for i, (k, v) in enumerate(num_gpus.items()):
+    for i, (type_name, type_value) in enumerate(num_gpus.items()):
         if i:
-            print(', {}: {}'.format(k, v), end='')
+            print(', {}: {}'.format(type_name, type_value), end='')
         else:
-            print('{}: {}'.format(k, v), end='')
+            print('{}: {}'.format(type_name, type_value), end='')
     print('')
     if 'AMD' in num_gpus.keys():
         env.GUT_CONST.read_amd_driver_version()
