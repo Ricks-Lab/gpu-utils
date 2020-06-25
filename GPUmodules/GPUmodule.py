@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPUmodules  -  Classes to represent GPUs and sets of GPUs used in amdgpu-utils.
+"""GPUmodules  -  Classes to represent GPUs and sets of GPUs used in rickslab-gpu-utils.
 
 
     Copyright (C) 2019  RicksLab
@@ -22,7 +22,7 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-utils'
+__program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -1459,7 +1459,7 @@ class GpuItem:
 
     def get_plot_data(self) -> dict:
         """
-        Return a dictionary of dynamic gpu parameters used by amdgpu-plot to populate a df.
+        Return a dictionary of dynamic gpu parameters used by gpu-plot to populate a df.
 
         :return: Dictionary of GPU state info for plot data.
         """

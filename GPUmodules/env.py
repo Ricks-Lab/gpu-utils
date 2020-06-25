@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""env.py - sets environment for amdgpu-utils and establishes global variables
+"""env.py - sets environment for rickslab-gpu-utils and establishes global variables
 
 
     Copyright (C) 2019  RicksLab
@@ -21,8 +21,8 @@ __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-utils'
-__version__ = 'v3.3.10'
+__program_name__ = 'gpu-utils'
+__version__ = 'v3.4.0'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -75,8 +75,8 @@ class GutConst:
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _local_icon_list = ['{}/.local/share/ricks-amdgpu-utils/icons'.format(str(Path.home())),
-                        '/usr/share/ricks-amdgpu-utils/icons']
+    _local_icon_list = ['{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home())),
+                        '/usr/share/rickslab-gpu-utils/icons']
     featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root = '/sys/class/drm/'
     hwmon_sub = 'hwmon/hwmon'

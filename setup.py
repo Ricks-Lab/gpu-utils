@@ -4,22 +4,22 @@ import sys
 from setuptools import setup
 
 if sys.version_info < (3, 6):
-    print('ricks-amdgpu-utils requires at least Python 3.6.')
+    print('rickslab-gpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
 VERSION = '3.3.10'
 
-setup(name='ricks-amdgpu-utils',
+setup(name='rickslab-gpu-utils',
       version=VERSION,
-      description='Ricks-Lab AMD GPU Utilities',
-      long_description='A set of utilities for monitoring AMD GPU performance and modifying control settings.',
+      description='Ricks-Lab GPU Utilities',
+      long_description='A set of utilities for monitoring GPU performance and modifying control settings.',
       author='RueiKe',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
       url='https://github.com/Ricks-Lab/amdgpu-utils',
       packages=['GPUmodules'],
       include_package_data=True,
-      scripts=['amdgpu-chk', 'amdgpu-ls', 'amdgpu-monitor', 'amdgpu-pac', 'amdgpu-plot'],
+      scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
       python_requires='>=3.6',
       classifiers=['Development Status :: 5 - Production/Stable',
@@ -38,14 +38,14 @@ setup(name='ricks-amdgpu-utils',
                         'ruamel.yaml==0.16.10',
                         'ruamel.yaml.clib==0.2.0',
                         'six>=1.11.0'],
-      data_files=[('share/ricks-amdgpu-utils/icons', ['icons/amdgpu-monitor.icon.png',
-                                                      'icons/amdgpu-pac.icon.png',
-                                                      'icons/amdgpu-plot.icon.png']),
-                  ('share/ricks-amdgpu-utils/doc', ['README.md', 'LICENSE']),
-                  ('share/man/man1', ['man/amdgpu-chk.1',
-                                      'man/amdgpu-ls.1',
-                                      'man/amdgpu-monitor.1',
-                                      'man/amdgpu-pac.1',
-                                      'man/amdgpu-plot.1'])
+      data_files=[('share/rickslab-gpu-utils/icons', ['icons/gpu-monitor.icon.png',
+                                                      'icons/gpu-pac.icon.png',
+                                                      'icons/gpu-plot.icon.png']),
+                  ('share/rickslab-amdgpu-utils/doc', ['README.md', 'LICENSE']),
+                  ('share/man/man1', ['man/gpu-chk.1',
+                                      'man/gpu-ls.1',
+                                      'man/gpu-monitor.1',
+                                      'man/gpu-pac.1',
+                                      'man/gpu-plot.1'])
                   ]
       )

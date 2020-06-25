@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" amdgpu-monitor  -  Displays current status of all active GPUs
+""" gpu-mon  -  Displays current status of all active GPUs
 
     A utility to give the current state of all compatible AMD GPUs. The default behavior
     is to continuously update a text based table in the current window until Ctrl-C is
@@ -35,7 +35,7 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-monitor'
+__program_name__ = 'gpu-mon'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -102,12 +102,12 @@ class MonitorWindow(Gtk.Window):
 
     def __init__(self, gpu_list, devices):
 
-        Gtk.Window.__init__(self, title='amdgpu-monitor')
+        Gtk.Window.__init__(self, title='RicksLab GPU Utils')
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_path:
-            icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-monitor.icon.png')
+            icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-mon.icon.png')
             LOGGER.debug('Icon file: [%s]', icon_file)
             if os.path.isfile(icon_file):
                 self.set_icon_from_file(icon_file)
@@ -201,8 +201,8 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
         try:
             gpu_list.print_plot(cmd.stdin)
         except (OSError, KeyboardInterrupt) as except_err:
-            LOGGER.debug('amdgpu-plot has closed: [%s]', except_err)
-            print('amdgpu-plot has closed')
+            LOGGER.debug('gpu-plot has closed: [%s]', except_err)
+            print('gpu-plot has closed')
             env.GUT_CONST.PLOT = False
 
     # update gui
@@ -253,13 +253,13 @@ def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList,
 
 def main() -> None:
     """
-    Flow for amdgpu-monitor.
+    Flow for gpu-mon.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
     parser.add_argument('--gui', help='Display GTK Version of Monitor', action='store_true', default=False)
     parser.add_argument('--log', help='Write all monitor data to logfile', action='store_true', default=False)
-    parser.add_argument('--plot', help='Open and write to amdgpu-plot', action='store_true', default=False)
+    parser.add_argument('--plot', help='Open and write to gpu-plot', action='store_true', default=False)
     parser.add_argument('--ltz', help='Use local time zone instead of UTC', action='store_true', default=False)
     parser.add_argument('--sleep', help='Number of seconds to sleep between updates', type=int, default=2)
     parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
@@ -347,9 +347,9 @@ def main() -> None:
         cmd = None
         if args.plot:
             env.GUT_CONST.PLOT = True
-            plot_util = shutil.which('amdgpu-plot')
+            plot_util = shutil.which('gpu-plot')
             if not plot_util:
-                plot_util = os.path.join(env.GUT_CONST.repository_path, 'amdgpu-plot')
+                plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
                     cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
@@ -358,7 +358,7 @@ def main() -> None:
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 com_gpu_list.print_plot_header(cmd.stdin)
             else:
-                print('Fatal Error: amdgpu-plot not found.')
+                print('Fatal Error: gpu-plot not found.')
 
         # Start thread to update Monitor
         _ = threading.Thread(target=refresh, daemon=True,

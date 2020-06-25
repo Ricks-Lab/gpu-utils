@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" amdgpu-utils: GPUgui module to support gui in amdgpu-utils.
+""" gpu-utils: GPUgui module to support gui in rickslab-gpu-utils.
 
     Copyright (C) 2020  RicksLab
 
@@ -20,7 +20,7 @@ __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2020 RicksLab'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-utils'
+__program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'

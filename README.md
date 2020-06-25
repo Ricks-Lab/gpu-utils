@@ -19,10 +19,10 @@ command:
 pip3 install ricks-amdgpu-utils
 ```
 
-## amdgpu-chk
-This utility verifies if the environment is compatible with *amdgpu-util*s.
+## gpu-chk
+This utility verifies if the environment is compatible with *rickslab-gpu-utils*.
 
-## amdgpu-ls
+## gpu-ls
 This utility displays most relevant parameters for installed and compatible AMD GPUs. The
 default behavior is to list relevant parameters by GPU.  OpenCL platform information is
 added when the *--clinfo* option is used.  A brief listing of key parameters is available with
@@ -32,7 +32,7 @@ displayed with the *--table* option. The *--no_fan* can be used to ignore fan se
 of basic parameters.  The *--ppm* option is used to output the table of available
 power/performance modes instead of basic parameters.
     
-## amdgpu-monitor
+## gpu-mon
 A utility to give the current state of all compatible AMD GPUs. The default behavior
 is to continuously update a text based table in the current window until Ctrl-C is
 pressed.  With the *--gui* option, a table of relevant parameters will be updated
@@ -47,38 +47,32 @@ you need both the plot and monitor displays, then using the --plot option is pre
 over running both tools as a single read of the GPUs is used to update both displays.
 The *--ltz* option results in the use of local time instead of UTC.
 
-## amdgpu-plot
+## gpu-plot
 A utility to continuously plot the trend of critical GPU parameters for all compatible 
-AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot* 
+AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot* 
 utility has 2 modes of operation.  The default mode is to read the GPU driver details 
 directly, which is useful as a standalone utility.  The *--stdin* option causes 
-*amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the 
+*gpu-plot* to read GPU data from stdin.  This is how *gpu-mon* produces the 
 plot and can also be used to pipe your own data into the process.  The *--simlog*
 option can be used with the *--stdin* when a monitor log file is piped as stdin. 
 This is useful for troubleshooting and can be used to display saved log results.
 The *--ltz* option results in the use of local time instead of UTC.  If you plan
-to run both *amdgpu-plot* and *amdgpu-monitor*, then the *--plot* option of the
-*amdgpu-monitor* utility should be used instead of both utilities in order reduce
+to run both *gpu-plot* and *gpu-monitor*, then the *--plot* option of the
+*gpu-mon* utility should be used instead of both utilities in order reduce
 data reads by a factor of 2.
 
-## amdgpu-pac
+## gpu-pac
 Program and Control compatible AMD GPUs with this utility.  By default, the commands to
 be written to a GPU are written to a bash file for the user to inspect and run.  If you
 have confidence, the *--execute_pac* option can be used to execute and then delete the 
 saved bash file.  Since the GPU device files are writable only by root, sudo is used to
 execute commands in the bash file, as a result, you will be prompted for credentials in the
-terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
+terminal where you executed *gpu-pac*. The *--no_fan* option can be used to eliminate
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-#### New in this Development Branch  -  V3.3.0
-* Display card path details in logger whenever card path exists.
-* Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.
-* Added APU type and tuned parameters read/displayed for AMD APU integrated GPU.
-* Read generic pcie sensors for all types of GPUs.
-* Improved lspci search by using a no-shell call and using compiled regex.
-* Implement PyPI package for easy installation.
-* More robust handling of missing Icon and PCIID files.
+#### New in this Development Branch  -  V3.4.0
+* Update name from amdgpu-utils to rickslab-gpu-utils
 
 ## Development Plans
 * Optimize plot utilities for performance.
@@ -89,8 +83,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
-* *amdgpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
-* *amdgpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac
+* *gpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
+* *gpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac
 interface shows actual values instead of set values.
 
 ## References
@@ -108,7 +102,16 @@ interface shows actual values instead of set values.
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
-#### New in latest Release  -  [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
+#### New in Previous Release  -  V3.3.0
+* Display card path details in logger whenever card path exists.
+* Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.
+* Added APU type and tuned parameters read/displayed for AMD APU integrated GPU.
+* Read generic pcie sensors for all types of GPUs.
+* Improved lspci search by using a no-shell call and using compiled regex.
+* Implement PyPI package for easy installation.
+* More robust handling of missing Icon and PCIID files.
+
+#### New in Previous Release  -  [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
 * Fixed CRITICAL issue where Zero fan speed could be written when invalid fan speed was
 read from the GPU.
 * Fixed issue in reading pciid file in Gentoo (@CH3CN).

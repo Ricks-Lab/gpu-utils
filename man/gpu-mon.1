@@ -1,23 +1,23 @@
-.TH AMDGPU\-MONITOR 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.TH GPU\-MON 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
 .nh
 .SH NAME
-amdgpu-monitor \- continuously update a table with the state of all compatible AMD GPUs
+gpu-mon \- continuously update a table with the state of all compatible GPUs
 
 .SH SYNOPSIS
-.B amdgpu-monitor
+.B gpu-mon
 .RB [ \-\-help " | " \-\-about "]"
 .br
-.B amdgpu-monitor
+.B gpu-mon
 .RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
 
 .SH CONFIGURATION
-All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+All gpu-utils require that compatible GPU cards and drivers are installed and that
 the feature to access them is enabled.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing update-grub.
 
 .SH DESCRIPTION
-.B amdgpu-monitor
+.B gpu-mon
 will continuously display the current state of all compatible AMD GPUs. The default
 behavior is to update a text based table in the current window until Ctrl-C is pressed.
 Command line options can alter this behaviour allowing the use of GUI, modifying update
@@ -28,13 +28,13 @@ engaging a graphical display of real-time trends of relevant parameters.
 .TP
 .BR " \-\-about"
 Will display details about 
-.B amdgpu-monitor\fP.
+.B gpu-mon\fP.
 .TP
 .BR " \-\-gui"
 The table of relevant parameters will be updated in a Gtk window instead of a text table in the terminal window.
 .TP
 .BR " \-\-log"
-Write all monitor data to a logfile.  The real-time display will indicate that logging
+Write all mon data to a logfile.  The real-time display will indicate that logging
 is enabled and will show the filename used.
 .TP
 .BR " \-\-ltz"
@@ -44,10 +44,10 @@ Use local time zone instead of UTC for displays and logging.
 Will exclude fan information from the display.  Useful with water cooled GPUs.
 .TP
 .BR " \-\-pdebug"
-Will enable debug output for the \fBamdgpu-plot\fR plotting utility.
+Will enable debug output for the \fBgpu-plot\fR plotting utility.
 .TP
 .BR " \-\-plot"
-Open and write to, \fBamdgpu-plot\fR, the amdgpu-util plotting utility.
+Open and write to, \fBgpu-plot\fR, the gpu-util plotting utility.
 .TP
 .BR " \-\-sleep " \fIN\fR
 Specifies N, the number of seconds to sleep between updates.
@@ -60,7 +60,7 @@ Display help text and exit.
 
 .SH "EXAMPLES"
 .nf
-.B amdgpu-monitor \-\-sleep 5 \-\-log
+.B gpu-mon \-\-sleep 5 \-\-log
 
 .fi
 Will display a continuously updating table of GPU operating parameters updating with an interval of 5 sec. All
@@ -69,17 +69,17 @@ The displayed parameters include GPU model, load percentage, power, power cap, e
 voltage, fan speed, Sclk frequency/p-state, Mclk frequency/pstate, and performance mode.
 Updating of the table will continue until ctrl-c is pressed.
 .P
-.B amdgpu-monitor \-\-gui
+.B gpu-mon \-\-gui
 
 .fi
 Will open a new Gtk window and display basic parameters updated with the default interval.
 .P
-.B amdgpu-monitor \-\-plot
+.B gpu-mon \-\-plot
 
 .fi
 Will open 2 new Gtk windows. One will display the basic parameters and the second will display a continuously
 updating plot of these parameters.  It is suggested that this method be used if both displays are desired, instead
-of executing both \fBamdgpu-monitor\fR and \fBamdgpu-plot\fR as the later will result in twice the reads of
+of executing both \fBgpu-mon\fR and \fBgpu-plot\fR as the later will result in twice the reads of
 GPU data.
 .P
 
@@ -90,13 +90,8 @@ GPU data.
 The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
-\fB~/.amdgpu-utils/amd_pci_id.txt\fR
-A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
-It is preferred to use the system PCI ID file.  If this the local file exists, it will be used instead of
-the system file and can be removed with \fBamdgpu-pciid \-\-remove_local\fR command.
-.TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
-Special driver file for each GPU required for \fBamdgpu-utils\fR.
+Special driver file for each GPU required for \fBgpu-utils\fR.
 .TP
 \fB/etc/default/grub\fR
 The grub defaults file where amdgpu.ppfeaturemask needs to be set.
@@ -106,12 +101,12 @@ Known to not work well with Fiji ProDuo cards and will issue warning messages fo
 Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
 
 .SH "SEE ALSO"
-.BR amdgpu-plot (1),
+.BR gpu-plot (1),
 .BR amdgpu (4),
 .BR update-grub (8),
 .BR update-pciids (8),
 .BR lspci (8)
 
 .SH AVAILABILITY
-The amdgpu-monitor command is part of the amdgpu-utils package and is available from
+The gpu-mon command is part of the rickslab-gpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils

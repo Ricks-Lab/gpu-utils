@@ -1,26 +1,26 @@
-.TH AMDGPU\-LS 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.TH GPU\-LS 1 "June 2020" "rickslab-gpu-utils" "RICKSLAB-GPU-UTILS Manual"
 .nh
 .SH NAME
-amdgpu-ls \- display details about amdgpu compatible GPU cards
+gpu-ls \- display details about gpu compatible GPU cards
 
 .SH SYNOPSIS
-.B amdgpu-ls
+.B gpu-ls
 .RB [ \-\-debug ]
 .br
-.B amdgpu-ls
+.B gpu-ls
 .RB [ \-\-help " | " \-\-about "]"
 .br
-.B amdgpu-ls
+.B gpu-ls
 .RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
 
 .SH CONFIGURATION
-All amdgpu-utils require that compatible GPU cards and drivers are installed and that
+All gpu-utils require that compatible GPU cards and drivers are installed and that
 the feature to access them is enabled.  This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing update-grub.
 
 .SH DESCRIPTION
-.B amdgpu-ls
+.B gpu-ls
 displays most relevant parameters for installed and compatible AMD GPUs.
 The default behavior is to list relevant base parameters by GPU.
 
@@ -28,7 +28,7 @@ The default behavior is to list relevant base parameters by GPU.
 .TP
 .BR " \-\-about"
 Will display details about 
-.B amdgpu-ls\fP.
+.B gpu-ls\fP.
 .TP
 .BR " \-\-clinfo"
 If the clinfo package is installed, openCL details will be included in the output
@@ -57,7 +57,7 @@ Display help text and exit.
 
 .SH "EXAMPLES"
 .nf
-.B amdgpu-ls
+.B gpu-ls
 
 .fi
 This will display the basic parameters for all compatible AMD GPUs.  These include
@@ -69,23 +69,23 @@ Vddc range, current GPU loading, memory details, link speed, link width, current
 current Sclk frequency, Sclk range, current Mclk p-state, current Mclk frequency,
 Mclk range, power performance mode, and power force performance level.
 .P
-.B amdgpu-ls \-\-short
+.B gpu-ls \-\-short
 
 .fi
 This will produce a short list of key descriptive parameters for each installed GPU.
 .P
-.B amdgpu-ls \-\-clinfo
+.B gpu-ls \-\-clinfo
 
 .fi
 In addition to the basic parameters, openCL parameters are also displayed for each compatible AMD GPU.
 This option is dependent on the installation of \fBclinfo\fR.
 .P
-.B amdgpu-ls \-\-ppm
+.B gpu-ls \-\-ppm
 
 .fi
 Instead of the basic parameters, a table of power/performance modes is displayed.
 .P
-.B amdgpu-ls \-\-pstates
+.B gpu-ls \-\-pstates
 
 .fi
 Instead of the basic parameters, a table of power states or curve points is displayed.
@@ -98,13 +98,8 @@ Instead of the basic parameters, a table of power states or curve points is disp
 The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
-\fB~/.amdgpu-utils/amd_pci_id.txt\fR
-A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
-It is preferred to use the system PCI ID file.  If the local file exists, it will be used instead of
-the system file and can be removed with \fBamdgpu-pciid \-\-remove_local\fR command.
-.TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
-Special driver file for each GPU required for \fBamdgpu-utils\fR.
+Special driver file for each GPU required for \fBrickslab-gpu-utils\fR.
 .TP
 \fB/etc/default/grub\fR
 The grub defaults file where amdgpu.ppfeaturemask needs to be set.
@@ -121,5 +116,5 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 .BR lspci (8)
 
 .SH AVAILABILITY
-The amdgpu-ls command is part of the amdgpu-utils package and is available from
+The gpu-ls command is part of the rickslab-gpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils

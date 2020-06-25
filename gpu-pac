@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-""" amdgpu-pac  -  A utility program and control compatible AMD GPUs
+""" gpu-pac  -  A utility program and control compatible GPUs
 
-    Program and Control compatible AMD GPUs with this utility.  By default, the commands to
+    Program and Control compatible GPUs with this utility.  By default, the commands to
     be written to a GPU are written to a bash file for the user to inspect and run.  If you
     have confidence, the *--execute_pac* option can be used to execute and then delete the
     saved bash file.  Since the GPU device files are writable only by root, sudo is used to
     execute commands in the bash file, as a result, you will be prompted for credentials in the
-    terminal where you executed *amdgpu-pac*. The *--no_fan* option can be used to eliminate
+    terminal where you executed *gpu-pac*. The *--no_fan* option can be used to eliminate
     fan details from the utility. The *--force_write* option can be used to force all configuration
     parameters to be written to the GPU.  The default behavior is to only write changes.
 
@@ -29,7 +29,7 @@ __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-pac'
+__program_name__ = 'gpu-pac'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -79,7 +79,7 @@ class PACWindow(Gtk.Window):
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_path:
-            icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-pac.icon.png')
+            icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-pac.icon.png')
             if os.path.isfile(icon_file):
                 self.set_icon_from_file(icon_file)
 
@@ -543,9 +543,9 @@ class PACWindow(Gtk.Window):
             if env.GUT_CONST.execute_pac:
                 message = ('Using the --execute_pac option.  Changes will be written to the GPU without ' +
                            'confirmation.\nSudo will be used, so you may be prompted for credentials in ' +
-                           'the window where amdgpu-pac was executed from.')
+                           'the window where gpu-pac was executed from.')
             else:
-                message = ('Using amdgpu-pac without --execute_pac option.\nYou must manually run bash ' +
+                message = ('Using gpu-pac without --execute_pac option.\nYou must manually run bash ' +
                            'file with sudo to execute changes.')
 
         if color == 'red':
@@ -695,7 +695,7 @@ class PACWindow(Gtk.Window):
         if env.GUT_CONST.execute_pac:
             message = ('Using the --execute_pac option.  Changes will be written to the GPU without ' +
                        'confirmation.\nSudo will be used, so you may be prompted for credentials in ' +
-                       'the window where amdgpu-pac was executed from.')
+                       'the window where gpu-pac was executed from.')
         else:
             message = 'Writing PAC command bash file.\n'
         self.update_message(devices, message, 'red')
@@ -709,7 +709,7 @@ class PACWindow(Gtk.Window):
         if env.GUT_CONST.execute_pac:
             if changed:
                 message = ('Write {} PAC commands to card complete.\n'.format(changed) +
-                           'Confirm changes with amdgpu-monitor.')
+                           'Confirm changes with gpu-mon.')
             else:
                 message = 'No PAC commands to write to card.\nNo changes specified.'
         else:
@@ -738,7 +738,7 @@ class PACWindow(Gtk.Window):
             if env.GUT_CONST.execute_pac:
                 message = ('Using the --execute_pac option.  Changes will be written to the GPU ' +
                            'without confirmation.\nSudo will be used, so you may be prompted for ' +
-                           'credentials in the window where amdgpu-pac was executed from.')
+                           'credentials in the window where gpu-pac was executed from.')
             else:
                 message = 'Writing PAC commands to bash file.\n'
             self.update_message(devices, message, 'red')
@@ -749,7 +749,7 @@ class PACWindow(Gtk.Window):
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
-        print('## amdgpu-pac generated script to modify GPU configuration/settings', file=fileptr)
+        print('## gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('', file=fileptr)
         print('###########################################################################', file=fileptr)
@@ -1083,7 +1083,7 @@ class PACWindow(Gtk.Window):
                 time.sleep(0.5)
                 if changed:
                     message = ('Write of {} PAC commands to card complete.\n'.format(changed) +
-                               'Confirm changes with amdgpu-monitor.')
+                               'Confirm changes with gpu-monitor.')
                 else:
                     message = 'No PAC commands to write to card.\nNo changes specified.'
                 self.update_message(devices, message, 'yellow')
@@ -1116,7 +1116,7 @@ class PACWindow(Gtk.Window):
         if env.GUT_CONST.execute_pac:
             message = ('Using the --execute_pac option  Reset commands will be written to the GPU ' +
                        'without confirmation.\nSudo will be used, so you may be prompted for ' +
-                       'credentials in the window where amdgpu-pac was executed from.')
+                       'credentials in the window where gpu-pac was executed from.')
         else:
             message = 'Writing reset commands to bash file.\n'
         self.update_message(devices, message, 'red')
@@ -1127,7 +1127,7 @@ class PACWindow(Gtk.Window):
 
         # Write finish message
         if env.GUT_CONST.execute_pac:
-            message = 'Write reset commands to card complete.\nConfirm changes with amdgpu-monitor.'
+            message = 'Write reset commands to card complete.\nConfirm changes with gpu-mon.'
         else:
             message = 'Write reset commands to bash file complete.\nRun bash file with sudo to execute changes.'
         self.update_message(devices, message, 'yellow')
@@ -1150,7 +1150,7 @@ class PACWindow(Gtk.Window):
             if env.GUT_CONST.execute_pac:
                 message = ('Using the --execute_pac option  Reset commands will be written to the GPU ' +
                            'without confirmation.\nSudo will be used, so you may be prompted for ' +
-                           'credentials in the window where amdgpu-pac was executed from.')
+                           'credentials in the window where gpu-pac was executed from.')
             else:
                 message = 'Writing reset commands to bash file.\n'
             self.update_message(devices, message, 'red')
@@ -1160,7 +1160,7 @@ class PACWindow(Gtk.Window):
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
-        print('## amdgpu-pac generated script to modify GPU configuration/settings', file=fileptr)
+        print('## gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('', file=fileptr)
         print('###########################################################################', file=fileptr)
@@ -1215,7 +1215,7 @@ class PACWindow(Gtk.Window):
             print('')
             if refresh:
                 # Dismiss execute_pac message
-                message = 'Write reset commands to card complete.\nConfirm changes with amdgpu-monitor.'
+                message = 'Write reset commands to card complete.\nConfirm changes with gpu-mon.'
                 self.update_message(devices, message, 'yellow')
             self.refresh_pac(gpu_list, devices)
             os.remove(out_filename)

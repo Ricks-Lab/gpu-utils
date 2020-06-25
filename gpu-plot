@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-""" amdgpu-plot  -  Plot GPU parameter curves
+""" gpu-plot  -  Plot GPU parameter curves
 
     A utility to continuously plot the trend of critical GPU parameters for all compatible
-    AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *amdgpu-plot*
+    AMD GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot*
     utility has 2 modes of operation.  The default mode is to read the GPU driver details
     directly, which is useful as a standalone utility.  The *--stdin* option causes
-    *amdgpu-plot* to read GPU data from stdin.  This is how *amdgpu-monitor* produces the
+    *gpu-plot* to read GPU data from stdin.  This is how *gpu-monitor* produces the
     plot and can also be used to pipe your own data into the process.  The *--simlog*
     option can be used with the *--stdin* when a monitor log file is piped as stdin.
     This is useful for troubleshooting and can be used to display saved log results.
     The *--ltz* option results in the use of local time instead of UTC.  If you plan
-    to run both *amdgpu-plot* and *amdgpu-monitor*, then the *--plot* option of the
-    *amdgpu-monitor* utility should be used instead of both utilities in order reduce
+    to run both *gpu-plot* and *gpu-monitor*, then the *--plot* option of the
+    *gpu-monitor* utility should be used instead of both utilities in order reduce
     data reads by a factor of 2.
 
     Copyright (C) 2019  RicksLab
@@ -34,7 +34,7 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-plot'
+__program_name__ = 'gpu-plot'
 __maintainer__ = 'RueiKe'
 __status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
@@ -323,7 +323,7 @@ class GPUPlotWindow(Gtk.Window):
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_path:
-            icon_file = os.path.join(env.GUT_CONST.icon_path, 'amdgpu-plot.icon.png')
+            icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-plot.icon.png')
             if os.path.isfile(icon_file):
                 self.set_icon_from_file(icon_file)
 
