@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """ gpu-ls  -  Displays details about installed and compatible GPUs
 
     This utility displays most relevant parameters for installed and compatible GPUs. The

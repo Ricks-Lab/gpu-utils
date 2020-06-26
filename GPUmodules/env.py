@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """env.py - sets environment for rickslab-gpu-utils and establishes global variables
 
-
     Copyright (C) 2019  RicksLab
 
     This program is free software: you can redistribute it and/or modify
@@ -23,7 +22,6 @@ __credits__ = ['Craig Echt - Testing, Debug, and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -41,6 +39,7 @@ import shutil
 import time
 from datetime import datetime
 from typing import Dict, Union, List
+from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -395,7 +394,7 @@ def about() -> None:
     print(__doc__)
     print('Author: ', __author__)
     print('Copyright: ', __copyright__)
-    print('Credits: ', __credits__)
+    print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
     print('License: ', __license__)
     print('Version: ', __version__)
     print('Maintainer: ', __maintainer__)

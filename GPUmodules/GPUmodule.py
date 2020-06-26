@@ -2202,7 +2202,7 @@ def about() -> None:
     print(__doc__)
     print('Author: ', __author__)
     print('Copyright: ', __copyright__)
-    print('Credits: ', __credits__)
+    print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
     print('License: ', __license__)
     print('Version: ', __version__)
     print('Maintainer: ', __maintainer__)

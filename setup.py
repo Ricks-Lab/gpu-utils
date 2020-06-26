@@ -18,8 +18,6 @@ setup(name='rickslab-gpu-utils',
       description='Ricks-Lab GPU Utilities',
       long_description_content_type='text/markdown',
       long_description=long_description,
-      # long_description=('# Ricks-Lab GPU Utilities\n\n'
-                        # 'A set of utilities for monitoring GPU performance and modifying control settings.'),
       author='RueiKe',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',

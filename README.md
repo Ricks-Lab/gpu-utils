@@ -110,7 +110,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-### New in Previous Release  -  V3.3.0
+### New in Previous Release  -  [v3.3.4](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.3.4)
 
 * Display card path details in logger whenever card path exists.
 * Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.
