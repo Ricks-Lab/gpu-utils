@@ -1,30 +1,34 @@
-.TH AMDGPU-PLOT 1 "October 2019" "amdgpu-utils" "AMDGPU-UTILS Manual"
+.TH GPU-PLOT 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
-amdgpu-plot \- continuously update and plot critical GPU parameters as a function of time
+gpu-plot \- continuously update and plot critical GPU parameters as a function of time
 
 .SH SYNOPSIS
-.B amdgpu-plot
+.B gpu-plot
 .RB [ \-\-help " | " \-\-about "]"
 .br
-.B amdgpu-plot
+.B gpu-plot
 .RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "]
 
 .SH CONFIGURATION
-All amdgpu-utils require that compatible GPU cards and drivers are installed and that
-the feature to access them is enabled.  This can be accomplished by adding
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing update-grub.
+/etc/default/grub and executing sudo update-grub.
 
 .SH DESCRIPTION
-.B amdgpu-plot
-will continuously plot a trend of critical GPU parameters for all compatible AMD GPUs.
+.B gpu-plot
+will continuously plot a trend of critical GPU parameters for all compatible GPUs.
 
 .SH OPTIONS
 .TP
 .BR " \-\-about"
 Will display details about
-.B amdgpu-plot\fP.
+.B gpu-plot\fP.
 .TP
 .BR " \-\-ltz"
 Use local time zone instead of UTC for displays and logging.
@@ -33,7 +37,7 @@ Use local time zone instead of UTC for displays and logging.
 Will exclude fan information from the display.  Useful with watercooled GPUs.
 .TP
 .BR " \-\-stdin"
-Will read data from stdin.  This is useful to display plots of a logfile save with \fBamdgpu-monitor\fR.
+Will read data from stdin.  This is useful to display plots of a logfile save with \fBgpu-mon\fR.
 .TP
 .BR " \-\-simlog"
 When used with the \-\-stdin option, it will simulate the reading of data from the logfile at a rate
@@ -50,13 +54,13 @@ Display help text and exit.
 
 .SH "EXAMPLES"
 .nf
-.B amdgpu-plot \-\-sleep 5 \-\-ltz
+.B gpu-plot \-\-sleep 5 \-\-ltz
 
 .fi
-Will open a Gtk window that will display plots of operation parameters for all compatible AMD GPU's that updates
+Will open a Gtk window that will display plots of operation parameters for all compatible GPU's that updates
 every 5s.  Time stamps displayed will use local time zone.
 .P
-.B cat \fIlogfile\fR | \fBamdgpu-plot \-\-stdin \-\-simlog \-\-sleep 1
+.B cat \fIlogfile\fR | \fBgpu-plot \-\-stdin \-\-simlog \-\-sleep 1
 
 .fi
 Will open a Gtk window that will display plots of the GPU operation data in the specified \fIlogfile\fR
@@ -70,13 +74,8 @@ to simulate streamed data with a 1 sec interval.
 The system list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
 It can be updated with the \fBupdate-pciids\fR command.
 .TP
-\fB~/.amdgpu-utils/amd_pci_id.txt\fR
-A locally updated list of all known AMD PCI ID's (vendors, devices, classes and subclasses).
-It is preferred to use the system PCI ID file.  If the local file exists, it will be used instead of
-the system file and can be removed with \fB\-\-remove_local\fR option.
-.TP
 \fB/sys/class/drm/card*/device/pp_od_clk_voltage\fR
-Special driver file for each GPU required for \fBamdgpu-utils\fR.
+Special driver file for each AMD GPU required for some \fBrickslab-gpu-utils\fR.
 .TP
 \fB/etc/default/grub\fR
 The grub defaults file where amdgpu.ppfeaturemask needs to be set.
@@ -87,12 +86,12 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH "SEE ALSO"
 .BR cat (1),
-.BR amdgpu-monitor (1)
+.BR gpu-mon (1)
 .BR amdgpu (4),
 .BR update-grub (8),
 .BR update-pciids (8),
 .BR lspci (8)
 
 .SH AVAILABILITY
-The amdgpu-plot command is part of the amdgpu-utils package and is available from
+The gpu-plot command is part of the rickslab-gpu-utils package and is available from
 https://github.com/Ricks-Lab/amdgpu-utils

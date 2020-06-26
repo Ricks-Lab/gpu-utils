@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" amdgpu-utils: GPUgui module to support gui in amdgpu-utils.
+""" gpu-utils: GPUgui module to support gui in rickslab-gpu-utils.
 
     Copyright (C) 2020  RicksLab
 
@@ -20,9 +20,8 @@ __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2020 RicksLab'
 __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-utils'
+__program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -49,8 +48,8 @@ try:
     from GPUmodules import env
 except ImportError:
     import env
+from GPUmodules import __version__, __status__
 
-__version__ = env.GUT_CONST.version
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS

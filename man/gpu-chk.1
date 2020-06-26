@@ -1,0 +1,52 @@
+.TH GPU\-CHK 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
+.nh
+.SH NAME
+gpu-chk \- verifies if the user's environment is compatible with rickslab-gpu-utils
+
+.SH SYNOPSIS
+.B gpu-chk
+.RB [ \-\-debug ]
+.br
+.B gpu-chk
+.RB [ \-\-help " | " \-\-about "]"
+
+.SH CONFIGURATION
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing sudo update-grub.
+
+.SH DESCRIPTION
+.B gpu-chk
+will check the user environment for compatibility with rickslab-gpu-utils.
+
+.SH OPTIONS
+.TP
+.BR " \-\-about"
+Will display details about 
+.B gpu-chk\fP.
+.TP
+.BR " \-\-debug"
+Will display additional details while checking the user environment.
+.TP
+.BR \-h , " \-\-help"
+Display help text and exit.
+
+.SH BUGS
+No known bugs.  Please report any bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+
+.SH "SEE ALSO"
+.BR amdgpu (4),
+.BR update-grub (8),
+.BR gpu.ls (1),
+.BR gpu.mon (1),
+.BR gpu.plot (1),
+.BR gpu.pac (1)
+
+.SH AVAILABILITY
+The gpu-chk command is part of the rickslab-gpu-utils package and is available from
+https://github.com/Ricks-Lab/amdgpu-utils

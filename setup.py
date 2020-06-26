@@ -4,34 +4,38 @@ import sys
 import os
 import pathlib
 from setuptools import setup
+from GPUmodules import __version__, __status__
 
 if sys.version_info < (3, 6):
-    print('ricks-amdgpu-utils requires at least Python 3.6.')
+    print('rickslab-gpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
-VERSION = '3.3.14'
-with open(os.path.join(pathlib.Path(__file__).parent, 'READMEPYPI.md'), 'r') as file_ptr:
+with open(os.path.join(pathlib.Path(__file__).parent, 'README.md'), 'r') as file_ptr:
     long_description = file_ptr.read()
 
-setup(name='ricks-amdgpu-utils',
-      version=VERSION,
-      description='Ricks AMD GPU Utilities (Deprecated)',
-      long_description=long_description,
+setup(name='rickslab-gpu-utils',
+      version=__version__,
+      description='Ricks-Lab GPU Utilities',
       long_description_content_type='text/markdown',
+      long_description=long_description,
+      # long_description=('# Ricks-Lab GPU Utilities\n\n'
+                        # 'A set of utilities for monitoring GPU performance and modifying control settings.'),
       author='RueiKe',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
       url='https://github.com/Ricks-Lab/amdgpu-utils',
       packages=['GPUmodules'],
       include_package_data=True,
-      scripts=['amdgpu-chk', 'amdgpu-ls', 'amdgpu-monitor', 'amdgpu-pac', 'amdgpu-plot'],
+      scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
       python_requires='>=3.6',
-      classifiers=['Development Status :: 6 - Mature',
+      classifiers=[__status__,
                    'Operating System :: POSIX',
                    'Natural Language :: English',
                    'Programming Language :: Python :: 3',
-                   'Topic :: System :: Monitoring'],
+                   'Topic :: System :: Monitoring',
+                   'Environment :: GPU',
+                   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'],
       install_requires=['cycler>=0.10.0',
                         'kiwisolver>=1.1.0',
                         'matplotlib>=3.1.3',
@@ -43,14 +47,14 @@ setup(name='ricks-amdgpu-utils',
                         'ruamel.yaml==0.16.10',
                         'ruamel.yaml.clib==0.2.0',
                         'six>=1.11.0'],
-      data_files=[('share/ricks-amdgpu-utils/icons', ['icons/amdgpu-monitor.icon.png',
-                                                      'icons/amdgpu-pac.icon.png',
-                                                      'icons/amdgpu-plot.icon.png']),
-                  ('share/ricks-amdgpu-utils/doc', ['README.md', 'LICENSE']),
-                  ('share/man/man1', ['man/amdgpu-chk.1',
-                                      'man/amdgpu-ls.1',
-                                      'man/amdgpu-monitor.1',
-                                      'man/amdgpu-pac.1',
-                                      'man/amdgpu-plot.1'])
+      data_files=[('share/rickslab-gpu-utils/icons', ['icons/gpu-mon.icon.png',
+                                                      'icons/gpu-pac.icon.png',
+                                                      'icons/gpu-plot.icon.png']),
+                  ('share/rickslab-gpu-utils/doc', ['README.md', 'LICENSE']),
+                  ('share/man/man1', ['man/gpu-chk.1',
+                                      'man/gpu-ls.1',
+                                      'man/gpu-mon.1',
+                                      'man/gpu-pac.1',
+                                      'man/gpu-plot.1'])
                   ]
       )

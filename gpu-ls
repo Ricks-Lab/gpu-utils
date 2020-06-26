@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-""" amdgpu-ls  -  Displays details about installed AMD GPUs
+""" gpu-ls  -  Displays details about installed and compatible GPUs
 
-    This utility displays most relevant parameters for installed and compatible AMD GPUs. The
+    This utility displays most relevant parameters for installed and compatible GPUs. The
     default behavior is to list relevant parameters by GPU.  OpenCL platform information is
-    added when the *--clinfo* option is used.  A brief listing of key parameters is available with
-    the *--short* command line option.  A simplified table of current GPU state is
+    added when the *--clinfo* option is used.  A brief listing of key parameters is available
+    with the *--short* command line option.  A simplified table of current GPU state is
     displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
     *--pstate* option can be used to output the p-state table for each GPU instead of the list
     of basic parameters.  The *--ppm* option is used to output the table of available
@@ -30,9 +30,8 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
                'Keith Myers - Testing, Debug, Verification of NV Capability']
 __license__ = 'GNU General Public License'
-__program_name__ = 'amdgpu-ls'
+__program_name__ = 'gpu-ls'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -41,16 +40,16 @@ __docformat__ = 'reStructuredText'
 import argparse
 import sys
 import logging
+from GPUmodules import __version__, __status__
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
-__version__ = env.GUT_CONST.version
 LOGGER = logging.getLogger('gpu-utils')
 
 
 def main() -> None:
     """
-    Main flow for amdgpu-ls.
+    Main flow for gpu-ls.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
@@ -76,7 +75,7 @@ def main() -> None:
         print(__doc__)
         print('Author: ', __author__)
         print('Copyright: ', __copyright__)
-        print('Credits: ', __credits__)
+        print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
         print('Maintainer: ', __maintainer__)
