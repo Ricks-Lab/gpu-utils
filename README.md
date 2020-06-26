@@ -15,8 +15,8 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 
 Check out the [User Guide](docs/USER_GUIDE.md)!
 
-Download latest official release: [v3.2.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.2.0)
-or install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
+
+Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 command:
 
 ```
@@ -25,7 +25,7 @@ pip3 install rickslab-gpu-utils
 
 ## gpu-chk
 
-This utility verifies if the environment is compatible with *rickslab-gpu-utils*.
+This utility verifies if the environment is compatible with **rickslab-gpu-utils**.
 
 ## gpu-ls
 
@@ -110,7 +110,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-### New in Previous Release  -  [v3.3.4](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.3.4)
+### New in Previous Release  -  [v3.3.14](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.3.14)
 
 * Display card path details in logger whenever card path exists.
 * Implemented read capabilities for Nvidia.  Now supported by all utilities except pac.

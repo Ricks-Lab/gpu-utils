@@ -1,2 +1,2 @@
-__version__ = 'v3.4.4'
-__status__ = 'Development Status :: 4 - Beta'
+__version__ = 'v3.4.5'
+__status__ = 'Development Status :: 5 - Production/Stable'
