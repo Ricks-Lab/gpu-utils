@@ -7,12 +7,14 @@ if sys.version_info < (3, 6):
     print('rickslab-gpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
-VERSION = '3.4.0'
+VERSION = '3.4.3'
 
 setup(name='rickslab-gpu-utils',
       version=VERSION,
       description='Ricks-Lab GPU Utilities',
-      long_description='A set of utilities for monitoring GPU performance and modifying control settings.',
+      long_description=('# Ricks-Lab GPU Utilities\n\n'
+                        'A set of utilities for monitoring GPU performance and modifying control settings.'),
+      long_description_content_type='text/markdown',
       author='RueiKe',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
@@ -26,7 +28,9 @@ setup(name='rickslab-gpu-utils',
                    'Operating System :: POSIX',
                    'Natural Language :: English',
                    'Programming Language :: Python :: 3',
-                   'Topic :: System :: Monitoring'],
+                   'Topic :: System :: Monitoring',
+                   'Environment :: GPU',
+                   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'],
       install_requires=['cycler>=0.10.0',
                         'kiwisolver>=1.1.0',
                         'matplotlib>=3.1.3',
