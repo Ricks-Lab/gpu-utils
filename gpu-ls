@@ -32,7 +32,6 @@ __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-ls'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -41,10 +40,10 @@ __docformat__ = 'reStructuredText'
 import argparse
 import sys
 import logging
+from GPUmodules import __version__, __status__
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
-__version__ = env.GUT_CONST.version
 LOGGER = logging.getLogger('gpu-utils')
 
 

@@ -23,9 +23,7 @@ __copyright__ = 'Copyright (C) 2019 RicksLab'
 __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-chk'
-__version__ = 'v3.4.3'
 __maintainer__ = 'RueiKe'
-__status__ = 'Stable Release'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -40,7 +38,10 @@ import platform
 import sys
 import shutil
 import warnings
+from GPUmodules import __version__, __status__
+
 warnings.filterwarnings('ignore')
+ENV_DIR = 'rickslab-gpu-utils-env'
 
 
 class GutConst:
@@ -183,7 +184,7 @@ def is_venv_installed() -> bool:
             return True
     print('python3 venv is NOT installed')
     print('          ' + '\x1b[1;30;43m' + ' Python3 venv package \'python3-venv\' package is recommended. ' +
-          '\x1b[0m')
+          'for developers' + '\x1b[0m')
     return False
 
 
@@ -193,14 +194,14 @@ def does_amdgpu_utils_env_exist() -> bool:
 
     :return:  Return True if venv exists.
     """
-    env_name = './amdgpu-utils-env/bin/activate'
+    env_name = './' + ENV_DIR + '/bin/activate'
 
     if os.path.isfile(env_name):
-        print('amdgpu-utils-env available')
-        print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env OK. ' + '\x1b[0m')
+        print(ENV_DIR + ' available')
+        print('          ' + '\x1b[1;37;42m ' + ENV_DIR + ' OK. ' + '\x1b[0m')
         return True
-    print('amdgpu-utils-env is NOT available')
-    print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env should be configured per User Guide. ' + '\x1b[0m')
+    print(ENV_DIR + ' is NOT available')
+    print('          ' + '\x1b[1;30;43m ' + ENV_DIR + ' can be configured per User Guide. ' + '\x1b[0m')
     return False
 
 
@@ -214,12 +215,12 @@ def is_in_venv() -> bool:
     if not python_path:
         print('Maybe python version compatibility issue.')
     else:
-        if re.fullmatch(r'.*amdgpu-utils-env.*', python_path):
-            print('In amdgpu-utils-env')
-            print('          ' + '\x1b[1;37;42m' + ' amdgpu-utils-env is activated. ' + '\x1b[0m')
+        if re.search(ENV_DIR, python_path):
+            print('In ' + ENV_DIR)
+            print('          ' + '\x1b[1;37;42m ' + ENV_DIR + ' is activated. ' + '\x1b[0m')
             return True
-        print('Not in amdgpu-utils-env (Only needed if you want to duplicate dev env)')
-        print('          ' + '\x1b[1;30;43m' + ' amdgpu-utils-env can be activated per User Guide. ' + '\x1b[0m')
+        print('Not in ' + ENV_DIR + ' (Only needed if you want to duplicate dev env)')
+        print('          ' + '\x1b[1;30;43m' + ENV_DIR + ' can be activated per User Guide. ' + '\x1b[0m')
     return False
 
 
@@ -251,11 +252,10 @@ def main() -> None:
         sys.exit(-1)
 
     if not is_venv_installed() or not does_amdgpu_utils_env_exist():
-        print('Environment not configured. WARNING')
+        print('Virtual Environment not configured. Only required by developers.')
 
     if not is_in_venv():
         pass
-        # print('Virtual Environment not activated. WARNING')
     print('')
 
 

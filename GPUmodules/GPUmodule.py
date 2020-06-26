@@ -24,7 +24,6 @@ __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
@@ -44,13 +43,13 @@ from enum import Enum
 import glob
 #from timeit import default_timer as timer
 
+from GPUmodules import __version__, __status__
 try:
     from GPUmodules import env
 except ImportError:
     import env
 
 
-__version__ = env.GUT_CONST.version
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
 

@@ -22,7 +22,6 @@ __credits__ = ['@berturion - Testing and Verification']
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -49,8 +48,8 @@ try:
     from GPUmodules import env
 except ImportError:
     import env
+from GPUmodules import __version__, __status__
 
-__version__ = env.GUT_CONST.version
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS

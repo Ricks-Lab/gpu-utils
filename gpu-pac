@@ -31,7 +31,6 @@ __credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-pac'
 __maintainer__ = 'RueiKe'
-__status__ = 'Development - Extended'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -57,11 +56,11 @@ except ModuleNotFoundError as error:
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 
+from GPUmodules import __version__, __status__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
-__version__ = env.GUT_CONST.version
 MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop

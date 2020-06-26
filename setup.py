@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 
 import sys
+import os
+import pathlib
 from setuptools import setup
+from GPUmodules import __version__, __status__
 
 if sys.version_info < (3, 6):
     print('rickslab-gpu-utils requires at least Python 3.6.')
     sys.exit(1)
 
-VERSION = '3.4.3'
+with open(os.path.join(pathlib.Path(__file__).parent, 'README.md'), 'r') as file_ptr:
+    long_description = file_ptr.read()
 
 setup(name='rickslab-gpu-utils',
-      version=VERSION,
+      version=__version__,
       description='Ricks-Lab GPU Utilities',
-      long_description=('# Ricks-Lab GPU Utilities\n\n'
-                        'A set of utilities for monitoring GPU performance and modifying control settings.'),
       long_description_content_type='text/markdown',
+      long_description=long_description,
+      # long_description=('# Ricks-Lab GPU Utilities\n\n'
+                        # 'A set of utilities for monitoring GPU performance and modifying control settings.'),
       author='RueiKe',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
@@ -24,7 +29,7 @@ setup(name='rickslab-gpu-utils',
       scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
       python_requires='>=3.6',
-      classifiers=['Development Status :: 3 - Alpha',
+      classifiers=[__status__,
                    'Operating System :: POSIX',
                    'Natural Language :: English',
                    'Programming Language :: Python :: 3',
