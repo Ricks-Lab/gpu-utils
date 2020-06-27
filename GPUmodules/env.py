@@ -86,19 +86,21 @@ class GutConst:
         self.repository_path = os.path.join(self.repository_module_path, '..')
 
         # Set pciid Path
-        self.sys_pciid = None
         for try_pciid_path in GutConst._sys_pciid_list:
             if os.path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
                 break
+        else:
+            self.sys_pciid = None
 
         # Set Icon Path
         self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
-        self.icon_path = None
         for try_icon_path in GutConst._local_icon_list:
             if os.path.isdir(try_icon_path):
                 self.icon_path = try_icon_path
                 break
+        else:
+            self.icon_path = None
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''

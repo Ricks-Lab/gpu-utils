@@ -132,7 +132,8 @@ class PACWindow(Gtk.Window):
                          width_chars=5, max_length=5)
             devices[gpu.prm.uuid]['power_cap_ent_unit'] = Gtk.Label(name='white_label')
             devices[gpu.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
-            set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0, align=(0.0, 0.5))
+            set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0,
+                         align=(0.0, 0.5))
             lbox = Gtk.Box(spacing=2, name='med_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
             lbox.pack_start(devices[gpu.prm.uuid]['power_cap_cur'], False, False, 0)
@@ -540,11 +541,11 @@ class PACWindow(Gtk.Window):
         """
         if message == '':
             if env.GUT_CONST.execute_pac:
-                message = ('Using the --execute_pac option.  Changes will be written to the GPU without ' +
-                           'confirmation.\nSudo will be used, so you may be prompted for credentials in ' +
+                message = ('Using the --execute_pac option.  Changes will be written to the GPU without '
+                           'confirmation.\nSudo will be used, so you may be prompted for credentials in '
                            'the window where gpu-pac was executed from.')
             else:
-                message = ('Using gpu-pac without --execute_pac option.\nYou must manually run bash ' +
+                message = ('Using gpu-pac without --execute_pac option.\nYou must manually run bash '
                            'file with sudo to execute changes.')
 
         if color == 'red':
@@ -692,8 +693,8 @@ class PACWindow(Gtk.Window):
         changed = 0
         # Write start message
         if env.GUT_CONST.execute_pac:
-            message = ('Using the --execute_pac option.  Changes will be written to the GPU without ' +
-                       'confirmation.\nSudo will be used, so you may be prompted for credentials in ' +
+            message = ('Using the --execute_pac option.  Changes will be written to the GPU without '
+                       'confirmation.\nSudo will be used, so you may be prompted for credentials in '
                        'the window where gpu-pac was executed from.')
         else:
             message = 'Writing PAC command bash file.\n'
@@ -707,14 +708,14 @@ class PACWindow(Gtk.Window):
         time.sleep(1.0)
         if env.GUT_CONST.execute_pac:
             if changed:
-                message = ('Write {} PAC commands to card complete.\n'.format(changed) +
-                           'Confirm changes with gpu-mon.')
+                message = ('Write {} PAC commands to card complete.\n'
+                           'Confirm changes with gpu-mon.').format(changed)
             else:
                 message = 'No PAC commands to write to card.\nNo changes specified.'
         else:
             if changed:
-                message = ('Writing {} PAC commands to bash file complete.\n'.format(changed) +
-                           'Run bash file with sudo to execute changes.')
+                message = ('Writing {} PAC commands to bash file complete.\n'
+                           'Run bash file with sudo to execute changes.').format(changed)
             else:
                 message = 'No PAC commands to write to bash file.\nNo changes specified.'
         self.update_message(devices, message, 'yellow')
@@ -735,8 +736,8 @@ class PACWindow(Gtk.Window):
         if refresh:
             # Write message
             if env.GUT_CONST.execute_pac:
-                message = ('Using the --execute_pac option.  Changes will be written to the GPU ' +
-                           'without confirmation.\nSudo will be used, so you may be prompted for ' +
+                message = ('Using the --execute_pac option.  Changes will be written to the GPU '
+                           'without confirmation.\nSudo will be used, so you may be prompted for '
                            'credentials in the window where gpu-pac was executed from.')
             else:
                 message = 'Writing PAC commands to bash file.\n'
@@ -748,7 +749,7 @@ class PACWindow(Gtk.Window):
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
-        print('## gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
+        print('## rickslab-gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('', file=fileptr)
         print('###########################################################################', file=fileptr)
@@ -1081,8 +1082,8 @@ class PACWindow(Gtk.Window):
                 # dismiss execute_pac message
                 time.sleep(0.5)
                 if changed:
-                    message = ('Write of {} PAC commands to card complete.\n'.format(changed) +
-                               'Confirm changes with gpu-monitor.')
+                    message = ('Write of {} PAC commands to card complete.\n'
+                               'Confirm changes with gpu-monitor.').format(changed)
                 else:
                     message = 'No PAC commands to write to card.\nNo changes specified.'
                 self.update_message(devices, message, 'yellow')
@@ -1094,8 +1095,8 @@ class PACWindow(Gtk.Window):
             if refresh:
                 # dismiss execute_pac message
                 if changed:
-                    message = ('Write of {} PAC commands to bash file complete.\n'.format(changed) +
-                               'Manually run bash file with sudo to execute changes.')
+                    message = ('Write of {} PAC commands to bash file complete.\n'
+                               'Manually run bash file with sudo to execute changes.').format(changed)
                 else:
                     message = 'No PAC commands to write bash file.\nNo changes specified.'
                 self.update_message(devices, message, 'yellow')
@@ -1113,8 +1114,8 @@ class PACWindow(Gtk.Window):
         """
         # Write start message
         if env.GUT_CONST.execute_pac:
-            message = ('Using the --execute_pac option  Reset commands will be written to the GPU ' +
-                       'without confirmation.\nSudo will be used, so you may be prompted for ' +
+            message = ('Using the --execute_pac option  Reset commands will be written to the GPU '
+                       'without confirmation.\nSudo will be used, so you may be prompted for '
                        'credentials in the window where gpu-pac was executed from.')
         else:
             message = 'Writing reset commands to bash file.\n'
@@ -1147,8 +1148,8 @@ class PACWindow(Gtk.Window):
         if refresh:
             # Write message
             if env.GUT_CONST.execute_pac:
-                message = ('Using the --execute_pac option  Reset commands will be written to the GPU ' +
-                           'without confirmation.\nSudo will be used, so you may be prompted for ' +
+                message = ('Using the --execute_pac option  Reset commands will be written to the GPU '
+                           'without confirmation.\nSudo will be used, so you may be prompted for '
                            'credentials in the window where gpu-pac was executed from.')
             else:
                 message = 'Writing reset commands to bash file.\n'
@@ -1159,7 +1160,7 @@ class PACWindow(Gtk.Window):
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
-        print('## gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
+        print('## rickslab-gpu-pac generated script to modify GPU configuration/settings', file=fileptr)
         print('###########################################################################', file=fileptr)
         print('', file=fileptr)
         print('###########################################################################', file=fileptr)

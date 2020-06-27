@@ -144,7 +144,7 @@ class GpuItem:
                            'mclk_ps_val':    'Mclk Pstate',
                            'ppm':            'Perf Mode'}
 
-    # Complete GPU print items, use skip lists where apporpriate
+    # Complete GPU print items, use skip lists where appropriate
     _GPU_CLINFO_Labels = {'sep4': '#',
                           'opencl_version':     '   Device OpenCL C Version',
                           'device_name':        '   Device Name',
