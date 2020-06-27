@@ -188,7 +188,7 @@ usage: gpu-ls [-h] [--about] [--short] [--table] [--pstates] [--ppm]
 optional arguments:
   -h, --help   show this help message and exit
   --about      README
-  --short      Short listing basic GPU details
+  --short      Short listing of basic GPU details
   --table      Current status of readable GPUs
   --pstates    Output pstate tables instead of GPU details
   --ppm        Output power/performance mode tables instead of GPU details

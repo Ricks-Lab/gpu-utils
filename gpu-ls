@@ -54,7 +54,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
                         action='store_true', default=False)
-    parser.add_argument('--short', help='Short listing basic GPU details',
+    parser.add_argument('--short', help='Short listing of basic GPU details',
                         action='store_true', default=False)
     parser.add_argument('--table', help='Current status of readable GPUs',
                         action='store_true', default=False)
