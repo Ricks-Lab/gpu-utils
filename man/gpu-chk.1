@@ -14,7 +14,7 @@ gpu-chk \- verifies if the user's environment is compatible with rickslab-gpu-ut
 In order to get maximum capability of these utilities, you should be running with a kernel that
 provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
 driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, nvidia.smi must also be installed in order for the utility reading of the cards
+GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
 to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
 cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
@@ -29,9 +29,6 @@ will check the user environment for compatibility with rickslab-gpu-utils.
 .BR " \-\-about"
 Will display details about 
 .B gpu-chk\fP.
-.TP
-.BR " \-\-debug"
-Will display additional details while checking the user environment.
 .TP
 .BR \-h , " \-\-help"
 Display help text and exit.

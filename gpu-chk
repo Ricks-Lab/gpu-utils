@@ -230,7 +230,6 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
-    parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 
     # About me
@@ -244,8 +243,6 @@ def main() -> None:
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         sys.exit(0)
-
-    GUT_CONST.DEBUG = args.debug
 
     if GUT_CONST.check_env() != [0, 0, 0, 0]:
         print('Error in environment. Exiting...')
