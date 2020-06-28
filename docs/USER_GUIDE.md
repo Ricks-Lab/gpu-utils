@@ -105,7 +105,7 @@ Card Number: 0
    Card Model: Intel Corporation 8th Gen Core Processor Gaussian Mixture Model
    PCIe ID: 00:02.0
    Driver: i915
-   GPU Frequency/Voltage Control Type: Unsupported
+   GPU Type: Unsupported
    HWmon: None
    Card Path: /sys/class/drm/card0/device
    System Card Path: /sys/devices/pci0000:00/0000:00:02.0
@@ -120,7 +120,7 @@ Card Number: None
    Card Model: Advanced Micro Devices, Inc. [AMD/ATI] RV730 PRO [Radeon HD 4650]
    PCIe ID: 01:00.0
    Driver: radeon
-   GPU Frequency/Voltage Control Type: Unsupported
+   GPU Type: Unsupported
    HWmon: None
    Card Path: None
    System Card Path: /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0
@@ -142,7 +142,7 @@ Card Number: 1
    Driver: amdgpu
    vBIOS Version: 113-5E4111U-X4G
    Compute Platform: OpenCL 2.0 AMD-APP (3075.10)
-   GPU Frequency/Voltage Control Type: CurvePts
+   GPU Type: CurvePts
    HWmon: /sys/class/drm/card1/device/hwmon/hwmon3
    Card Path: /sys/class/drm/card1/device
    System Card Path: /sys/devices/pci0000:00/0000:00:01.1/0000:02:00.0/0000:03:00.0/0000:04:00.0
@@ -308,18 +308,22 @@ Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
 GPU Type: CurvePts
 ```
 
-Monitor and Control utilities will differ between the three types.
+Monitor and Control utilities will differ between these types:
 
-* For type Undefined, you can monitor the P-state details with monitor utilities, but you can NOT define P-states or set P-state masks.
-* For type PStates, you can monitor the P-state details with monitor utilities, and you can define P-states and set P-state masks.
-* For Type CurvePts, you can monitor current Clocks frequency and P-states, with latest amdgpu drivers.  The SCLK and
-MCLK curve end points can be controlled, which has the effect of limiting the frequency range, similar to P-state
-masking for Type PStates cards.  The option of p-state masking is also available for Type CurvePts cards.  You are
-also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but
-I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is
-effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage
-doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for
-curve points and actual default settings. 
+* For **Undefined** and **Unsupported** types, only generic PCIe parameters are available.  These types are
+considered unreadable, unwritable, and as having no compute capability.
+* For **Supported** types have the most basic level of readability.  This includes NV cards with nvidia-smi support.
+* For **Legacy** and **APU**, only basic and limited respectively are readable.
+* For **Pstates** and **PstatesNE** type GPUs, pstate details are readable, but for **PstatesNE** they are not
+writable. For type **Pstates** pstate Voltages/Frequencies as well as pstate masking can be specified.
+* The **CurvePts** type applies to modern (Vega20 and later) AMD GPUs that use AVFS instead of Pstates for
+performance control.  These have the highest degree of read/write capability. The SCLK and MCLK curve end points
+can be controlled, which has the effect of over/under clocking/voltage. The option of p-state masking is also
+available.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not
+attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For
+underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on
+the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears
+to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
@@ -329,7 +333,7 @@ Below is a plot of what I extracted for the Frequency vs Voltage curves of the R
 
 By default, *gpu-mon* will display a text based table in the current terminal window that updates
 every sleep duration, in seconds, as defined by *--sleep N* or 2 seconds by default. If you are using
-water cooling, you can use the *--no_fans* to remove fan functionality.
+water cooling, you can use the *--no_fans* to remove fan monitoring functionality.
 
 ```
 ┌─────────────┬────────────────┬────────────────┐
@@ -365,11 +369,10 @@ The Energy field is a derived metric that accumulates GPU energy usage, in kWh, 
 Note that total card power usage may be more than reported GPU power usage.  Energy is calculated as the product of
 the latest power reading and the elapsed time since the last power reading. 
 
-You will notice no clock frequencies or valid P-states for the Vega 20 card.  This is because of a limitation in
-the first drivers that supported Vega 20 which have a change in the way frequency vs voltage is managed. In later
-version of the drivers, actual clock frequency and P-states are readable. The P-state table for Vega 20 is a
-definition of frequency vs. voltage curves, so setting P-states to control the GPU is no longer relevant, but
-these concepts are used in reading current states.
+
+The P-states in the table for **CurvePts** type GPU are an indication of frequency vs. voltage curves.
+Setting P-states to control the GPU is no longer relevant for this type, but these concepts are used in
+reading current states.
 
 The Perf Mode field gives the current power performance mode, which may be modified in with *gpu-pac*.  These
 modes affect the how frequency and voltage are managed versus loading.  This is a very important parameter when
@@ -400,7 +403,7 @@ recommended to run both the monitor with an independently executed plot, as it w
 from the driver files.  Once the plots are displayed, individual items on the plot can be toggled by selecting the
 named button on the plot display.
 
-The *--stdin* option is used by *gpu-monr --plot* in its execution of *gpu-plot*.  This option along
+The *--stdin* option is used by *gpu-mon --plot* in its execution of *gpu-plot*.  This option along
 with *--simlog* option can be used to simulate a plot output using a log file generated by *gpu-mon --log*. 
 I use this feature when troubleshooting problems from other users, but it may also be useful in benchmarking
 performance.  An example of the command line for this is as follows:
@@ -422,7 +425,7 @@ file is created that you can review and execute to implement the desired changes
 ```
 #!/bin/sh
 ###########################################################################
-## gpu-pac generated script to modify GPU configuration/settings
+## rickslab-gpu-pac generated script to modify GPU configuration/settings
 ###########################################################################
 
 ###########################################################################
@@ -481,10 +484,10 @@ sudo sh -c "echo '0 1 2' >  /sys/class/drm/card1/device/pp_dpm_mclk"
 When you execute *gpu-pac*, you will notice a message bar at the bottom of the interface.  By default, it informs
 you of the mode you are running in.  By default, the operation mode is to create a bash file, but with the
 *--execute_pac* (or *--execute*) command line option, the bash file will be automatically executed and then deleted. 
-The message bar will indicate this status.  Because the driver files are writable only by root, the commands to write
-configuration settings are executed with sudo.  The message bar will display in red when credentials are pending.  Once
-executed, a yellow message will remind you to check the state of the gpu with *gpu-mon*.  I suggest to using
-the monitor routine when executing pac to see the changes in real-time.
+The message bar will indicate this status.  Because the driver files are writable only by root, the commands to
+write configuration settings are executed with sudo.  The message bar will display in red when credentials are
+pending.  Once executed, a yellow message will remind you to check the state of the gpu with *gpu-mon*.  I
+suggest using the monitor routine when executing pac to see and confirm the changes in real-time.
 
 The command line option *--force_write* will result in all configuration parameters to be written to the bash file. 
 The default behavior since v2.4.0 is to write only changes.  The *--force_write* is useful for creating a bash file
@@ -507,11 +510,11 @@ is not under load.  If you know the cause of the differences between entered and
 
 Changes made with *gpu-pac* do not persist through a system reboot. To reestablish desired GPU settings after a
 reboot, either re-enter them using *gpu-pac* or *gpu-pac --execute*, or execute a previously saved bash file.
-*Amdgpu-pac* bash files must retain their originally assigned file name to run properly.
+*gpu-pac* bash files must retain their originally assigned file name to run properly.
 See [Running Startup PAC Bash Files](#running-startup-pac-bash-files) for how to run PAC bash
 scripts automatically at system startup.
 
-For Type PStates cards, while changes to power caps and fan speeds can be made while the GPU is under load, for
+For Type **Pstates** cards, while changes to power caps and fan speeds can be made while the GPU is under load, for
 *gpu-pac* to work properly, other changes may require that the GPU not be under load, *i.e.*, that sclk
 P-state and mclk P-state are 0. Possible consequences with making changes under load is that the GPU become
 stuck in a 0 P-state or that the entire system becomes slow to respond, where a reboot will be needed to restore
@@ -521,11 +524,11 @@ Some changes may not persist when a card has a connected display. When changing 
 P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to
 be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
 
-For Type CurvePts cards, although changes to p-state masks cannot be made through *gpu-pac*, changes to all
+For Type **CurvePts** cards, although changes to p-state masks cannot be made through *gpu-pac*, changes to all
 other fields can be made on-the-fly while the card is under load.
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save
-changes to the GPU.
+changes to the GPU.  You should always confirm your changes with *gpu-mon*.
 
 ## Updating the PCI ID decode file 
 
