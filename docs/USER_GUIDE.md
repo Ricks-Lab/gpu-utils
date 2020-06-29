@@ -56,7 +56,7 @@ support of the GPUs you have installed.  If using AMD GPUs, installing the lates
 driver package or the latest **ROCm** release, may provide additional capabilities. If you
 have Nvidia GPUs installed, you should have **nvidia.smi** installed in order for the utility
 reading of the cards to be possible.  Writing to GPUs is currently only possible for AMD GPUs,
-and only with compatible cards.  Modifying AMD GPU properties required the AMD ppfeaturemask
+and only with compatible cards.  Modifying AMD GPU properties requires the AMD ppfeaturemask
 to be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
 to the `GRUB_CMDLINE_LINUX_DEFAULT` value in `/etc/default/grub` and executing `sudo update-grub`:
 
@@ -304,7 +304,7 @@ GPU Type: PStates
 Decoded Device ID: Radeon VII
 GPU Type: CurvePts
 
-Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
+Decoded Device ID: Radeon RX 5600 XT
 GPU Type: CurvePts
 ```
 
@@ -318,12 +318,7 @@ considered unreadable, unwritable, and as having no compute capability.
 writable. For type **Pstates** pstate Voltages/Frequencies as well as pstate masking can be specified.
 * The **CurvePts** type applies to modern (Vega20 and later) AMD GPUs that use AVFS instead of Pstates for
 performance control.  These have the highest degree of read/write capability. The SCLK and MCLK curve end points
-can be controlled, which has the effect of over/under clocking/voltage. The option of p-state masking is also
-available.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not
-attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For
-underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on
-the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears
-to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
+can be controlled, which has the effect of over/under clocking/voltage.  You are also able to modify the three points that define the Vddc-SCLK curve. I have not attempted to OC the card yet, but I assume redefining the 3rd point would be the best approach.  For underclocking, lowering the SCLK end point is effective.  I don't see a curve defined for memory clock on the Radeon VII, so setting memory clock vs. voltage doesn't seem possible at this time.  There also appears to be an inconsistency in the defined voltage ranges for curve points and actual default settings. 
 
 Below is a plot of what I extracted for the Frequency vs Voltage curves of the RX Vega64 and the Radeon VII.
 
@@ -368,7 +363,6 @@ lowering the cap can result in more level loading and overall lower power usage 
 The Energy field is a derived metric that accumulates GPU energy usage, in kWh, consumed since the monitor started.
 Note that total card power usage may be more than reported GPU power usage.  Energy is calculated as the product of
 the latest power reading and the elapsed time since the last power reading. 
-
 
 The P-states in the table for **CurvePts** type GPU are an indication of frequency vs. voltage curves.
 Setting P-states to control the GPU is no longer relevant for this type, but these concepts are used in
@@ -492,7 +486,7 @@ suggest using the monitor routine when executing pac to see and confirm the chan
 The command line option *--force_write* will result in all configuration parameters to be written to the bash file. 
 The default behavior since v2.4.0 is to write only changes.  The *--force_write* is useful for creating a bash file
 that can be execute to set your cards to a known state. As an example, you could use such a file to configure your
-GPUs on boot up (see [Setting GPU Automatically at Startup](#setting-gpu-automatically-at-startup)).
+GPUs on boot up (see [Running Startup PAC Bash Files](#running-startup-pac-bash-files)).
 
 ### The gpu-pac interface for Type PStates and Type CurvePts cards
 
@@ -524,7 +518,7 @@ Some changes may not persist when a card has a connected display. When changing 
 P-state mask, if different from default (no masking), will have to be re-entered for clock or voltage changes to
 be applied. Again, save PAC changes to clocks, voltages, or masks only when the GPU is at resting state (state 0).
 
-For Type **CurvePts** cards, although changes to p-state masks cannot be made through *gpu-pac*, changes to all
+For Type **CurvePts** cards, although changes to P-state masks cannot be made through *gpu-pac*, changes to all
 other fields can be made on-the-fly while the card is under load.
 
 Some basic error checking is done before writing, but I suggest you be very certain of all entries before you save
@@ -564,9 +558,7 @@ changes in your hardware or graphic drivers may cause potentially serious proble
 PAC bash files are generated following the changes. Review the [Using gpu-pac](#using-gpu-pac) section
 before proceeding.
 
-One approach is to execute PAC bash scripts as a systemd startup service. As with setting up files for crontab,
-from *gpu-pac --force_write* set your optimal configurations for each GPU, then Save All. You may need to
-change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
+One approach is to execute PAC bash scripts as a systemd startup service. From *gpu-pac --force_write*, set your optimal configurations for each GPU, then Save All. You may need to change ownership to root of each card's bash file: `sudo chown root pac_writer*.sh`
 
 For each bash file, you could create a symlink (soft link) that corresponds to the card number referenced in each
 linked bash file, using simple descriptive names, *e.g.*, pac_writer_card1, pac_writer_card2, *etc.*. These links are
@@ -620,7 +612,7 @@ update and restart. With subsequent updates or restarts, a card can switch back 
 switch occurs, the bash file written for a previous card number will still be read at startup, but will have no
 effect, causing the renumbered card to run at its default settings. To deal with this possibility, you can create
 an alternative PAC bash file after a renumbering event and add these alternative files in your systemd service.
-You will probably just need two alternative bash files for a card that is subject to amdgpu reindexing. A card's
+You will probably just need two alternative bash files for a card that is subject to reindexing. A card's
 number is shown by *gpu-ls* and also appears in *gpu-mon* and *gpu-plot*. A card's PCI IDs is listed
 by *gpu-ls*. If you know what causes GPU card index switching, let me know.
 
