@@ -13,7 +13,7 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 `amdgpu.ppfeaturemask=0xfffd7fff` to the `GRUB_CMDLINE_LINUX_DEFAULT` value in
 `/etc/default/grub` and executing `sudo update-grub`
 
-Check out the [User Guide](docs/USER_GUIDE.md)!
+Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
 
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 command:
@@ -79,9 +79,11 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Development Branch  -  V3.4.0
+## New in this Development Branch  -  V3.4.x
 
-* Update name from **amdgpu-utils** to **rickslab-gpu-utils**
+* Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
+* Improved PyPI packaging.
+* Updated Users Guide with latest features.
 
 ## Development Plans
 
