@@ -1294,8 +1294,11 @@ class GpuItem:
                 self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
                 self.prm.model = results['name']
-                self.prm.model_display = results['name'] \
-                    if len(results['name']) < len(self.prm.model_device_decode) else self.prm.model_device_decode
+                #self.prm.model_display = results['name'] \
+                    #if len(results['name']) < len(self.prm.model_device_decode) else self.prm.model_device_decode
+                self.prm.model_display = self.prm.model_device_decode
+                if results['name'] and len(results['name']) < len(self.prm.model_device_decode):
+                    self.prm.model_display = results['name']
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
