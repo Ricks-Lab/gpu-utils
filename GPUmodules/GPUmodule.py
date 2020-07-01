@@ -628,6 +628,8 @@ class GpuItem:
             if self.prm.gpu_type == self.GPU_Type.Legacy:
                 return None
             if name == 'temp_val':
+                if not self.prm['temperatures']:
+                    return None
                 if 'edge' in self.prm['temperatures'].keys():
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
@@ -646,6 +648,8 @@ class GpuItem:
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
+                if not self.prm['frequencies']:
+                    return None
                 if 'sclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['sclk'])
                 elif 'clocks.gr' in self.prm['frequencies'].keys():
@@ -654,6 +658,8 @@ class GpuItem:
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
             if name == 'mclk_f_val':
+                if not self.prm['frequencies']:
+                    return None
                 if 'mclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['mclk'])
                 if 'clocks.mem' in self.prm['frequencies'].keys():
