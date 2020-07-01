@@ -16,9 +16,10 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
 
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
-command:
+commands:
 
 ```
+pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
 
