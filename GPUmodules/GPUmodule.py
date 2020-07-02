@@ -418,7 +418,6 @@ class GpuItem:
                             'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                             'model_device_decode': 'UNDETERMINED',
                             'model': '',
-                            'model_short': '',
                             'model_display': '',
                             'serial_number': '',
                             'card_index': '',
