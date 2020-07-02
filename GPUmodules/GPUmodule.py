@@ -1278,11 +1278,11 @@ class GpuItem:
         # Populate GpuItem data from results dictionary
         for param_name, sensor_list in sensor_dict.items():
             if param_name == 'power_cap_range':
-                if results['[power.min.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
+                if results['power.min.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
                     power_min = float(results['power.min_limit'])
                 else:
                     power_min = results['power.min_limit']
-                if results['[power.max.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
+                if results['power.max.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
                     power_max = float(results['power.max_limit'])
                 else:
                     power_max = results['power.max_limit']
