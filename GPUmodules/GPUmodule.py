@@ -400,6 +400,7 @@ class GpuItem:
         :param item_id:  UUID of the new item.
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+        self.validated_sensors = False
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.read_disabled = []    # List of parameters that failed during read.
         self.write_disabled = []   # List of parameters that failed during write.
@@ -1106,8 +1107,22 @@ class GpuItem:
         :param parameter:  Target parameter for reading
         :return: read results
         """
-        # TODO - Implement this function
-        raise NotImplementedError('read_gpu_sensor_nv method has not been implemented')
+        # TODO - Verify this function
+        if parameter in self.read_disabled:
+            return False
+        cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                  env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, parameter)
+        LOGGER.debug('NV command:\n%s', cmd_str)
+        nsmi_item = None
+        try:
+            nsmi_item = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+            LOGGER.debug('NV query result: [%s]', nsmi_item)
+        except (subprocess.CalledProcessError, OSError) as except_err:
+            LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
+            self.read_disabled.append(parameter)
+            return False
+        nsmi_item = nsmi_item[0].strip()
+        return nsmi_item
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1222,30 +1237,43 @@ class GpuItem:
         """
         Use the nvidia_smi tool to query GPU parameters.
 
-        :param data_type: Future use
+        :param data_type: specifies the set of sensors to read
         :return: True if successful
         """
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
         sensor_dict = GpuItem.nv_query_items[data_type]
-        nsmi_items = None
+        nsmi_items = []
         query_list = [item for sublist in sensor_dict.values() for item in sublist]
-        qry_string = ','.join(query_list)
-        cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
-                    env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
-        LOGGER.debug('NV command:\n%s', cmd_str)
-        try:
-            nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
-            LOGGER.debug('NV query result: [%s]', nsmi_items)
-        except (subprocess.CalledProcessError, OSError) as except_err:
-            LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
-            return False
-        if nsmi_items:
-            nsmi_items = nsmi_items[0].split(',')
-            nsmi_items = [item.strip() for item in nsmi_items]
+        query_list = [item for item in query_list if item not in self.read_disabled]
+
+        if self.validated_sensors:
+            qry_string = ','.join(query_list)
+            cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                        env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
+            LOGGER.debug('NV command:\n%s', cmd_str)
+            try:
+                nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+                LOGGER.debug('NV query result: [%s]', nsmi_items)
+            except (subprocess.CalledProcessError, OSError) as except_err:
+                LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
+                return False
+            if nsmi_items:
+                nsmi_items = nsmi_items[0].split(',')
+                nsmi_items = [item.strip() for item in nsmi_items]
+        else:
+            # Read sensors one at a time if SensorSet.All has not been validated
+            if data_type == GpuItem.SensorSet.All:
+                self.validated_sensors = True
+            for query_item in query_list:
+                query_data = self.read_gpu_sensor_nv(query_item)
+                nsmi_items.append(query_data)
+
         results = dict(zip(query_list, nsmi_items))
         LOGGER.debug('NV query result: %s', results)
+
+        # Populate GpuItem data from results dictionary
         for param_name, sensor_list in sensor_dict.items():
             if param_name == 'power_cap_range':
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
