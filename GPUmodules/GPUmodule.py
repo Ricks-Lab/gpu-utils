@@ -1121,8 +1121,9 @@ class GpuItem:
             LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
             self.read_disabled.append(parameter)
             return False
-        nsmi_item = nsmi_item[0].strip()
-        return nsmi_item
+        if nsmi_item:
+            return nsmi_item[0].strip()
+        return None
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1255,7 +1256,7 @@ class GpuItem:
             LOGGER.debug('NV command:\n%s', cmd_str)
             try:
                 nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
-                LOGGER.debug('NV query result: [%s]', nsmi_items)
+                LOGGER.debug('NV query (single-call) result: [%s]', nsmi_items)
             except (subprocess.CalledProcessError, OSError) as except_err:
                 LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
                 return False
@@ -1269,6 +1270,7 @@ class GpuItem:
             for query_item in query_list:
                 query_data = self.read_gpu_sensor_nv(query_item)
                 nsmi_items.append(query_data)
+            LOGGER.debug('NV query (each-call) result: [%s]', nsmi_items)
 
         results = dict(zip(query_list, nsmi_items))
         LOGGER.debug('NV query result: %s', results)
@@ -1318,8 +1320,6 @@ class GpuItem:
                 self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
                 self.prm.model = results['name']
-                #self.prm.model_display = results['name'] \
-                    #if len(results['name']) < len(self.prm.model_device_decode) else self.prm.model_device_decode
                 self.prm.model_display = self.prm.model_device_decode
                 if results['name'] and len(results['name']) < len(self.prm.model_device_decode):
                     self.prm.model_display = results['name']
