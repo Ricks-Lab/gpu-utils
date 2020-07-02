@@ -608,10 +608,7 @@ class GpuItem:
             self.set_memory_usage()
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
-            self.prm.model_device_decode = self.read_pciid_model()
-            if (self.prm.model_device_decode != 'UNDETERMINED' and
-                    len(self.prm.model_device_decode) < 1.2 * len(self.prm.model_short)):
-                self.prm.model_display = self.prm.model_device_decode
+            self.prm.model_display = self.prm.model_device_decode = self.read_pciid_model()
         else:
             self.prm[name] = value
 
@@ -1678,10 +1675,6 @@ class GpuList:
             gpu_name_items = lspci_items[0].split(': ', maxsplit=1)
             if len(gpu_name_items) >= 2:
                 gpu_name = gpu_name_items[1]
-            try:
-                short_gpu_name = gpu_name.split('[AMD/ATI]')[1]
-            except IndexError:
-                short_gpu_name = 'UNKNOWN'
             # Check for Fiji ProDuo
             if re.search('Fiji', gpu_name):
                 if re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1]):
@@ -1809,7 +1802,7 @@ class GpuList:
 
             # Set GPU parameters
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
-                                                   'model_short': short_gpu_name, 'vendor': vendor,
+                                                   'vendor': vendor,
                                                    'driver': driver_module, 'card_path': card_path,
                                                    'sys_card_path': sys_card_path, 'gpu_type': gpu_type,
                                                    'hwmon_path': hwmon_path, 'readable': readable,
