@@ -1278,17 +1278,17 @@ class GpuItem:
         # Populate GpuItem data from results dictionary
         for param_name, sensor_list in sensor_dict.items():
             if param_name == 'power_cap_range':
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
+                if results['[power.min.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
                     power_min = float(results['power.min_limit'])
                 else:
                     power_min = results['power.min_limit']
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
+                if results['[power.max.limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
                     power_max = float(results['power.max_limit'])
                 else:
                     power_max = results['power.max_limit']
                 self.prm.power_cap_range = [power_min, power_max]
             elif param_name == 'power':
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
+                if results['power.draw'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
                     power = float(results['power.draw'])
                 else:
                     power = None
@@ -1301,7 +1301,7 @@ class GpuItem:
             elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
-                    if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
+                    if results[sn_k] and re.fullmatch(PATTERNS['IS_FLOAT']):
                         param_val = float(results[sn_k])
                     else:
                         param_val = None
