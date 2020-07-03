@@ -42,7 +42,6 @@ from uuid import uuid4
 from enum import Enum
 import glob
 from numpy import nan as np_nan
-#from timeit import default_timer as timer
 
 from GPUmodules import __version__, __status__
 try:
