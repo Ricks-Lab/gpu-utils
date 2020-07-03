@@ -1294,14 +1294,14 @@ class GpuItem:
                     power = None
                 self.set_params_value('power', power)
             elif param_name == 'pstates':
-                pstate_str = re.sub(r'[a-zA-Z]', '', results['pstate'])
+                pstate_str = re.sub(PATTERNS['ALPHA'], '', results['pstate'])
                 pstate = int(pstate_str) if pstate_str.isnumeric() else None
                 self.prm['sclk_ps'][0] = pstate
                 self.prm['mclk_ps'][0] = pstate
             elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
-                    if results[sn_k] and re.fullmatch(PATTERNS['IS_FLOAT']):
+                    if results[sn_k] and re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
                         param_val = float(results[sn_k])
                     else:
                         param_val = None
