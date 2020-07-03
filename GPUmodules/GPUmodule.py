@@ -1848,8 +1848,8 @@ class GpuList:
                 if pcie_id in self.opencl_map.keys():
                     self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
             # TODO - should the nv read below be removed??
-            if vendor == GpuItem.GPU_Vendor.NVIDIA:
-                self[gpu_uuid].read_gpu_sensor_set_nv()
+            #if vendor == GpuItem.GPU_Vendor.NVIDIA:
+                #self[gpu_uuid].read_gpu_sensor_set_nv()
         return True
 
     def read_gpu_opencl_data(self) -> bool:
