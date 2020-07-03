@@ -642,6 +642,8 @@ class GpuItem:
             if name == 'vddgfx_val':
                 if not self.prm['voltages']:
                     return np_nan
+                if 'vddgfx' not in self.prm['voltages']:
+                    return np_nan
                 return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
@@ -1503,7 +1505,9 @@ class GpuItem:
 
         for table_item in self.table_parameters:
             gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
-            if gpu_state_str.isnumeric():
+            if gpu_state_str == 'nan':
+                gpu_state[table_item] = np_nan
+            elif gpu_state_str.isnumeric():
                 gpu_state[table_item] = int(gpu_state_str)
             elif re.fullmatch(PATTERNS['IS_FLOAT'], gpu_state_str):
                 gpu_state[table_item] = float(gpu_state_str)
