@@ -1110,7 +1110,6 @@ class GpuItem:
         :param parameter:  Target parameter for reading
         :return: read results
         """
-        # TODO - Verify this function
         if parameter in self.read_disabled:
             return False
         cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
@@ -1124,9 +1123,9 @@ class GpuItem:
             LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
             self.read_disabled.append(parameter)
             return False
-        if nsmi_item:
-            return nsmi_item[0].strip()
-        return None
+        return_item = nsmi_item[0].strip() if nsmi_item else None
+        LOGGER.debug('NV query response: [%s]', return_item)
+        return return_item
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1273,7 +1272,7 @@ class GpuItem:
             for query_item in query_list:
                 query_data = self.read_gpu_sensor_nv(query_item)
                 nsmi_items.append(query_data)
-            LOGGER.debug('NV query (each-call) result: [%s]', nsmi_items)
+                LOGGER.debug('NV query (each-call) query item [%s], result: [%s]', query_item, query_data)
 
         results = dict(zip(query_list, nsmi_items))
         LOGGER.debug('NV query result: %s', results)
@@ -1788,13 +1787,13 @@ class GpuList:
                         break
                     try_path = os.path.join(try_path, '????:??:??.?')
                 if not sys_pci_dirs:
-                    LOGGER.debug('/sys/device file search found no match to pcie_id: {}', pcie_id)
+                    LOGGER.debug('/sys/device file search found no match to pcie_id: %s', pcie_id)
                 else:
                     if len(sys_pci_dirs) > 1:
-                        LOGGER.debug('/sys/device file search found multiple matches to pcie_id {}:\n{}',
+                        LOGGER.debug('/sys/device file search found multiple matches to pcie_id %s:\n%s',
                                      pcie_id, sys_pci_dirs)
                     else:
-                        LOGGER.debug('/sys/device file search found match to pcie_id {}:\n{}',
+                        LOGGER.debug('/sys/device file search found match to pcie_id %s:\n%s',
                                      pcie_id, sys_pci_dirs)
                     sys_card_path = sys_pci_dirs[0]
 
