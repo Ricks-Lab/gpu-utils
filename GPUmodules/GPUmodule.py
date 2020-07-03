@@ -1301,6 +1301,7 @@ class GpuItem:
             elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
+                    if sn_k not in results: continue
                     if results[sn_k] and re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
                         param_val = float(results[sn_k])
                     else:
@@ -1308,6 +1309,7 @@ class GpuItem:
                     self.prm[param_name].update({sn_k: param_val})
             elif re.fullmatch(PATTERNS['GPUMEMTYPE'], param_name):
                 for sn_k in sensor_list:
+                    if sn_k not in results: continue
                     mem_value = int(results[sn_k]) if results[sn_k].isnumeric else None
                     self.prm[param_name] = mem_value / 1024.0
                 self.set_memory_usage()
