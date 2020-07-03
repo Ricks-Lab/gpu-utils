@@ -214,6 +214,8 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
                 LOGGER.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
+                if comp_name == 'vddgfx_val' and data_value_raw <= 0:
+                    data_value_raw = 'NA'
                 data_value = str(data_value_raw)[:16]
                 comp_item.set_text(data_value)
             set_gtk_prop(comp_item, width_chars=17)
