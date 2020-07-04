@@ -1805,7 +1805,7 @@ class GpuList:
                 hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 LOGGER.debug('HW file search: %s', hw_file_srch)
                 if len(hw_file_srch) > 1:
-                    print('More than one hwmon file found: ', hw_file_srch)
+                    print('More than one hwmon file found: {}'.format(hw_file_srch))
                 elif len(hw_file_srch) == 1:
                     hwmon_path = hw_file_srch[0]
                     LOGGER.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
@@ -1924,7 +1924,8 @@ class GpuList:
             if cl_vendor != ocl_vendor or cl_index != ocl_index:
                 # Update opencl_map with dict variables when new index is encountered.
                 self.opencl_map.update({ocl_pcie_id: temp_map})
-                LOGGER.debug('cl_index: %s', self.opencl_map[ocl_pcie_id])
+                LOGGER.debug('cl_vendor: %s, cl_index: %s, pcie_id: %s',
+                             ocl_vendor, ocl_index, self.opencl_map[ocl_pcie_id])
 
                 # Initialize dict variables
                 ocl_index = cl_index
