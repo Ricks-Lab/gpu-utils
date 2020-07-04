@@ -71,8 +71,7 @@ class ObjDict(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        else:
-            raise AttributeError('No such attribute: ' + name)
+        raise AttributeError('No such attribute: {}'.format(name))
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -81,7 +80,7 @@ class ObjDict(dict):
         if name in self:
             del self[name]
         else:
-            raise AttributeError('No such attribute: ' + name)
+            raise AttributeError('No such attribute: {}'.format(name))
 
 
 class GpuItem:
@@ -1117,13 +1116,13 @@ class GpuItem:
         nsmi_item = None
         try:
             nsmi_item = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
-            LOGGER.debug('NV query result: [%s]', nsmi_item)
+            LOGGER.debug('NV raw query response: [%s]', nsmi_item)
         except (subprocess.CalledProcessError, OSError) as except_err:
             LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
             self.read_disabled.append(parameter)
             return False
         return_item = nsmi_item[0].strip() if nsmi_item else None
-        LOGGER.debug('NV query response: [%s]', return_item)
+        LOGGER.debug('NV query result: [%s]', return_item)
         return return_item
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
@@ -1240,7 +1239,7 @@ class GpuItem:
         Use the nvidia_smi tool to query GPU parameters.
 
         :param data_type: specifies the set of sensors to read
-        :return: True if successful
+        :return: True if successful, else False and card will have read disabled
         """
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
@@ -1272,6 +1271,11 @@ class GpuItem:
                 query_data = self.read_gpu_sensor_nv(query_item)
                 nsmi_items.append(query_data)
                 LOGGER.debug('NV query (each-call) query item [%s], result: [%s]', query_item, query_data)
+            if not nsmi_items:
+                LOGGER.debug('NV query (each-call) failed for all sensors, disabling read for card [%s]',
+                             self.prm.card_num)
+                self.prm.readable = False
+                return False
 
         results = dict(zip(query_list, nsmi_items))
         LOGGER.debug('NV query result: %s', results)
@@ -1540,8 +1544,7 @@ class GpuList:
     def __getitem__(self, uuid: str) -> GpuItem:
         if uuid in self.list:
             return self.list[uuid]
-        else:
-            raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
+        raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
 
     def __setitem__(self, uuid: str, value: GpuItem) -> None:
         self.list[uuid] = value
@@ -1664,9 +1667,9 @@ class GpuList:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             self.amd_wattman = self.amd_writable = False
-        self.amd_wattman = self.amd_writable = True if (self.amd_featuremask == int(0xffff7fff) or
-                                                        self.amd_featuremask == int(0xffffffff) or
-                                                        self.amd_featuremask == int(0xfffd7fff)) else False
+        self.amd_wattman = self.amd_writable = (self.amd_featuremask == int(0xffff7fff) or
+                                                self.amd_featuremask == int(0xffffffff) or
+                                                self.amd_featuremask == int(0xfffd7fff))
 
         # Check NV read/writability
         if env.GUT_CONST.cmd_nvidia_smi:
