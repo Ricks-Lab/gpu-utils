@@ -1899,7 +1899,7 @@ class GpuList:
             return t_dict
 
         # Initialize dict variables
-        ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
+        ocl_vendor = ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
         temp_map = init_temp_map()
 
         # Read each line from clinfo --raw
@@ -1912,21 +1912,23 @@ class GpuList:
             line_items = linestr.split(maxsplit=2)
             if len(line_items) != 3:
                 continue
-            _cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
+            cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
             if cl_index == '*':
                 continue
             if not ocl_index:
                 ocl_index = cl_index
+                ocl_vendor = cl_vendor
                 ocl_pcie_slot_id = ocl_pcie_bus_id = None
 
             # If new cl_index, then update opencl_map
-            if cl_index != ocl_index:
+            if cl_vendor != ocl_vendor or cl_index != ocl_index:
                 # Update opencl_map with dict variables when new index is encountered.
                 self.opencl_map.update({ocl_pcie_id: temp_map})
                 LOGGER.debug('cl_index: %s', self.opencl_map[ocl_pcie_id])
 
                 # Initialize dict variables
                 ocl_index = cl_index
+                ocl_vendor = cl_vendor
                 ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
                 temp_map = init_temp_map()
 
