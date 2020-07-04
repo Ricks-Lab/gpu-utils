@@ -52,8 +52,8 @@ import shlex
 import shutil
 import time
 import signal
-from numpy import isnan
 from typing import Callable
+from numpy import isnan
 
 try:
     import gi
@@ -362,8 +362,8 @@ def main() -> None:
                 print('Fatal Error: gpu-plot not found.')
 
         # Start thread to update Monitor
-        _ = threading.Thread(target=refresh, daemon=True,
-                             args=[env.GUT_CONST.SLEEP, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
+        threading.Thread(target=refresh, daemon=True,
+                         args=[env.GUT_CONST.SLEEP, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:

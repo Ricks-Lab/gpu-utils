@@ -572,7 +572,6 @@ class PACWindow(Gtk.Window):
 
         while Gtk.events_pending():
             Gtk.main_iteration_do(True)
-        return
 
     def refresh_all_cards(self, _, gpu_list: Gpu.GpuList, devices: dict, reset_message: bool = False) -> None:
         """
@@ -584,7 +583,6 @@ class PACWindow(Gtk.Window):
         :param reset_message:
         """
         self.refresh_pac(gpu_list, devices, reset_message)
-        return
 
     def refresh_pac(self, gpu_list: Gpu.GpuList, devices: dict, refresh_message: bool = False) -> None:
         """
@@ -680,7 +678,6 @@ class PACWindow(Gtk.Window):
             self.update_message(devices, 'Refresh complete.\n', 'gray')
         while Gtk.events_pending():
             Gtk.main_iteration_do(True)
-        return
 
     def save_all_cards(self, parent, gpu_list: Gpu.GpuList, devices: dict) -> None:
         """
@@ -721,7 +718,6 @@ class PACWindow(Gtk.Window):
         self.update_message(devices, message, 'yellow')
 
         self.refresh_all_cards(parent, gpu_list, devices)
-        return
 
     def save_card(self, _, gpu_list: Gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
@@ -1133,7 +1129,6 @@ class PACWindow(Gtk.Window):
         self.update_message(devices, message, 'yellow')
 
         self.refresh_all_cards(parent, gpu_list, devices)
-        return
 
     def reset_card(self, _, gpu_list: Gpu.GpuList, devices: dict, uuid: str, refresh: bool = True) -> None:
         """
@@ -1225,7 +1220,6 @@ class PACWindow(Gtk.Window):
                 # Dismiss execute_pac message
                 message = 'Write reset commands to bash file complete.\nRun bash file with sudo to execute changes.'
                 self.update_message(devices, message, 'yellow')
-        return
 
 
 def ppm_select(_, device: dict) -> None:
@@ -1240,7 +1234,6 @@ def ppm_select(_, device: dict) -> None:
         model = device['ppm_modes_combo'].get_model()
         row_id, name = model[tree_iter][:2]
         device['new_ppm'] = [row_id, name]
-    return
 
 
 def main() -> None:
