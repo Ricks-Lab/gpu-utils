@@ -53,6 +53,7 @@ import shutil
 import time
 import signal
 from typing import Callable
+from numpy import isnan
 
 try:
     import gi
@@ -213,7 +214,8 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
                 data_value_raw = gpu_list[uuid].get_params_value(comp_name)
                 LOGGER.debug('raw data value: %s', data_value_raw)
                 if isinstance(data_value_raw, float):
-                    data_value_raw = round(data_value_raw, 3)
+                    if not isnan(data_value_raw):
+                        data_value_raw = round(data_value_raw, 3)
                 data_value = str(data_value_raw)[:16]
                 comp_item.set_text(data_value)
             set_gtk_prop(comp_item, width_chars=17)
@@ -360,8 +362,8 @@ def main() -> None:
                 print('Fatal Error: gpu-plot not found.')
 
         # Start thread to update Monitor
-        _ = threading.Thread(target=refresh, daemon=True,
-                             args=[env.GUT_CONST.SLEEP, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
+        threading.Thread(target=refresh, daemon=True,
+                         args=[env.GUT_CONST.SLEEP, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:

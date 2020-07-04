@@ -557,6 +557,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['ax2'].set_ylabel('MHz/mV', color=GPUgui.GuiProps.color_name_to_hex('gray95'), fontsize=10)
             for plot_item in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
                 if gc.plot_items[plot_item]:
+                    if np.isnan((ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])):
+                        continue
                     comp_item['ax2'].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
                                           ldf[ldf['Card#'].isin([comp_num])][plot_item],
                                           color=gc.get_color(plot_item), linewidth=0.5)
@@ -621,7 +623,9 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             new_line_items = []
             for item in line_items:
                 item = item.strip()
-                if item.isnumeric():
+                if item == 'nan':
+                    new_line_items.append(np.nan)
+                elif item.isnumeric():
                     new_line_items.append(int(item))
                 elif re.fullmatch(PATTERNS['IS_FLOAT'], item):
                     new_line_items.append(float(item))
@@ -845,9 +849,9 @@ def main() -> None:
     # end of if args.stdin == False
 
     if args.stdin or args.simlog:
-        _readthread = threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
+        threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
     else:
-        _readthread = threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
+        threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 2:

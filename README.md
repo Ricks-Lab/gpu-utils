@@ -16,9 +16,10 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
 
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
-command:
+commands:
 
 ```
+pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
 
@@ -83,7 +84,10 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
 * Improved PyPI packaging.
-* Updated Users Guide with latest features.
+* Updated Users Guide to cover latest features and capabilities.
+* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
+* Fixed issue in setting display model name for NV GPUs.
+* Improved how lack of voltage readings for NV is handled in the utilities.
 
 ## Development Plans
 

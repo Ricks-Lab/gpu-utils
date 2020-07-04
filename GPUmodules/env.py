@@ -55,7 +55,8 @@ class GutConst:
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
                 'PCIIID_L2':    re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
-                'END_IN_ALPHA': re.compile(r'[a-zA-Z]*'),
+                'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
+                'ALPHA':        re.compile(r'[a-zA-Z]+'),
                 'AMD_GPU':      re.compile(r'(AMD|amd|ATI|ati)'),
                 'NV_GPU':       re.compile(r'(NVIDIA|nvidia|nVidia)'),
                 'INTC_GPU':     re.compile(r'(INTEL|intel|Intel)'),
@@ -274,9 +275,12 @@ class GutConst:
         if not self.cmd_lspci:
             print('Error: OS command [lspci] executable not found.')
             command_access_fail = True
+        LOGGER.debug('lspci path: %s', self.cmd_lspci)
+
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
             print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
+        LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
 
         # Package Reader
         if self.distro['Distributor'] in GutConst._dpkg_tool:

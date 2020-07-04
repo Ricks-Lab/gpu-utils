@@ -41,7 +41,7 @@ from pathlib import Path
 from uuid import uuid4
 from enum import Enum
 import glob
-#from timeit import default_timer as timer
+from numpy import nan as np_nan
 
 from GPUmodules import __version__, __status__
 try:
@@ -71,8 +71,7 @@ class ObjDict(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        else:
-            raise AttributeError('No such attribute: ' + name)
+        raise AttributeError('No such attribute: {}'.format(name))
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -81,7 +80,7 @@ class ObjDict(dict):
         if name in self:
             del self[name]
         else:
-            raise AttributeError('No such attribute: ' + name)
+            raise AttributeError('No such attribute: {}'.format(name))
 
 
 class GpuItem:
@@ -400,6 +399,7 @@ class GpuItem:
         :param item_id:  UUID of the new item.
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+        self.validated_sensors = False
         self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.read_disabled = []    # List of parameters that failed during read.
         self.write_disabled = []   # List of parameters that failed during write.
@@ -418,7 +418,6 @@ class GpuItem:
                             'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
                             'model_device_decode': 'UNDETERMINED',
                             'model': '',
-                            'model_short': '',
                             'model_display': '',
                             'serial_number': '',
                             'card_index': '',
@@ -608,10 +607,7 @@ class GpuItem:
             self.set_memory_usage()
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
-            self.prm.model_device_decode = self.read_pciid_model()
-            if (self.prm.model_device_decode != 'UNDETERMINED' and
-                    len(self.prm.model_device_decode) < 1.2 * len(self.prm.model_short)):
-                self.prm.model_display = self.prm.model_device_decode
+            self.prm.model_display = self.prm.model_device_decode = self.read_pciid_model()
         else:
             self.prm[name] = value
 
@@ -628,6 +624,8 @@ class GpuItem:
             if self.prm.gpu_type == self.GPU_Type.Legacy:
                 return None
             if name == 'temp_val':
+                if not self.prm['temperatures']:
+                    return None
                 if 'edge' in self.prm['temperatures'].keys():
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
@@ -641,11 +639,15 @@ class GpuItem:
                 return None
             if name == 'vddgfx_val':
                 if not self.prm['voltages']:
-                    return 0
+                    return np_nan
+                if 'vddgfx' not in self.prm['voltages']:
+                    return np_nan
                 return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
+                if not self.prm['frequencies']:
+                    return None
                 if 'sclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['sclk'])
                 elif 'clocks.gr' in self.prm['frequencies'].keys():
@@ -654,6 +656,8 @@ class GpuItem:
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
             if name == 'mclk_f_val':
+                if not self.prm['frequencies']:
+                    return None
                 if 'mclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['mclk'])
                 if 'clocks.mem' in self.prm['frequencies'].keys():
@@ -1104,8 +1108,22 @@ class GpuItem:
         :param parameter:  Target parameter for reading
         :return: read results
         """
-        # TODO - Implement this function
-        raise NotImplementedError('read_gpu_sensor_nv method has not been implemented')
+        if parameter in self.read_disabled:
+            return False
+        cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                  env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, parameter)
+        LOGGER.debug('NV command:\n%s', cmd_str)
+        nsmi_item = None
+        try:
+            nsmi_item = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+            LOGGER.debug('NV raw query response: [%s]', nsmi_item)
+        except (subprocess.CalledProcessError, OSError) as except_err:
+            LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
+            self.read_disabled.append(parameter)
+            return False
+        return_item = nsmi_item[0].strip() if nsmi_item else None
+        LOGGER.debug('NV query result: [%s]', return_item)
+        return return_item
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1220,62 +1238,83 @@ class GpuItem:
         """
         Use the nvidia_smi tool to query GPU parameters.
 
-        :param data_type: Future use
-        :return: True if successful
+        :param data_type: specifies the set of sensors to read
+        :return: True if successful, else False and card will have read disabled
         """
         if data_type not in self.nv_query_items.keys():
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
         sensor_dict = GpuItem.nv_query_items[data_type]
-        nsmi_items = None
+        nsmi_items = []
         query_list = [item for sublist in sensor_dict.values() for item in sublist]
-        qry_string = ','.join(query_list)
-        cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
-                    env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
-        LOGGER.debug('NV command:\n%s', cmd_str)
-        try:
-            nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
-            LOGGER.debug('NV query result: [%s]', nsmi_items)
-        except (subprocess.CalledProcessError, OSError) as except_err:
-            LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
-            return False
-        if nsmi_items:
-            nsmi_items = nsmi_items[0].split(',')
-            nsmi_items = [item.strip() for item in nsmi_items]
+        query_list = [item for item in query_list if item not in self.read_disabled]
+
+        if self.validated_sensors:
+            qry_string = ','.join(query_list)
+            cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
+                        env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
+            LOGGER.debug('NV command:\n%s', cmd_str)
+            try:
+                nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+                LOGGER.debug('NV query (single-call) result: [%s]', nsmi_items)
+            except (subprocess.CalledProcessError, OSError) as except_err:
+                LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
+                return False
+            if nsmi_items:
+                nsmi_items = nsmi_items[0].split(',')
+                nsmi_items = [item.strip() for item in nsmi_items]
+        else:
+            # Read sensors one at a time if SensorSet.All has not been validated
+            if data_type == GpuItem.SensorSet.All:
+                self.validated_sensors = True
+            for query_item in query_list:
+                query_data = self.read_gpu_sensor_nv(query_item)
+                nsmi_items.append(query_data)
+                LOGGER.debug('NV query (each-call) query item [%s], result: [%s]', query_item, query_data)
+            if not nsmi_items:
+                LOGGER.debug('NV query (each-call) failed for all sensors, disabling read for card [%s]',
+                             self.prm.card_num)
+                self.prm.readable = False
+                return False
+
         results = dict(zip(query_list, nsmi_items))
         LOGGER.debug('NV query result: %s', results)
+
+        # Populate GpuItem data from results dictionary
         for param_name, sensor_list in sensor_dict.items():
             if param_name == 'power_cap_range':
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
+                if results['power.min_limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.min_limit']):
                     power_min = float(results['power.min_limit'])
                 else:
                     power_min = results['power.min_limit']
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
+                if results['power.max_limit'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.max_limit']):
                     power_max = float(results['power.max_limit'])
                 else:
                     power_max = results['power.max_limit']
                 self.prm.power_cap_range = [power_min, power_max]
             elif param_name == 'power':
-                if re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
+                if results['power.draw'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
                     power = float(results['power.draw'])
                 else:
                     power = None
                 self.set_params_value('power', power)
             elif param_name == 'pstates':
-                pstate_str = re.sub(r'[a-zA-Z]', '', results['pstate'])
+                pstate_str = re.sub(PATTERNS['ALPHA'], '', results['pstate'])
                 pstate = int(pstate_str) if pstate_str.isnumeric() else None
                 self.prm['sclk_ps'][0] = pstate
                 self.prm['mclk_ps'][0] = pstate
             elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
-                    if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
+                    if sn_k not in results: continue
+                    if results[sn_k] and re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
                         param_val = float(results[sn_k])
                     else:
                         param_val = None
                     self.prm[param_name].update({sn_k: param_val})
             elif re.fullmatch(PATTERNS['GPUMEMTYPE'], param_name):
                 for sn_k in sensor_list:
+                    if sn_k not in results: continue
                     mem_value = int(results[sn_k]) if results[sn_k].isnumeric else None
                     self.prm[param_name] = mem_value / 1024.0
                 self.set_memory_usage()
@@ -1288,8 +1327,9 @@ class GpuItem:
                 self.prm.link_spd = 'GEN{}'.format(results['pcie.link.gen.current'])
             elif param_name == 'model':
                 self.prm.model = results['name']
-                self.prm.model_display = results['name'] \
-                    if len(results['name']) < len(self.prm.model_device_decode) else self.prm.model_device_decode
+                self.prm.model_display = self.prm.model_device_decode
+                if results['name'] and len(results['name']) < len(self.prm.model_device_decode):
+                    self.prm.model_display = results['name']
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
@@ -1467,7 +1507,9 @@ class GpuItem:
 
         for table_item in self.table_parameters:
             gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
-            if gpu_state_str.isnumeric():
+            if gpu_state_str == 'nan':
+                gpu_state[table_item] = np_nan
+            elif gpu_state_str.isnumeric():
                 gpu_state[table_item] = int(gpu_state_str)
             elif re.fullmatch(PATTERNS['IS_FLOAT'], gpu_state_str):
                 gpu_state[table_item] = float(gpu_state_str)
@@ -1502,8 +1544,7 @@ class GpuList:
     def __getitem__(self, uuid: str) -> GpuItem:
         if uuid in self.list:
             return self.list[uuid]
-        else:
-            raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
+        raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
 
     def __setitem__(self, uuid: str, value: GpuItem) -> None:
         self.list[uuid] = value
@@ -1626,9 +1667,9 @@ class GpuList:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             self.amd_wattman = self.amd_writable = False
-        self.amd_wattman = self.amd_writable = True if (self.amd_featuremask == int(0xffff7fff) or
-                                                        self.amd_featuremask == int(0xffffffff) or
-                                                        self.amd_featuremask == int(0xfffd7fff)) else False
+        self.amd_wattman = self.amd_writable = (self.amd_featuremask == int(0xffff7fff) or
+                                                self.amd_featuremask == int(0xffffffff) or
+                                                self.amd_featuremask == int(0xfffd7fff))
 
         # Check NV read/writability
         if env.GUT_CONST.cmd_nvidia_smi:
@@ -1669,10 +1710,6 @@ class GpuList:
             gpu_name_items = lspci_items[0].split(': ', maxsplit=1)
             if len(gpu_name_items) >= 2:
                 gpu_name = gpu_name_items[1]
-            try:
-                short_gpu_name = gpu_name.split('[AMD/ATI]')[1]
-            except IndexError:
-                short_gpu_name = 'UNKNOWN'
             # Check for Fiji ProDuo
             if re.search('Fiji', gpu_name):
                 if re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1]):
@@ -1752,13 +1789,13 @@ class GpuList:
                         break
                     try_path = os.path.join(try_path, '????:??:??.?')
                 if not sys_pci_dirs:
-                    LOGGER.debug('/sys/device file search found no match to pcie_id: {}', pcie_id)
+                    LOGGER.debug('/sys/device file search found no match to pcie_id: %s', pcie_id)
                 else:
                     if len(sys_pci_dirs) > 1:
-                        LOGGER.debug('/sys/device file search found multiple matches to pcie_id {}:\n{}',
+                        LOGGER.debug('/sys/device file search found multiple matches to pcie_id %s:\n%s',
                                      pcie_id, sys_pci_dirs)
                     else:
-                        LOGGER.debug('/sys/device file search found match to pcie_id {}:\n{}',
+                        LOGGER.debug('/sys/device file search found match to pcie_id %s:\n%s',
                                      pcie_id, sys_pci_dirs)
                     sys_card_path = sys_pci_dirs[0]
 
@@ -1768,7 +1805,7 @@ class GpuList:
                 hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 LOGGER.debug('HW file search: %s', hw_file_srch)
                 if len(hw_file_srch) > 1:
-                    print('More than one hwmon file found: ', hw_file_srch)
+                    print('More than one hwmon file found: {}'.format(hw_file_srch))
                 elif len(hw_file_srch) == 1:
                     hwmon_path = hw_file_srch[0]
                     LOGGER.debug('HW dir [%s] contents:\n%s', hwmon_path, list(os.listdir(hwmon_path)))
@@ -1800,7 +1837,7 @@ class GpuList:
 
             # Set GPU parameters
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
-                                                   'model_short': short_gpu_name, 'vendor': vendor,
+                                                   'vendor': vendor,
                                                    'driver': driver_module, 'card_path': card_path,
                                                    'sys_card_path': sys_card_path, 'gpu_type': gpu_type,
                                                    'hwmon_path': hwmon_path, 'readable': readable,
@@ -1816,8 +1853,6 @@ class GpuList:
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
                     self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
-            if vendor == GpuItem.GPU_Vendor.NVIDIA:
-                self[gpu_uuid].read_gpu_sensor_set_nv()
         return True
 
     def read_gpu_opencl_data(self) -> bool:
@@ -1864,7 +1899,7 @@ class GpuList:
             return t_dict
 
         # Initialize dict variables
-        ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
+        ocl_vendor = ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
         temp_map = init_temp_map()
 
         # Read each line from clinfo --raw
@@ -1877,21 +1912,24 @@ class GpuList:
             line_items = linestr.split(maxsplit=2)
             if len(line_items) != 3:
                 continue
-            _cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
+            cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
             if cl_index == '*':
                 continue
             if not ocl_index:
                 ocl_index = cl_index
+                ocl_vendor = cl_vendor
                 ocl_pcie_slot_id = ocl_pcie_bus_id = None
 
             # If new cl_index, then update opencl_map
-            if cl_index != ocl_index:
+            if cl_vendor != ocl_vendor or cl_index != ocl_index:
                 # Update opencl_map with dict variables when new index is encountered.
                 self.opencl_map.update({ocl_pcie_id: temp_map})
-                LOGGER.debug('cl_index: %s', self.opencl_map[ocl_pcie_id])
+                LOGGER.debug('cl_vendor: %s, cl_index: %s, pcie_id: %s',
+                             ocl_vendor, ocl_index, self.opencl_map[ocl_pcie_id])
 
                 # Initialize dict variables
                 ocl_index = cl_index
+                ocl_vendor = cl_vendor
                 ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
                 temp_map = init_temp_map()
 
