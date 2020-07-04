@@ -90,10 +90,11 @@ and compute capability.  Additional performance/configuration details are read f
 GPUs.  Example of the output is as follows:
 
 ```
-Detected GPUs: INTEL: 1, AMD: 2
+OS command [nvidia-smi] executable found: [/usr/bin/nvidia-smi]
+Detected GPUs: INTEL: 1, NVIDIA: 1, AMD: 1
 AMD: amdgpu version: 20.10-1048554
 AMD: Wattman features enabled: 0xfffd7fff
-3 total GPUs, 1 rw, 0 r-only, 0 w-only
+3 total GPUs, 1 rw, 1 r-only, 0 w-only
 
 Card Number: 0
    Vendor: INTEL
@@ -110,31 +111,58 @@ Card Number: 0
    Card Path: /sys/class/drm/card0/device
    System Card Path: /sys/devices/pci0000:00/0000:00:02.0
 
-Card Number: None
-   Vendor: AMD
-   Readable: False
-   Writable: False
-   Compute: False
-   Device ID: {'device': '0x9498', 'subsystem_device': '0x9498', 'subsystem_vendor': '0x174b', 'vendor': '0x1002'}
-   Decoded Device ID: RV730 PRO [Radeon HD 4650]
-   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] RV730 PRO [Radeon HD 4650]
-   PCIe ID: 01:00.0
-   Driver: radeon
-   GPU Type: Unsupported
-   HWmon: None
-   Card Path: None
-   System Card Path: /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0
-
 Card Number: 1
+   Vendor: NVIDIA
+   Readable: True
+   Writable: False
+   Compute: True
+   GPU UID: GPU-fcbaadc4-4040-c2e5-d5b6-52d1547bcc64
+   GPU S/N: [Not Supported]
+   Device ID: {'device': '0x1381', 'subsystem_device': '0x1073', 'subsystem_vendor': '0x10de', 'vendor': '0x10de'}
+   Decoded Device ID: GM107 [GeForce GTX 750]
+   Card Model: GeForce GTX 750
+   Display Card Model: GeForce GTX 750
+   Card Index: 0
+   PCIe ID: 01:00.0
+      Link Speed: GEN3
+      Link Width: 8
+   ##################################################
+   Driver: 390.138
+   vBIOS Version: 82.07.32.00.32
+   Compute Platform: OpenCL 1.2 CUDA
+   Compute Mode: Default
+   GPU Type: Supported
+   HWmon: None
+   Card Path: /sys/class/drm/card1/device
+   System Card Path: /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0
+   ##################################################
+   Current Power (W): 15.910
+   Power Cap (W): 38.50
+      Power Cap Range (W): [30.0, 38.5]
+   Fan Target Speed (rpm): None
+   Current Fan PWM (%): 40.000
+   ##################################################
+   Current GPU Loading (%): 100
+   Current Memory Loading (%): 36
+   Current VRAM Usage (%): 91.437
+      Current VRAM Used (GB): 0.876
+      Total VRAM (GB): 0.958
+   Current  Temps (C): {'temperature.gpu': 40.0, 'temperature.memory': None}
+   Current Clk Frequencies (MHz): {'clocks.gr': 1163.0, 'clocks.mem': 2505.0, 'clocks.sm': 1163.0, 'clocks.video': 1046.0}
+   Maximum Clk Frequencies (MHz): {'clocks.max.gr': 1293.0, 'clocks.max.mem': 2505.0, 'clocks.max.sm': 1293.0}
+   Current SCLK P-State: [0, '']
+   Power Profile Mode: [Not Supported]
+
+Card Number: 2
    Vendor: AMD
    Readable: True
    Writable: True
    Compute: True
    GPU UID: None
    Device ID: {'device': '0x731f', 'subsystem_device': '0xe411', 'subsystem_vendor': '0x1da2', 'vendor': '0x1002'}
-   Decoded Device ID: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
+   Decoded Device ID: Radeon RX 5600 XT
    Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] (rev ca)
-   Display Card Model: Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT]
+   Display Card Model: Radeon RX 5600 XT
    PCIe ID: 04:00.0
       Link Speed: 16 GT/s
       Link Width: 16
@@ -143,34 +171,34 @@ Card Number: 1
    vBIOS Version: 113-5E4111U-X4G
    Compute Platform: OpenCL 2.0 AMD-APP (3075.10)
    GPU Type: CurvePts
-   HWmon: /sys/class/drm/card1/device/hwmon/hwmon3
-   Card Path: /sys/class/drm/card1/device
+   HWmon: /sys/class/drm/card2/device/hwmon/hwmon3
+   Card Path: /sys/class/drm/card2/device
    System Card Path: /sys/devices/pci0000:00/0000:00:01.1/0000:02:00.0/0000:03:00.0/0000:04:00.0
    ##################################################
-   Current Power (W): 112.000
+   Current Power (W): 99.000
    Power Cap (W): 160.000
       Power Cap Range (W): [0, 192]
    Fan Enable: 0
    Fan PWM Mode: [2, 'Dynamic']
-   Fan Target Speed (rpm): 1193
-   Current Fan Speed (rpm): 1193
-   Current Fan PWM (%): 36
+   Fan Target Speed (rpm): 1170
+   Current Fan Speed (rpm): 1170
+   Current Fan PWM (%): 35
       Fan Speed Range (rpm): [0, 3200]
       Fan PWM Range (%): [0, 100]
    ##################################################
-   Current GPU Loading (%): 99
-   Current Memory Loading (%): 79
-   Current GTT Memory Usage (%): 0.859
-      Current GTT Memory Used (GB): 0.051
+   Current GPU Loading (%): 50
+   Current Memory Loading (%): 49
+   Current GTT Memory Usage (%): 0.432
+      Current GTT Memory Used (GB): 0.026
       Total GTT Memory (GB): 5.984
-   Current VRAM Usage (%): 35.363
-      Current VRAM Used (GB): 2.116
+   Current VRAM Usage (%): 11.969
+      Current VRAM Used (GB): 0.716
       Total VRAM (GB): 5.984
-   Current  Temps (C): {'edge': 63.0, 'junction': 70.0, 'mem': 88.0}
+   Current  Temps (C): {'edge': 54.0, 'junction': 61.0, 'mem': 68.0}
    Critical Temps (C): {'edge': 118.0, 'junction': 99.0, 'mem': 99.0}
-   Current Voltages (V): {'vddgfx': 900}
-   Current Clk Frequencies (MHz): {'mclk': 875.0, 'sclk': 1700.0}
-   Current SCLK P-State: [2, '1700Mhz']
+   Current Voltages (V): {'vddgfx': 937}
+   Current Clk Frequencies (MHz): {'mclk': 875.0, 'sclk': 1780.0}
+   Current SCLK P-State: [2, '1780Mhz']
       SCLK Range: ['800Mhz', '1820Mhz']
    Current MCLK P-State: [3, '875Mhz']
       MCLK Range: ['625Mhz', '930Mhz']
@@ -295,6 +323,12 @@ With the *gpu-ls* tool, you can determine the type of your installed GPUs. Here 
 relevant lines from the output for different types of GPUs:
 
 ```
+Decoded Device ID: 8th Gen Core Processor Gaussian Mixture Model 
+GPU Type: Unsupported                                              # Intel CPU with integrated graphics
+
+Decoded Device ID: GM107 [GeForce GTX 750]
+GPU Type: Supported
+
 Decoded Device ID: R9 290X DirectCU II
 GPU Type: PStatesNE
 
@@ -332,30 +366,30 @@ water cooling, you can use the *--no_fans* to remove fan monitoring functionalit
 
 ```
 ┌─────────────┬────────────────┬────────────────┐
-│Card #       │card0           │card1           │
+│Card #       │card1           │card2           │
 ├─────────────┼────────────────┼────────────────┤
-│Model        │Radeon RX 570   │Radeon RX 570   │
-│GPU Load %   │100             │100             │
-│Mem Load %   │61              │91              │
-│VRAM Usage % │52.64           │52.144          │
-│GTT Usage %  │3.218           │3.053           │
-│Power (W)    │76.2            │84.2            │
-│Power Cap (W)│120.0           │120.0           │
-│Energy (kWh) │0.005           │0.005           │
-│T (C)        │75.0            │72.0            │
-│VddGFX (mV)  │906             │906             │
-│Fan Spd (%)  │54              │48              │
-│Sclk (MHz)   │1071            │1071            │
-│Sclk Pstate  │6               │6               │
-│Mclk (MHz)   │1850            │1850            │
-│Mclk Pstate  │2               │2               │
-│Perf Mode    │1-3D_FULL_SCREEN│1-3D_FULL_SCREEN│
+│Model        │GeForce GTX 750 │Radeon RX 5600 X│
+│GPU Load %   │100             │91              │
+│Mem Load %   │36              │68              │
+│VRAM Usage % │89.297          │11.969          │
+│GTT Usage %  │None            │0.432           │
+│Power (W)    │15.69           │92.0            │
+│Power Cap (W)│38.50           │160.0           │
+│Energy (kWh) │0.0             │0.002           │
+│T (C)        │48.0            │61.0            │
+│VddGFX (mV)  │nan             │925             │
+│Fan Spd (%)  │40.0            │36              │
+│Sclk (MHz)   │1163            │1780            │
+│Sclk Pstate  │0               │2               │
+│Mclk (MHz)   │2505            │875             │
+│Mclk Pstate  │0               │3               │
+│Perf Mode    │[Not Supported] │5-COMPUTE       │
 └─────────────┴────────────────┴────────────────┘
 ```
 
 The fields are the same as the GUI version of the display, available with the *--gui* option.
 
-![](amdgpu-monitor_scrshot.png)
+![](gpu-monitor-gui_scrshot.png)
 
 The first row gives the card number for each GPU.  This number is the integer used by the driver for each GPU.  Most
 fields are self describing.  The Power Cap field is especially useful in managing compute power efficiency, and
@@ -374,7 +408,7 @@ managing compute performance.
 
 Executing *gpu-mon* with the *--plot* option will display a continuously updating plot of the critical
 GPU parameters.
-![](amdgpu-plot_scrshot.png)
+![](gpu-plot_scrshot.png)
 
 Having an *gpu-mon* Gtx window open at startup may be useful if you run GPU compute projects that autostart
 and you need to quickly confirm that *gpu-pac* bash scripts ran as expected at startup
@@ -490,7 +524,7 @@ GPUs on boot up (see [Running Startup PAC Bash Files](#running-startup-pac-bash-
 
 ### The gpu-pac interface for Type PStates and Type CurvePts cards
 
-![](amdgpu-pac_scrshot.png)
+![](gpu-pac_scrshot.png)
 
 In the interface, you will notice entry fields for indicating new values for specific parameters.  In most cases, the
 values in these fields will be the current values, but in the case of P-state masks, it will show the default value
