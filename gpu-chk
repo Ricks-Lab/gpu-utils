@@ -41,7 +41,7 @@ import warnings
 from GPUmodules import __version__, __status__
 
 warnings.filterwarnings('ignore')
-ENV_DIR = 'rickslab-gpu-utils-env'
+ENV_DIR = 'gpu-utils-env'
 
 
 class GutConst:
@@ -152,10 +152,9 @@ class GutConst:
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
-                            else:
-                                print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
-                                print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
-                                return True
+                            print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
+                            print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
+                            return True
         print('amdgpu/rocm version: UNKNOWN')
         print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
         return False

@@ -245,7 +245,6 @@ class GuiComponents:
             self.gui_components['card_plots'][gpu_i] = {}
             self.gui_components['card_plots'][gpu_i]['color'] = gpu_color_list[i]
             self.gpu_color[gpu_i] = gpu_color_list[i]
-        return
 
     def get_color(self, color_name: str) -> str:
         """
@@ -474,7 +473,7 @@ class GPUPlotWindow(Gtk.Window):
         :param gc: gui components object
         :param k:  Name of plot item to toggle
         """
-        gc.plot_items[k] = False if gc.plot_items[k] else True
+        gc.plot_items[k] = not gc.plot_items[k]
 
 
 def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
