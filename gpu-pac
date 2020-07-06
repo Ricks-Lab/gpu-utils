@@ -93,7 +93,7 @@ class PACWindow(Gtk.Window):
             # Card Number in top center of box
             devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
             devices[gpu.prm.uuid]['card_num'].set_markup('<big><b>Card {}:  </b>{}</big>'.format(
-                gpu.get_params_value(str('card_num')), gpu.get_params_value('model_display')))
+                gpu.get_params_value(str('card_num')), gpu.get_params_value('model_display')[:40]))
             set_gtk_prop(devices[gpu.prm.uuid]['card_num'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             lbox = Gtk.Box(spacing=6, name='head_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
