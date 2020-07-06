@@ -41,7 +41,7 @@ import warnings
 from GPUmodules import __version__, __status__
 
 warnings.filterwarnings('ignore')
-ENV_DIR = 'gpu-utils-env'
+ENV_DIR = 'rickslab-gpu-utils-env'
 
 
 class GutConst:
