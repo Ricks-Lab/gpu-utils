@@ -80,8 +80,9 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Development Branch  -  V3.4.x
+## New in this Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
 
+* Utilities now include reading of NV GPUs with full gpu-ls, gpu-mon, and gpu-plot support!
 * Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
 * Improved PyPI packaging.
 * Updated User Guide to cover latest features and capabilities.

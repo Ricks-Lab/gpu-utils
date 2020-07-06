@@ -1746,8 +1746,7 @@ class GpuList:
                             opencl_device_version = self.opencl_map[pcie_id]['device_version']
                             compute = True
                 else:
-                    #compute = False if re.search(r' 530', gpu_name) else True
-                    compute = bool(re.search(r' 530', gpu_name))
+                    compute = not bool(re.search(r' 530', gpu_name))
             if re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.ASPEED
                 gpu_type = GpuItem.GPU_Type.Unsupported
