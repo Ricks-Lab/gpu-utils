@@ -698,12 +698,13 @@ class GpuItem:
 
         :return:  GPU model name
         """
-        LOGGER.debug('Logger active in module')
         if not env.GUT_CONST.sys_pciid:
-            print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
+            print('Error: pciid file not defined')
+            LOGGER.debug('Error: pciid file not defined')
             return ''
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
+            LOGGER.debug('Error: Can not access system pci.ids file [%s]', env.GUT_CONST.sys_pciid)
             return ''
         with open(env.GUT_CONST.sys_pciid, 'r', encoding='utf8') as pci_id_file_ptr:
             model_str = ''

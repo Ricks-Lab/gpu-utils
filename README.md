@@ -1,5 +1,11 @@
 # Ricks-Lab GPU Utilities
 
+![](https://img.shields.io/github/license/Ricks-Lab/gpu-utils)
+[![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/rickslab-gpu-utils)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Ricks-Lab/gpu-utils)
+![GitHub last commit](https://img.shields.io/github/last-commit/Ricks-Lab/gpu-utils)
+
 ## rickslab-gpu-utils
 
 A set of utilities for monitoring GPU performance and modifying control settings.
