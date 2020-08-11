@@ -2,7 +2,7 @@
 
 ![](https://img.shields.io/github/license/Ricks-Lab/gpu-utils)
 [![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/rickslab-gpu-utils)
+[![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Ricks-Lab/gpu-utils)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Ricks-Lab/gpu-utils)
 
