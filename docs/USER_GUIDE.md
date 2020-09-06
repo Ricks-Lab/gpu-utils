@@ -23,7 +23,10 @@ For a typical user, the installation is accomplished using pip to install from
 ```
 pip3 install rickslab-gpu-utils
 ```
-
+If installing to a remote mahcine via ssh, then will need root user permissions:
+```
+sudo pip3 install rickslab-gpu-utils
+```
 For a developer/contributor to the project, it is expected that you duplicate the development
 environment using a virtual environment.  So far, my development activities for this project have
 used python3.6, but I expect to move to python3.8 when I upgrade to Ubuntu 20.04.  I suggest using
