@@ -328,6 +328,11 @@ def main() -> None:
         print('No readable GPUs, exiting...')
         sys.exit(0)
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
+    # Check readable and compatible
+    num_gpus = com_gpu_list.num_gpus()
+    if num_gpus['total'] == 0:
+        print('No readable and compatible GPUs detected, exiting...')
+        sys.exit(-1)
 
     if args.log:
         env.GUT_CONST.LOG = True
