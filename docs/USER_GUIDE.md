@@ -25,7 +25,11 @@ pip3 install rickslab-gpu-utils
 ```
 
 For a developer/contributor to the project, it is expected that you duplicate the development
-environment using a virtual environment:
+environment using a virtual environment.  So far, my development activities for this project have
+used python3.6, but I expect to move to python3.8 when I upgrade to Ubuntu 20.04.  I suggest using
+the default version of Python for your distribution, but it is the latest release, limit your code 
+to features of the previous release.  The following are details on setting up a virtual environment
+with python3.6:
 
 ```shell script
 sudo apt install -y python3.6-venv
