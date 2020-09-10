@@ -102,6 +102,9 @@ class MonitorWindow(Gtk.Window):
 
     def __init__(self, gpu_list, devices):
 
+        if not Gtk.init_check(sys.argv)[0]:
+            print('Gtk Error, Exiting')
+            sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
