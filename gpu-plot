@@ -290,6 +290,11 @@ class GPUPlotWindow(Gtk.Window):
     Plot window.
     """
     def __init__(self, gc: GuiComponents, plot_data: PlotData):
+        init_chk_value = Gtk.init_check(sys.argv)
+        LOGGER.debug('init_check: %s', init_chk_value)
+        if not init_chk_value[0]:
+            print('Gtk Error, Exiting')
+            sys.exit(-1)
         box_spacing_val = 5
         num_bar_plots = 3
         if gc.num_gpus > 4:

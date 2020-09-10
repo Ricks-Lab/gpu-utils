@@ -102,7 +102,9 @@ class MonitorWindow(Gtk.Window):
 
     def __init__(self, gpu_list, devices):
 
-        if not Gtk.init_check(sys.argv)[0]:
+        init_chk_value = Gtk.init_check(sys.argv)
+        LOGGER.debug('init_check: %s', init_chk_value)
+        if not init_chk_value[0]:
             print('Gtk Error, Exiting')
             sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
