@@ -545,7 +545,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['ax1'].clear()
             comp_item['ax1'].set_ylabel('Loading/Power/Temp',
                                         color=GPUgui.GuiProps.color_name_to_hex('white_off'), fontsize=10)
-            for plot_item in ['loading', 'power_cap', 'power', 'temp_val']:
+            for plot_item in ['loading', 'power_capd', 'power', 'temp_val']:
                 if gc.plot_items[plot_item]:
                     comp_item['ax1'].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
                                           ldf[ldf['Card#'].isin([comp_num])][plot_item],
@@ -580,6 +580,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
+        LOGGER.exception('plot exception: %s', err)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
         plot_data.kill_thread()
