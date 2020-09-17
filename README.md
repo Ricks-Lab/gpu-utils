@@ -86,16 +86,12 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
+## New in this Release -  v3.5.1
 
-* Utilities now include reading of NV GPUs with full gpu-ls, gpu-mon, and gpu-plot support!
-* Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
-* Improved PyPI packaging.
-* Updated User Guide to cover latest features and capabilities.
-* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
-* Fixed issue in setting display model name for NV GPUs.
-* Improved how lack of voltage readings for NV is handled in the utilities.
-* Fixed an issue in assessing compute capability when GPUs of multiple vendors are installed.
+* Check gtk initialization for errors and handle nicely.
+* Use logger to output plot exceptions.
+* Check number of compatible and readable GPUs at utility start.
+* Minor User Guide improvements.
 
 ## Development Plans
 
@@ -122,6 +118,17 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+## New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
+
+* Utilities now include reading of NV GPUs with full gpu-ls, gpu-mon, and gpu-plot support!
+* Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
+* Improved PyPI packaging.
+* Updated User Guide to cover latest features and capabilities.
+* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
+* Fixed issue in setting display model name for NV GPUs.
+* Improved how lack of voltage readings for NV is handled in the utilities.
+* Fixed an issue in assessing compute capability when GPUs of multiple vendors are installed.
 
 ### New in Previous Release  -  [v3.3.14](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.3.14)
 
