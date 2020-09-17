@@ -28,6 +28,11 @@ commands:
 pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
+The uninstall is required to make sure all modules are updated.  If you still get an old version,
+then specify not to use cached files:
+```
+pip3 install --no-cache-dir rickslab-gpu-utils
+```
 
 ## gpu-chk
 
@@ -86,7 +91,7 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release -  v3.5.1
+## New in this Release -  v3.5.2
 
 * Check gtk initialization for errors and handle nicely.
 * Use logger to output plot exceptions.
@@ -119,7 +124,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-## New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
+### New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
 
 * Utilities now include reading of NV GPUs with full gpu-ls, gpu-mon, and gpu-plot support!
 * Update name from **amdgpu-utils** to **rickslab-gpu-utils**.

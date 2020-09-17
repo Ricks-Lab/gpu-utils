@@ -21,9 +21,15 @@ For a typical user, the installation is accomplished using pip to install from
 [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following command:
 
 ```
+pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
-If installing to a remote mahcine via ssh, then will need root user permissions:
+The uninstall is required to make sure the modules are updated.  If you still get an old version,
+then specify not to use cached files:
+```
+pip3 install --no-cache-dir rickslab-gpu-utils
+```
+If installing to a remote machine via ssh, then will need root user permissions:
 ```
 sudo pip3 install rickslab-gpu-utils
 ```
