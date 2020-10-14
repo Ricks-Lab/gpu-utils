@@ -1,7 +1,7 @@
 .TH GPU\-LS 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
-gpu-ls \- display details about gpu compatible GPU cards
+gpu-ls \- display details about compatible GPU cards
 
 .SH SYNOPSIS
 .B gpu-ls
@@ -13,20 +13,16 @@ gpu-ls \- display details about gpu compatible GPU cards
 .B gpu-ls
 .RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
 
-.SH CONFIGURATION
-In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
-to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
-amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing sudo update-grub.
-
 .SH DESCRIPTION
 .B gpu-ls
-displays most relevant parameters for installed and compatible GPUs.
-The default behavior is to list relevant base parameters by GPU.
+displays most relevant parameters for installed and compatible GPUs. The
+default behavior is to list relevant parameters by GPU.  OpenCL platform information is
+added when the \fB--clinfo\fR option is used.  A brief listing of key parameters is
+available with the \fB--short\fR command line option.  A simplified table of current
+GPU state is displayed with the \fB--table\fR option. The \fB--no_fan\fR can be used to
+ignore fan settings.  The \fB--pstate\fR option can be used to output the p-state table
+for each GPU instead of the list of basic parameters.  The \fB--ppm\fR option is used
+to output the table of available power/performance modes instead of basic parameters.
 
 .SH OPTIONS
 .TP
@@ -95,6 +91,16 @@ Instead of the basic parameters, a table of power/performance modes is displayed
 Instead of the basic parameters, a table of power states or curve points is displayed.
 .P
 
+.SH CONFIGURATION
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing sudo update-grub.
+
 .SH "FILES"
 .PP
 .TP
@@ -110,7 +116,7 @@ The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
-Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/gpu-utils
 
 .SH "SEE ALSO"
 .BR clinfo (1),
@@ -122,4 +128,4 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH AVAILABILITY
 The gpu-ls command is part of the rickslab-gpu-utils package and is available from
-https://github.com/Ricks-Lab/amdgpu-utils
+https://github.com/Ricks-Lab/gpu-utils

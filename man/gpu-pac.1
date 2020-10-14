@@ -10,23 +10,17 @@ gpu-pac \- program and control compatible GPUs
 .B gpu-pac
 .RB [ \-\-execute_pac "] [" \-\-no_fan "] [" \-\-force_write "] [" \-\-debug "]
 
-.SH CONFIGURATION
-In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
-to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
-amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing sudo update-grub.
-
 .SH DESCRIPTION
 .B gpu-pac
-will present the user with a gui to modify the operating conditions of compatible GPUs.
-With this utility, the user can change GPU power limit, S-Clk and M-Clk P-state/Curve definitions,
-P-state masks, fan speed, and power performance mode.
-By default, the commands to program and control a GPU are written to a bash file for the user to inspect
-and run with root permissions.
+provides capability for Program and Control compatible GPUs with this utility.  By default,
+the commands to be written to a GPU are written to a bash file for the user to inspect and
+run.  If you have confidence, the \fB--execute_pac\fR option can be used to execute and then
+delete the saved bash file.  Since the GPU device files are writable only by root, sudo is
+used to execute commands in the bash file, as a result, you will be prompted for credentials
+in the terminal where you executed \fBgpu-pac\fR. The \fB--no_fan\fR option can be used to
+eliminate fan details from the utility. The \fB--force_write\fR option can be used to force
+all configuration parameters to be written to the GPU.  The default behavior is to only
+write changes.
 
 .SH OPTIONS
 .TP
@@ -76,6 +70,16 @@ With this option, all parameters will be written to the bash file, even if they 
 creating bash files used to put GPU's into a known state which is convenient for use in start up routines.
 .P
 
+.SH CONFIGURATION
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing sudo update-grub.
+
 .SH "FILES"
 .PP
 .TP
@@ -92,7 +96,7 @@ The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.  The
 display of P-state masks is always the defaults, not the actual values.
-Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/gpu-utils
 
 .SH "SEE ALSO"
 .BR gpu-mon (1),
@@ -103,4 +107,4 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH AVAILABILITY
 The gpu-pac command is part of the rickslab-gpu-utils package and is available from
-https://github.com/Ricks-Lab/amdgpu-utils
+https://github.com/Ricks-Lab/gpu-utils
