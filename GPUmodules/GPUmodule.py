@@ -699,10 +699,12 @@ class GpuItem:
         :return:  GPU model name
         """
         if not env.GUT_CONST.sys_pciid:
+            # TODO - combine
             print('Error: pciid file not defined')
             LOGGER.debug('Error: pciid file not defined')
             return ''
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
+            # TODO - combine
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
             LOGGER.debug('Error: Can not access system pci.ids file [%s]', env.GUT_CONST.sys_pciid)
             return ''
@@ -997,6 +999,7 @@ class GpuItem:
 
         rdata = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
         if rdata is False:
+            # TODO - combine
             print('Error: card file does not exist: {}'.format(file_path), file=sys.stderr)
             LOGGER.debug('Card file does not exist: %s', file_path)
             self.prm.readable = False
@@ -1358,6 +1361,7 @@ class GpuItem:
                 rdata = self.read_gpu_sensor(param, vendor=self.prm.vendor, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
+                        # TODO - combine
                         LOGGER.debug('Error reading parameter: %s disabling for %s', param, self.prm.card_num)
                         print('Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
                               self.prm.card_num))
@@ -1701,6 +1705,7 @@ class GpuList:
             try:
                 lspci_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
             except (subprocess.CalledProcessError, OSError) as except_err:
+                # TODO - combine
                 LOGGER.debug('Fatal error [%s]: Can not get GPU details with lspci.', except_err)
                 print('Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err))
                 sys.exit(-1)
