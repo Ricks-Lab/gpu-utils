@@ -10,19 +10,20 @@ gpu-plot \- continuously update and plot critical GPU parameters as a function o
 .B gpu-plot
 .RB [ \-\-no_fan "] [" \-\-stdin "] [" \-\-simlog "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "]
 
-.SH CONFIGURATION
-In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
-to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
-amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing sudo update-grub.
-
 .SH DESCRIPTION
 .B gpu-plot
-will continuously plot a trend of critical GPU parameters for all compatible GPUs.
+is a utility to continuously plot the trend of critical GPU parameters for all compatible
+GPUs. The \fB--sleep N\fR can be used to specify the update interval.  The \fBgpu-plot\fR
+utility has 2 modes of operation.  The default mode is to read the GPU driver details
+directly, which is useful as a standalone utility.  The \fB--stdin\fR option causes
+\fBgpu-plot\fR to read GPU data from stdin.  This is how \fBgpu-mon\fR produces the
+plot and can also be used to pipe your own data into the process.  The \fB--simlog\fR
+option can be used with the \fB--stdin\fR when a monitor log file is piped as stdin.
+This is useful for troubleshooting and can be used to display saved log results.
+The \fB--ltz\fR option results in the use of local time instead of UTC.  If you plan
+to run both \fBgpu-plot\fR and \fBgpu-mon\fR, then the \fB--plot\fR option of the
+\fBgpu-mon\fR utility should be used instead of both utilities in order reduce data
+reads by a factor of 2.
 
 .SH OPTIONS
 .TP
@@ -67,6 +68,16 @@ Will open a Gtk window that will display plots of the GPU operation data in the 
 to simulate streamed data with a 1 sec interval.
 .P
 
+.SH CONFIGURATION
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing sudo update-grub.
+
 .SH "FILES"
 .PP
 .TP
@@ -82,7 +93,7 @@ The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
-Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/gpu-utils
 
 .SH "SEE ALSO"
 .BR cat (1),
@@ -95,4 +106,4 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH AVAILABILITY
 The gpu-plot command is part of the rickslab-gpu-utils package and is available from
-https://github.com/Ricks-Lab/amdgpu-utils
+https://github.com/Ricks-Lab/gpu-utils

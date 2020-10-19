@@ -245,7 +245,6 @@ class GuiComponents:
             self.gui_components['card_plots'][gpu_i] = {}
             self.gui_components['card_plots'][gpu_i]['color'] = gpu_color_list[i]
             self.gpu_color[gpu_i] = gpu_color_list[i]
-        return
 
     def get_color(self, color_name: str) -> str:
         """
@@ -291,6 +290,11 @@ class GPUPlotWindow(Gtk.Window):
     Plot window.
     """
     def __init__(self, gc: GuiComponents, plot_data: PlotData):
+        init_chk_value = Gtk.init_check(sys.argv)
+        LOGGER.debug('init_check: %s', init_chk_value)
+        if not init_chk_value[0]:
+            print('Gtk Error, Exiting')
+            sys.exit(-1)
         box_spacing_val = 5
         num_bar_plots = 3
         if gc.num_gpus > 4:
@@ -474,7 +478,7 @@ class GPUPlotWindow(Gtk.Window):
         :param gc: gui components object
         :param k:  Name of plot item to toggle
         """
-        gc.plot_items[k] = False if gc.plot_items[k] else True
+        gc.plot_items[k] = not gc.plot_items[k]
 
 
 def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
@@ -576,6 +580,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
+        LOGGER.exception('plot exception: %s', err)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
         plot_data.kill_thread()

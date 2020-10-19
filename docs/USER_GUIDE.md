@@ -2,7 +2,7 @@
 
 A set of utilities for monitoring GPU performance and modifying control settings.
 
-## Current rickslab-gpu-utils Version: 3.4.x
+## Current rickslab-gpu-utils Version: 3.5.x
 
  - [Installation](#installation)
  - [Getting Started](#getting-started)
@@ -21,11 +21,24 @@ For a typical user, the installation is accomplished using pip to install from
 [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following command:
 
 ```
+pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
-
+The uninstall is required to make sure the modules are updated.  If you still get an old version,
+then specify not to use cached files:
+```
+pip3 install --no-cache-dir rickslab-gpu-utils
+```
+If installing to a remote machine via ssh, then will need root user permissions:
+```
+sudo pip3 install rickslab-gpu-utils
+```
 For a developer/contributor to the project, it is expected that you duplicate the development
-environment using a virtual environment:
+environment using a virtual environment.  So far, my development activities for this project have
+used python3.6, but I expect to move to python3.8 when I upgrade to Ubuntu 20.04.  I suggest using
+the default version of Python for your distribution, but it is the latest release, limit your code 
+to features of the previous release.  The following are details on setting up a virtual environment
+with python3.6:
 
 ```shell script
 sudo apt install -y python3.6-venv

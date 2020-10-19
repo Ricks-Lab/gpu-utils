@@ -1,5 +1,11 @@
 # Ricks-Lab GPU Utilities
 
+![](https://img.shields.io/github/license/Ricks-Lab/gpu-utils)
+[![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
+[![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Ricks-Lab/gpu-utils)
+![GitHub last commit](https://img.shields.io/github/last-commit/Ricks-Lab/gpu-utils)
+
 ## rickslab-gpu-utils
 
 A set of utilities for monitoring GPU performance and modifying control settings.
@@ -21,6 +27,11 @@ commands:
 ```
 pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
+```
+The uninstall is required to make sure all modules are updated.  If you still get an old version,
+then specify not to use cached files:
+```
+pip3 install --no-cache-dir rickslab-gpu-utils
 ```
 
 ## gpu-chk
@@ -80,14 +91,12 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Development Branch  -  V3.4.x
+## New in this Release -  v3.5.2
 
-* Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
-* Improved PyPI packaging.
-* Updated Users Guide to cover latest features and capabilities.
-* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
-* Fixed issue in setting display model name for NV GPUs.
-* Improved how lack of voltage readings for NV is handled in the utilities.
+* Check gtk initialization for errors and handle nicely.
+* Use logger to output plot exceptions.
+* Check number of compatible and readable GPUs at utility start.
+* Minor User Guide improvements.
 
 ## Development Plans
 
@@ -114,6 +123,17 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+### New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
+
+* Utilities now include reading of NV GPUs with full gpu-ls, gpu-mon, and gpu-plot support!
+* Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
+* Improved PyPI packaging.
+* Updated User Guide to cover latest features and capabilities.
+* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
+* Fixed issue in setting display model name for NV GPUs.
+* Improved how lack of voltage readings for NV is handled in the utilities.
+* Fixed an issue in assessing compute capability when GPUs of multiple vendors are installed.
 
 ### New in Previous Release  -  [v3.3.14](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.3.14)
 

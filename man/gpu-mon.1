@@ -10,23 +10,21 @@ gpu-mon \- continuously update a table with the state of all compatible GPUs
 .B gpu-mon
 .RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
 
-.SH CONFIGURATION
-In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
-to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
-amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
-/etc/default/grub and executing sudo update-grub.
-
 .SH DESCRIPTION
 .B gpu-mon
-will continuously display the current state of all compatible GPUs. The default
-behavior is to update a text based table in the current window until Ctrl-C is pressed.
-Command line options can alter this behaviour allowing the use of GUI, modifying update
-interval, excluding fans, writing to a log, selecting UTC or local time zone, and
-engaging a graphical display of real-time trends of relevant parameters.
+displays the current state of all compatible GPUs. The default behavior
+is to continuously update a text based table in the current window until Ctrl-C is
+pressed.  With the \fB--gui\fR option, a table of relevant parameters will be updated
+in a Gtk window.  You can specify the delay between updates with the \fB--sleep N\fR
+option where N is an integer > zero that specifies the number of seconds to sleep
+between updates.  The \fB--no_fan\fR option can be used to disable the reading and display
+of fan information.  The \fB--log\fR option is used to write all monitor data to a psv log
+file.  When writing to a log file, the utility will indicate this in red at the top of
+the window with a message that includes the log file name. The \fB--plot\fR will display a
+plot of critical GPU parameters which updates at the specified \fB--sleep N\fR interval. If
+you need both the plot and monitor displays, then using the \fB--plot\fR option is preferred
+over running both tools as a single read of the GPUs is used to update both displays.
+The \fB--ltz\fR option results in the use of local time instead of UTC.
 
 .SH OPTIONS
 .TP
@@ -87,6 +85,16 @@ of executing both \fBgpu-mon\fR and \fBgpu-plot\fR as the later will result in t
 GPU data.
 .P
 
+.SH CONFIGURATION
+In order to get maximum capability of these utilities, you should be running with a kernel that
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
+driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
+GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
+to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
+cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
+/etc/default/grub and executing sudo update-grub.
+
 .SH "FILES"
 .PP
 .TP
@@ -102,7 +110,7 @@ The grub defaults file where amdgpu.ppfeaturemask needs to be set.
 
 .SH BUGS
 Known to not work well with Fiji ProDuo cards and will issue warning messages for Fiji Nano cards.
-Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-utils
+Please report any additional bugs/issues at https://github.com/Ricks-Lab/gpu-utils
 
 .SH "SEE ALSO"
 .BR gpu-plot (1),
@@ -114,4 +122,4 @@ Please report any additional bugs/issues at https://github.com/Ricks-Lab/amdgpu-
 
 .SH AVAILABILITY
 The gpu-mon command is part of the rickslab-gpu-utils package and is available from
-https://github.com/Ricks-Lab/amdgpu-utils
+https://github.com/Ricks-Lab/gpu-utils

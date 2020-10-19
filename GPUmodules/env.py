@@ -224,7 +224,7 @@ class GutConst:
                                                                                     required_pversion[1]),
                   file=sys.stderr)
             return -1
-        elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
+        if int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
             print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(python_major, python_minor,
                                                                                           python_patch,
                                                                                           __program_name__,
@@ -241,7 +241,7 @@ class GutConst:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
-        elif int(linux_version.split('.')[0]) == required_kversion[0] and \
+        if int(linux_version.split('.')[0]) == required_kversion[0] and \
                 int(linux_version.split('.')[1]) < required_kversion[1]:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
@@ -310,9 +310,9 @@ class GutConst:
             return False
         if re.search(r'([uU]buntu|[dD]ebian)', self.distro['Distributor']):
             return self.read_amd_driver_version_debian()
-        elif re.search(r'([gG]entoo)', self.distro['Distributor']):
+        if re.search(r'([gG]entoo)', self.distro['Distributor']):
             return self.read_amd_driver_version_gentoo()
-        elif re.search(r'([aA]rch)', self.distro['Distributor']):
+        if re.search(r'([aA]rch)', self.distro['Distributor']):
             return self.read_amd_driver_version_arch()
         return False
 

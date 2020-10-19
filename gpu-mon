@@ -102,6 +102,11 @@ class MonitorWindow(Gtk.Window):
 
     def __init__(self, gpu_list, devices):
 
+        init_chk_value = Gtk.init_check(sys.argv)
+        LOGGER.debug('init_check: %s', init_chk_value)
+        if not init_chk_value[0]:
+            print('Gtk Error, Exiting')
+            sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
@@ -328,6 +333,11 @@ def main() -> None:
         print('No readable GPUs, exiting...')
         sys.exit(0)
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
+    # Check readable and compatible
+    num_gpus = com_gpu_list.num_gpus()
+    if num_gpus['total'] == 0:
+        print('No readable and compatible GPUs detected, exiting...')
+        sys.exit(-1)
 
     if args.log:
         env.GUT_CONST.LOG = True

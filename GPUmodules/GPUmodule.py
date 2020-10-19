@@ -630,7 +630,7 @@ class GpuItem:
                     if num_as_int:
                         return int(self.prm['temperatures']['edge'])
                     return round(self.prm['temperatures']['edge'], 1)
-                elif 'temperature.gpu' in self.prm['temperatures'].keys():
+                if 'temperature.gpu' in self.prm['temperatures'].keys():
                     if num_as_int:
                         return int(self.prm['temperatures']['temperature.gpu'])
                     return round(self.prm['temperatures']['temperature.gpu'], 1)
@@ -650,7 +650,7 @@ class GpuItem:
                     return None
                 if 'sclk' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['sclk'])
-                elif 'clocks.gr' in self.prm['frequencies'].keys():
+                if 'clocks.gr' in self.prm['frequencies'].keys():
                     return int(self.prm['frequencies']['clocks.gr'])
                 return self.prm['sclk_ps'][1]
             if name == 'mclk_ps_val':
@@ -669,9 +669,9 @@ class GpuItem:
             if num_as_int:
                 if isinstance(self.prm[name], int):
                     return self.prm[name]
-                elif isinstance(self.prm[name], float):
+                if isinstance(self.prm[name], float):
                     return int(self.prm[name])
-                elif isinstance(self.prm[name], str):
+                if isinstance(self.prm[name], str):
                     return int(self.prm[name]) if self.prm[name].isnumeric() else None
                 return self.prm[name]
         return self.prm[name]
@@ -698,12 +698,13 @@ class GpuItem:
 
         :return:  GPU model name
         """
-        LOGGER.debug('Logger active in module')
         if not env.GUT_CONST.sys_pciid:
-            print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
+            print('Error: pciid file not defined')
+            LOGGER.debug('Error: pciid file not defined')
             return ''
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             print('Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid))
+            LOGGER.debug('Error: Can not access system pci.ids file [%s]', env.GUT_CONST.sys_pciid)
             return ''
         with open(env.GUT_CONST.sys_pciid, 'r', encoding='utf8') as pci_id_file_ptr:
             model_str = ''
@@ -817,7 +818,7 @@ class GpuItem:
         power_cap_range = self.prm.power_cap_range
         if power_cap_range[0] <= power_cap <= power_cap_range[1]:
             return True
-        elif power_cap < 0:
+        if power_cap < 0:
             # negative values will be interpreted as reset request
             return True
         return False
@@ -832,7 +833,7 @@ class GpuItem:
         pwm_range = self.prm.fan_pwm_range
         if pwm_range[0] <= pwm_value <= pwm_range[1]:
             return True
-        elif pwm_value < 0:
+        if pwm_value < 0:
             # negative values will be interpreted as reset request
             return True
         return False
@@ -1096,7 +1097,7 @@ class GpuItem:
         """
         if vendor in [self.GPU_Vendor.AMD, self.GPU_Vendor.PCIE]:
             return self.read_gpu_sensor_generic(parameter, vendor, sensor_type)
-        elif vendor == self.GPU_Vendor.NVIDIA:
+        if vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_nv(parameter)
         print('Error: Invalid vendor [{}]'.format(vendor))
         return None
@@ -1197,29 +1198,28 @@ class GpuItem:
             if target_sensor['cf'] == 1:
                 return int(values[0])
             return int(values[0]) * target_sensor['cf']
-        elif target_sensor['type'] == self.SensorType.InputLabel:
+        if target_sensor['type'] == self.SensorType.InputLabel:
             ret_value.append(int(values[0]) * target_sensor['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
-        elif target_sensor['type'] in [self.SensorType.MLSS, self.SensorType.MLMS]:
+        if target_sensor['type'] in [self.SensorType.MLSS, self.SensorType.MLMS]:
             return values
-        elif target_sensor['type'] == self.SensorType.MinMax:
+        if target_sensor['type'] == self.SensorType.MinMax:
             ret_value.append(int(int(values[0]) * target_sensor['cf']))
             ret_value.append(int(int(values[1]) * target_sensor['cf']))
             return tuple(ret_value)
-        elif target_sensor['type'] == self.SensorType.InputLabelX:
+        if target_sensor['type'] == self.SensorType.InputLabelX:
             for i in range(0, len(values), 2):
                 ret_dict.update({values[i+1]: int(values[i]) * target_sensor['cf']})
             return ret_dict
-        elif target_sensor['type'] == self.SensorType.SingleStringSelect:
+        if target_sensor['type'] == self.SensorType.SingleStringSelect:
             for item in values:
                 if '*' in item:
                     return item
             return None
-        elif target_sensor['type'] == self.SensorType.SingleString:
+        if target_sensor['type'] == self.SensorType.SingleString:
             return values[0]
-        else:
-            raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
+        raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
     def read_gpu_sensor_set(self, data_type: Enum = SensorSet.All) -> bool:
         """
@@ -1230,7 +1230,7 @@ class GpuItem:
         """
         if self.prm.vendor == self.GPU_Vendor.AMD:
             return self.read_gpu_sensor_set_amd(data_type)
-        elif self.prm.vendor == self.GPU_Vendor.NVIDIA:
+        if self.prm.vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_set_nv(data_type)
         return False
 
@@ -1747,7 +1747,7 @@ class GpuList:
                             opencl_device_version = self.opencl_map[pcie_id]['device_version']
                             compute = True
                 else:
-                    compute = False if re.search(r' 530', gpu_name) else True
+                    compute = not bool(re.search(r' 530', gpu_name))
             if re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.ASPEED
                 gpu_type = GpuItem.GPU_Type.Unsupported
