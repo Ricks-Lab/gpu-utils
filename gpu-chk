@@ -67,7 +67,7 @@ class GutConst:
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
         print('Using python ' + python_major + '.' + python_minor + '.' + python_patch)
         if int(python_major) < required_pversion[0]:
-            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-utils requires python ' +
+            print('          ' + '\x1b[1;37;41m' + ' but rickslab-gpu-utils requires python ' +
                   str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or newer.' + '\x1b[0m')
             ret_val[0] = -1
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
