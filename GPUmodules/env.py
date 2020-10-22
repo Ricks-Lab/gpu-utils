@@ -74,8 +74,10 @@ class GutConst:
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _local_icon_list = ['{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home())),
-                        '/usr/share/rickslab-gpu-utils/icons']
+    _repository_path = os.path.join(os.path.dirname(str(Path(__file__).resolve())), '..')
+    _local_icon_list = [os.path.join(_repository_path, 'icons'),
+                        '/usr/share/rickslab-gpu-utils/icons',
+                        '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))]
     featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root = '/sys/class/drm/'
     hwmon_sub = 'hwmon/hwmon'
@@ -83,8 +85,7 @@ class GutConst:
 
     def __init__(self):
         self.args = None
-        self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
-        self.repository_path = os.path.join(self.repository_module_path, '..')
+        self.repository_path =  self._repository_path
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
@@ -95,10 +96,10 @@ class GutConst:
             self.sys_pciid = None
 
         # Set Icon Path
-        self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
-        for try_icon_path in GutConst._local_icon_list:
+        for try_icon_path in self._local_icon_list:
             if os.path.isdir(try_icon_path):
-                self.icon_path = try_icon_path
+                if os.path.isfile(os.path.join(try_icon_path, 'gpu-mon.icon.png')):
+                    self.icon_path = try_icon_path
                 break
         else:
             self.icon_path = None

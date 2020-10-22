@@ -3,7 +3,7 @@
 import sys
 import os
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 from GPUmodules import __version__, __status__
 
 if sys.version_info < (3, 6):
@@ -23,7 +23,7 @@ setup(name='rickslab-gpu-utils',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
       url='https://github.com/Ricks-Lab/gpu-utils',
-      packages=['GPUmodules'],
+      packages=find_packages(include=['GPUmodules']),
       include_package_data=True,
       scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
