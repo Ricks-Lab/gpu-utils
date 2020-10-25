@@ -21,6 +21,30 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 
 Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
 
+## Installation
+
+### Debian Package Installation
+
+First, remove any previous PyPI installation and exit that terminal:
+```
+pip uninstall rickslab-gpu-utils
+exit
+```
+Next, add the *rickslab-gpu-utils* repository:
+```
+wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
+
+echo 'deb [arch=amd64] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+
+sudo apt update
+```
+Then install the package with apt:
+```
+sudo apt install rickslab-gpu-utils
+```
+
+### PyPI Installation
+
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 commands:
 
@@ -91,12 +115,14 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release -  v3.5.2
+## New in this Release -  v3.5.5
 
+* Include debian release package.
 * Check gtk initialization for errors and handle nicely.
 * Use logger to output plot exceptions.
 * Check number of compatible and readable GPUs at utility start.
-* Minor User Guide improvements.
+* Minor User Guide and man page improvements.
+* Use minimal python packages in requirements.
 
 ## Development Plans
 

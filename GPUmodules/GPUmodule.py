@@ -1361,8 +1361,8 @@ class GpuItem:
                 rdata = self.read_gpu_sensor(param, vendor=self.prm.vendor, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
-                        message = 'Warning: Error reading parameter: {}, disabling for this GPU: {}'.format(param,
-                              self.prm.card_num)
+                        message = 'Warning: Can not read parameter: {}, ' \
+                                  'disabling for this GPU: {}'.format(param, self.prm.card_num)
                         LOGGER.debug(message)
                         print(message)
                 elif rdata is None:
@@ -1705,7 +1705,7 @@ class GpuList:
             try:
                 lspci_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
             except (subprocess.CalledProcessError, OSError) as except_err:
-                message = 'Fatal Error [{}]: Can not get GPU details with lspci'.format(except_err)
+                message = 'Fatal Error [{}]: Can not get GPU details with lspci.'.format(except_err)
                 LOGGER.debug(message)
                 print(message)
                 sys.exit(-1)
