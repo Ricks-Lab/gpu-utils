@@ -700,8 +700,9 @@ class GpuItem:
         """
         if not env.GUT_CONST.sys_pciid:
             # TODO - combine
-            print('Error: pciid file not defined')
-            LOGGER.debug('Error: pciid file not defined')
+            message = 'Error: pciid file not defined'
+            print(message)
+            LOGGER.debug(message)
             return ''
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             # TODO - combine
