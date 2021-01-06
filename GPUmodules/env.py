@@ -203,7 +203,7 @@ class GutConst:
         """
         try:
             with open(self.featuremask) as fm_file:
-                self.amdfeaturemask = int(fm_file.readline())
+                self.amdfeaturemask = int(fm_file.readline().rstrip(), 0)
         except OSError as err:
             LOGGER.debug('Could not read AMD Featuremask [%s]', err)
             self.amdfeaturemask = 0
