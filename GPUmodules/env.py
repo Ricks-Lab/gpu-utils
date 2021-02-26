@@ -203,9 +203,14 @@ class GutConst:
         """
         try:
             with open(self.featuremask) as fm_file:
-                self.amdfeaturemask = int(fm_file.readline())
+                fm_str = fm_file.readline().rstrip()
+                LOGGER.debug('Raw Featuremask string: [%s]', fm_str)
+                self.amdfeaturemask = int(fm_str, 0)
+        except TypeError as err:
+            LOGGER.debug('Invalid AMD Featuremask str [%s], %s', fm_str, err)
+            self.amdfeaturemask = 0
         except OSError as err:
-            LOGGER.debug('Could not read AMD Featuremask [%s]', err)
+            LOGGER.debug('Could not read AMD Featuremask, %s', err)
             self.amdfeaturemask = 0
         return self.amdfeaturemask
 
