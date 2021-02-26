@@ -115,14 +115,9 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release -  v3.5.5
+## New in this Release -  v3.5.6
 
-* Include debian release package.
-* Check gtk initialization for errors and handle nicely.
-* Use logger to output plot exceptions.
-* Check number of compatible and readable GPUs at utility start.
-* Minor User Guide and man page improvements.
-* Use minimal python packages in requirements.
+* Fixed issue in reading AMD FeatureMask for Kernel 5.11
 
 ## Development Plans
 
@@ -149,6 +144,15 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+## New in Previous Release -  v3.5.5
+
+* Include debian release package.
+* Check gtk initialization for errors and handle nicely.
+* Use logger to output plot exceptions.
+* Check number of compatible and readable GPUs at utility start.
+* Minor User Guide and man page improvements.
+* Use minimal python packages in requirements.
 
 ### New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
 
