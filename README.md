@@ -132,6 +132,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## Known Issues
 
+* Windows do not support scrolling or resize, making it unusable for lower resolution installations.
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
