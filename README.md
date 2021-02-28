@@ -30,6 +30,11 @@ First, remove any previous PyPI installation and exit that terminal:
 pip uninstall rickslab-gpu-utils
 exit
 ```
+Also, remove any previous ricks-amdgpu-utils installation:
+```
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+```
 Next, add the *rickslab-gpu-utils* repository:
 ```
 wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
