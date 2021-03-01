@@ -79,16 +79,23 @@ class PACWindow(Gtk.Window):
             print('Gtk Error, Exiting')
             sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
-        self.set_border_width(0)
+        grid = Gtk.Grid()
+        if env.GUT_CONST.args.scrolled:
+            scrolled_window = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
+            scrolled_window.set_border_width(0)
+            scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+            scrolled_window.add(grid)
+            self.add(scrolled_window)
+            self.resize(460, 620)
+        else:
+            self.add(grid)
+
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_path:
             icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-pac.icon.png')
             if os.path.isfile(icon_file):
                 self.set_icon_from_file(icon_file)
-
-        grid = Gtk.Grid()
-        self.add(grid)
 
         num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
@@ -278,9 +285,9 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['mclk_range'] = Gtk.Label(name='white_label')
                 devices[gpu.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                                gpu.get_params_value('mclk_f_range')[0],
-                                                                gpu.get_params_value('mclk_f_range')[1],
-                                                                gpu.get_params_value('vddc_range')[0],
-                                                                gpu.get_params_value('vddc_range')[1]))
+                                                               gpu.get_params_value('mclk_f_range')[1],
+                                                               gpu.get_params_value('vddc_range')[0],
+                                                               gpu.get_params_value('vddc_range')[1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['mclk_range'], top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6, name='dark_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
@@ -532,8 +539,31 @@ class PACWindow(Gtk.Window):
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
+        #x_size, y_size = grid.get_preferred_size()
+        #x_size = self.get_grid_columns(grid)
+        #y_size = self.get_grid_rows(grid)
+        #print('x: {}, y: {}'.format(x_size, y_size))
+        #self.resize(x_size, y_size)
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
+
+    @staticmethod
+    def get_grid_rows(grid):
+        rows = 0
+        for child in grid.get_children():
+            y = grid.child_get_property(child, 'top-attach')
+            height = grid.child_get_property(child, 'height')
+            rows = max(rows, y + height)
+        return rows
+
+    @staticmethod
+    def get_grid_columns(grid):
+        cols = 0
+        for child in grid.get_children():
+            x = grid.child_get_property(child, 'left-attach')
+            width = grid.child_get_property(child, 'width')
+            cols = max(cols, x + width)
+        return cols
 
     @staticmethod
     def update_message(devices: dict, message: str, color: str = 'gray') -> None:
@@ -1247,6 +1277,7 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
+    parser.add_argument('--scrolled', help='Enable scrolling', action='store_true', default=False)
     parser.add_argument('--execute_pac', help='execute pac bash script without review',
                         action='store_true', default=False)
     parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
