@@ -27,6 +27,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: disable=bad-continuation
 
+import argparse
 import re
 import subprocess
 import platform
@@ -34,6 +35,7 @@ import sys
 import os
 import logging
 from pathlib import Path
+import inspect
 import shlex
 import shutil
 import time
@@ -73,19 +75,38 @@ class GutConst:
                 'VAL_ITEM':     re.compile(r'.*_val$'),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _repository_path = os.path.join(os.path.dirname(str(Path(__file__).resolve())), '..')
-    _local_icon_list = [os.path.join(_repository_path, 'icons'),
-                        '/usr/share/rickslab-gpu-utils/icons',
-                        '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))]
-    featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
-    card_root = '/sys/class/drm/'
-    hwmon_sub = 'hwmon/hwmon'
-    gui_window_title = 'Ricks-Lab GPU Utilities'
+    _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
+    _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
+    _repository_path: str = os.path.join(_module_path, '..')
+    _local_config_list: Dict[str, str] = {
+        'repository': _repository_path,
+        'debian':     '/usr/share/rickslab-gpu-utils/config',
+        'pypi-linux': os.path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
+    _local_icon_list: Dict[str, str] = {
+        'repository': os.path.join(_repository_path, 'icons'),
+        'debian':     '/usr/share/rickslab-gpu-utils/icons',
+        'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
+    featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
+    card_root: str = '/sys/class/drm/'
+    hwmon_sub: str = 'hwmon/hwmon'
+    gui_window_title: str = 'Ricks-Lab GPU Utilities'
 
     def __init__(self):
-        self.args = None
-        self.repository_path =  self._repository_path
+        self.args: Union[argparse.Namespace, None] = None
+        self.repository_path: str = self._repository_path
+        self.install_type: Union[str, None] = None
+        self.package_path: str = inspect.getfile(inspect.currentframe())
+
+        if 'dist-packages' in self.package_path:
+            self.install_type = 'debian'
+        elif '.local' in self.package_path:
+            self.install_type = 'pypi-linux'
+        else:
+            self.install_type = 'repository'
+        self.icon_path = self._local_icon_list[self.install_type]
+        if not os.path.isfile(os.path.join(self.icon_path, 'gpu-mon.icon.png')):
+            print('Error: Invalid icon path')
+            self.icon_path = None
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
@@ -94,15 +115,6 @@ class GutConst:
                 break
         else:
             self.sys_pciid = None
-
-        # Set Icon Path
-        for try_icon_path in self._local_icon_list:
-            if os.path.isdir(try_icon_path):
-                if os.path.isfile(os.path.join(try_icon_path, 'gpu-mon.icon.png')):
-                    self.icon_path = try_icon_path
-                break
-        else:
-            self.icon_path = None
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
         self.amdfeaturemask = ''
@@ -134,7 +146,7 @@ class GutConst:
         self.cmd_dpkg = None
         self.cmd_nvidia_smi = None
 
-    def set_args(self, args) -> None:
+    def set_args(self, args: argparse.Namespace) -> None:
         """
         Set arguments for the give args object.
 
@@ -167,6 +179,7 @@ class GutConst:
             file_handler.setFormatter(formatter)
             file_handler.setLevel(logging.DEBUG)
             LOGGER.addHandler(file_handler)
+        LOGGER.debug('Install type: %s', self.install_type)
         LOGGER.debug('Command line arguments:\n  %s', args)
         LOGGER.debug('Local TZ: %s', self.LTZ)
         LOGGER.debug('pciid path set to: %s', self.sys_pciid)
@@ -275,6 +288,7 @@ class GutConst:
         else:
             print('OS command [lsb_release] executable not found.')
 
+        LOGGER.debug('Distro: %s, %s', self.distro['Distributor'], self.distro['Description'])
         # Check access/paths to system commands
         command_access_fail = False
         self.cmd_lspci = shutil.which('lspci')
@@ -409,6 +423,7 @@ def about() -> None:
     print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
     print('License: ', __license__)
     print('Version: ', __version__)
+    print('Install Type: ', GUT_CONST.install_type)
     print('Maintainer: ', __maintainer__)
     print('Status: ', __status__)
     sys.exit(0)

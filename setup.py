@@ -1,4 +1,23 @@
 #!/usr/bin/python3
+"""
+    Used to create source and binary distributions for rickslab-gpu-utils.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = 'RueiKe'
+__license__ = 'GNU General Public License'
+# pylint: disable=line-too-long
 
 import sys
 import os
@@ -11,13 +30,13 @@ if sys.version_info < (3, 6):
     sys.exit(1)
 
 with open(os.path.join(pathlib.Path(__file__).parent, 'README.md'), 'r') as file_ptr:
-    long_description = file_ptr.read()
+    LONG_DESCRIPTION = file_ptr.read()
 
 setup(name='rickslab-gpu-utils',
       version=__version__,
       description='Ricks-Lab GPU Utilities',
       long_description_content_type='text/markdown',
-      long_description=long_description,
+      long_description=LONG_DESCRIPTION,
       author='RueiKe',
       keywords='gpu system monitoring overclocking underclocking linux amdgpu nvidia-smi rocm amd nvidia opencl boinc',
       platforms='posix',
@@ -48,6 +67,4 @@ setup(name='rickslab-gpu-utils',
                                       'man/gpu-ls.1',
                                       'man/gpu-mon.1',
                                       'man/gpu-pac.1',
-                                      'man/gpu-plot.1'])
-                  ]
-      )
+                                      'man/gpu-plot.1'])])
