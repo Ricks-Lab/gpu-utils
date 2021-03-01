@@ -539,11 +539,19 @@ class PACWindow(Gtk.Window):
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
+        #grid_rectangle = grid.get_allocation()
+        #print('x: {}, y: {}, width: {}, height: {}'.format(grid_rectangle.x, grid_rectangle.y,
+                                                           #grid_rectangle.width, grid_rectangle.height))
         #x_size, y_size = grid.get_preferred_size()
         #x_size = self.get_grid_columns(grid)
         #y_size = self.get_grid_rows(grid)
         #print('x: {}, y: {}'.format(x_size, y_size))
         #self.resize(x_size, y_size)
+
+        if env.GUT_CONST.args.scrolled:
+            grid_width = num_com_gpus * MAX_CHAR * CHAR_WIDTH + 19
+            grid_height = row * 29
+            self.resize(grid_width, grid_height)
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
 
