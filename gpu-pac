@@ -86,7 +86,7 @@ class PACWindow(Gtk.Window):
             scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
             scrolled_window.add(grid)
             self.add(scrolled_window)
-            self.resize(460, 620)
+            #self.resize(460, 620)
         else:
             self.add(grid)
 
@@ -539,39 +539,14 @@ class PACWindow(Gtk.Window):
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
-        #grid_rectangle = grid.get_allocation()
-        #print('x: {}, y: {}, width: {}, height: {}'.format(grid_rectangle.x, grid_rectangle.y,
-                                                           #grid_rectangle.width, grid_rectangle.height))
-        #x_size, y_size = grid.get_preferred_size()
-        #x_size = self.get_grid_columns(grid)
-        #y_size = self.get_grid_rows(grid)
-        #print('x: {}, y: {}'.format(x_size, y_size))
-        #self.resize(x_size, y_size)
-
+        self.show_all()
+        grid_rectangle = grid.get_allocation()
+        LOGGER.debug('Grid alloc: x: %s, y: %s, width: %s, height: %s',
+                     grid_rectangle.x, grid_rectangle.y, grid_rectangle.width, grid_rectangle.height)
         if env.GUT_CONST.args.scrolled:
-            grid_width = num_com_gpus * MAX_CHAR * CHAR_WIDTH + 19
-            grid_height = row * 29
-            self.resize(grid_width, grid_height)
+            self.resize(grid_rectangle.width + 10, grid_rectangle.height + 18)
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
-
-    @staticmethod
-    def get_grid_rows(grid):
-        rows = 0
-        for child in grid.get_children():
-            y = grid.child_get_property(child, 'top-attach')
-            height = grid.child_get_property(child, 'height')
-            rows = max(rows, y + height)
-        return rows
-
-    @staticmethod
-    def get_grid_columns(grid):
-        cols = 0
-        for child in grid.get_children():
-            x = grid.child_get_property(child, 'left-attach')
-            width = grid.child_get_property(child, 'width')
-            cols = max(cols, x + width)
-        return cols
 
     @staticmethod
     def update_message(devices: dict, message: str, color: str = 'gray') -> None:
