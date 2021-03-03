@@ -36,7 +36,7 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, IO, Generator
+from typing import Union, List, Dict, TextIO, IO, Generator, Any
 from pathlib import Path
 from uuid import uuid4
 from enum import Enum
@@ -88,133 +88,138 @@ class GpuItem:
     """
     # pylint: disable=attribute-defined-outside-init
     # pylint: disable=too-many-instance-attributes
-    _finalized = False
-    _button_labels = {'loading':     'Load%',
-                      'power':       'Power',
-                      'power_cap':   'PowerCap',
-                      'temp_val':    'Temp',
-                      'vddgfx_val':  'VddGfx',
-                      'sclk_ps_val': 'SCLK Pstate',
-                      'sclk_f_val':  'SCLK',
-                      'mclk_ps_val': 'MCLK Pstate',
-                      'mclk_f_val':  'MCLK'}
+    _finalized: bool = False
+    _button_labels: Dict[str, str] = {'loading':     'Load%',
+                                      'power':       'Power',
+                                      'power_cap':   'PowerCap',
+                                      'temp_val':    'Temp',
+                                      'vddgfx_val':  'VddGfx',
+                                      'sclk_ps_val': 'SCLK Pstate',
+                                      'sclk_f_val':  'SCLK',
+                                      'mclk_ps_val': 'MCLK Pstate',
+                                      'mclk_f_val':  'MCLK'}
 
-    _fan_item_list = ['fan_enable', 'pwm_mode', 'fan_target',
-                      'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
-    short_list = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
-                  'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
-    _GPU_NC_Param_List = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num', 'sys_card_path',
-                          'gpu_type', 'card_path', 'hwmon_path', 'pcie_id', 'driver', 'id', 'model_device_decode']
+    _fan_item_list: List[str] = ['fan_enable', 'pwm_mode', 'fan_target',
+                                 'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    short_list: List[str] = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+                             'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
+    _GPU_NC_Param_List: List[str] = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
+                                     'sys_card_path', 'gpu_type', 'card_path', 'hwmon_path', 'pcie_id',
+                                     'driver', 'id', 'model_device_decode']
 
     # Vendor and Type skip lists for reporting
-    AMD_Skip_List = ['frequencies_max', 'compute_mode', 'serial_number', 'card_index']
-    NV_Skip_List = ['fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
-                    'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
-                    'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                    'temp_crits', 'voltages']
-    LEGACY_Skip_List = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power', 'power_cap',
-                        'power_cap_range', 'mem_vram_total', 'mem_vram_used', 'mem_gtt_total', 'mem_gtt_used',
-                        'mem_vram_usage', 'mem_gtt_usage', 'fan_speed_range', 'fan_enable', 'fan_target',
-                        'fan_speed', 'voltages', 'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
+    AMD_Skip_List: List[str] = ['frequencies_max', 'compute_mode', 'serial_number', 'card_index']
+    NV_Skip_List: List[str] = ['fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+                               'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
+                               'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                               'temp_crits', 'voltages']
+    LEGACY_Skip_List: List[str] = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
+                                   'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
+                                   'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
+                                   'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
+                                   'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
-    _apu_gpus = ['Carrizo', 'Picasso', 'Renoir']
+    _apu_gpus: List[str] = ['Carrizo', 'Picasso', 'Renoir', 'Cezanne']
 
     # Table parameters labels.
-    table_parameters = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
-                        'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
-                        'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
-    _table_param_labels = {'model_display':  'Model',
-                           'loading':        'GPU Load %',
-                           'mem_loading':    'Mem Load %',
-                           'mem_vram_usage': 'VRAM Usage %',
-                           'mem_gtt_usage':  'GTT Usage %',
-                           'power':          'Power (W)',
-                           'power_cap':      'Power Cap (W)',
-                           'energy':         'Energy (kWh)',
-                           'temp_val':       'T (C)',
-                           'vddgfx_val':     'VddGFX (mV)',
-                           'fan_pwm':        'Fan Spd (%)',
-                           'sclk_f_val':     'Sclk (MHz)',
-                           'sclk_ps_val':    'Sclk Pstate',
-                           'mclk_f_val':     'Mclk (MHz)',
-                           'mclk_ps_val':    'Mclk Pstate',
-                           'ppm':            'Perf Mode'}
+    table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
+                                   'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
+                                   'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
+    table_param_labels: Dict[str, str] = {
+        'model_display':  'Model',
+        'loading':        'GPU Load %',
+        'mem_loading':    'Mem Load %',
+        'mem_vram_usage': 'VRAM Usage %',
+        'mem_gtt_usage':  'GTT Usage %',
+        'power':          'Power (W)',
+        'power_cap':      'Power Cap (W)',
+        'energy':         'Energy (kWh)',
+        'temp_val':       'T (C)',
+        'vddgfx_val':     'VddGFX (mV)',
+        'fan_pwm':        'Fan Spd (%)',
+        'sclk_f_val':     'Sclk (MHz)',
+        'sclk_ps_val':    'Sclk Pstate',
+        'mclk_f_val':     'Mclk (MHz)',
+        'mclk_ps_val':    'Mclk Pstate',
+        'ppm':            'Perf Mode'}
 
     # Complete GPU print items, use skip lists where appropriate
-    _GPU_CLINFO_Labels = {'sep4': '#',
-                          'opencl_version':     '   Device OpenCL C Version',
-                          'device_name':        '   Device Name',
-                          'device_version':     '   Device Version',
-                          'driver_version':     '   Driver Version',
-                          'max_cu':             '   Max Compute Units',
-                          'simd_per_cu':        '   SIMD per CU',
-                          'simd_width':         '   SIMD Width',
-                          'simd_ins_width':     '   SIMD Instruction Width',
-                          'max_mem_allocation': '   CL Max Memory Allocation',
-                          'max_wi_dim':         '   Max Work Item Dimensions',
-                          'max_wi_sizes':       '   Max Work Item Sizes',
-                          'max_wg_size':        '   Max Work Group Size',
-                          'prf_wg_size':        '   Preferred Work Group Size',
-                          'prf_wg_multiple':    '   Preferred Work Group Multiple'}
-    _GPU_Param_Labels = {'card_num':            'Card Number',
-                         'vendor':              'Vendor',
-                         'readable':            'Readable',
-                         'writable':            'Writable',
-                         'compute':             'Compute',
-                         'unique_id':           'GPU UID',
-                         'serial_number':       'GPU S/N',
-                         'id':                  'Device ID',
-                         'model_device_decode': 'Decoded Device ID',
-                         'model':               'Card Model',
-                         'model_display':       'Display Card Model',
-                         'card_index':          'Card Index',
-                         'pcie_id':             'PCIe ID',
-                         'link_spd':            '   Link Speed',
-                         'link_wth':            '   Link Width',
-                         'sep1':                '#',
-                         'driver':              'Driver',
-                         'vbios':               'vBIOS Version',
-                         'compute_platform':    'Compute Platform',
-                         'compute_mode':        'Compute Mode',
-                         'gpu_type':            'GPU Type',
-                         'hwmon_path':          'HWmon',
-                         'card_path':           'Card Path',
-                         'sys_card_path':      'System Card Path',
-                         'sep2':                '#',
-                         'power':               'Current Power (W)',
-                         'power_cap':           'Power Cap (W)',
-                         'power_cap_range':     '   Power Cap Range (W)',
-                         'fan_enable':          'Fan Enable',
-                         'pwm_mode':            'Fan PWM Mode',
-                         'fan_target':          'Fan Target Speed (rpm)',
-                         'fan_speed':           'Current Fan Speed (rpm)',
-                         'fan_pwm':             'Current Fan PWM (%)',
-                         'fan_speed_range':     '   Fan Speed Range (rpm)',
-                         'fan_pwm_range':       '   Fan PWM Range (%)',
-                         'sep3':                '#',
-                         'loading':             'Current GPU Loading (%)',
-                         'mem_loading':         'Current Memory Loading (%)',
-                         'mem_gtt_usage':       'Current GTT Memory Usage (%)',
-                         'mem_gtt_used':        '   Current GTT Memory Used (GB)',
-                         'mem_gtt_total':       '   Total GTT Memory (GB)',
-                         'mem_vram_usage':      'Current VRAM Usage (%)',
-                         'mem_vram_used':       '   Current VRAM Used (GB)',
-                         'mem_vram_total':      '   Total VRAM (GB)',
-                         'temperatures':        'Current  Temps (C)',
-                         'temp_crits':          'Critical Temps (C)',
-                         'voltages':            'Current Voltages (V)',
-                         'vddc_range':          '   Vddc Range',
-                         'frequencies':         'Current Clk Frequencies (MHz)',
-                         'frequencies_max':     'Maximum Clk Frequencies (MHz)',
-                         'sclk_ps':             'Current SCLK P-State',
-                         'sclk_f_range':        '   SCLK Range',
-                         'mclk_ps':             'Current MCLK P-State',
-                         'mclk_f_range':        '   MCLK Range',
-                         'ppm':                 'Power Profile Mode',
-                         'power_dpm_force':     'Power DPM Force Performance Level'}
+    _GPU_CLINFO_Labels: Dict[str, str] = {
+        'sep4': '#',
+        'opencl_version':     '   Device OpenCL C Version',
+        'device_name':        '   Device Name',
+        'device_version':     '   Device Version',
+        'driver_version':     '   Driver Version',
+        'max_cu':             '   Max Compute Units',
+        'simd_per_cu':        '   SIMD per CU',
+        'simd_width':         '   SIMD Width',
+        'simd_ins_width':     '   SIMD Instruction Width',
+        'max_mem_allocation': '   CL Max Memory Allocation',
+        'max_wi_dim':         '   Max Work Item Dimensions',
+        'max_wi_sizes':       '   Max Work Item Sizes',
+        'max_wg_size':        '   Max Work Group Size',
+        'prf_wg_size':        '   Preferred Work Group Size',
+        'prf_wg_multiple':    '   Preferred Work Group Multiple'}
+    _GPU_Param_Labels: Dict[str, str] = {
+        'card_num':            'Card Number',
+        'vendor':              'Vendor',
+        'readable':            'Readable',
+        'writable':            'Writable',
+        'compute':             'Compute',
+        'unique_id':           'GPU UID',
+        'serial_number':       'GPU S/N',
+        'id':                  'Device ID',
+        'model_device_decode': 'Decoded Device ID',
+        'model':               'Card Model',
+        'model_display':       'Display Card Model',
+        'card_index':          'Card Index',
+        'pcie_id':             'PCIe ID',
+        'link_spd':            '   Link Speed',
+        'link_wth':            '   Link Width',
+        'sep1':                '#',
+        'driver':              'Driver',
+        'vbios':               'vBIOS Version',
+        'compute_platform':    'Compute Platform',
+        'compute_mode':        'Compute Mode',
+        'gpu_type':            'GPU Type',
+        'hwmon_path':          'HWmon',
+        'card_path':           'Card Path',
+        'sys_card_path':      'System Card Path',
+        'sep2':                '#',
+        'power':               'Current Power (W)',
+        'power_cap':           'Power Cap (W)',
+        'power_cap_range':     '   Power Cap Range (W)',
+        'fan_enable':          'Fan Enable',
+        'pwm_mode':            'Fan PWM Mode',
+        'fan_target':          'Fan Target Speed (rpm)',
+        'fan_speed':           'Current Fan Speed (rpm)',
+        'fan_pwm':             'Current Fan PWM (%)',
+        'fan_speed_range':     '   Fan Speed Range (rpm)',
+        'fan_pwm_range':       '   Fan PWM Range (%)',
+        'sep3':                '#',
+        'loading':             'Current GPU Loading (%)',
+        'mem_loading':         'Current Memory Loading (%)',
+        'mem_gtt_usage':       'Current GTT Memory Usage (%)',
+        'mem_gtt_used':        '   Current GTT Memory Used (GB)',
+        'mem_gtt_total':       '   Total GTT Memory (GB)',
+        'mem_vram_usage':      'Current VRAM Usage (%)',
+        'mem_vram_used':       '   Current VRAM Used (GB)',
+        'mem_vram_total':      '   Total VRAM (GB)',
+        'temperatures':        'Current  Temps (C)',
+        'temp_crits':          'Critical Temps (C)',
+        'voltages':            'Current Voltages (V)',
+        'vddc_range':          '   Vddc Range',
+        'frequencies':         'Current Clk Frequencies (MHz)',
+        'frequencies_max':     'Maximum Clk Frequencies (MHz)',
+        'sclk_ps':             'Current SCLK P-State',
+        'sclk_f_range':        '   SCLK Range',
+        'mclk_ps':             'Current MCLK P-State',
+        'mclk_f_range':        '   MCLK Range',
+        'ppm':                 'Power Profile Mode',
+        'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # GPU sensor reading details
     SensorSet = Enum('set', 'None Test Static Dynamic Info State Monitor All')
@@ -241,7 +246,7 @@ class GpuItem:
                                                        'fan_speed', 'pwm_mode', 'fan_pwm']}}
 
     SensorType = Enum('type', 'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS')
-    _gbcf = 1.0/(1024*1024*1024)
+    _gbcf: float = 1.0/(1024*1024*1024)
     _sensor_details = {GPU_Vendor.AMD: {
                                'HWMON': {
                                    'power':           {'type': SensorType.SingleParam,
@@ -373,7 +378,7 @@ class GpuItem:
                                    'link_spd':         ['pcie.link.gen.current'],
                                    'pstates':          ['pstate']}}
 
-    def __repr__(self) -> Dict[str, any]:
+    def __repr__(self) -> Dict[str, Any]:
         """
         Return dictionary representing all parts of the GpuItem object.
 
@@ -399,91 +404,93 @@ class GpuItem:
         :param item_id:  UUID of the new item.
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
-        self.validated_sensors = False
-        self.energy = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
-        self.read_disabled = []    # List of parameters that failed during read.
-        self.write_disabled = []   # List of parameters that failed during write.
-        self.prm = ObjDict({'uuid': item_id,
-                            'unique_id': '',
-                            'card_num': None,
-                            'pcie_id': '',
-                            'driver': '',
-                            'vendor': self.GPU_Vendor.Undefined,
-                            'readable': False,
-                            'writable': False,
-                            'compute': False,
-                            'compute_platform': None,
-                            'compute_mode': None,
-                            'gpu_type': self.GPU_Type.Undefined,
-                            'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
-                            'model_device_decode': 'UNDETERMINED',
-                            'model': '',
-                            'model_display': '',
-                            'serial_number': '',
-                            'card_index': '',
-                            'card_path': '',
-                            'sys_card_path': '',
-                            'hwmon_path': '',
-                            'energy': 0.0,
-                            'power': None,
-                            'power_cap': None,
-                            'power_cap_range': [None, None],
-                            'fan_enable': None,
-                            'pwm_mode': [None, 'UNK'],
-                            'fan_pwm': None,
-                            'fan_speed': None,
-                            'fan_speed_range': [None, None],
-                            'fan_pwm_range': [None, None],
-                            'fan_target': None,
-                            'temp_crits': None,
-                            'vddgfx': None,
-                            'vddc_range': ['', ''],
-                            'temperatures': None,
-                            'voltages': None,
-                            'frequencies': None,
-                            'frequencies_max': None,
-                            'loading': None,
-                            'mem_loading': None,
-                            'mem_vram_total': None,
-                            'mem_vram_used': None,
-                            'mem_vram_usage': None,
-                            'mem_gtt_total': None,
-                            'mem_gtt_used': None,
-                            'mem_gtt_usage': None,
-                            'pstate': None,
-                            'mclk_ps': ['', ''],
-                            'mclk_f_range': ['', ''],
-                            'mclk_mask': '',
-                            'sclk_ps': ['', ''],
-                            'sclk_f_range': ['', ''],
-                            'sclk_mask': '',
-                            'link_spd': '',
-                            'link_wth': '',
-                            'ppm': '',
-                            'power_dpm_force': '',
-                            'vbios': ''})
-        self.clinfo = ObjDict({'device_name': '',
-                               'device_version': '',
-                               'driver_version': '',
-                               'opencl_version': '',
-                               'pcie_id': '',
-                               'max_cu': '',
-                               'simd_per_cu': '',
-                               'simd_width': '',
-                               'simd_ins_width': '',
-                               'max_mem_allocation': '',
-                               'max_wi_dim': '',
-                               'max_wi_sizes': '',
-                               'max_wg_size': '',
-                               'prf_wg_size': '',
-                               'prf_wg_multiple': ''})
-        self.sclk_dpm_state = {}    # {'1': 'Mhz'}
-        self.mclk_dpm_state = {}    # {'1': 'Mhz'}
-        self.sclk_state = {}        # {'1': ['Mhz', 'mV']}
-        self.mclk_state = {}        # {'1': ['Mhz', 'mV']}
-        self.vddc_curve = {}        # {'1': ['Mhz', 'mV']}
-        self.vddc_curve_range = {}  # {'1': {SCLK: ['val1', 'val2'], VOLT: ['val1', 'val2']}
-        self.ppm_modes = {}         # {'1': ['Name', 'Description']}
+        self.validated_sensors: bool = False
+        self.energy: Dict[str, Any] = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
+        self.read_disabled: List[str] = []    # List of parameters that failed during read.
+        self.write_disabled: List[str] = []   # List of parameters that failed during write.
+        self.prm: ObjDict = ObjDict({
+            'uuid': item_id,
+            'unique_id': '',
+            'card_num': None,
+            'pcie_id': '',
+            'driver': '',
+            'vendor': self.GPU_Vendor.Undefined,
+            'readable': False,
+            'writable': False,
+            'compute': False,
+            'compute_platform': None,
+            'compute_mode': None,
+            'gpu_type': self.GPU_Type.Undefined,
+            'id': {'vendor': '', 'device': '', 'subsystem_vendor': '', 'subsystem_device': ''},
+            'model_device_decode': 'UNDETERMINED',
+            'model': '',
+            'model_display': '',
+            'serial_number': '',
+            'card_index': '',
+            'card_path': '',
+            'sys_card_path': '',
+            'hwmon_path': '',
+            'energy': 0.0,
+            'power': None,
+            'power_cap': None,
+            'power_cap_range': [None, None],
+            'fan_enable': None,
+            'pwm_mode': [None, 'UNK'],
+            'fan_pwm': None,
+            'fan_speed': None,
+            'fan_speed_range': [None, None],
+            'fan_pwm_range': [None, None],
+            'fan_target': None,
+            'temp_crits': None,
+            'vddgfx': None,
+            'vddc_range': ['', ''],
+            'temperatures': None,
+            'voltages': None,
+            'frequencies': None,
+            'frequencies_max': None,
+            'loading': None,
+            'mem_loading': None,
+            'mem_vram_total': None,
+            'mem_vram_used': None,
+            'mem_vram_usage': None,
+            'mem_gtt_total': None,
+            'mem_gtt_used': None,
+            'mem_gtt_usage': None,
+            'pstate': None,
+            'mclk_ps': ['', ''],
+            'mclk_f_range': ['', ''],
+            'mclk_mask': '',
+            'sclk_ps': ['', ''],
+            'sclk_f_range': ['', ''],
+            'sclk_mask': '',
+            'link_spd': '',
+            'link_wth': '',
+            'ppm': '',
+            'power_dpm_force': '',
+            'vbios': ''})
+        self.clinfo: ObjDict = ObjDict({
+            'device_name': '',
+            'device_version': '',
+            'driver_version': '',
+            'opencl_version': '',
+            'pcie_id': '',
+            'max_cu': '',
+            'simd_per_cu': '',
+            'simd_width': '',
+            'simd_ins_width': '',
+            'max_mem_allocation': '',
+            'max_wi_dim': '',
+            'max_wi_sizes': '',
+            'max_wg_size': '',
+            'prf_wg_size': '',
+            'prf_wg_multiple': ''})
+        self.sclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
+        self.mclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
+        self.sclk_state: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
+        self.mclk_state: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
+        self.vddc_curve: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
+        self.vddc_curve_range: Dict[int, dict] = {}  # {1: {'SCLK': ['val1', 'val2'], 'VOLT': ['val1', 'val2']}
+        self.ppm_modes: Dict[str, List[str]] = {}    # {'1': ['Name', 'Description']}
         self.finalize_fan_option()
 
     @classmethod
@@ -501,8 +508,8 @@ class GpuItem:
                 if fan_item in cls._GPU_Param_Labels.keys():
                     del cls._GPU_Param_Labels[fan_item]
                 # Remove fan params from Table_Param_Labels
-                if fan_item in cls._table_param_labels.keys():
-                    del cls._table_param_labels[fan_item]
+                if fan_item in cls.table_param_labels.keys():
+                    del cls.table_param_labels[fan_item]
                 # Remove fan params from SensorSets
                 if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
@@ -928,12 +935,12 @@ class GpuItem:
         :param curve_pts: curve_point = [point_number, clk_value, vddc_value]
         :return: Return True if valid
         """
-        sclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][0])))
-        sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['SCLK'][1])))
+        sclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[curve_pts[0]]['SCLK'][0])))
+        sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[curve_pts[0]]['SCLK'][1])))
         if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
             return False
         vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str('650mV')))
-        vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[str(curve_pts[0])]['VOLT'][1])))
+        vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[curve_pts[0]]['VOLT'][1])))
         if curve_pts[2] < vddc_min or curve_pts[2] > vddc_max:
             return False
         return True
@@ -1075,6 +1082,11 @@ class GpuItem:
                         if len(lineitems) == 3:
                             index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
                             index = re.sub(r'\].*', '', index)
+                            if not index.isnumeric():
+                                print('Error: Invalid index for line item: {}'.format(line))
+                                LOGGER.debug('Invalid index for pstate line item: %s', line)
+                                continue
+                            index = int(index)
                             param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
                             param = re.sub(r'\[[0-9]\]:', '', param)
                             LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
@@ -1533,11 +1545,11 @@ class GpuList:
     """
     def __init__(self) -> None:
         self.list: GpuDict = {}
-        self.opencl_map = {}
-        self.amd_featuremask = None
-        self.amd_wattman = False
-        self.amd_writable = False
-        self.nv_readwritable = False
+        self.opencl_map: dict = {}
+        self.amd_featuremask: Union[int, None] = None
+        self.amd_wattman: bool = False
+        self.amd_writable: bool = False
+        self.nv_readwritable: bool = False
 
     def __repr__(self) -> dict:
         return self.list
@@ -1621,7 +1633,7 @@ class GpuList:
 
         :return: Dictionary of table parameters/labels
         """
-        return GpuItem._table_param_labels
+        return GpuItem.table_param_labels
 
     @staticmethod
     def table_parameters() -> List[str]:

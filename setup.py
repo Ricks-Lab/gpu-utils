@@ -1,6 +1,9 @@
 #!/usr/bin/python3
-"""
-    Used to create source and binary distributions for rickslab-gpu-utils.
+""" setup.py used in producing source and binary distributions.
+
+    Usage: python3 setup.py sdist bdist_wheel
+
+    Copyright (C) 2020  RicksLab
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,8 +18,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = 'RueiKe'
-__license__ = 'GNU General Public License'
+__author__ = 'RicksLab'
+__credits__ = []
+__license__ = 'GNU General Public License - GPL-3'
+__program_name__ = 'setup.py'
+__maintainer__ = 'RueiKe'
+__docformat__ = 'reStructuredText'
+
 # pylint: disable=line-too-long
 
 import sys
