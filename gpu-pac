@@ -80,14 +80,11 @@ class PACWindow(Gtk.Window):
             sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         grid = Gtk.Grid()
-        if env.GUT_CONST.args.scrolled:
-            scrolled_window = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
-            scrolled_window.set_border_width(0)
-            scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-            scrolled_window.add(grid)
-            self.add(scrolled_window)
-        else:
-            self.add(grid)
+        scrolled_window = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
+        scrolled_window.set_border_width(0)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.add(grid)
+        self.add(scrolled_window)
 
         GPUgui.GuiProps.set_style()
 
@@ -538,14 +535,13 @@ class PACWindow(Gtk.Window):
         grid.attach(devices['message_box'], 0, max_rows, col, 1)
         row += 1
 
+        self.update_message(devices, '', 'gray')
+        self.refresh_pac(gpu_list, devices)
         self.show_all()
         grid_rectangle = grid.get_allocation()
         LOGGER.debug('Grid alloc: x: %s, y: %s, width: %s, height: %s',
                      grid_rectangle.x, grid_rectangle.y, grid_rectangle.width, grid_rectangle.height)
-        if env.GUT_CONST.args.scrolled:
-            self.resize(grid_rectangle.width + 10, grid_rectangle.height + 18)
-        self.update_message(devices, '', 'gray')
-        self.refresh_pac(gpu_list, devices)
+        self.resize(grid_rectangle.width + 8, grid_rectangle.height + 8)
 
     @staticmethod
     def update_message(devices: dict, message: str, color: str = 'gray') -> None:
@@ -1259,7 +1255,6 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
-    parser.add_argument('--scrolled', help='Enable scrolling', action='store_true', default=False)
     parser.add_argument('--execute_pac', help='execute pac bash script without review',
                         action='store_true', default=False)
     parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
