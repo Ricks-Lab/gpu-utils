@@ -123,7 +123,9 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 ## New in Development -  v3.5.7
 
 * More robust determination of install type and display this with *--about* and in logger.
-* Preliminary implementation of scroll within PAC window.
+* Implementation of scroll within PAC window.
+* Fixed plot crash for invalid ticker increment.
+* Code robustness improvements with more typing for class variables.
 
 ## Development Plans
 
