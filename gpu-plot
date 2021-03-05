@@ -492,6 +492,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     PD_SEM.acquire()
     #######################
     ldf = plot_data.df
+    y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
@@ -573,14 +574,19 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                                           fontsize=6)
 
             tick_inc = int(10 * round(((y1lim_max_val - y1lim_min_val) // 12)/10.0, 0))
+            if tick_inc <= 5: tick_inc = 10
             comp_item['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, tick_inc))
             tick_inc = int(100 * round(((y2lim_max_val - y2lim_min_val) // 12)/100.0, 0))
+            if tick_inc <= 50: tick_inc = 100
             comp_item['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, tick_inc))
 
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
         LOGGER.exception('plot exception: %s', err)
+        LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
+        LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
+        LOGGER.debug('ticker increment: %s', tick_inc)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
         plot_data.kill_thread()
