@@ -574,29 +574,35 @@ class GpuItem:
             self.prm['energy'] = round(self.energy['cumulative'], 6)
         elif name == 'sclk_ps':
             mask = ''
+            ps_key = 'NA'
             for ps_val in value:
                 if not mask:
                     mask = ps_val.split(':')[0].strip()
                 else:
                     mask += ',' + ps_val.split(':')[0].strip()
                 sclk_ps = ps_val.strip('*').strip().split(': ')
-                self.sclk_dpm_state.update({int(sclk_ps[0]): sclk_ps[1]})
+                if sclk_ps[0].isnumeric():
+                    ps_key = int(sclk_ps[0])
+                self.sclk_dpm_state.update({ps_key: sclk_ps[1]})
                 if '*' in ps_val:
-                    self.prm.sclk_ps[0] = int(sclk_ps[0])
+                    self.prm.sclk_ps[0] = ps_key
                     self.prm.sclk_ps[1] = sclk_ps[1]
                 self.prm.sclk_mask = mask
             LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
         elif name == 'mclk_ps':
             mask = ''
+            ps_key = 'NA'
             for ps_val in value:
                 if not mask:
                     mask = ps_val.split(':')[0].strip()
                 else:
                     mask += ',' + ps_val.split(':')[0].strip()
                 mclk_ps = ps_val.strip('*').strip().split(': ')
-                self.mclk_dpm_state.update({int(mclk_ps[0]): mclk_ps[1]})
+                if mclk_ps[0].isnumeric():
+                    ps_key = int(mclk_ps[0])
+                self.mclk_dpm_state.update({ps_key: mclk_ps[1]})
                 if '*' in ps_val:
-                    self.prm.mclk_ps[0] = int(mclk_ps[0])
+                    self.prm.mclk_ps[0] = ps_key
                     self.prm.mclk_ps[1] = mclk_ps[1]
                 self.prm.mclk_mask = mask
             LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
