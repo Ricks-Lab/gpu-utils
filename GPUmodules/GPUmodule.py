@@ -531,6 +531,8 @@ class GpuItem:
         :param name: Target GPU name
         :return: True if name matches APU name
         """
+        if not name:
+            return False
         for apu_name in cls._apu_gpus:
             if name in apu_name:
                 return True
@@ -1737,6 +1739,7 @@ class GpuList:
             if re.search('Fiji', gpu_name):
                 if re.search(r'Radeon Pro Duo', lspci_items[1].split('[AMD/ATI]')[1]):
                     gpu_name = 'Radeon Fiji Pro Duo'
+            LOGGER.debug('gpu_name: [%s]', gpu_name)
 
             # Get GPU brand: AMD, INTEL, NVIDIA, ASPEED
             if re.search(PATTERNS['AMD_GPU'], gpu_name):
