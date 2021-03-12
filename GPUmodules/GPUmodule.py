@@ -534,7 +534,8 @@ class GpuItem:
         if not name:
             return False
         for apu_name in cls._apu_gpus:
-            if name in apu_name:
+            #if name in apu_name:
+            if apu_name in name:
                 return True
         return False
 
