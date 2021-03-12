@@ -120,12 +120,9 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.5.7
+## New in Development -  v3.5.8
 
-* More robust determination of install type and display this with *--about* and in logger.
-* Implementation of scroll within PAC window.
-* Fixed plot crash for invalid ticker increment.
-* Code robustness improvements with more typing for class variables.
+* Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
 
 ## Development Plans
 
@@ -153,6 +150,13 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+## New in Previous Release -  v3.5.7
+
+* More robust determination of install type and display this with *--about* and in logger.
+* Implementation of scroll within PAC window.
+* Fixed plot crash for invalid ticker increment.
+* Code robustness improvements with more typing for class variables.
 
 ## New in Previous Release -  v3.5.6
 
