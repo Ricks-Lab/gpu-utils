@@ -122,7 +122,10 @@ class GpuItem:
     GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
-    _apu_gpus: List[str] = ['Carrizo', 'Picasso', 'Renoir', 'Cezanne']
+    _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
+                            'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
+                            'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
+                            'BeaverCreek']
 
     # Table parameters labels.
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
@@ -534,7 +537,7 @@ class GpuItem:
         if not name:
             return False
         for apu_name in cls._apu_gpus:
-            if apu_name in name:
+            if re.search(apu_name, name, re.IGNORECASE):
                 return True
         return False
 
