@@ -534,7 +534,6 @@ class GpuItem:
         if not name:
             return False
         for apu_name in cls._apu_gpus:
-            #if name in apu_name:
             if apu_name in name:
                 return True
         return False
@@ -1846,14 +1845,19 @@ class GpuList:
                     if self.amd_writable:
                         writable = True
                 elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
-                    #if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or GpuItem.is_apu(gpu_name):
+                    # if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or GpuItem.is_apu(gpu_name):
                     if GpuItem.is_apu(gpu_name):
                         readable = True
                         gpu_type = GpuItem.GPU_Type.APU
-                    elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
+                    else:
                         # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
                         readable = True
                         gpu_type = GpuItem.GPU_Type.Legacy
+                elif GpuItem.is_apu(gpu_name):
+                    readable = True
+                    gpu_type = GpuItem.GPU_Type.APU
+                else:
+                    gpu_type = GpuItem.GPU_Type.Unsupported
                 if LOGGER.getEffectiveLevel() == logging.DEBUG:
                     # Write pp_od_clk_voltage details to debug LOGGER
                     if os.path.isfile(pp_od_clk_voltage_file):
