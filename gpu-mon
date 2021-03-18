@@ -98,7 +98,9 @@ class MonitorWindow(Gtk.Window):
     """
     Custom PAC Gtk window.
     """
-    quit = False
+    quit: bool = False
+    item_width: int = 20
+    label_width: int = 12
 
     def __init__(self, gpu_list, devices):
 
@@ -161,8 +163,8 @@ class MonitorWindow(Gtk.Window):
             for param_name in gpu_list.table_param_labels():
                 devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
                                                               name='white_label')
-                devices[gpu.prm.uuid][param_name].set_width_chars(10)
-                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=10)
+                devices[gpu.prm.uuid][param_name].set_width_chars(self.item_width)
+                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=self.item_width)
 
         for gui_component in devices.values():
             col += 1
@@ -174,7 +176,7 @@ class MonitorWindow(Gtk.Window):
                 else:
                     lbox = Gtk.Box(spacing=6, name='med_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=17)
+                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=self.item_width)
                 lbox.pack_start(comp_item, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -221,9 +223,9 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
                 if isinstance(data_value_raw, float):
                     if not isnan(data_value_raw):
                         data_value_raw = round(data_value_raw, 3)
-                data_value = str(data_value_raw)[:16]
+                data_value = str(data_value_raw)[:MonitorWindow.item_width]
                 comp_item.set_text(data_value)
-            set_gtk_prop(comp_item, width_chars=17)
+            set_gtk_prop(comp_item, width_chars=MonitorWindow.item_width)
 
     while Gtk.events_pending():
         Gtk.main_iteration_do(True)
