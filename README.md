@@ -52,13 +52,22 @@ sudo apt install rickslab-gpu-utils
 
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 commands:
-
 ```
-pip3 uninstall rickslab-gpu-utils
 pip3 install rickslab-gpu-utils
 ```
-The uninstall is required to make sure all modules are updated.  If you still get an old version,
-then specify not to use cached files:
+Or, use the pip upgrade option if you have already installed a previous version:
+```
+pip3 install rickslab-gpu-utils -U
+```
+
+If you have issues, try uninstalling the original package first.  You should also make sure
+that any previous install of *ricks-amdgpu-utils* is removed:
+```
+pip3 uninstall rickslab-gpu-utils
+pip3 uninstall ricks-amdgpu-utils
+```
+
+If you still get an old version, then specify not to use cached files:
 ```
 pip3 install --no-cache-dir rickslab-gpu-utils
 ```
@@ -123,6 +132,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 ## New in Development -  v3.5.8
 
 * Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
+* Optimize *gpu-mon* table size.
+* Toggle button color to match enable/disable status of plot line.
 
 ## Development Plans
 
