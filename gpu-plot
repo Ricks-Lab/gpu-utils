@@ -188,6 +188,7 @@ class GuiComponents:
     """
     _colors = {'plotface':        GPUgui.GuiProps.color_name_to_hex('slate_vdk'),
                'figface':         GPUgui.GuiProps.color_name_to_hex('slate_md'),
+               'disable_but':     GPUgui.GuiProps.color_name_to_hex('gray70'),
                'sclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_green'),
                'mclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_yellow'),
                'loading':         GPUgui.GuiProps.color_name_to_hex('br_pink'),
@@ -356,12 +357,12 @@ class GPUPlotWindow(Gtk.Window):
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for comp_name in gc.gui_components['legend']['plot_items'].keys():
             but_label = Gpu.GpuItem.get_button_label(comp_name)
+            but_name = 'but_{}'.format(comp_name)
             but_color = gc.get_color(comp_name)
             but_font_color = gc.get_font_color(comp_name)
-            gc.gui_components['legend']['buttons'][comp_name] = Gtk.Button(label='')
-            gc.gui_components['legend']['buttons'][comp_name].set_name(but_color[1:])
+            gc.gui_components['legend']['buttons'][comp_name] = Gtk.Button(name=but_name, label='')
             GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
-                but_color[1:], but_color, but_font_color))
+                but_name, but_color, but_font_color))
             for child in gc.gui_components['legend']['buttons'][comp_name].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(but_label))
                 child.set_use_markup(True)
@@ -478,6 +479,9 @@ class GPUPlotWindow(Gtk.Window):
         :param gc: gui components object
         :param k:  Name of plot item to toggle
         """
+        but_name = 'but_{}'.format(k)
+        but_color = gc.get_color('disable_but') if gc.plot_items[k] else gc.get_color(k)
+        GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); }" % (but_name, but_color))
         gc.plot_items[k] = not gc.plot_items[k]
 
 
