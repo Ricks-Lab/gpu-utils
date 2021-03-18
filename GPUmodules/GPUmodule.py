@@ -2152,6 +2152,7 @@ class GpuList:
 
         :return: True if success
         """
+        table_width: int = 20
         if self.num_gpus()['total'] < 1:
             return False
 
@@ -2160,17 +2161,17 @@ class GpuList:
 
         print('┌', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.gpus():
-            print('┬', '─'.ljust(16, '─'), sep='', end='')
+            print('┬', '─'.ljust(table_width, '─'), sep='', end='')
         print('┐')
 
         print('│\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
         for gpu in self.gpus():
-            print('│\x1b[1;36mcard{:<12}\x1b[0m'.format(gpu.prm.card_num), end='')
+            print('│\x1b[1;36mcard{:<16}\x1b[0m'.format(gpu.prm.card_num), end='')
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.gpus():
-            print('┼', '─'.ljust(16, '─'), sep='', end='')
+            print('┼', '─'.ljust(table_width, '─'), sep='', end='')
         print('┤')
 
         for table_item in self.table_parameters():
@@ -2179,12 +2180,12 @@ class GpuList:
                 data_value_raw = gpu.get_params_value(table_item)
                 if isinstance(data_value_raw, float):
                     data_value_raw = round(data_value_raw, 3)
-                print('│{:<16}'.format(str(data_value_raw)[:16]), end='')
+                print('│{:<20}'.format(str(data_value_raw)[:table_width]), end='')
             print('│')
 
         print('└', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.gpus():
-            print('┴', '─'.ljust(16, '─'), sep='', end='')
+            print('┴', '─'.ljust(table_width, '─'), sep='', end='')
         print('┘')
         return True
 
