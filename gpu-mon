@@ -273,7 +273,6 @@ def main() -> None:
     parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     parser.add_argument('--pdebug', help='Plot debug output', action='store_true', default=False)
-    parser.add_argument('--plotfromrepo', help='Plot debug output', action='store_true', default=False)
     args = parser.parse_args()
 
     # About me
@@ -365,7 +364,7 @@ def main() -> None:
             plot_util = shutil.which('gpu-plot')
             if not plot_util:
                 plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
-            if args.plotfromrepo:
+            if env.GUT_CONST.install_type == 'repository':
                 plot_util = './gpu-plot'
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
