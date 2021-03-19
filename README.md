@@ -129,11 +129,11 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.5.8
+## New in Development -  v3.5.9
 
-* Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
 * Optimize *gpu-mon* table size.
 * Toggle button color to match enable/disable status of plot line.
+* When install type is repository, force use of repository *gpu-plot* from *gpu-mon*.
 
 ## Development Plans
 
@@ -143,7 +143,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## Known Issues
 
-* Windows do not support scrolling or resize, making it unusable for lower resolution installations.
+* Some windows do not support scrolling or resize, making it unusable for lower resolution installations.
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
@@ -161,6 +161,10 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+## New in Previous Release -  v3.5.8
+
+* Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
 
 ## New in Previous Release -  v3.5.7
 
