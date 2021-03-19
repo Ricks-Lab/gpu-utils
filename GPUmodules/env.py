@@ -40,7 +40,7 @@ import shlex
 import shutil
 import time
 from datetime import datetime
-from typing import Dict, Union, List
+from typing import Dict, Union, List, TextIO
 from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -117,34 +117,29 @@ class GutConst:
             self.sys_pciid = None
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
-        self.amdfeaturemask = ''
-        self.log_file_ptr = ''
+        self.amdfeaturemask: Union[int, None] = None
+        self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
-        self.execute_pac = False
-        self.DEBUG = False
-        self.PDEBUG = False
-        self.SIMLOG = False
-        self.LOG = False
-        self.PLOT = False
-        self.show_fans = True
-        self.write_delta_only = False
-        self.SLEEP = 2
-        self.USELTZ = False
+        self.execute_pac: bool = False
+        self.DEBUG: bool = False
+        self.PDEBUG: bool = False
+        self.SIMLOG: bool = False
+        self.LOG: bool = False
+        self.PLOT: bool = False
+        self.show_fans: bool = True
+        self.write_delta_only: bool = False
+        self.SLEEP: int = 2
+        self.USELTZ: bool = False
         # Time
-        self.TIME_FORMAT = '%d-%b-%Y %H:%M:%S'
-        self.LTZ = datetime.utcnow().astimezone().tzinfo
-        # GPU platform capability
-        self.amd_read = None
-        self.amd_write = None
-        self.nv_read = None
-        self.nv_write = None
+        self.TIME_FORMAT: str = '%d-%b-%Y %H:%M:%S'
+        self.LTZ: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
         # Command access
-        self.cmd_lsb_release = None
-        self.cmd_lspci = None
-        self.cmd_clinfo = None
-        self.cmd_dpkg = None
-        self.cmd_nvidia_smi = None
+        self.cmd_lsb_release: Union[str, None] = None
+        self.cmd_lspci: Union[str, None] = None
+        self.cmd_clinfo: Union[str, None] = None
+        self.cmd_dpkg: Union[str, None] = None
+        self.cmd_nvidia_smi: Union[str, None] = None
 
     def set_args(self, args: argparse.Namespace) -> None:
         """
