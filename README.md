@@ -26,7 +26,8 @@ Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/do
 
 ### Debian Package Installation
 
-First, remove any previous PyPI installation and exit that terminal:
+First, remove any previous PyPI installation and exit that terminal.  If you also have a debian
+installed version, the pip uninstall will likely fail, unless you remove the debian package first:
 ```
 pip uninstall rickslab-gpu-utils
 exit
@@ -50,6 +51,13 @@ sudo apt install rickslab-gpu-utils
 ```
 
 ### PyPI Installation
+
+First, remove any previous debian package installations:
+```
+sudo apt purge rickslab-gpu-utils
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+```
 
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 commands:
