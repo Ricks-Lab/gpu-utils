@@ -5,6 +5,7 @@
 [![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Ricks-Lab/gpu-utils)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Ricks-Lab/gpu-utils)
+![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/rickslab-gpu-utils)
 
 ## rickslab-gpu-utils
 
