@@ -121,7 +121,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ### New in Previous Release -  v3.5.10
 
-* Rewrite of the installation guide.
+* Set **Neon** as a validated distribution.
+* Check all possible package readers for undefined distribution.
 
 ### New in Previous Release -  v3.5.9
 
