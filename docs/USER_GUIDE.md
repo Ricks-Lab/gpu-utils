@@ -19,7 +19,7 @@ A set of utilities for monitoring GPU performance and modifying control settings
 ## Installation
 
 There are 4 methods of installation available and summarized here:
-* [Repository](#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer.
+* [Repository](#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer. This type of installation can exist along with any of the other installation type.
 * [PyPI](#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This install method is also meant for users not on a Debian distribution.
 * [Rickslab.com Debian](#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
 * **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
