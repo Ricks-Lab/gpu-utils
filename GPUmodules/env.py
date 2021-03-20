@@ -50,8 +50,10 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
-    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
+    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch']
+    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg',
+                                  'Arch': 'pacman',
+                                  'Gentoo': 'equery'}
     _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
@@ -304,7 +306,12 @@ class GutConst:
             if not self.cmd_dpkg:
                 print('OS command [{}] executable not found.'.format(pkg_tool))
         else:
-            self.cmd_dpkg = None
+            for test_dpkg in GutConst._dpkg_tool.values():
+                self.cmd_dpkg = shutil.which(test_dpkg)
+                if self.cmd_dpkg:
+                    break
+            else:
+                self.cmd_dpkg = None
         LOGGER.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
         self.cmd_nvidia_smi = shutil.which('nvidia-smi')
