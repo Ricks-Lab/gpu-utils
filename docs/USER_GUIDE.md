@@ -15,43 +15,102 @@ A set of utilities for monitoring GPU performance and modifying control settings
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
  - [Running Startup PAC Bash Files](#running-startup-pac-bash-files)
 
+
 ## Installation
 
-For a typical user, the installation is accomplished using pip to install from
-[PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following command:
+There are 4 methods of installation available and summarized here:
+* [Repository](#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer.
+* [PyPI](#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This install method is also meant for users not on a Debian distribution.
+* [Rickslab.com Debian](#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
+* **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
-```
-pip3 uninstall rickslab-gpu-utils
-pip3 install rickslab-gpu-utils
-```
-The uninstall is required to make sure the modules are updated.  If you still get an old version,
-then specify not to use cached files:
-```
-pip3 install --no-cache-dir rickslab-gpu-utils
-```
-If installing to a remote machine via ssh, then will need root user permissions:
-```
-sudo pip3 install rickslab-gpu-utils
-```
-For a developer/contributor to the project, it is expected that you duplicate the development
-environment using a virtual environment.  So far, my development activities for this project have
-used python3.6, but I expect to move to python3.8 when I upgrade to Ubuntu 20.04.  I suggest using
-the default version of Python for your distribution, but it is the latest release, limit your code 
-to features of the previous release.  The following are details on setting up a virtual environment
-with python3.6:
+### Repository Installation
 
-```shell script
+For a developer/contributor to the project, it is expected that you duplicate the development environment using
+a virtual environment. So far, my development activities for this project have used python3.6, but I expect
+to move to python3.8 when I upgrade to Ubuntu 20.04. I suggest using the default version of Python for your
+distribution, but if it is a later release, limit your code to features of python3.6. The following
+are details on setting up a virtual environment with python3.6:
+
+```shell
 sudo apt install -y python3.6-venv
 sudo apt install -y python3.6.dev
 ```
 
-Initialize your *rickslab-gpu-utils-env* if it is your first time to use it. From the project
-root directory, execute:
+Clone the repository from GitHub with the following command:
 
-```shell script
+```shell
+git clone https://github.com/Ricks-Lab/gpu-utils.git
+cd gpu-utils
+```
+
+Initialize your rickslab-gpu-utils-env if it is your first time to use it. From the project root directory, execute:
+
+```shell
 python3.6 -m venv rickslab-gpu-utils-env
 source rickslab-gpu-utils-env/bin/activate
 pip install --no-cache-dir -r requirements-venv.txt
+```
+
+You then run the desired commands by specifying the full path: `./gpu-ls`
+
+### PyPI Installation
+
+First, remove any previous Debian package and any ricks-amdgpu-utils PyPI installations:
+
+```shell
+sudo apt purge rickslab-gpu-utils
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+pip3 uninstall ricks-amdgpu-utils
+```
+
+Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
+commands:
+
+```shell
+pip3 install rickslab-gpu-utils
+```
+
+Or, use the pip upgrade option if you have already installed a previous version:
+
+```shell
+pip3 install rickslab-gpu-utils -U
+```
+
+You may need to open a new terminal window in order for the path to the utilities to be set.
+
+### Rickslab.com Debian Installation
+
+First, remove any previous PyPI installation and exit that terminal.  If you also have a Debian
+installed version, the pip uninstall will likely fail, unless you remove the Debian package first:
+
+```shell
+pip uninstall rickslab-gpu-utils
+exit
+```
+
+Also, remove any previous ricks-amdgpu-utils installation:
+
+```shell
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+```
+
+Next, add the *rickslab-gpu-utils* repository:
+
+```shell
+wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
+
+echo 'deb [arch=amd64] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+
+sudo apt update
+```
+
+Then install the package with apt:
+
+```shell
+sudo apt install rickslab-gpu-utils
 ```
 
 ## Getting Started
@@ -59,7 +118,7 @@ pip install --no-cache-dir -r requirements-venv.txt
 First, this set of utilities is written and tested with Python3.6.  If you are using an older
 version, you will likely see syntax errors.  If you are encountering problems, then execute:
 
-```
+```shell
 gpu-chk
 ```
 
@@ -73,20 +132,20 @@ and only with compatible cards.  Modifying AMD GPU properties requires the AMD p
 to be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
 to the `GRUB_CMDLINE_LINUX_DEFAULT` value in `/etc/default/grub` and executing `sudo update-grub`:
 
-```
+```shell
 cd /etc/default
 sudo vi grub
 ```
 
 Modify to include the featuremask as follows:
 
-```
+```shell
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xfffd7fff"
 ```
 
 After saving, update grub:
 
-```
+```shell
 sudo update-grub
 ```
 
