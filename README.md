@@ -20,66 +20,15 @@ cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accompli
 `amdgpu.ppfeaturemask=0xfffd7fff` to the `GRUB_CMDLINE_LINUX_DEFAULT` value in
 `/etc/default/grub` and executing `sudo update-grub`
 
-Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
+For a detailed introduction, check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
 
 ## Installation
 
-### Debian Package Installation
-
-First, remove any previous PyPI installation and exit that terminal.  If you also have a debian
-installed version, the pip uninstall will likely fail, unless you remove the debian package first:
-```
-pip uninstall rickslab-gpu-utils
-exit
-```
-Also, remove any previous ricks-amdgpu-utils installation:
-```
-sudo apt purge ricks-amdgpu-utils
-sudo apt autoremove
-```
-Next, add the *rickslab-gpu-utils* repository:
-```
-wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
-
-echo 'deb [arch=amd64] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
-
-sudo apt update
-```
-Then install the package with apt:
-```
-sudo apt install rickslab-gpu-utils
-```
-
-### PyPI Installation
-
-First, remove any previous debian package installations:
-```
-sudo apt purge rickslab-gpu-utils
-sudo apt purge ricks-amdgpu-utils
-sudo apt autoremove
-```
-
-Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
-commands:
-```
-pip3 install rickslab-gpu-utils
-```
-Or, use the pip upgrade option if you have already installed a previous version:
-```
-pip3 install rickslab-gpu-utils -U
-```
-
-If you have issues, try uninstalling the original package first.  You should also make sure
-that any previous install of *ricks-amdgpu-utils* is removed:
-```
-pip3 uninstall rickslab-gpu-utils
-pip3 uninstall ricks-amdgpu-utils
-```
-
-If you still get an old version, then specify not to use cached files:
-```
-pip3 install --no-cache-dir rickslab-gpu-utils
-```
+There are 4 methods of installation available and summarized here:
+* [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer.
+* [PyPI](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This install method is also meant for users not on a Debian distribution.
+* [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
+* **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
 ## gpu-chk
 

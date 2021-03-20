@@ -2,7 +2,7 @@
 
 A set of utilities for monitoring GPU performance and modifying control settings.
 
-## Current rickslab-gpu-utils Version: 3.5.x
+## Current rickslab-gpu-utils Version: 3.6.x
 
  - [Installation](#installation)
  - [Getting Started](#getting-started)
