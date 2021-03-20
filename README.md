@@ -138,11 +138,10 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.5.9
+## New in Development -  v3.5.10
 
-* Optimize *gpu-mon* table size.
-* Toggle button color to match enable/disable status of plot line.
-* When install type is repository, force use of repository *gpu-plot* from *gpu-mon*.
+* Set **Neon** as a validated distribution.
+* Check all possible package readers for undefined distribution.
 
 ## Development Plans
 
@@ -171,22 +170,28 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-## New in Previous Release -  v3.5.8
+### New in Previous Release -  v3.5.9
+
+* Optimize *gpu-mon* table size.
+* Toggle button color to match enable/disable status of plot line.
+* When install type is repository, force use of repository *gpu-plot* from *gpu-mon*.
+
+### New in Previous Release -  v3.5.8
 
 * Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
 
-## New in Previous Release -  v3.5.7
+### New in Previous Release -  v3.5.7
 
 * More robust determination of install type and display this with *--about* and in logger.
 * Implementation of scroll within PAC window.
 * Fixed plot crash for invalid ticker increment.
 * Code robustness improvements with more typing for class variables.
 
-## New in Previous Release -  v3.5.6
+### New in Previous Release -  v3.5.6
 
 * Fixed issue in reading AMD FeatureMask for Kernel 5.11
 
-## New in Previous Release -  v3.5.5
+### New in Previous Release -  v3.5.5
 
 * Include debian release package.
 * Check gtk initialization for errors and handle nicely.
