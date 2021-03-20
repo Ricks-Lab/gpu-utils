@@ -87,11 +87,10 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.5.10
+## New in Development -  v3.6.0
 
-* Set **Neon** as a validated distribution.
-* Check all possible package readers for undefined distribution.
 * Rewrite of the installation guide.
+* Roll-up all v3.5.x patches into a new minor revision release.
 
 ## Development Plans
 
@@ -119,6 +118,10 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+### New in Previous Release -  v3.5.10
+
+* Rewrite of the installation guide.
 
 ### New in Previous Release -  v3.5.9
 
