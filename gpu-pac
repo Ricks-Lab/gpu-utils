@@ -42,7 +42,7 @@ import subprocess
 import os
 import logging
 import sys
-import time
+from time import sleep
 from uuid import uuid4
 
 try:
@@ -715,7 +715,7 @@ class PACWindow(Gtk.Window):
             changed += self.save_card(parent, gpu_list, devices, uuid, refresh=False)
 
         # Write finish message
-        time.sleep(1.0)
+        sleep(1.0)
         if env.GUT_CONST.execute_pac:
             if changed:
                 message = ('Write {} PAC commands to card complete.\n'
@@ -1089,7 +1089,7 @@ class PACWindow(Gtk.Window):
 
             if refresh:
                 # dismiss execute_pac message
-                time.sleep(0.5)
+                sleep(0.5)
                 if changed:
                     message = ('Write of {} PAC commands to card complete.\n'
                                'Confirm changes with gpu-monitor.').format(changed)

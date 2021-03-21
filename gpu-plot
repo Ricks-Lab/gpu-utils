@@ -42,13 +42,13 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=bad-continuation
 
 import sys
-import gc as garbcollect
+from gc import collect as garb_collect
 import argparse
 import re
 import threading
 import os
 import logging
-import time
+from time import sleep
 import numpy as np
 
 try:
@@ -179,7 +179,7 @@ class PlotData:
         self.reader = False
         self.quit = True
         print('Stopping reader thread')
-        time.sleep(0.2)
+        sleep(0.2)
 
 
 class GuiComponents:
@@ -600,11 +600,11 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
 
 
-def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
+def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
 
-    :param refreshtime:
+    :param refresh_time:
     :param plot_data:
     .. note:: this should continuously read from stdin and populate df and call plot/gui update
     """
@@ -613,7 +613,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
     header = True
     sync_add = 0
     while not plot_data.quit:
-        if env.GUT_CONST.SIMLOG: time.sleep(refreshtime/4.0)
+        if env.GUT_CONST.SIMLOG: sleep(refresh_time/4.0)
         ndf = pd.DataFrame()
 
         # Process a set of GPUs at a time
@@ -690,29 +690,29 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             continue
         if plot_data.gui_comp.is_ready():
             if first_update:
-                time.sleep(refreshtime)
+                sleep(refresh_time)
                 first_update = False
             GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
-            time.sleep(0.01)
+            sleep(0.01)
             PD_SEM.acquire()
             PD_SEM.release()
             ########################
-            garbcollect.collect()
+            garb_collect()
         LOGGER.debug('update stack size: %s', get_stack_size())
 
     # Quit
-    print('exit stack size: {}'.format(get_stack_size()))
+    print('Exit stack size: {}'.format(get_stack_size()))
     sys.exit(0)
 
 
-def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
+def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
 
-    :param refreshtime:
+    :param refresh_time:
     :param plot_data:
     .. note:: this should continuously read from GPUs and populate df and call plot/gui update
     """
@@ -757,26 +757,26 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         if skip_update:
             continue
         if plot_data.gui_comp is None:
-            time.sleep(refreshtime)
+            sleep(refresh_time)
             continue
         if plot_data.gui_comp.is_ready():
             if first_update:
-                time.sleep(refreshtime)
+                sleep(refresh_time)
                 first_update = False
             GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
-            time.sleep(0.01)
+            sleep(0.01)
             PD_SEM.acquire()
             PD_SEM.release()
             ########################
-            garbcollect.collect()
+            garb_collect()
         LOGGER.debug('update stack size: %s', get_stack_size())
-        time.sleep(refreshtime)
+        sleep(refresh_time)
 
     # Quit
-    print('exit stack size: {}'.format(get_stack_size()))
+    print('Exit stack size: {}'.format(get_stack_size()))
     sys.exit(0)
 
 
@@ -872,7 +872,7 @@ def main() -> None:
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 2:
         print('.', end='', flush=True)
-        time.sleep(args.sleep/4.0)
+        sleep(args.sleep/4.0)
     print('')
 
     # After reading initial data, set gpus

@@ -50,7 +50,7 @@ import logging
 import sys
 import shlex
 import shutil
-import time
+from time import sleep
 import signal
 from typing import Callable
 from numpy import isnan
@@ -255,7 +255,7 @@ def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList,
         tst = 0.0
         sleep_interval = 0.2
         while tst < refreshtime:
-            time.sleep(sleep_interval)
+            sleep(sleep_interval)
             tst += sleep_interval
 
 
@@ -330,7 +330,7 @@ def main() -> None:
     print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                 num_gpus['r-only'], num_gpus['w-only']))
 
-    time.sleep(1)
+    sleep(1)
     # Generate a new list of only compatible GPUs
     if num_gpus['r-only'] + num_gpus['rw'] < 1:
         print('No readable GPUs, exiting...')
@@ -393,7 +393,7 @@ def main() -> None:
                     print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
-                time.sleep(env.GUT_CONST.SLEEP)
+                sleep(env.GUT_CONST.SLEEP)
                 if MonitorWindow.quit:
                     sys.exit(-1)
         except KeyboardInterrupt:

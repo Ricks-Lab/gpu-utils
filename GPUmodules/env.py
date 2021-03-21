@@ -32,13 +32,13 @@ import re
 import subprocess
 import platform
 import sys
-import os
+from os import path as os_path
 import logging
 from pathlib import Path
 import inspect
 import shlex
 import shutil
-import time
+from time import mktime as time_mktime
 from datetime import datetime
 from typing import Dict, Union, List, TextIO
 from GPUmodules import __version__, __status__
@@ -78,14 +78,14 @@ class GutConst:
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
-    _repository_path: str = os.path.join(_module_path, '..')
+    _module_path: str = os_path.dirname(str(Path(__file__).resolve()))
+    _repository_path: str = os_path.join(_module_path, '..')
     _local_config_list: Dict[str, str] = {
         'repository': _repository_path,
         'debian':     '/usr/share/rickslab-gpu-utils/config',
-        'pypi-linux': os.path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
+        'pypi-linux': os_path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
     _local_icon_list: Dict[str, str] = {
-        'repository': os.path.join(_repository_path, 'icons'),
+        'repository': os_path.join(_repository_path, 'icons'),
         'debian':     '/usr/share/rickslab-gpu-utils/icons',
         'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
@@ -106,13 +106,13 @@ class GutConst:
         else:
             self.install_type = 'repository'
         self.icon_path = self._local_icon_list[self.install_type]
-        if not os.path.isfile(os.path.join(self.icon_path, 'gpu-mon.icon.png')):
+        if not os_path.isfile(os_path.join(self.icon_path, 'gpu-mon.icon.png')):
             print('Error: Invalid icon path')
             self.icon_path = None
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
-            if os.path.isfile(try_pciid_path):
+            if os_path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
                 break
         else:
@@ -201,7 +201,7 @@ class GutConst:
         :return: Time for local time zone
         .. note:: from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
         """
-        epoch = time.mktime(utc.timetuple())
+        epoch = time_mktime(utc.timetuple())
         offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
         return utc + offset
 
