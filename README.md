@@ -12,11 +12,11 @@
 A set of utilities for monitoring GPU performance and modifying control settings.
 
 In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver or ROCm package, may provide additional capabilities. If you have Nvidia GPUs installed,
-you should have `nvidia-smi` installed in order for the utility reading of the cards to be
-possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the AMD ppfeaturemask set to 0xfffd7fff as described
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest **amdgpu**
+driver or **ROCm** package, may provide additional capabilities. If you have Nvidia GPUs installed,
+you should have **nvidia-smi** installed in order for the utility reading of the cards to be
+possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible cards
+and with the AMD ppfeaturemask set to 0xfffd7fff as described
 [here](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#getting-started).
 
 For a detailed introduction, check out the
@@ -32,7 +32,7 @@ There are 4 methods of installation available and summarized here:
 
 ## gpu-chk
 
-This utility verifies if the environment is compatible with **rickslab-gpu-utils**.
+This utility verifies if the user's environment is compatible with **rickslab-gpu-utils**.
 
 ## gpu-ls
 

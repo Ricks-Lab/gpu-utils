@@ -44,7 +44,7 @@ git clone https://github.com/Ricks-Lab/gpu-utils.git
 cd gpu-utils
 ```
 
-Initialize your rickslab-gpu-utils-env if it is your first time to use it. From the project root directory, execute:
+Initialize your *rickslab-gpu-utils-env* if it is your first time to use it. From the project root directory, execute:
 
 ```shell
 python3.6 -m venv rickslab-gpu-utils-env
@@ -125,11 +125,11 @@ gpu-chk
 This should display a message indicating any Python or Kernel incompatibilities. In order to
 get maximum capability of these utilities, you should be running with a kernel that provides
 support of the GPUs you have installed.  If using AMD GPUs, installing the latest **amdgpu**
-driver package or the latest **ROCm** release, may provide additional capabilities. If you
-have Nvidia GPUs installed, you should have **nvidia.smi** installed in order for the utility
-reading of the cards to be possible.  Writing to GPUs is currently only possible for AMD GPUs,
-and only with compatible cards.  Modifying AMD GPU properties requires the AMD ppfeaturemask
-to be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
+driver or **ROCm** release, may provide additional capabilities. If you have Nvidia GPUs
+installed, you should have **nvidia.smi** installed in order for the utility reading of the
+cards to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only
+with compatible cards.  Modifying AMD GPU properties requires that the AMD ppfeaturemask
+be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
 to the `GRUB_CMDLINE_LINUX_DEFAULT` value in `/etc/default/grub` and executing `sudo update-grub`:
 
 ```shell
@@ -155,7 +155,7 @@ If you have Nvidia GPUs installed, you will need to have nvidia-smi installed.
 
 ## Using gpu-ls
 
-After getting your system setup to support rickslab-gpu-utils, it is best to verify functionality by
+After getting your system setup to support **rickslab-gpu-utils**, it is best to verify functionality by
 listing your GPU details with the *gpu-ls* command.  The utility will use the system `lspci` command
 to identify all installed GPUs.  The utility will also verify system setup/configuration for read, write,
 and compute capability.  Additional performance/configuration details are read from the GPU for compatible
@@ -379,7 +379,7 @@ Card Number: 1
 ## GPU Type Dependent Behavior
 
 GPU capability and compatibility varies over the various vendors and generations of hardware.  In
-order to manage this variability, rickslab-gpu-utils must classify each installed GPU by its vendor
+order to manage this variability, **rickslab-gpu-utils** must classify each installed GPU by its vendor
 and type.  So far, valid types are as follows:
 
 * **Undefined** - This is the default assigned type, before a valid type can be determined.
@@ -488,7 +488,7 @@ and you need to quickly confirm that *gpu-pac* bash scripts ran as expected at s
 or upon reboot by using the startup utility for your distribution. In Ubuntu, for example, open *Startup Applications
 Preferences* app, then in the Preferences window select *Add* and use something like this in the command field:
 
-```
+```shell
 /usr/bin/python3 /home/<user>/Desktop/rickslab-gpu-utils/gpu-mon --gui
 ```
 
@@ -508,7 +508,7 @@ with *--simlog* option can be used to simulate a plot output using a log file ge
 I use this feature when troubleshooting problems from other users, but it may also be useful in benchmarking
 performance.  An example of the command line for this is as follows:
 
-```
+```shell
 cat log_monitor_0421_081038.txt | gpu-plot --stdin --simlog
 ```
 
@@ -632,8 +632,8 @@ changes to the GPU.  You should always confirm your changes with *gpu-mon*.
 
 ## Updating the PCI ID decode file 
 
-In determining the GPU display name, *rickslab-gpu-utils* will examine two sources.  The output of 
-`lspci -k -s nn:nn.n` is used to generate a complete name and an algorithm is used to generate a shortened
+In determining the GPU display name, **rickslab-gpu-utils** will examine two sources.  The output of 
+`lspci -k -s nn:nn.n` is used to generate a complete name, and an algorithm is used to generate a shortened
 version.  From the driver files, a set of files (vendor, device, subsystem_vendor, subsystem_device) contain
 4 parts of the Device ID are read and used to extract a GPU model name from system pci.ids file which is
 sourced from [https://pci-ids.ucw.cz/](https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  The
@@ -648,7 +648,7 @@ addition to the master list.
 
 ## Optimizing Compute Performance-Power
 
-The *rickslab-gpu-utils* tools can be used to optimize performance vs. power for compute workloads by leveraging
+The **rickslab-gpu-utils** tools can be used to optimize performance vs. power for compute workloads by leveraging
 its ability to measure power and control relevant GPU settings.  This flexibility allows one to execute a
 DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In SETI@Home
 performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to
