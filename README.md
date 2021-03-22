@@ -19,9 +19,6 @@ possible.  Writing to GPUs is currently only possible for AMD GPUs, and only wit
 and with the AMD ppfeaturemask set to 0xfffd7fff as described
 [here](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#getting-started).
 
-For a detailed introduction, check out the
-[User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
-
 ## Installation
 
 There are 4 methods of installation available and summarized here:
@@ -30,11 +27,24 @@ There are 4 methods of installation available and summarized here:
 * [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
 * **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
-## gpu-chk
+## User Guide
+
+For a detailed introduction, a community sourced 
+[User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)
+is available. All tools are demonstrated and use cases are discussed.  Additions
+to the guide are welcome.  Please submit a pull request with your suggested additions!
+
+## Commands
+
+A summary of command line tools available in **rickslab-gpu-utils** follows. Additional
+details are available in man pages and the
+[User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md).
+
+### gpu-chk
 
 This utility verifies if the user's environment is compatible with **rickslab-gpu-utils**.
 
-## gpu-ls
+### gpu-ls
 
 This utility displays most relevant parameters for installed and compatible GPUs. The
 default behavior is to list relevant parameters by GPU.  OpenCL platform information is
@@ -45,7 +55,7 @@ The *--pstate* option can be used to output the p-state table for each GPU inste
 the list of basic parameters.  The *--ppm* option is used to output the table of available
 power/performance modes instead of basic parameters.
 
-## gpu-mon
+### gpu-mon
 
 A utility to give the current state of all compatible GPUs. The default behavior
 is to continuously update a text based table in the current window until Ctrl-C is
@@ -61,7 +71,7 @@ you need both the plot and monitor displays, then using the --plot option is pre
 over running both tools as a single read of the GPUs is used to update both displays.
 The *--ltz* option results in the use of local time instead of UTC.
 
-## gpu-plot
+### gpu-plot
 
 A utility to continuously plot the trend of critical GPU parameters for all compatible
 GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot*
@@ -76,7 +86,7 @@ to run both *gpu-plot* and *gpu-mon*, then the *--plot* option of the *gpu-mon*
 utility should be used instead of both utilities in order reduce data reads by
 a factor of 2.
 
-## gpu-pac
+### gpu-pac
 
 Program and Control compatible GPUs with this utility.  By default, the commands to
 be written to a GPU are written to a bash file for the user to inspect and run.  If you
