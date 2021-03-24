@@ -75,7 +75,7 @@ class GutConst:
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
                 'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
-                'GPU_GENERIC':  re.compile(r'(intel|amd|nvidia|amd/ati|ati|\[|\])', re.IGNORECASE),
+                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
@@ -93,6 +93,7 @@ class GutConst:
     card_root: str = '/sys/class/drm/'
     hwmon_sub: str = 'hwmon/hwmon'
     gui_window_title: str = 'Ricks-Lab GPU Utilities'
+    mon_field_width = 20
 
     def __init__(self):
         self.args: Union[argparse.Namespace, None] = None

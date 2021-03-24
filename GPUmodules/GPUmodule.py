@@ -625,9 +625,13 @@ class GpuItem:
             self.set_memory_usage()
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
-            self.prm.model_display = self.prm.model_device_decode = self.read_pciid_model()
-            self.prm.model_display = ' '.join(re.sub(PATTERNS['GPU_GENERIC'], '',
-                                                     self.prm.model_display).split()[:5])
+            self.prm.model_device_decode = self.read_pciid_model()
+            self.prm.model_display = ''
+            model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', self.prm.model_device_decode).split()
+            for name_component in model_display_components:
+                if len(name_component) + len(self.prm.model_display) + 1 > env.GUT_CONST.mon_field_width:
+                    break
+                self.prm.model_display = '{} {}'.format(self.prm.model_display, name_component)
         else:
             self.prm[name] = value
 
@@ -1358,7 +1362,11 @@ class GpuItem:
                 self.prm.model_display = self.prm.model_device_decode
                 if results['name'] and len(results['name']) < len(self.prm.model_device_decode):
                     self.prm.model_display = results['name']
-                self.prm.model_display = ' '.join(re.sub(PATTERNS['GPU_GENERIC'], '', results['name']).split()[:5])
+                model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', results['name']).split()
+                for name_component in model_display_components:
+                    if len(name_component) + len(self.prm.model_display) + 1 > env.GUT_CONST.mon_field_width:
+                        break
+                    self.prm.model_display = '{} {}'.format(self.prm.model_display, name_component)
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):

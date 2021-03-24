@@ -99,7 +99,7 @@ class MonitorWindow(Gtk.Window):
     Custom PAC Gtk window.
     """
     quit: bool = False
-    item_width: int = 20
+    item_width: int = env.GUT_CONST.mon_field_width
     label_width: int = 12
 
     def __init__(self, gpu_list, devices):
