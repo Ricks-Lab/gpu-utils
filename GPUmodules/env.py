@@ -75,6 +75,7 @@ class GutConst:
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
                 'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
+                'GPU_GENERIC':  re.compile(r'(intel|amd|nvidia|amd/ati|ati)', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
