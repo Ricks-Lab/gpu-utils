@@ -626,14 +626,25 @@ class GpuItem:
         elif name == 'id':
             self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
             self.prm.model_device_decode = self.read_pciid_model()
-            self.prm.model_display = ''
-            model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', self.prm.model_device_decode).split()
-            for name_component in model_display_components:
-                if len(name_component) + len(self.prm.model_display) + 1 > env.GUT_CONST.mon_field_width:
-                    break
-                self.prm.model_display = '{} {}'.format(self.prm.model_display, name_component)
+            self.prm.model_display = self.fit_display_name(self.prm.model_device_decode)
         else:
             self.prm[name] = value
+
+    @staticmethod
+    def fit_display_name(name: str, length: int = env.GUT_CONST.mon_field_width) -> str:
+        """
+
+        :param name:
+        :param length:
+        :return:
+        """
+        fit_name = ''
+        model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', name).split()
+        for name_component in model_display_components:
+            if len(name_component) + len(fit_name) + 1 > length:
+                break
+            fit_name = '{} {}'.format(fit_name, name_component)
+        return fit_name
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
         """
@@ -1362,11 +1373,7 @@ class GpuItem:
                 self.prm.model_display = self.prm.model_device_decode
                 if results['name'] and len(results['name']) < len(self.prm.model_device_decode):
                     self.prm.model_display = results['name']
-                model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', results['name']).split()
-                for name_component in model_display_components:
-                    if len(name_component) + len(self.prm.model_display) + 1 > env.GUT_CONST.mon_field_width:
-                        break
-                    self.prm.model_display = '{} {}'.format(self.prm.model_display, name_component)
+                self.prm.model_display = self.fit_display_name(self.prm.model_display)
             elif len(sensor_list) == 1:
                 sn_k = sensor_list[0]
                 if re.fullmatch(PATTERNS['IS_FLOAT'], results[sn_k]):
