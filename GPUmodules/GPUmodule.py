@@ -633,10 +633,11 @@ class GpuItem:
     @staticmethod
     def fit_display_name(name: str, length: int = env.GUT_CONST.mon_field_width) -> str:
         """
+        Convert the given name to a display name which is optimally simplified and truncated.
 
-        :param name:
-        :param length:
-        :return:
+        :param name: The GPU name to be converted.
+        :param length: The target length, default is the monitor field width.
+        :return: Simplified and truncated string
         """
         fit_name = ''
         model_display_components = re.sub(PATTERNS['GPU_GENERIC'], '', name).split()
@@ -648,7 +649,7 @@ class GpuItem:
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
         """
-        Get parameter value for give name.
+        Get parameter value for given name.
 
         :param name:  Parameter name
         :param num_as_int: Convert float to in if True
@@ -661,20 +662,14 @@ class GpuItem:
             if name == 'temp_val':
                 if not self.prm['temperatures']:
                     return None
-                if 'edge' in self.prm['temperatures'].keys():
-                    if num_as_int:
-                        return int(self.prm['temperatures']['edge'])
-                    return round(self.prm['temperatures']['edge'], 1)
-                if 'temperature.gpu' in self.prm['temperatures'].keys():
-                    if num_as_int:
-                        return int(self.prm['temperatures']['temperature.gpu'])
-                    return round(self.prm['temperatures']['temperature.gpu'], 1)
-                if 'temp1_input' in self.prm['temperatures'].keys():
-                    if num_as_int:
-                        return int(self.prm['temperatures']['temp1_input'])
-                    return round(self.prm['temperatures']['temp1_input'], 1)
-                if self.prm['temperatures'].keys():
-                    return list(self.prm['temperatures'].keys())[0]
+                for temp_name in ['edge', 'temperature.gpu', 'temp1_input']:
+                    if temp_name in self.prm['temperatures'].keys():
+                        if num_as_int:
+                            return int(self.prm['temperatures'][temp_name])
+                        return round(self.prm['temperatures'][temp_name], 1)
+                for value in self.prm['temperatures'].values():
+                    return value
+                    # return list(self.prm['temperatures'].keys())[0] - Not sure what I was doing here
                 return None
             if name == 'vddgfx_val':
                 if not self.prm['voltages']:
@@ -687,20 +682,18 @@ class GpuItem:
             if name == 'sclk_f_val':
                 if not self.prm['frequencies']:
                     return None
-                if 'sclk' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['sclk'])
-                if 'clocks.gr' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['clocks.gr'])
+                for clock_name in ['sclk', 'clocks.gr']:
+                    if clock_name in self.prm['frequencies'].keys():
+                        return int(self.prm['frequencies'][clock_name])
                 return self.prm['sclk_ps'][1]
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
             if name == 'mclk_f_val':
                 if not self.prm['frequencies']:
                     return None
-                if 'mclk' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['mclk'])
-                if 'clocks.mem' in self.prm['frequencies'].keys():
-                    return int(self.prm['frequencies']['clocks.mem'])
+                for clock_name in ['mclk', 'clocks.mem']:
+                    if clock_name in self.prm['frequencies'].keys():
+                        return int(self.prm['frequencies'][clock_name])
                 return self.prm['mclk_ps'][1]
 
         # Set type for params that could be float or int
