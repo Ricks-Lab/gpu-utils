@@ -643,7 +643,7 @@ class GpuItem:
         for name_component in model_display_components:
             if len(name_component) + len(fit_name) + 1 > length:
                 break
-            fit_name = '{} {}'.format(fit_name, name_component)
+            fit_name = re.sub(r'\s*/\s*', '/', '{} {}'.format(fit_name, name_component))
         return fit_name
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
