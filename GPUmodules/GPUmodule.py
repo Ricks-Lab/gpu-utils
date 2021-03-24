@@ -669,6 +669,10 @@ class GpuItem:
                     if num_as_int:
                         return int(self.prm['temperatures']['temperature.gpu'])
                     return round(self.prm['temperatures']['temperature.gpu'], 1)
+                if 'temp1_input' in self.prm['temperatures'].keys():
+                    if num_as_int:
+                        return int(self.prm['temperatures']['temp1_input'])
+                    return round(self.prm['temperatures']['temp1_input'], 1)
                 if self.prm['temperatures'].keys():
                     return list(self.prm['temperatures'].keys())[0]
                 return None
