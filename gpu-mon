@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-mon  -  Displays current status of all active GPUs
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     A utility to give the current state of all compatible GPUs. The default behavior
     is to continuously update a text based table in the current window until Ctrl-C is
     pressed.  With the *--gui* option, a table of relevant parameters will be updated

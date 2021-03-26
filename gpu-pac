@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-pac  -  A utility program and control compatible GPUs
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     Program and Control compatible GPUs with this utility.  By default, the commands to
     be written to a GPU are written to a bash file for the user to inspect and run.  If you
     have confidence, the *--execute_pac* option can be used to execute and then delete the

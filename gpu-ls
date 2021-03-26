@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-ls  -  Displays details about installed and compatible GPUs
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     This utility displays most relevant parameters for installed and compatible GPUs. The
     default behavior is to list relevant parameters by GPU.  OpenCL platform information is
     added when the *--clinfo* option is used.  A brief listing of key parameters is available

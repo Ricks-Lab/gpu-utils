@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-plot  -  Plot GPU parameter values over time
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     A utility to continuously plot the trend of critical GPU parameters for all compatible
     GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot*
     utility has 2 modes of operation.  The default mode is to read the GPU driver details
