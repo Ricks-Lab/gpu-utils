@@ -991,6 +991,7 @@ class GpuItem:
     def get_current_ppm_mode(self) -> Union[None, List[Union[int, str]]]:
         """
         Read GPU ppm definitions and current settings from driver files.
+
         :return: ppm state
         :rtype: list
         """
@@ -1386,6 +1387,7 @@ class GpuItem:
         by data_type.
 
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
+        :return: True if successful
         """
         if not self.prm.readable:
             return False
