@@ -36,6 +36,8 @@ import shlex
 import os
 import sys
 import logging
+import signal
+from time import sleep
 from typing import Union, List, Dict, TextIO, IO, Generator, Any
 from pathlib import Path
 from uuid import uuid4
@@ -52,6 +54,25 @@ except ImportError:
 
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
+
+
+class timeout:
+    """
+    Credit: https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish
+    """
+    def __init__(self, seconds: int = 1, error_message: str = 'Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+        
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
 
 
 class GpuEnum(Enum):
@@ -1015,20 +1036,21 @@ class GpuItem:
         if not os.path.isfile(file_path):
             print('Error getting power profile modes: {}'.format(file_path), file=sys.stderr)
             sys.exit(-1)
-        with open(file_path) as card_file:
-            for line in card_file:
-                linestr = line.strip()
-                # Check for mode name: begins with '[ ]+[0-9].*'
-                if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
-                    linestr = re.sub(r'[ ]*[*]*:', ' ', linestr)
-                    line_items = linestr.split()
-                    LOGGER.debug('PPM line: %s', linestr)
-                    if len(line_items) < 2:
-                        print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
-                        continue
-                    LOGGER.debug('Valid ppm line: %s', linestr)
-                    self.ppm_modes[line_items[0]] = line_items[1:]
-            self.ppm_modes['-1'] = ['AUTO', 'Auto']
+        with timeout(seconds=1):
+            with open(file_path) as card_file:
+                for line in card_file:
+                    linestr = line.strip()
+                    # Check for mode name: begins with '[ ]+[0-9].*'
+                    if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
+                        linestr = re.sub(r'[ ]*[*]*:', ' ', linestr)
+                        line_items = linestr.split()
+                        LOGGER.debug('PPM line: %s', linestr)
+                        if len(line_items) < 2:
+                            print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
+                            continue
+                        LOGGER.debug('Valid ppm line: %s', linestr)
+                        self.ppm_modes[line_items[0]] = line_items[1:]
+                self.ppm_modes['-1'] = ['AUTO', 'Auto']
 
         rdata = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
         if rdata is False:
@@ -1057,73 +1079,74 @@ class GpuItem:
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
             self.prm.readable = False
             return
-        with open(file_path) as card_file:
-            for line in card_file:
-                line = line.strip()
-                if re.fullmatch('OD_.*:$', line):
-                    if re.fullmatch('OD_.CLK:$', line):
-                        clk_name = line.strip()
-                    elif re.fullmatch('OD_VDDC_CURVE:$', line):
-                        clk_name = line.strip()
-                    elif re.fullmatch('OD_RANGE:$', line):
-                        clk_name = ''
-                        range_mode = True
-                    continue
-                line = re.sub(r'@', ' ', line)
-                lineitems: List[any] = line.split()
-                lineitems_len = len(lineitems)
-                if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
-                    if len(lineitems) == 3:
-                        self.prm.gpu_type = self.GPU_Type.PStates
-                    elif len(lineitems) == 2:
-                        self.prm.gpu_type = self.GPU_Type.CurvePts
-                    else:
-                        print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
-                              os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
-                        LOGGER.debug('Invalid line length for pstate line item: %s', line)
+        with timeout(seconds=1):
+            with open(file_path) as card_file:
+                for line in card_file:
+                    line = line.strip()
+                    if re.fullmatch('OD_.*:$', line):
+                        if re.fullmatch('OD_.CLK:$', line):
+                            clk_name = line.strip()
+                        elif re.fullmatch('OD_VDDC_CURVE:$', line):
+                            clk_name = line.strip()
+                        elif re.fullmatch('OD_RANGE:$', line):
+                            clk_name = ''
+                            range_mode = True
                         continue
-                if not range_mode:
-                    lineitems[0] = int(re.sub(':', '', lineitems[0]))
-                    if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
-                        if clk_name == 'OD_SCLK:':
-                            self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                        elif clk_name == 'OD_MCLK:':
-                            self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                    else:
-                        # Type GPU_Type.CurvePts
-                        if clk_name == 'OD_SCLK:':
-                            self.sclk_state[lineitems[0]] = [lineitems[1], '-']
-                        elif clk_name == 'OD_MCLK:':
-                            self.mclk_state[lineitems[0]] = [lineitems[1], '-']
-                        elif clk_name == 'OD_VDDC_CURVE:':
-                            self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
-                else:
-                    if lineitems[0] == 'SCLK:':
-                        self.prm.sclk_f_range = [lineitems[1], lineitems[2]]
-                    elif lineitems[0] == 'MCLK:':
-                        self.prm.mclk_f_range = [lineitems[1], lineitems[2]]
-                    elif lineitems[0] == 'VDDC:':
-                        self.prm.vddc_range = [lineitems[1], lineitems[2]]
-                    elif re.fullmatch('VDDC_CURVE_.*', line):
+                    line = re.sub(r'@', ' ', line)
+                    lineitems: List[any] = line.split()
+                    lineitems_len = len(lineitems)
+                    if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
                         if len(lineitems) == 3:
-                            index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
-                            index = re.sub(r'\].*', '', index)
-                            if not index.isnumeric():
-                                print('Error: Invalid index for line item: {}'.format(line))
-                                LOGGER.debug('Invalid index for pstate line item: %s', line)
-                                continue
-                            index = int(index)
-                            param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
-                            param = re.sub(r'\[[0-9]\]:', '', param)
-                            LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
-                                         index, param, lineitems[1], lineitems[2])
-                            if index in self.vddc_curve_range.keys():
-                                self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
-                            else:
-                                self.vddc_curve_range[index] = {}
-                                self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                            self.prm.gpu_type = self.GPU_Type.PStates
+                        elif len(lineitems) == 2:
+                            self.prm.gpu_type = self.GPU_Type.CurvePts
                         else:
-                            print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
+                            print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
+                                  os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
+                            LOGGER.debug('Invalid line length for pstate line item: %s', line)
+                            continue
+                    if not range_mode:
+                        lineitems[0] = int(re.sub(':', '', lineitems[0]))
+                        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+                            if clk_name == 'OD_SCLK:':
+                                self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+                            elif clk_name == 'OD_MCLK:':
+                                self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+                        else:
+                            # Type GPU_Type.CurvePts
+                            if clk_name == 'OD_SCLK:':
+                                self.sclk_state[lineitems[0]] = [lineitems[1], '-']
+                            elif clk_name == 'OD_MCLK:':
+                                self.mclk_state[lineitems[0]] = [lineitems[1], '-']
+                            elif clk_name == 'OD_VDDC_CURVE:':
+                                self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
+                    else:
+                        if lineitems[0] == 'SCLK:':
+                            self.prm.sclk_f_range = [lineitems[1], lineitems[2]]
+                        elif lineitems[0] == 'MCLK:':
+                            self.prm.mclk_f_range = [lineitems[1], lineitems[2]]
+                        elif lineitems[0] == 'VDDC:':
+                            self.prm.vddc_range = [lineitems[1], lineitems[2]]
+                        elif re.fullmatch('VDDC_CURVE_.*', line):
+                            if len(lineitems) == 3:
+                                index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
+                                index = re.sub(r'\].*', '', index)
+                                if not index.isnumeric():
+                                    print('Error: Invalid index for line item: {}'.format(line))
+                                    LOGGER.debug('Invalid index for pstate line item: %s', line)
+                                    continue
+                                index = int(index)
+                                param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
+                                param = re.sub(r'\[[0-9]\]:', '', param)
+                                LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
+                                             index, param, lineitems[1], lineitems[2])
+                                if index in self.vddc_curve_range.keys():
+                                    self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                                else:
+                                    self.vddc_curve_range[index] = {}
+                                    self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                            else:
+                                print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1207,13 +1230,16 @@ class GpuItem:
             file_path = os.path.join(sensor_path, sensor_file)
             if os.path.isfile(file_path):
                 try:
-                    with open(file_path) as hwmon_file:
-                        if target_sensor['type'] in [self.SensorType.SingleStringSelect, self.SensorType.MLSS]:
-                            lines = hwmon_file.readlines()
-                            for line in lines:
-                                values.append(line.strip())
-                        else:
-                            values.append(hwmon_file.readline().strip())
+                    with timeout(seconds=1):
+                        #sleep(3)
+                        with open(file_path) as hwmon_file:
+                            os.set_blocking(hwmon_file.fileno(), False)
+                            if target_sensor['type'] in [self.SensorType.SingleStringSelect, self.SensorType.MLSS]:
+                                lines = hwmon_file.readlines()
+                                for line in lines:
+                                    values.append(line.strip())
+                            else:
+                                values.append(hwmon_file.readline().strip())
                     if target_sensor['type'] == self.SensorType.InputLabelX:
                         if '_input' in file_path:
                             file_path = file_path.replace('_input', '_label')
@@ -1222,10 +1248,16 @@ class GpuItem:
                         else:
                             print('Error in sensor label pair: {}'.format(target_sensor))
                         if os.path.isfile(file_path):
-                            with open(file_path) as hwmon_file:
-                                values.append(hwmon_file.readline().strip())
+                            with timeout(seconds=1):
+                                #sleep(3)
+                                with open(file_path) as hwmon_file:
+                                    values.append(hwmon_file.readline().strip())
                         else:
                             values.append(os.path.basename(sensor_file))
+                except TimeoutError as err:
+                    LOGGER.debug('Exception [%s]: Timeout while reading HW file: %s', err, file_path)
+                    self.read_disabled.append(parameter)
+                    return False
                 except OSError as err:
                     LOGGER.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
                     self.read_disabled.append(parameter)
@@ -1431,10 +1463,11 @@ class GpuItem:
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['power_dpm_force'], self.prm.power_dpm_force))
         print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
-        with open(file_path, 'r') as file_ptr:
-            lines = file_ptr.readlines()
-            for line in lines:
-                print('   {}'.format(line.strip('\n')))
+        with timeout(seconds=1):
+            with open(file_path, 'r') as file_ptr:
+                lines = file_ptr.readlines()
+                for line in lines:
+                    print('   {}'.format(line.strip('\n')))
 
     def print_pstates(self) -> None:
         """
@@ -1881,8 +1914,9 @@ class GpuList:
                 if LOGGER.getEffectiveLevel() == logging.DEBUG:
                     # Write pp_od_clk_voltage details to debug LOGGER
                     if os.path.isfile(pp_od_clk_voltage_file):
-                        with open(pp_od_clk_voltage_file, 'r') as file_ptr:
-                            pp_od_file_details = file_ptr.read()
+                        with timeout(seconds=1):
+                            with open(pp_od_clk_voltage_file, 'r') as file_ptr:
+                                pp_od_file_details = file_ptr.read()
                     else:
                         pp_od_file_details = 'The file {} does not exist'.format(pp_od_clk_voltage_file)
                     LOGGER.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
