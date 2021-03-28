@@ -224,6 +224,7 @@ class GutConst:
         except OSError as err:
             LOGGER.debug('Could not read AMD Featuremask, %s', err)
             self.amdfeaturemask = 0
+        LOGGER.debug('AMD featuremask: %s', hex(self.amdfeaturemask))
         return self.amdfeaturemask
 
     def check_env(self) -> int:
