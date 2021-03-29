@@ -1511,6 +1511,9 @@ class GpuItem:
                     continue
                 if 'Range' in param_label:
                     continue
+            if self.prm.gpu_type == self.GPU_Type.Modern:
+                if param_name in self.MODERN_Skip_List:
+                    continue
             if self.prm.gpu_type == self.GPU_Type.Legacy:
                 if param_name in self.LEGACY_Skip_List:
                     continue
