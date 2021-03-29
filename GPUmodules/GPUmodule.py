@@ -119,7 +119,7 @@ class GpuItem:
                                    'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
@@ -1869,8 +1869,12 @@ class GpuList:
                     if GpuItem.is_apu(gpu_name):
                         readable = True
                         gpu_type = GpuItem.GPU_Type.APU
+                    elif os.path.isfile(os.path.join(card_path, 'pp_dpm_sclk')):
+                        # if no pp_od_clk_voltage but has pp_dpm_sclk, assume modern
+                        readable = True
+                        gpu_type = GpuItem.GPU_Type.Modern
                     else:
-                        # if no pp_od_clk_voltage but has power_dpm_state, assume legacy, and disable some sensors
+                        # if no pp_od_clk_voltage or pp_dpm_sclk but has power_dpm_state, assume legacy
                         readable = True
                         gpu_type = GpuItem.GPU_Type.Legacy
                 elif GpuItem.is_apu(gpu_name):
