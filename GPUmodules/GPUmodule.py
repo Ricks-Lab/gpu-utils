@@ -113,6 +113,7 @@ class GpuItem:
                                'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
                                'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
                                'temp_crits', 'voltages']
+    MODERN_Skip_List: List[str] = ['vddc_range', 'sclk_f_range', 'mclk_f_range']
     LEGACY_Skip_List: List[str] = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                    'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                    'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
@@ -798,6 +799,8 @@ class GpuItem:
                 self.prm.gpu_type = source_value
                 if source_value == GpuItem.GPU_Type.Legacy:
                     self.read_disabled = GpuItem.LEGACY_Skip_List[:]
+                elif source_value == GpuItem.GPU_Type.Modern:
+                    self.read_disabled = GpuItem.MODERN_Skip_List[:]
                 elif source_value == GpuItem.GPU_Type.APU:
                     self.read_disabled = GpuItem._fan_item_list[:]
 
