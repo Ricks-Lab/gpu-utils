@@ -1047,6 +1047,7 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                          GpuItem.GPU_Type.Modern,
                                                           GpuItem.GPU_Type.Unsupported,
                                                           GpuItem.GPU_Type.APU]:
             return
