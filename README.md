@@ -21,12 +21,15 @@ appropriate kernel version with the AMD ppfeaturemask set to enable this capabil
 
 There are 4 methods of installation available and summarized here:
 * [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer. This type of installation can exist alongside any of the other installation types.
+  
+  ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fgh_version.json)
 * [PyPI](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This installation method is also meant for users not on a Debian distribution.
   
   [![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
   [![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
 * [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
-  
+
+  ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_version.json)
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_down.json)
 * **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
