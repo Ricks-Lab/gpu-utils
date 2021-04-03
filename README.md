@@ -103,15 +103,13 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.6.1
+## New in Development -  v3.6.2
 
-* Update logger to output hex version of amdfeaturemask value.
-* Improve reading/displaying of AMD GPUs when amdfeaturemask is not set to write.
+* None
 
 ## Development Plans
 
 * Implement timeout to handle cases where drivers become unreadable.
-* Optimize plot utilities for performance.
 * Add status read capabilities for Intel GPUs.
 * Add pac capabilities for Nvidia GPUs.
 
@@ -136,7 +134,12 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-### New in Version -  v3.6.0
+## New in this Release -  v3.6.1
+
+* Update logger to output hex version of amdfeaturemask value.
+* Improve reading/displaying of AMD GPUs when amdfeaturemask is not set to write.
+
+### New in Previous Release -  v3.6.0
 
 * Rewrite of the installation guide and simplification of the readme.
 * Roll-up all v3.5.x patches into a new minor revision release.
