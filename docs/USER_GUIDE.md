@@ -2,7 +2,7 @@
 
 A set of utilities for monitoring GPU performance and modifying control settings.
 
-## Current rickslab-gpu-utils Version: 3.5.x
+## Current rickslab-gpu-utils Version: 3.6.x
 
  - [Installation](#installation)
  - [Getting Started](#getting-started)
@@ -15,43 +15,102 @@ A set of utilities for monitoring GPU performance and modifying control settings
  - [Optimizing Compute Performance-Power](#optimizing-compute-performance-power)
  - [Running Startup PAC Bash Files](#running-startup-pac-bash-files)
 
+
 ## Installation
 
-For a typical user, the installation is accomplished using pip to install from
-[PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following command:
+There are 4 methods of installation available and summarized here:
+* [Repository](#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer. This type of installation can exist along with any of the other installation type.
+* [PyPI](#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This install method is also meant for users not on a Debian distribution.
+* [Rickslab.com Debian](#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
+* **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
-```
-pip3 uninstall rickslab-gpu-utils
-pip3 install rickslab-gpu-utils
-```
-The uninstall is required to make sure the modules are updated.  If you still get an old version,
-then specify not to use cached files:
-```
-pip3 install --no-cache-dir rickslab-gpu-utils
-```
-If installing to a remote machine via ssh, then will need root user permissions:
-```
-sudo pip3 install rickslab-gpu-utils
-```
-For a developer/contributor to the project, it is expected that you duplicate the development
-environment using a virtual environment.  So far, my development activities for this project have
-used python3.6, but I expect to move to python3.8 when I upgrade to Ubuntu 20.04.  I suggest using
-the default version of Python for your distribution, but it is the latest release, limit your code 
-to features of the previous release.  The following are details on setting up a virtual environment
-with python3.6:
+### Repository Installation
 
-```shell script
+For a developer/contributor to the project, it is expected that you duplicate the development environment using
+a virtual environment. So far, my development activities for this project have used python3.6, but I expect
+to move to python3.8 when I upgrade to Ubuntu 20.04. I suggest using the default version of Python for your
+distribution, but if it is a later release, limit your code to features of python3.6. The following
+are details on setting up a virtual environment with python3.6:
+
+```shell
 sudo apt install -y python3.6-venv
 sudo apt install -y python3.6.dev
 ```
 
-Initialize your *rickslab-gpu-utils-env* if it is your first time to use it. From the project
-root directory, execute:
+Clone the repository from GitHub with the following command:
 
-```shell script
+```shell
+git clone https://github.com/Ricks-Lab/gpu-utils.git
+cd gpu-utils
+```
+
+Initialize your *rickslab-gpu-utils-env* if it is your first time to use it. From the project root directory, execute:
+
+```shell
 python3.6 -m venv rickslab-gpu-utils-env
 source rickslab-gpu-utils-env/bin/activate
 pip install --no-cache-dir -r requirements-venv.txt
+```
+
+You then run the desired commands by specifying the full path: `./gpu-ls`
+
+### PyPI Installation
+
+First, remove any previous Debian package and any ricks-amdgpu-utils PyPI installations:
+
+```shell
+sudo apt purge rickslab-gpu-utils
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+pip3 uninstall ricks-amdgpu-utils
+```
+
+Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
+commands:
+
+```shell
+pip3 install rickslab-gpu-utils
+```
+
+Or, use the pip upgrade option if you have already installed a previous version:
+
+```shell
+pip3 install rickslab-gpu-utils -U
+```
+
+You may need to open a new terminal window in order for the path to the utilities to be set.
+
+### Rickslab.com Debian Installation
+
+First, remove any previous PyPI installation and exit that terminal.  If you also have a Debian
+installed version, the pip uninstall will likely fail, unless you remove the Debian package first:
+
+```shell
+pip uninstall rickslab-gpu-utils
+exit
+```
+
+Also, remove any previous ricks-amdgpu-utils installation:
+
+```shell
+sudo apt purge ricks-amdgpu-utils
+sudo apt autoremove
+```
+
+Next, add the *rickslab-gpu-utils* repository:
+
+```shell
+wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
+
+echo 'deb [arch=amd64] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+
+sudo apt update
+```
+
+Then install the package with apt:
+
+```shell
+sudo apt install rickslab-gpu-utils
 ```
 
 ## Getting Started
@@ -59,34 +118,34 @@ pip install --no-cache-dir -r requirements-venv.txt
 First, this set of utilities is written and tested with Python3.6.  If you are using an older
 version, you will likely see syntax errors.  If you are encountering problems, then execute:
 
-```
+```shell
 gpu-chk
 ```
 
 This should display a message indicating any Python or Kernel incompatibilities. In order to
 get maximum capability of these utilities, you should be running with a kernel that provides
 support of the GPUs you have installed.  If using AMD GPUs, installing the latest **amdgpu**
-driver package or the latest **ROCm** release, may provide additional capabilities. If you
-have Nvidia GPUs installed, you should have **nvidia.smi** installed in order for the utility
-reading of the cards to be possible.  Writing to GPUs is currently only possible for AMD GPUs,
-and only with compatible cards.  Modifying AMD GPU properties requires the AMD ppfeaturemask
-to be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
+driver or **ROCm** release, may provide additional capabilities. If you have Nvidia GPUs
+installed, you should have **nvidia.smi** installed in order for the utility reading of the
+cards to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only
+with compatible cards.  Modifying AMD GPU properties requires that the AMD ppfeaturemask
+be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
 to the `GRUB_CMDLINE_LINUX_DEFAULT` value in `/etc/default/grub` and executing `sudo update-grub`:
 
-```
+```shell
 cd /etc/default
 sudo vi grub
 ```
 
 Modify to include the featuremask as follows:
 
-```
+```shell
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xfffd7fff"
 ```
 
 After saving, update grub:
 
-```
+```shell
 sudo update-grub
 ```
 
@@ -96,7 +155,7 @@ If you have Nvidia GPUs installed, you will need to have nvidia-smi installed.
 
 ## Using gpu-ls
 
-After getting your system setup to support rickslab-gpu-utils, it is best to verify functionality by
+After getting your system setup to support **rickslab-gpu-utils**, it is best to verify functionality by
 listing your GPU details with the *gpu-ls* command.  The utility will use the system `lspci` command
 to identify all installed GPUs.  The utility will also verify system setup/configuration for read, write,
 and compute capability.  Additional performance/configuration details are read from the GPU for compatible
@@ -320,7 +379,7 @@ Card Number: 1
 ## GPU Type Dependent Behavior
 
 GPU capability and compatibility varies over the various vendors and generations of hardware.  In
-order to manage this variability, rickslab-gpu-utils must classify each installed GPU by its vendor
+order to manage this variability, **rickslab-gpu-utils** must classify each installed GPU by its vendor
 and type.  So far, valid types are as follows:
 
 * **Undefined** - This is the default assigned type, before a valid type can be determined.
@@ -429,7 +488,7 @@ and you need to quickly confirm that *gpu-pac* bash scripts ran as expected at s
 or upon reboot by using the startup utility for your distribution. In Ubuntu, for example, open *Startup Applications
 Preferences* app, then in the Preferences window select *Add* and use something like this in the command field:
 
-```
+```shell
 /usr/bin/python3 /home/<user>/Desktop/rickslab-gpu-utils/gpu-mon --gui
 ```
 
@@ -449,7 +508,7 @@ with *--simlog* option can be used to simulate a plot output using a log file ge
 I use this feature when troubleshooting problems from other users, but it may also be useful in benchmarking
 performance.  An example of the command line for this is as follows:
 
-```
+```shell
 cat log_monitor_0421_081038.txt | gpu-plot --stdin --simlog
 ```
 
@@ -573,8 +632,8 @@ changes to the GPU.  You should always confirm your changes with *gpu-mon*.
 
 ## Updating the PCI ID decode file 
 
-In determining the GPU display name, *rickslab-gpu-utils* will examine two sources.  The output of 
-`lspci -k -s nn:nn.n` is used to generate a complete name and an algorithm is used to generate a shortened
+In determining the GPU display name, **rickslab-gpu-utils** will examine two sources.  The output of 
+`lspci -k -s nn:nn.n` is used to generate a complete name, and an algorithm is used to generate a shortened
 version.  From the driver files, a set of files (vendor, device, subsystem_vendor, subsystem_device) contain
 4 parts of the Device ID are read and used to extract a GPU model name from system pci.ids file which is
 sourced from [https://pci-ids.ucw.cz/](https://pci-ids.ucw.cz/) where a comprehensive list is maintained.  The
@@ -589,7 +648,7 @@ addition to the master list.
 
 ## Optimizing Compute Performance-Power
 
-The *rickslab-gpu-utils* tools can be used to optimize performance vs. power for compute workloads by leveraging
+The **rickslab-gpu-utils** tools can be used to optimize performance vs. power for compute workloads by leveraging
 its ability to measure power and control relevant GPU settings.  This flexibility allows one to execute a
 DOE to measure the effect of GPU settings on the performance in executing specific workloads.  In SETI@Home
 performance, the Energy feature has also been built into [benchMT](https://github.com/Ricks-Lab/benchMT) to

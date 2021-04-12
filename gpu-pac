@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-pac  -  A utility program and control compatible GPUs
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     Program and Control compatible GPUs with this utility.  By default, the commands to
     be written to a GPU are written to a bash file for the user to inspect and run.  If you
     have confidence, the *--execute_pac* option can be used to execute and then delete the
@@ -42,7 +45,7 @@ import subprocess
 import os
 import logging
 import sys
-import time
+from time import sleep
 from uuid import uuid4
 
 try:
@@ -79,16 +82,19 @@ class PACWindow(Gtk.Window):
             print('Gtk Error, Exiting')
             sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
-        self.set_border_width(0)
+        grid = Gtk.Grid()
+        scrolled_window = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
+        scrolled_window.set_border_width(0)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.add(grid)
+        self.add(scrolled_window)
+
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_path:
             icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-pac.icon.png')
             if os.path.isfile(icon_file):
                 self.set_icon_from_file(icon_file)
-
-        grid = Gtk.Grid()
-        self.add(grid)
 
         num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
@@ -278,9 +284,9 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['mclk_range'] = Gtk.Label(name='white_label')
                 devices[gpu.prm.uuid]['mclk_range'].set_markup('<b>Mclk P-States: </b> Ranges {}-{}, {}-{} '.format(
                                                                gpu.get_params_value('mclk_f_range')[0],
-                                                                gpu.get_params_value('mclk_f_range')[1],
-                                                                gpu.get_params_value('vddc_range')[0],
-                                                                gpu.get_params_value('vddc_range')[1]))
+                                                               gpu.get_params_value('mclk_f_range')[1],
+                                                               gpu.get_params_value('vddc_range')[0],
+                                                               gpu.get_params_value('vddc_range')[1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['mclk_range'], top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6, name='dark_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
@@ -372,10 +378,10 @@ class PACWindow(Gtk.Window):
                 # VDDC Curve Points
                 devices[gpu.prm.uuid]['vddc_curve_range'] = Gtk.Label(name='white_label')
                 devices[gpu.prm.uuid]['vddc_curve_range'].set_markup(
-                    '<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(gpu.vddc_curve_range['0']['SCLK'][0],
-                                                                             gpu.vddc_curve_range['0']['SCLK'][1],
-                                                                             gpu.vddc_curve_range['0']['VOLT'][0],
-                                                                             gpu.vddc_curve_range['0']['VOLT'][1]))
+                    '<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(gpu.vddc_curve_range[0]['SCLK'][0],
+                                                                             gpu.vddc_curve_range[0]['SCLK'][1],
+                                                                             gpu.vddc_curve_range[0]['VOLT'][0],
+                                                                             gpu.vddc_curve_range[0]['VOLT'][1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['vddc_curve_range'], top=1, bottom=1,
                              right=4, left=4, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6, name='dark_box')
@@ -534,6 +540,11 @@ class PACWindow(Gtk.Window):
 
         self.update_message(devices, '', 'gray')
         self.refresh_pac(gpu_list, devices)
+        self.show_all()
+        grid_rectangle = grid.get_allocation()
+        LOGGER.debug('Grid alloc: x: %s, y: %s, width: %s, height: %s',
+                     grid_rectangle.x, grid_rectangle.y, grid_rectangle.width, grid_rectangle.height)
+        self.resize(grid_rectangle.width + 8, grid_rectangle.height + 8)
 
     @staticmethod
     def update_message(devices: dict, message: str, color: str = 'gray') -> None:
@@ -707,7 +718,7 @@ class PACWindow(Gtk.Window):
             changed += self.save_card(parent, gpu_list, devices, uuid, refresh=False)
 
         # Write finish message
-        time.sleep(1.0)
+        sleep(1.0)
         if env.GUT_CONST.execute_pac:
             if changed:
                 message = ('Write {} PAC commands to card complete.\n'
@@ -1081,7 +1092,7 @@ class PACWindow(Gtk.Window):
 
             if refresh:
                 # dismiss execute_pac message
-                time.sleep(0.5)
+                sleep(0.5)
                 if changed:
                     message = ('Write of {} PAC commands to card complete.\n'
                                'Confirm changes with gpu-monitor.').format(changed)
@@ -1263,6 +1274,7 @@ def main() -> None:
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
+        print('Install Type: ', env.GUT_CONST.install_type)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         sys.exit(0)

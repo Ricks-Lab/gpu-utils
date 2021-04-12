@@ -27,18 +27,20 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: disable=bad-continuation
 
+import argparse
 import re
 import subprocess
 import platform
 import sys
-import os
+from os import path as os_path
 import logging
 from pathlib import Path
+import inspect
 import shlex
 import shutil
-import time
+from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, List
+from typing import Dict, Union, List, TextIO
 from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -48,8 +50,10 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
-    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'equery'}
+    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch']
+    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg',
+                                  'Arch': 'pacman',
+                                  'Gentoo': 'equery'}
     _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
@@ -71,69 +75,77 @@ class GutConst:
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
                 'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
+                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    _sys_pciid_list = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
-    _local_icon_list = ['{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home())),
-                        '/usr/share/rickslab-gpu-utils/icons']
-    featuremask = '/sys/module/amdgpu/parameters/ppfeaturemask'
-    card_root = '/sys/class/drm/'
-    hwmon_sub = 'hwmon/hwmon'
-    gui_window_title = 'Ricks-Lab GPU Utilities'
+    _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
+    _module_path: str = os_path.dirname(str(Path(__file__).resolve()))
+    _repository_path: str = os_path.join(_module_path, '..')
+    _local_config_list: Dict[str, str] = {
+        'repository': _repository_path,
+        'debian':     '/usr/share/rickslab-gpu-utils/config',
+        'pypi-linux': os_path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
+    _local_icon_list: Dict[str, str] = {
+        'repository': os_path.join(_repository_path, 'icons'),
+        'debian':     '/usr/share/rickslab-gpu-utils/icons',
+        'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
+    featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
+    card_root: str = '/sys/class/drm/'
+    hwmon_sub: str = 'hwmon/hwmon'
+    gui_window_title: str = 'Ricks-Lab GPU Utilities'
+    mon_field_width = 20
 
     def __init__(self):
-        self.args = None
-        self.repository_module_path = os.path.dirname(str(Path(__file__).resolve()))
-        self.repository_path = os.path.join(self.repository_module_path, '..')
+        self.args: Union[argparse.Namespace, None] = None
+        self.repository_path: str = self._repository_path
+        self.install_type: Union[str, None] = None
+        self.package_path: str = inspect.getfile(inspect.currentframe())
+
+        if 'dist-packages' in self.package_path:
+            self.install_type = 'debian'
+        elif '.local' in self.package_path:
+            self.install_type = 'pypi-linux'
+        else:
+            self.install_type = 'repository'
+        self.icon_path = self._local_icon_list[self.install_type]
+        if not os_path.isfile(os_path.join(self.icon_path, 'gpu-mon.icon.png')):
+            print('Error: Invalid icon path')
+            self.icon_path = None
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
-            if os.path.isfile(try_pciid_path):
+            if os_path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
                 break
         else:
             self.sys_pciid = None
 
-        # Set Icon Path
-        self._local_icon_list.append(os.path.join(self.repository_path, 'icons'))
-        for try_icon_path in GutConst._local_icon_list:
-            if os.path.isdir(try_icon_path):
-                self.icon_path = try_icon_path
-                break
-        else:
-            self.icon_path = None
-
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
-        self.amdfeaturemask = ''
-        self.log_file_ptr = ''
+        self.amdfeaturemask: Union[int, None] = None
+        self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
-        self.execute_pac = False
-        self.DEBUG = False
-        self.PDEBUG = False
-        self.SIMLOG = False
-        self.LOG = False
-        self.PLOT = False
-        self.show_fans = True
-        self.write_delta_only = False
-        self.SLEEP = 2
-        self.USELTZ = False
+        self.execute_pac: bool = False
+        self.DEBUG: bool = False
+        self.PDEBUG: bool = False
+        self.SIMLOG: bool = False
+        self.LOG: bool = False
+        self.PLOT: bool = False
+        self.show_fans: bool = True
+        self.write_delta_only: bool = False
+        self.SLEEP: int = 2
+        self.USELTZ: bool = False
         # Time
-        self.TIME_FORMAT = '%d-%b-%Y %H:%M:%S'
-        self.LTZ = datetime.utcnow().astimezone().tzinfo
-        # GPU platform capability
-        self.amd_read = None
-        self.amd_write = None
-        self.nv_read = None
-        self.nv_write = None
+        self.TIME_FORMAT: str = '%d-%b-%Y %H:%M:%S'
+        self.LTZ: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
         # Command access
-        self.cmd_lsb_release = None
-        self.cmd_lspci = None
-        self.cmd_clinfo = None
-        self.cmd_dpkg = None
-        self.cmd_nvidia_smi = None
+        self.cmd_lsb_release: Union[str, None] = None
+        self.cmd_lspci: Union[str, None] = None
+        self.cmd_clinfo: Union[str, None] = None
+        self.cmd_dpkg: Union[str, None] = None
+        self.cmd_nvidia_smi: Union[str, None] = None
 
-    def set_args(self, args) -> None:
+    def set_args(self, args: argparse.Namespace) -> None:
         """
         Set arguments for the give args object.
 
@@ -166,6 +178,7 @@ class GutConst:
             file_handler.setFormatter(formatter)
             file_handler.setLevel(logging.DEBUG)
             LOGGER.addHandler(file_handler)
+        LOGGER.debug('Install type: %s', self.install_type)
         LOGGER.debug('Command line arguments:\n  %s', args)
         LOGGER.debug('Local TZ: %s', self.LTZ)
         LOGGER.debug('pciid path set to: %s', self.sys_pciid)
@@ -190,7 +203,7 @@ class GutConst:
         :return: Time for local time zone
         .. note:: from https://stackoverflow.com/questions/4770297/convert-utc-datetime-string-to-local-datetime
         """
-        epoch = time.mktime(utc.timetuple())
+        epoch = time_mktime(utc.timetuple())
         offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
         return utc + offset
 
@@ -202,10 +215,16 @@ class GutConst:
         """
         try:
             with open(self.featuremask) as fm_file:
-                self.amdfeaturemask = int(fm_file.readline())
-        except OSError as err:
-            LOGGER.debug('Could not read AMD Featuremask [%s]', err)
+                fm_str = fm_file.readline().rstrip()
+                LOGGER.debug('Raw Featuremask string: [%s]', fm_str)
+                self.amdfeaturemask = int(fm_str, 0)
+        except TypeError as err:
+            LOGGER.debug('Invalid AMD Featuremask str [%s], %s', fm_str, err)
             self.amdfeaturemask = 0
+        except OSError as err:
+            LOGGER.debug('Could not read AMD Featuremask, %s', err)
+            self.amdfeaturemask = 0
+        LOGGER.debug('AMD featuremask: %s', hex(self.amdfeaturemask))
         return self.amdfeaturemask
 
     def check_env(self) -> int:
@@ -269,6 +288,7 @@ class GutConst:
         else:
             print('OS command [lsb_release] executable not found.')
 
+        LOGGER.debug('Distro: %s, %s', self.distro['Distributor'], self.distro['Description'])
         # Check access/paths to system commands
         command_access_fail = False
         self.cmd_lspci = shutil.which('lspci')
@@ -289,7 +309,12 @@ class GutConst:
             if not self.cmd_dpkg:
                 print('OS command [{}] executable not found.'.format(pkg_tool))
         else:
-            self.cmd_dpkg = None
+            for test_dpkg in GutConst._dpkg_tool.values():
+                self.cmd_dpkg = shutil.which(test_dpkg)
+                if self.cmd_dpkg:
+                    break
+            else:
+                self.cmd_dpkg = None
         LOGGER.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
         self.cmd_nvidia_smi = shutil.which('nvidia-smi')
@@ -403,6 +428,7 @@ def about() -> None:
     print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
     print('License: ', __license__)
     print('Version: ', __version__)
+    print('Install Type: ', GUT_CONST.install_type)
     print('Maintainer: ', __maintainer__)
     print('Status: ', __status__)
     sys.exit(0)

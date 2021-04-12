@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-mon  -  Displays current status of all active GPUs
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     A utility to give the current state of all compatible GPUs. The default behavior
     is to continuously update a text based table in the current window until Ctrl-C is
     pressed.  With the *--gui* option, a table of relevant parameters will be updated
@@ -50,7 +53,7 @@ import logging
 import sys
 import shlex
 import shutil
-import time
+from time import sleep
 import signal
 from typing import Callable
 from numpy import isnan
@@ -98,7 +101,9 @@ class MonitorWindow(Gtk.Window):
     """
     Custom PAC Gtk window.
     """
-    quit = False
+    quit: bool = False
+    item_width: int = env.GUT_CONST.mon_field_width
+    label_width: int = 12
 
     def __init__(self, gpu_list, devices):
 
@@ -161,8 +166,8 @@ class MonitorWindow(Gtk.Window):
             for param_name in gpu_list.table_param_labels():
                 devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
                                                               name='white_label')
-                devices[gpu.prm.uuid][param_name].set_width_chars(10)
-                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=10)
+                devices[gpu.prm.uuid][param_name].set_width_chars(self.item_width)
+                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=self.item_width)
 
         for gui_component in devices.values():
             col += 1
@@ -174,7 +179,7 @@ class MonitorWindow(Gtk.Window):
                 else:
                     lbox = Gtk.Box(spacing=6, name='med_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=17)
+                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=self.item_width)
                 lbox.pack_start(comp_item, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
@@ -221,9 +226,9 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
                 if isinstance(data_value_raw, float):
                     if not isnan(data_value_raw):
                         data_value_raw = round(data_value_raw, 3)
-                data_value = str(data_value_raw)[:16]
+                data_value = str(data_value_raw)[:MonitorWindow.item_width]
                 comp_item.set_text(data_value)
-            set_gtk_prop(comp_item, width_chars=17)
+            set_gtk_prop(comp_item, width_chars=MonitorWindow.item_width)
 
     while Gtk.events_pending():
         Gtk.main_iteration_do(True)
@@ -253,7 +258,7 @@ def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList,
         tst = 0.0
         sleep_interval = 0.2
         while tst < refreshtime:
-            time.sleep(sleep_interval)
+            sleep(sleep_interval)
             tst += sleep_interval
 
 
@@ -281,6 +286,7 @@ def main() -> None:
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
+        print('Install Type: ', env.GUT_CONST.install_type)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         sys.exit(0)
@@ -327,7 +333,7 @@ def main() -> None:
     print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                 num_gpus['r-only'], num_gpus['w-only']))
 
-    time.sleep(1)
+    sleep(1)
     # Generate a new list of only compatible GPUs
     if num_gpus['r-only'] + num_gpus['rw'] < 1:
         print('No readable GPUs, exiting...')
@@ -361,6 +367,8 @@ def main() -> None:
             plot_util = shutil.which('gpu-plot')
             if not plot_util:
                 plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
+            if env.GUT_CONST.install_type == 'repository':
+                plot_util = './gpu-plot'
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
                     cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
@@ -388,7 +396,7 @@ def main() -> None:
                     print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
-                time.sleep(env.GUT_CONST.SLEEP)
+                sleep(env.GUT_CONST.SLEEP)
                 if MonitorWindow.quit:
                     sys.exit(-1)
         except KeyboardInterrupt:

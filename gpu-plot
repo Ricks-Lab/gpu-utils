@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-plot  -  Plot GPU parameter values over time
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     A utility to continuously plot the trend of critical GPU parameters for all compatible
     GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot*
     utility has 2 modes of operation.  The default mode is to read the GPU driver details
@@ -42,13 +45,13 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=bad-continuation
 
 import sys
-import gc as garbcollect
+from gc import collect as garb_collect
 import argparse
 import re
 import threading
 import os
 import logging
-import time
+from time import sleep
 import numpy as np
 
 try:
@@ -179,7 +182,7 @@ class PlotData:
         self.reader = False
         self.quit = True
         print('Stopping reader thread')
-        time.sleep(0.2)
+        sleep(0.2)
 
 
 class GuiComponents:
@@ -188,6 +191,7 @@ class GuiComponents:
     """
     _colors = {'plotface':        GPUgui.GuiProps.color_name_to_hex('slate_vdk'),
                'figface':         GPUgui.GuiProps.color_name_to_hex('slate_md'),
+               'disable_but':     GPUgui.GuiProps.color_name_to_hex('gray70'),
                'sclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_green'),
                'mclk_f_val':      GPUgui.GuiProps.color_name_to_hex('br_yellow'),
                'loading':         GPUgui.GuiProps.color_name_to_hex('br_pink'),
@@ -356,12 +360,12 @@ class GPUPlotWindow(Gtk.Window):
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
         for comp_name in gc.gui_components['legend']['plot_items'].keys():
             but_label = Gpu.GpuItem.get_button_label(comp_name)
+            but_name = 'but_{}'.format(comp_name)
             but_color = gc.get_color(comp_name)
             but_font_color = gc.get_font_color(comp_name)
-            gc.gui_components['legend']['buttons'][comp_name] = Gtk.Button(label='')
-            gc.gui_components['legend']['buttons'][comp_name].set_name(but_color[1:])
+            gc.gui_components['legend']['buttons'][comp_name] = Gtk.Button(name=but_name, label='')
             GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); color: %s; }" % (
-                but_color[1:], but_color, but_font_color))
+                but_name, but_color, but_font_color))
             for child in gc.gui_components['legend']['buttons'][comp_name].get_children():
                 child.set_label('<big><b>{}</b></big>'.format(but_label))
                 child.set_use_markup(True)
@@ -478,6 +482,9 @@ class GPUPlotWindow(Gtk.Window):
         :param gc: gui components object
         :param k:  Name of plot item to toggle
         """
+        but_name = 'but_{}'.format(k)
+        but_color = gc.get_color('disable_but') if gc.plot_items[k] else gc.get_color(k)
+        GPUgui.GuiProps.set_style(css_str="#%s { background-image: image(%s); }" % (but_name, but_color))
         gc.plot_items[k] = not gc.plot_items[k]
 
 
@@ -492,6 +499,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     PD_SEM.acquire()
     #######################
     ldf = plot_data.df
+    y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
@@ -573,14 +581,19 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                                           fontsize=6)
 
             tick_inc = int(10 * round(((y1lim_max_val - y1lim_min_val) // 12)/10.0, 0))
+            if tick_inc < 5: tick_inc = 5
             comp_item['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, tick_inc))
             tick_inc = int(100 * round(((y2lim_max_val - y2lim_min_val) // 12)/100.0, 0))
+            if tick_inc < 50: tick_inc = 50
             comp_item['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, tick_inc))
 
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
         LOGGER.exception('plot exception: %s', err)
+        LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
+        LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
+        LOGGER.debug('ticker increment: %s', tick_inc)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
         plot_data.kill_thread()
@@ -590,11 +603,11 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
 
 
-def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
+def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
 
-    :param refreshtime:
+    :param refresh_time:
     :param plot_data:
     .. note:: this should continuously read from stdin and populate df and call plot/gui update
     """
@@ -603,7 +616,7 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
     header = True
     sync_add = 0
     while not plot_data.quit:
-        if env.GUT_CONST.SIMLOG: time.sleep(refreshtime/4.0)
+        if env.GUT_CONST.SIMLOG: sleep(refresh_time/4.0)
         ndf = pd.DataFrame()
 
         # Process a set of GPUs at a time
@@ -680,29 +693,29 @@ def read_from_stdin(refreshtime: int, plot_data: PlotData) -> None:
             continue
         if plot_data.gui_comp.is_ready():
             if first_update:
-                time.sleep(refreshtime)
+                sleep(refresh_time)
                 first_update = False
             GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
-            time.sleep(0.01)
+            sleep(0.01)
             PD_SEM.acquire()
             PD_SEM.release()
             ########################
-            garbcollect.collect()
+            garb_collect()
         LOGGER.debug('update stack size: %s', get_stack_size())
 
     # Quit
-    print('exit stack size: {}'.format(get_stack_size()))
+    print('Exit stack size: {}'.format(get_stack_size()))
     sys.exit(0)
 
 
-def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
+def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
     """
     Read plot data from stdin.
 
-    :param refreshtime:
+    :param refresh_time:
     :param plot_data:
     .. note:: this should continuously read from GPUs and populate df and call plot/gui update
     """
@@ -747,26 +760,26 @@ def read_from_gpus(refreshtime: int, plot_data: PlotData) -> None:
         if skip_update:
             continue
         if plot_data.gui_comp is None:
-            time.sleep(refreshtime)
+            sleep(refresh_time)
             continue
         if plot_data.gui_comp.is_ready():
             if first_update:
-                time.sleep(refreshtime)
+                sleep(refresh_time)
                 first_update = False
             GLib.idle_add(update_data, plot_data.gui_comp, plot_data)
             while Gtk.events_pending():
                 Gtk.main_iteration_do(True)
             # SEMAPHORE ############
-            time.sleep(0.01)
+            sleep(0.01)
             PD_SEM.acquire()
             PD_SEM.release()
             ########################
-            garbcollect.collect()
+            garb_collect()
         LOGGER.debug('update stack size: %s', get_stack_size())
-        time.sleep(refreshtime)
+        sleep(refresh_time)
 
     # Quit
-    print('exit stack size: {}'.format(get_stack_size()))
+    print('Exit stack size: {}'.format(get_stack_size()))
     sys.exit(0)
 
 
@@ -789,6 +802,7 @@ def main() -> None:
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
+        print('Install Type: ', env.GUT_CONST.install_type)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         import matplotlib
@@ -861,7 +875,7 @@ def main() -> None:
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     while len(plot_data.df.index) < 2:
         print('.', end='', flush=True)
-        time.sleep(args.sleep/4.0)
+        sleep(args.sleep/4.0)
     print('')
 
     # After reading initial data, set gpus

@@ -1,44 +1,56 @@
 # Ricks-Lab GPU Utilities
 
 ![](https://img.shields.io/github/license/Ricks-Lab/gpu-utils)
-[![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
-[![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/Ricks-Lab/gpu-utils)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Ricks-Lab/gpu-utils)
+![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/rickslab-gpu-utils)
 
 ## rickslab-gpu-utils
 
 A set of utilities for monitoring GPU performance and modifying control settings.
 
 In order to get maximum capability of these utilities, you should be running with a kernel that
-provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest amdgpu
-driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
-GPUs installed, you should have `nvidia-smi` installed in order for the utility reading of the cards
-to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
-`amdgpu.ppfeaturemask=0xfffd7fff` to the `GRUB_CMDLINE_LINUX_DEFAULT` value in
-`/etc/default/grub` and executing `sudo update-grub`
+provides support of the GPUs you have installed.  If using AMD GPUs, installing the latest **amdgpu**
+driver or **ROCm** package, may provide additional capabilities. If you have Nvidia GPUs installed,
+you should have **nvidia-smi** installed in order for the utility reading of the cards to be
+possible.  Writing to GPUs is currently only possible for compatible AMD GPUs on systems with
+appropriate kernel version with the AMD ppfeaturemask set to enable this capability as described
+[here](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#getting-started).
 
-Check out the [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)!
+## Installation
 
-Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
-commands:
+There are 4 methods of installation available and summarized here:
+* [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer. This type of installation can exist alongside any of the other installation types.
+  
+  ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fgh_version.json)
+* [PyPI](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This installation method is also meant for users not on a Debian distribution.
+  
+  [![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
+  [![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
+* [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
 
-```
-pip3 uninstall rickslab-gpu-utils
-pip3 install rickslab-gpu-utils
-```
-The uninstall is required to make sure all modules are updated.  If you still get an old version,
-then specify not to use cached files:
-```
-pip3 install --no-cache-dir rickslab-gpu-utils
-```
+  ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_version.json)
+  ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_down.json)
+* **Official Debian** - Only **MAJOR/MINOR** releases.  This is currently broken by the name change of the project from **ricks-amdgpu-utils** to **rickslab-gpu-utils**. I will update this guide once the Debian package is back in sync with the repository.
 
-## gpu-chk
+## User Guide
 
-This utility verifies if the environment is compatible with **rickslab-gpu-utils**.
+For a detailed introduction, a community sourced 
+[User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)
+is available. All tools are demonstrated and use cases are presented.  Additions
+to the guide are welcome.  Please submit a pull request with your suggested additions!
 
-## gpu-ls
+## Commands
+
+A summary of command line tools available in **rickslab-gpu-utils** follows. Additional
+details are available in man pages and the
+[User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md).
+
+### gpu-chk
+
+This utility verifies if the user's environment is compatible with **rickslab-gpu-utils**.
+
+### gpu-ls
 
 This utility displays most relevant parameters for installed and compatible GPUs. The
 default behavior is to list relevant parameters by GPU.  OpenCL platform information is
@@ -49,7 +61,7 @@ The *--pstate* option can be used to output the p-state table for each GPU inste
 the list of basic parameters.  The *--ppm* option is used to output the table of available
 power/performance modes instead of basic parameters.
 
-## gpu-mon
+### gpu-mon
 
 A utility to give the current state of all compatible GPUs. The default behavior
 is to continuously update a text based table in the current window until Ctrl-C is
@@ -65,7 +77,7 @@ you need both the plot and monitor displays, then using the --plot option is pre
 over running both tools as a single read of the GPUs is used to update both displays.
 The *--ltz* option results in the use of local time instead of UTC.
 
-## gpu-plot
+### gpu-plot
 
 A utility to continuously plot the trend of critical GPU parameters for all compatible
 GPUs. The *--sleep N* can be used to specify the update interval.  The *gpu-plot*
@@ -80,7 +92,7 @@ to run both *gpu-plot* and *gpu-mon*, then the *--plot* option of the *gpu-mon*
 utility should be used instead of both utilities in order reduce data reads by
 a factor of 2.
 
-## gpu-pac
+### gpu-pac
 
 Program and Control compatible GPUs with this utility.  By default, the commands to
 be written to a GPU are written to a bash file for the user to inspect and run.  If you
@@ -91,21 +103,19 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in this Release -  v3.5.2
+## New in Development -  v3.6.2
 
-* Check gtk initialization for errors and handle nicely.
-* Use logger to output plot exceptions.
-* Check number of compatible and readable GPUs at utility start.
-* Minor User Guide improvements.
+* Nothing yet
 
 ## Development Plans
 
-* Optimize plot utilities for performance.
+* Implement timeout to handle cases where drivers become unreadable.
 * Add status read capabilities for Intel GPUs.
 * Add pac capabilities for Nvidia GPUs.
 
 ## Known Issues
 
+* Some windows do not support scrolling or resize, making it unusable for lower resolution installations.
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
@@ -123,6 +133,51 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Example use cases: [wiki.archlinux.org](https://wiki.archlinux.org/index.php/AMDGPU)
 
 ## History
+
+### New in Current Release -  v3.6.1
+
+* Update logger to output hex version of amdfeaturemask value.
+* Improve reading/displaying of AMD GPUs when amdfeaturemask is not set to write.
+
+### New in Previous Release -  v3.6.0
+
+* Rewrite of the installation guide and simplification of the readme.
+* Roll-up all v3.5.x patches into a new minor revision release.
+
+### New in Previous Release -  v3.5.10
+
+* Set **Neon** as a validated distribution.
+* Check all possible package readers for undefined distribution.
+
+### New in Previous Release -  v3.5.9
+
+* Optimize *gpu-mon* table size.
+* Toggle button color to match enable/disable status of plot line.
+* When install type is repository, force use of repository *gpu-plot* from *gpu-mon*.
+
+### New in Previous Release -  v3.5.8
+
+* Fixed bug in determining AMD GPU card type.  Now it properly identifies APU and Legacy types.
+
+### New in Previous Release -  v3.5.7
+
+* More robust determination of install type and display this with *--about* and in logger.
+* Implementation of scroll within PAC window.
+* Fixed plot crash for invalid ticker increment.
+* Code robustness improvements with more typing for class variables.
+
+### New in Previous Release -  v3.5.6
+
+* Fixed issue in reading AMD FeatureMask for Kernel 5.11
+
+### New in Previous Release -  v3.5.5
+
+* Include debian release package.
+* Check gtk initialization for errors and handle nicely.
+* Use logger to output plot exceptions.
+* Check number of compatible and readable GPUs at utility start.
+* Minor User Guide and man page improvements.
+* Use minimal python packages in requirements.
 
 ### New in Previous Release -  [v3.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.5.0)
 

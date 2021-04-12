@@ -1,9 +1,36 @@
 #!/usr/bin/python3
+""" setup.py used in producing source and binary distributions.
+
+    Usage: python3 setup.py sdist bdist_wheel
+
+    Copyright (C) 2020  RicksLab
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+__author__ = 'RicksLab'
+__credits__ = []
+__license__ = 'GNU General Public License - GPL-3'
+__program_name__ = 'setup.py'
+__maintainer__ = 'RueiKe'
+__docformat__ = 'reStructuredText'
+
+# pylint: disable=line-too-long
 
 import sys
 import os
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 from GPUmodules import __version__, __status__
 
 if sys.version_info < (3, 6):
@@ -11,19 +38,19 @@ if sys.version_info < (3, 6):
     sys.exit(1)
 
 with open(os.path.join(pathlib.Path(__file__).parent, 'README.md'), 'r') as file_ptr:
-    long_description = file_ptr.read()
+    LONG_DESCRIPTION = file_ptr.read()
 
 setup(name='rickslab-gpu-utils',
       version=__version__,
       description='Ricks-Lab GPU Utilities',
       long_description_content_type='text/markdown',
-      long_description=long_description,
+      long_description=LONG_DESCRIPTION,
       author='RueiKe',
       keywords='gpu system monitoring overclocking underclocking linux amdgpu nvidia-smi rocm amd nvidia opencl boinc',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
       url='https://github.com/Ricks-Lab/gpu-utils',
-      packages=['GPUmodules'],
+      packages=find_packages(include=['GPUmodules']),
       include_package_data=True,
       scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
@@ -38,17 +65,8 @@ setup(name='rickslab-gpu-utils',
                    'Topic :: System :: Monitoring',
                    'Environment :: GPU',
                    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'],
-      install_requires=['cycler>=0.10.0',
-                        'kiwisolver>=1.1.0',
-                        'matplotlib>=3.1.3',
-                        'numpy>=1.18.1',
-                        'pandas>=1.0.1',
-                        'pyparsing>=2.4.6',
-                        'python-dateutil>=2.8.1',
-                        'pytz>=2019.3',
-                        'ruamel.yaml==0.16.10',
-                        'ruamel.yaml.clib==0.2.0',
-                        'six>=1.11.0'],
+      install_requires=['matplotlib>=3.1.3',
+                        'pandas>=1.0.1'],
       data_files=[('share/rickslab-gpu-utils/icons', ['icons/gpu-mon.icon.png',
                                                       'icons/gpu-pac.icon.png',
                                                       'icons/gpu-plot.icon.png']),
@@ -57,6 +75,4 @@ setup(name='rickslab-gpu-utils',
                                       'man/gpu-ls.1',
                                       'man/gpu-mon.1',
                                       'man/gpu-pac.1',
-                                      'man/gpu-plot.1'])
-                  ]
-      )
+                                      'man/gpu-plot.1'])])

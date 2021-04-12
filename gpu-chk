@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """ gpu-chk  -  Checks OS/Python compatibility
 
+    Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and
+    gpu-plot.
+
     This utility verifies if the environment is compatible with *rickslab-gpu-utils*.
 
     Copyright (C) 2019  RicksLab
