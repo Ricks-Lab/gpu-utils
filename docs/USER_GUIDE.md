@@ -301,6 +301,30 @@ The *--clinfo* option will make a call to clinfo, if it is installed, and list o
 along with the basic parameters.  The benefit of running this in *gpu-ls* is that the tool
 uses the PCIe slot id to associate clinfo results with the appropriate GPU in the listing.
 
+If you have the clinfo package installed, then the command *gpu-ls --clinfo* should provide something like this at the end of each card's listing (example shown for an AMD GPU):
+```
+   ##################################################
+   Device OpenCL C Version: OpenCL C 1.2
+   Device Name: Ellesmere
+   Device Version: OpenCL 1.2 AMD-APP (3224.4)
+   Driver Version: 3224.4
+   Max Compute Units: 32
+   SIMD per CU: 4
+   SIMD Width: 16
+   SIMD Instruction Width: 1
+   CL Max Memory Allocation: 1206165504
+   Max Work Item Dimensions: 3
+   Max Work Item Sizes: 1024 1024 1024
+   Max Work Group Size: 1024
+   Preferred Work Group Size: 256
+   Preferred Work Group Multiple: 64
+```
+If not, then to see the clinfo data you may need to add yourself to the 'video' and 'render' groups by using these commands:
+```
+sudo usermod -a -G video $LOGNAME
+sudo usermod -a -G render $LOGNAME
+```
+
 The *--pstates* and *--ppm* options will display the P-State definition table and the power
 performance mode table.
 
