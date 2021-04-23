@@ -78,7 +78,7 @@ class GutConst:
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids']
+    _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids']
     _module_path: str = os_path.dirname(str(Path(__file__).resolve()))
     _repository_path: str = os_path.join(_module_path, '..')
     _local_config_list: Dict[str, str] = {
