@@ -105,7 +105,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.6.2
 
-* Nothing yet
+* Minor User Guide updates.
+* Add `/usr/share/doc/pci.ids` to possible locations of pci decode file.
 
 ## Development Plans
 
