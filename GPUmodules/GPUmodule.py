@@ -561,6 +561,7 @@ class GpuItem:
         :param name:  Parameter name
         :param value:  parameter value
         """
+        LOGGER.debug('Set param value: [%s], type: [%s]', value, type(value))
         if isinstance(value, tuple):
             self.prm[name] = list(value)
         elif name == 'pwm_mode':
@@ -587,14 +588,17 @@ class GpuItem:
                 else:
                     mask += ',' + ps_val.split(':')[0].strip()
                 sclk_ps = ps_val.strip('*').strip().split(': ')
-                if sclk_ps[0].isnumeric():
-                    ps_key = int(sclk_ps[0])
-                self.sclk_dpm_state.update({ps_key: sclk_ps[1]})
-                if '*' in ps_val:
-                    self.prm.sclk_ps[0] = ps_key
-                    self.prm.sclk_ps[1] = sclk_ps[1]
-                self.prm.sclk_mask = mask
-            LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
+                if len(sclk_ps) < 2:
+                    LOGGER.debug('sclk_ps value error: [%s]', sclk_ps)
+                else:
+                    if sclk_ps[0].isnumeric():
+                        ps_key = int(sclk_ps[0])
+                    self.sclk_dpm_state.update({ps_key: sclk_ps[1]})
+                    if '*' in ps_val:
+                        self.prm.sclk_ps[0] = ps_key
+                        self.prm.sclk_ps[1] = sclk_ps[1]
+                    self.prm.sclk_mask = mask
+                    LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
         elif name == 'mclk_ps':
             mask = ''
             ps_key = 'NA'
@@ -604,14 +608,17 @@ class GpuItem:
                 else:
                     mask += ',' + ps_val.split(':')[0].strip()
                 mclk_ps = ps_val.strip('*').strip().split(': ')
-                if mclk_ps[0].isnumeric():
-                    ps_key = int(mclk_ps[0])
-                self.mclk_dpm_state.update({ps_key: mclk_ps[1]})
-                if '*' in ps_val:
-                    self.prm.mclk_ps[0] = ps_key
-                    self.prm.mclk_ps[1] = mclk_ps[1]
-                self.prm.mclk_mask = mask
-            LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
+                if len(mclk_ps) < 2:
+                    LOGGER.debug('mclk_ps value error: [%s]', mclk_ps)
+                else:
+                    if mclk_ps[0].isnumeric():
+                        ps_key = int(mclk_ps[0])
+                    self.mclk_dpm_state.update({ps_key: mclk_ps[1]})
+                    if '*' in ps_val:
+                        self.prm.mclk_ps[0] = ps_key
+                        self.prm.mclk_ps[1] = mclk_ps[1]
+                    self.prm.mclk_mask = mask
+                    LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
             if isinstance(value, int):
                 self.prm.fan_pwm = value

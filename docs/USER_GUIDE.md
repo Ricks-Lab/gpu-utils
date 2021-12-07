@@ -34,7 +34,7 @@ are details on setting up a virtual environment with python3.6:
 
 ```shell
 sudo apt install -y python3.6-venv
-sudo apt install -y python3.6.dev
+sudo apt install -y python3.6-dev
 ```
 
 Clone the repository from GitHub with the following command:
