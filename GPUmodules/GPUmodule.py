@@ -598,7 +598,7 @@ class GpuItem:
                         self.prm.sclk_ps[0] = ps_key
                         self.prm.sclk_ps[1] = sclk_ps[1]
                     self.prm.sclk_mask = mask
-                    LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
+            LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.sclk_ps[0], self.prm.sclk_ps[1])
         elif name == 'mclk_ps':
             mask = ''
             ps_key = 'NA'
@@ -618,7 +618,7 @@ class GpuItem:
                         self.prm.mclk_ps[0] = ps_key
                         self.prm.mclk_ps[1] = mclk_ps[1]
                     self.prm.mclk_mask = mask
-                    LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
+            LOGGER.debug('Mask: [%s], ps: [%s, %s]', mask, self.prm.mclk_ps[0], self.prm.mclk_ps[1])
         elif name == 'fan_pwm':
             if isinstance(value, int):
                 self.prm.fan_pwm = value
