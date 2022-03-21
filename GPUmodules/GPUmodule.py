@@ -1735,7 +1735,7 @@ class GpuList:
 
         pcie_ids = self.get_gpu_pci_list()
         if not pcie_ids:
-            print('Error [{}]: lspci failed to find GPUs')
+            print('Error [empty list]: lspci failed to find GPUs')
             return False
 
         LOGGER.debug('Found %s GPUs', len(pcie_ids))
@@ -1842,7 +1842,10 @@ class GpuList:
                 try_path = '/sys/devices/pci*:*/'
                 sys_pci_dirs = None
                 for _ in range(6):
-                    search_path = os.path.join(try_path, '????:{}'.format(pcie_id))
+                    if re.fullmatch(env.GUT_CONST.PATTERNS['PCI_ADD_SHRT'], pcie_id):
+                        search_path = os.path.join(try_path, '????:{}'.format(pcie_id))
+                    else:
+                        search_path = os.path.join(try_path, pcie_id)
                     sys_pci_dirs = glob.glob(search_path)
                     if sys_pci_dirs:
                         # Found a match
