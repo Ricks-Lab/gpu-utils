@@ -1828,7 +1828,7 @@ class GpuList:
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
                 LOGGER.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
-                if pcie_id == sysfspath[-7:]:
+                if pcie_id == sysfspath[-7:] or pcie_id == sysfspath[-12:]:
                     card_path = device_dir
                     sys_card_path = sysfspath
                     LOGGER.debug('card_path set to: %s', device_dir)
