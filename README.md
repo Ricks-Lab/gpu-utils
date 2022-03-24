@@ -103,10 +103,9 @@ terminal where you executed *gpu-pac*. The *--no_fan* option can be used to elim
 fan details from the utility. The *--force_write* option can be used to force all configuration
 parameters to be written to the GPU.  The default behavior is to only write changes.
 
-## New in Development -  v3.6.2
+## New in Development -  v3.6.3
 
-* Minor User Guide updates.
-* Add `/usr/share/doc/pci.ids` to possible locations of pci decode file.
+* Nothing yet
 
 ## Development Plans
 
@@ -135,7 +134,13 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## History
 
-### New in Current Release -  v3.6.1
+### New in Current Release -  v3.6.2
+
+* Minor User Guide updates.
+* Add `/usr/share/doc/pci.ids` to possible locations of pci decode file.
+* Modify to handle pci addresses that include domain.
+
+### New in Previous Release -  v3.6.1
 
 * Update logger to output hex version of amdfeaturemask value.
 * Improve reading/displaying of AMD GPUs when amdfeaturemask is not set to write.
