@@ -573,12 +573,17 @@ class GpuItem:
             self.prm[name] = re.sub(PATTERNS['PPM_CHK'], '', value).strip()
             self.prm[name] = re.sub(PATTERNS['PPM_NOTCHK'], '-', self.prm[name])
         elif name == 'power':
-            time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
-            self.prm[name] = value
-            delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
-            self.energy['tn'] = time_n
-            self.energy['cumulative'] += delta_hrs * value / 1000
-            self.prm['energy'] = round(self.energy['cumulative'], 6)
+            if isinstance(value, (int, float)):
+                time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+                self.prm[name] = value
+                delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
+                self.energy['tn'] = time_n
+                self.energy['cumulative'] += delta_hrs * value / 1000
+                self.prm['energy'] = round(self.energy['cumulative'], 6)
+            else:
+                print('Error: Invalid power value read [{}]'.format(value))
+                LOGGER.debug('Invalid power value read: [%s]', value)
+                self.read_disabled.append('power')
         elif name == 'sclk_ps':
             mask = ''
             ps_key = 'NA'
