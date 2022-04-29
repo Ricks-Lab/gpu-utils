@@ -120,7 +120,7 @@ class GpuItem:
                                    'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported SysUnsupported Legacy APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
@@ -1907,10 +1907,19 @@ class GpuList:
                 if LOGGER.getEffectiveLevel() == logging.DEBUG:
                     # Write pp_od_clk_voltage details to debug LOGGER
                     if os.path.isfile(pp_od_clk_voltage_file):
-                        with open(pp_od_clk_voltage_file, 'r') as file_ptr:
-                            pp_od_file_details = file_ptr.read()
+                        try:
+                            with open(pp_od_clk_voltage_file, 'r') as file_ptr:
+                                pp_od_file_details = file_ptr.read()
+                        except OSError as except_err:
+                            LOGGER.debug('Error: system support issue for %s error: [%s]', pcie_id, except_err)
+                            gpu_type = GpuItem.GPU_Type.SysUnsupported
+                            readable = False
+                            writable = False
+                            print('Error: System support issue for GPU [{}]'.format(pcie_id))
+
                     else:
                         pp_od_file_details = 'The file {} does not exist'.format(pp_od_clk_voltage_file)
+                        writable = False
                     LOGGER.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
 
             # Set GPU parameters

@@ -105,7 +105,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.6.3
 
-* Nothing yet
+* Fixed error in calculating power when invalid sensor data is returned.
+* Check for OSerror when reading from pp_od_clk_voltage file.  Disable GPU reading on error.
 
 ## Development Plans
 
