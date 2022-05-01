@@ -1023,7 +1023,9 @@ class GpuItem:
         """
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                          GpuItem.GPU_Type.SysUnsupported,
+                                                          GpuItem.GPU_Type.Unsupported]:
             return
 
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
@@ -1063,6 +1065,7 @@ class GpuItem:
             return
         if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
                                                           GpuItem.GPU_Type.Modern,
+                                                          GpuItem.GPU_Type.SysUnsupported,
                                                           GpuItem.GPU_Type.Unsupported,
                                                           GpuItem.GPU_Type.APU]:
             return
@@ -1459,7 +1462,9 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
 
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
+        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                          GpuItem.GPU_Type.SysUnsupported,
+                                                          GpuItem.GPU_Type.Unsupported]:
             LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
             return
         pre = '   '
@@ -1913,7 +1918,7 @@ class GpuList:
                         except OSError as except_err:
                             LOGGER.debug('Error: system support issue for %s error: [%s]', pcie_id, except_err)
                             gpu_type = GpuItem.GPU_Type.SysUnsupported
-                            readable = False
+                            #readable = False
                             writable = False
                             print('Error: System support issue for GPU [{}]'.format(pcie_id))
 
