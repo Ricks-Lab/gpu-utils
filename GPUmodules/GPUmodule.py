@@ -1032,20 +1032,24 @@ class GpuItem:
         if not os.path.isfile(file_path):
             print('Error getting power profile modes: {}'.format(file_path), file=sys.stderr)
             sys.exit(-1)
-        with open(file_path) as card_file:
-            for line in card_file:
-                linestr = line.strip()
-                # Check for mode name: begins with '[ ]+[0-9].*'
-                if re.fullmatch(r'[ ]+[0-9].*', line[0:3]):
-                    linestr = re.sub(r'[ ]*[*]*:', ' ', linestr)
-                    line_items = linestr.split()
-                    LOGGER.debug('PPM line: %s', linestr)
-                    if len(line_items) < 2:
-                        print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
-                        continue
-                    LOGGER.debug('Valid ppm line: %s', linestr)
-                    self.ppm_modes[line_items[0]] = line_items[1:]
-            self.ppm_modes['-1'] = ['AUTO', 'Auto']
+        try:
+            with open(file_path) as card_file:
+                for line in card_file:
+                    linestr = line.strip()
+                    # Check for mode name: begins with '[ ]+[0-9].*'
+                    if re.fullmatch(r'\s+\d.*', line[0:3]):
+                        linestr = re.sub(r'\s*[*]*:', ' ', linestr)
+                        line_items = linestr.split()
+                        LOGGER.debug('PPM line: %s', linestr)
+                        if len(line_items) < 2:
+                            print('Error: invalid ppm: {}'.format(linestr), file=sys.stderr)
+                            continue
+                        LOGGER.debug('Valid ppm line: %s', linestr)
+                        self.ppm_modes[line_items[0]] = line_items[1:]
+                self.ppm_modes['-1'] = ['AUTO', 'Auto']
+        except OSError as except_err:
+            LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
 
         rdata = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
         if rdata is False:
@@ -1076,73 +1080,78 @@ class GpuItem:
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
             self.prm.readable = False
             return
-        with open(file_path) as card_file:
-            for line in card_file:
-                line = line.strip()
-                if re.fullmatch('OD_.*:$', line):
-                    if re.fullmatch('OD_.CLK:$', line):
-                        clk_name = line.strip()
-                    elif re.fullmatch('OD_VDDC_CURVE:$', line):
-                        clk_name = line.strip()
-                    elif re.fullmatch('OD_RANGE:$', line):
-                        clk_name = ''
-                        range_mode = True
-                    continue
-                line = re.sub(r'@', ' ', line)
-                lineitems: List[any] = line.split()
-                lineitems_len = len(lineitems)
-                if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
-                    if len(lineitems) == 3:
-                        self.prm.gpu_type = self.GPU_Type.PStates
-                    elif len(lineitems) == 2:
-                        self.prm.gpu_type = self.GPU_Type.CurvePts
-                    else:
-                        print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
-                              os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
-                        LOGGER.debug('Invalid line length for pstate line item: %s', line)
+        try:
+            with open(file_path) as card_file:
+                for line in card_file:
+                    line = line.strip()
+                    if re.fullmatch('OD_.*:$', line):
+                        if re.fullmatch('OD_.CLK:$', line):
+                            clk_name = line.strip()
+                        elif re.fullmatch('OD_VDDC_CURVE:$', line):
+                            clk_name = line.strip()
+                        elif re.fullmatch('OD_RANGE:$', line):
+                            clk_name = ''
+                            range_mode = True
                         continue
-                if not range_mode:
-                    lineitems[0] = int(re.sub(':', '', lineitems[0]))
-                    if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
-                        if clk_name == 'OD_SCLK:':
-                            self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                        elif clk_name == 'OD_MCLK:':
-                            self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                    else:
-                        # Type GPU_Type.CurvePts
-                        if clk_name == 'OD_SCLK:':
-                            self.sclk_state[lineitems[0]] = [lineitems[1], '-']
-                        elif clk_name == 'OD_MCLK:':
-                            self.mclk_state[lineitems[0]] = [lineitems[1], '-']
-                        elif clk_name == 'OD_VDDC_CURVE:':
-                            self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
-                else:
-                    if lineitems[0] == 'SCLK:':
-                        self.prm.sclk_f_range = [lineitems[1], lineitems[2]]
-                    elif lineitems[0] == 'MCLK:':
-                        self.prm.mclk_f_range = [lineitems[1], lineitems[2]]
-                    elif lineitems[0] == 'VDDC:':
-                        self.prm.vddc_range = [lineitems[1], lineitems[2]]
-                    elif re.fullmatch('VDDC_CURVE_.*', line):
+                    line = re.sub(r'@', ' ', line)
+                    lineitems: List[any] = line.split()
+                    lineitems_len = len(lineitems)
+                    if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
                         if len(lineitems) == 3:
-                            index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
-                            index = re.sub(r'\].*', '', index)
-                            if not index.isnumeric():
-                                print('Error: Invalid index for line item: {}'.format(line))
-                                LOGGER.debug('Invalid index for pstate line item: %s', line)
-                                continue
-                            index = int(index)
-                            param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
-                            param = re.sub(r'\[[0-9]\]:', '', param)
-                            LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
-                                         index, param, lineitems[1], lineitems[2])
-                            if index in self.vddc_curve_range.keys():
-                                self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
-                            else:
-                                self.vddc_curve_range[index] = {}
-                                self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                            self.prm.gpu_type = self.GPU_Type.PStates
+                        elif len(lineitems) == 2:
+                            self.prm.gpu_type = self.GPU_Type.CurvePts
                         else:
-                            print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
+                            print('Error: Invalid pstate entry length {} for{}: '.format(lineitems_len,
+                                  os.path.join(self.prm.card_path, 'pp_od_clk_voltage')), file=sys.stderr)
+                            LOGGER.debug('Invalid line length for pstate line item: %s', line)
+                            continue
+                    if not range_mode:
+                        lineitems[0] = int(re.sub(':', '', lineitems[0]))
+                        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+                            if clk_name == 'OD_SCLK:':
+                                self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+                            elif clk_name == 'OD_MCLK:':
+                                self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+                        else:
+                            # Type GPU_Type.CurvePts
+                            if clk_name == 'OD_SCLK:':
+                                self.sclk_state[lineitems[0]] = [lineitems[1], '-']
+                            elif clk_name == 'OD_MCLK:':
+                                self.mclk_state[lineitems[0]] = [lineitems[1], '-']
+                            elif clk_name == 'OD_VDDC_CURVE:':
+                                self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
+                    else:
+                        if lineitems[0] == 'SCLK:':
+                            self.prm.sclk_f_range = [lineitems[1], lineitems[2]]
+                        elif lineitems[0] == 'MCLK:':
+                            self.prm.mclk_f_range = [lineitems[1], lineitems[2]]
+                        elif lineitems[0] == 'VDDC:':
+                            self.prm.vddc_range = [lineitems[1], lineitems[2]]
+                        elif re.fullmatch('VDDC_CURVE_.*', line):
+                            if len(lineitems) == 3:
+                                index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
+                                index = re.sub(r'\].*', '', index)
+                                if not index.isnumeric():
+                                    print('Error: Invalid index for line item: {}'.format(line))
+                                    LOGGER.debug('Invalid index for pstate line item: %s', line)
+                                    continue
+                                index = int(index)
+                                param = re.sub(r'VDDC_CURVE_', '', lineitems[0])
+                                param = re.sub(r'\[\d\]:', '', param)
+                                LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
+                                             index, param, lineitems[1], lineitems[2])
+                                if index in self.vddc_curve_range.keys():
+                                    self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                                else:
+                                    self.vddc_curve_range[index] = {}
+                                    self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
+                            else:
+                                print('Error: Invalid CURVE entry: {}'.format(file_path), file=sys.stderr)
+
+        except OSError as except_err:
+            LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1539,7 +1548,7 @@ class GpuItem:
                     continue
             pre = '' if param_name == 'card_num' else '   '
 
-            if re.search(r'sep[0-9]', param_name):
+            if re.search(r'sep\d', param_name):
                 print('{}{}'.format(pre, param_label.ljust(50, param_label)))
                 continue
             if param_name == 'unique_id':
@@ -1558,7 +1567,7 @@ class GpuItem:
                 print('{}{}: {}'.format(pre, param_label, self.get_params_value(param_name)))
         if clflag and self.prm.compute:
             for param_name, param_label in self._GPU_CLINFO_Labels.items():
-                if re.search(r'sep[0-9]', param_name):
+                if re.search(r'sep\d', param_name):
                     print('{}{}'.format(pre, param_label.ljust(50, param_label)))
                     continue
                 print('{}: {}'.format(param_label, self.get_clinfo_value(param_name)))
