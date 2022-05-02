@@ -125,6 +125,10 @@ pip uninstall rickslab-gpu-utils
 exit
 ```
 
+If you had previously added https://debian.rickslab.com/gpu-utils/ as a repository source, then you will need to
+remove this in order to download from the official debian repository.  In Ubuntu, you can remove from within the
+'Software and Updates GUI'.
+
 ```shell
 sudo apt update
 sudo apt install rickslab-gpu-utils
