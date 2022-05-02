@@ -31,7 +31,7 @@ There are 4 methods of installation available and summarized here:
 
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_version.json)
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_down.json)
-* [Official Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#official-debian-installation)- Only **MAJOR/MINOR** releases.  This is currently works for releases of Ubuntu 22.04 or Bullseye 11.3 or later.
+* [Official Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#official-debian-package-installation)- Only **MAJOR/MINOR** releases.  This is currently works for releases of Ubuntu 22.04 or Bullseye 11.3 or later.
 
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fofficial_deb_version.json)
 
