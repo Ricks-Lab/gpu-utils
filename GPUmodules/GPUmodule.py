@@ -126,7 +126,8 @@ class GpuItem:
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
                             'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
                             'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
-                            'BeaverCreek']
+                            'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
+                            'Barcelo', 'Beema', 'Mullins']
 
     # Table parameters labels.
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
@@ -1896,11 +1897,26 @@ class GpuList:
             if vendor == GpuItem.GPU_Vendor.AMD and card_path:
                 pp_od_clk_voltage_file = os.path.join(card_path, 'pp_od_clk_voltage')
                 if os.path.isfile(pp_od_clk_voltage_file):
-                    gpu_type = GpuItem.GPU_Type.Supported
-                    readable = True
-                    if self.amd_writable:
-                        writable = True
-                elif os.path.isfile(os.path.join(card_path, 'power_dpm_state')):
+                    pp_od_file_details = 'Exists'
+                    try:
+                        with open(pp_od_clk_voltage_file, 'r') as file_ptr:
+                            pp_od_file_details = file_ptr.read()
+                    except OSError as except_err:
+                        pp_od_file_details = '{} not readable'.format(pp_od_clk_voltage_file)
+                        message = 'Error: system support issue for {}: [{}]'.format(pcie_id, except_err)
+                        LOGGER.debug(message)
+                        print(message)
+                        gpu_type = GpuItem.GPU_Type.SysUnsupported
+                        readable = writable = False
+                    else:
+                        gpu_type = GpuItem.GPU_Type.Supported
+                        readable = True
+                        if self.amd_writable:
+                            writable = True
+                    finally:
+                        LOGGER.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
+                elif (os.path.isfile(os.path.join(card_path, 'power_dpm_state') and
+                      gpu_type not in [GpuItem.GPU_Type.SysUnsupported])):
                     # if os.path.isfile(os.path.join(card_path, 'pp_dpm_mclk')) or GpuItem.is_apu(gpu_name):
                     if GpuItem.is_apu(gpu_name):
                         readable = True
@@ -1918,23 +1934,9 @@ class GpuList:
                     gpu_type = GpuItem.GPU_Type.APU
                 else:
                     gpu_type = GpuItem.GPU_Type.Unsupported
-                if LOGGER.getEffectiveLevel() == logging.DEBUG:
-                    # Write pp_od_clk_voltage details to debug LOGGER
-                    if os.path.isfile(pp_od_clk_voltage_file):
-                        try:
-                            with open(pp_od_clk_voltage_file, 'r') as file_ptr:
-                                pp_od_file_details = file_ptr.read()
-                        except OSError as except_err:
-                            LOGGER.debug('Error: system support issue for %s error: [%s]', pcie_id, except_err)
-                            gpu_type = GpuItem.GPU_Type.SysUnsupported
-                            #readable = False
-                            writable = False
-                            print('Error: System support issue for GPU [{}]'.format(pcie_id))
 
-                    else:
-                        pp_od_file_details = 'The file {} does not exist'.format(pp_od_clk_voltage_file)
-                        writable = False
-                    LOGGER.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
+                if not os.path.isfile(pp_od_clk_voltage_file):
+                    LOGGER.debug('%s file does not exist', pp_od_clk_voltage_file)
 
             # Set GPU parameters
             self[gpu_uuid].populate_prm_from_dict({'pcie_id': pcie_id, 'model': gpu_name,
