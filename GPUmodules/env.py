@@ -28,6 +28,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=bad-continuation
 
 import argparse
+import os
 import re
 import subprocess
 import platform
@@ -267,6 +268,15 @@ class GutConst:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
                   required_kversion[0], required_kversion[1]), file=sys.stderr)
             return -2
+
+        # Check Linux Init Type
+        init_type = 'Unknown'
+        cmd_init = shutil.which('init')
+        if os_path.islink(cmd_init):
+            sys_path = os.readlink(cmd_init)
+            init_type = 'systemd' if 'systemd' in sys_path else sys_path
+        print('System Type: {}'.format(init_type))
+        LOGGER.debug('Using System Type: %s', init_type)
 
         # Check Linux Distro
         self.cmd_lsb_release = shutil.which('lsb_release')
