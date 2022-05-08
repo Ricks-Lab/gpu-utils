@@ -1907,7 +1907,7 @@ class GpuList:
                         LOGGER.debug(message)
                         print(message)
                         gpu_type = GpuItem.GPU_Type.SysUnsupported
-                        readable = writable = False
+                        writable = False
                     else:
                         gpu_type = GpuItem.GPU_Type.Supported
                         readable = True
