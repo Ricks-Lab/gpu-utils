@@ -108,7 +108,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 ## New in Development -  v3.6.3
 
 * Fixed error in calculating power when invalid sensor data is returned.
-* Check for OSerror when reading from pp_od_clk_voltage file.  Disable GPU reading on error.
+* Check for OSError when reading from all AMD sensor files.  Disable GPU reading on error.
+* Check for system type.  Only systemD is fully supported.  Issues in reading sockets in systemV are handled.
 
 ## Development Plans
 
