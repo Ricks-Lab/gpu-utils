@@ -120,7 +120,8 @@ class GpuItem:
                                    'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
-    GPU_Type = GpuEnum('type', 'Undefined Unsupported Supported SysUnsupported Legacy APU Modern PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type',
+                       'Undefined Unsupported Supported SysUnsupported Legacy APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
@@ -129,7 +130,7 @@ class GpuItem:
                             'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
                             'Barcelo', 'Beema', 'Mullins']
 
-    # Table parameters labels.
+    # Table parameters labels
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                                    'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
                                    'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
@@ -224,6 +225,7 @@ class GpuItem:
         'mclk_ps':             'Current MCLK P-State',
         'mclk_f_range':        '   MCLK Range',
         'ppm':                 'Power Profile Mode',
+        'power_dpm_state':     'Power DPM State',
         'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # GPU sensor reading details
@@ -236,14 +238,15 @@ class GpuItem:
                    SensorSet.Info:         {'DEVICE': ['unique_id', 'vbios', 'mem_vram_total', 'mem_gtt_total']},
                    SensorSet.State:        {'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
                                                        'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
-                                                       'power_dpm_force']},
+                                                       'power_dpm_force', 'power_dpm_state']},
                    SensorSet.Monitor:      {'HWMON':  ['power', 'power_cap', 'temperatures', 'voltages',
                                                        'frequencies', 'fan_pwm'],
                                             'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
                                                        'sclk_ps', 'mclk_ps', 'ppm']},
                    SensorSet.All:          {'DEVICE': ['unique_id', 'vbios', 'loading', 'mem_loading',
-                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'ppm',
-                                                       'power_dpm_force', 'mem_vram_total', 'mem_gtt_total',
+                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps',
+                                                       'ppm', 'power_dpm_force', 'power_dpm_state',
+                                                       'mem_vram_total', 'mem_gtt_total',
                                                        'mem_vram_used', 'mem_gtt_used'],
                                             'HWMON':  ['power_cap_range', 'temp_crits', 'power', 'power_cap',
                                                        'temperatures', 'voltages', 'frequencies',
@@ -310,6 +313,9 @@ class GpuItem:
                                                        'cf': None, 'sensor': ['pp_dpm_sclk']},
                                    'mclk_ps':         {'type': SensorType.MLSS,
                                                        'cf': None, 'sensor': ['pp_dpm_mclk']},
+                                   'power_dpm_state': {'type': SensorType.SingleString,
+                                                       'cf': None,
+                                                       'sensor': ['power_dpm_state']},
                                    'power_dpm_force': {'type': SensorType.SingleString,
                                                        'cf': None,
                                                        'sensor': ['power_dpm_force_performance_level']},
@@ -666,7 +672,7 @@ class GpuItem:
         Get parameter value for given name.
 
         :param name:  Parameter name
-        :param num_as_int: Convert float to in if True
+        :param num_as_int: Convert float to int if True
         :return: Parameter value
         """
         # Parameters with '_val' as a suffix are derived from a direct source.
@@ -817,7 +823,7 @@ class GpuItem:
                 elif source_value == GpuItem.GPU_Type.APU:
                     self.read_disabled = GpuItem._fan_item_list[:]
 
-        # compute platform requires that the compute bool be set first
+        # Compute platform requires that compute bool be set first
         if set_ocl_ver:
             self.prm.compute_platform = set_ocl_ver if self.prm.compute else 'None'
 
@@ -1018,24 +1024,33 @@ class GpuItem:
         ppm_item = self.prm.ppm.split('-')
         return [int(ppm_item[0]), ppm_item[1]]
 
-    def read_gpu_ppm_table(self) -> None:
+    def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, bool, int, str, tuple, list, dict]:
         """
         Read the ppm table.
-        """
-        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                          GpuItem.GPU_Type.SysUnsupported,
-                                                          GpuItem.GPU_Type.Unsupported]:
-            return
 
+        :param return_data: flag to indicate if read data should be returned
+        :return: return data or None if False
+        """
+        if 'pp_power_profile_mode' in self.read_disabled:
+            return None
+        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
+            return None
+        if not env.GUT_CONST.force_all:
+            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.SysUnsupported,
+                                                              GpuItem.GPU_Type.Unsupported]:
+                return None
+
+        rdata = ''
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
-            print('Error getting power profile modes: {}'.format(file_path), file=sys.stderr)
-            sys.exit(-1)
+            print('Error: ppm table file does not exist: {}'.format(file_path), file=sys.stderr)
+            self.read_disabled.append('pp_power_profile_mode')
+            return None
         try:
             with open(file_path) as card_file:
                 for line in card_file:
+                    if return_data: rdata += line
                     linestr = line.strip()
                     # Check for mode name: begins with '[ ]+[0-9].*'
                     if re.fullmatch(r'\s+\d.*', line[0:3]):
@@ -1049,37 +1064,44 @@ class GpuItem:
                         self.ppm_modes[line_items[0]] = line_items[1:]
                 self.ppm_modes['-1'] = ['AUTO', 'Auto']
         except OSError as except_err:
-            LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
+            LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.read_disabled.append('pp_power_profile_mode')
+            return None
 
-        rdata = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
-        if rdata is False:
-            message = 'Error: card file does not exist: {}'.format(file_path)
+        rdata_dpm = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
+        if not rdata_dpm:
+            message = 'Error: ppm table file not readable: {}'.format(file_path)
             print(message, file=sys.stderr)
             LOGGER.debug(message)
-            self.prm.readable = False
         else:
-            self.set_params_value('power_dpm_force', rdata)
+            self.set_params_value('power_dpm_force', rdata_dpm)
+
+        if return_data:
+            return rdata
 
     def read_gpu_pstates(self) -> None:
         """
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
+        if 'pp_od_clk_voltage' in self.read_disabled:
+            return
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                          GpuItem.GPU_Type.Modern,
-                                                          GpuItem.GPU_Type.SysUnsupported,
-                                                          GpuItem.GPU_Type.Unsupported,
-                                                          GpuItem.GPU_Type.APU]:
-            return
+        if not env.GUT_CONST.force_all:
+            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.Modern,
+                                                              GpuItem.GPU_Type.SysUnsupported,
+                                                              GpuItem.GPU_Type.Unsupported,
+                                                              GpuItem.GPU_Type.APU]:
+                return
 
         range_mode = False
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
-            self.prm.readable = False
+            self.read_disabled.append('pp_od_clk_voltage')
             return
         try:
             with open(file_path) as card_file:
@@ -1153,6 +1175,7 @@ class GpuItem:
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.read_disabled.append('pp_od_clk_voltage')
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1207,10 +1230,11 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
-            return None
-        if not self.prm.readable and parameter != 'id':
-            return None
+        if not env.GUT_CONST.force_all:
+            if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
+                return None
+            if not self.prm.readable and parameter != 'id':
+                return None
         if sensor_type not in self._sensor_details[vendor].keys():
             print('Error: Invalid sensor_type [{}]'.format(sensor_type))
             return None
@@ -1418,8 +1442,9 @@ class GpuItem:
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
         :return: True if successful
         """
-        if not self.prm.readable:
-            return False
+        if not env.GUT_CONST.force_all:
+            if not self.prm.readable:
+                return False
 
         return_status = False
         param_list = self.sensor_sets[data_type]
@@ -1449,21 +1474,22 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
 
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported]:
-            LOGGER.debug('PPM for card number %s not readable.', self.prm.card_num)
-            return
+        if not env.GUT_CONST.force_all:
+            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.SysUnsupported,
+                                                              GpuItem.GPU_Type.Unsupported]:
+                LOGGER.debug('PPM for card number %s not readable.', self.prm.card_num)
+                return
+        read_data = self.read_gpu_ppm_table(return_data=True)
         pre = '   '
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['model'], self.prm.model))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['card_path'], self.prm.card_path))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type.name))
+        print('{}{}: {}'.format(pre, self._GPU_Param_Labels['power_dpm_state'], self.prm.power_dpm_state))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['power_dpm_force'], self.prm.power_dpm_force))
         print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
-        file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
-        with open(file_path, 'r') as file_ptr:
-            lines = file_ptr.readlines()
-            for line in lines:
-                print('   {}'.format(line.strip('\n')))
+        print(read_data)
 
     def print_pstates(self) -> None:
         """
@@ -1472,11 +1498,12 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
 
-        if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                          GpuItem.GPU_Type.SysUnsupported,
-                                                          GpuItem.GPU_Type.Unsupported]:
-            LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
-            return
+        if not env.GUT_CONST.force_all:
+            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.SysUnsupported,
+                                                              GpuItem.GPU_Type.Unsupported]:
+                LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
+                return
         pre = '   '
         print('{}: {}'.format(self._GPU_Param_Labels['card_num'], self.prm.card_num))
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['model'], self.prm.model))
@@ -1484,6 +1511,8 @@ class GpuItem:
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type.name))
 
         # DPM States
+        if 'power_dpm_force' not in self.read_disabled:
+            print('Read of DPM States may not possible')
         if self.prm.gpu_type == self.GPU_Type.CurvePts:
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}DPM States:'.format(pre))
@@ -1496,6 +1525,8 @@ class GpuItem:
                     print('')
 
         # pp_od_clk_voltage states
+        if 'pp_od_clk_voltages' not in self.read_disabled:
+            print('Read of P-states not possible')
         print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
         print('{}PP OD States:'.format(pre))
         print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
@@ -1533,20 +1564,21 @@ class GpuItem:
                 if param_name in self.AMD_Skip_List:
                     continue
 
-            if self.prm.gpu_type == self.GPU_Type.APU:
-                if param_name in self._fan_item_list:
-                    continue
-                if 'Range' in param_label:
-                    continue
-            if self.prm.gpu_type == self.GPU_Type.Modern:
-                if param_name in self.MODERN_Skip_List:
-                    continue
-            if self.prm.gpu_type == self.GPU_Type.Legacy:
-                if param_name in self.LEGACY_Skip_List:
-                    continue
-            if not self.prm.readable:
-                if param_name not in self.get_nc_params_list():
-                    continue
+            if not env.GUT_CONST.force_all:
+                if self.prm.gpu_type == self.GPU_Type.APU:
+                    if param_name in self._fan_item_list:
+                        continue
+                    if 'Range' in param_label:
+                        continue
+                if self.prm.gpu_type == self.GPU_Type.Modern:
+                    if param_name in self.MODERN_Skip_List:
+                        continue
+                if self.prm.gpu_type == self.GPU_Type.Legacy:
+                    if param_name in self.LEGACY_Skip_List:
+                        continue
+                if not self.prm.readable:
+                    if param_name not in self.get_nc_params_list():
+                        continue
             pre = '' if param_name == 'card_num' else '   '
 
             if re.search(r'sep\d', param_name):
