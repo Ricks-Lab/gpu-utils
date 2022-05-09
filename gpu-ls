@@ -11,7 +11,8 @@
     displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.  The
     *--pstate* option can be used to output the p-state table for each GPU instead of the list
     of basic parameters.  The *--ppm* option is used to output the table of available
-    power/performance modes instead of basic parameters.
+    power/performance modes instead of basic parameters.  The *--force_all* results in an attempt
+    to read all possible sensors, regardless of how the GPU is classified.
 
     Copyright (C) 2019  RicksLab
 
@@ -66,6 +67,8 @@ def main() -> None:
     parser.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
                         action='store_true', default=False)
     parser.add_argument('--clinfo', help='Include openCL with card details',
+                        action='store_true', default=False)
+    parser.add_argument('--force_all', help='Force attempt to read all sensors',
                         action='store_true', default=False)
     parser.add_argument('--no_fan', help='Do not include fan setting options',
                         action='store_true', default=False)

@@ -128,6 +128,7 @@ class GutConst:
         self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
+        self.force_all: bool = False
         self.execute_pac: bool = False
         self.DEBUG: bool = False
         self.PDEBUG: bool = False
