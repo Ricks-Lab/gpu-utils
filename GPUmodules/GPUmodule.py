@@ -99,13 +99,13 @@ class GpuItem:
                                       'mclk_ps_val': 'MCLK Pstate',
                                       'mclk_f_val':  'MCLK'}
 
-    _fan_item_list: List[str] = ['fan_enable', 'pwm_mode', 'fan_target',
-                                 'fan_speed', 'fan_pwm', 'fan_speed_range', 'fan_pwm_range']
+    _fan_item_list: List[str] = ['fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
+                                 'pwm_mode', 'fan_pwm', 'fan_pwm_range']
     short_list: List[str] = ['vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
                              'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id']
-    _GPU_NC_Param_List: List[str] = ['compute', 'readable', 'writable', 'vendor', 'model', 'card_num',
-                                     'sys_card_path', 'gpu_type', 'card_path', 'hwmon_path', 'pcie_id',
-                                     'driver', 'id', 'model_device_decode']
+
+    # List of parameters for non-compatible AMD GPUs.
+    _GPU_NC_Param_List: List[str] = [*short_list, 'model', 'driver', 'model_device_decode']
 
     # Vendor and Type skip lists for reporting
     AMD_Skip_List: List[str] = ['frequencies_max', 'compute_mode', 'serial_number', 'card_index']
@@ -1024,15 +1024,13 @@ class GpuItem:
         ppm_item = self.prm.ppm.split('-')
         return [int(ppm_item[0]), ppm_item[1]]
 
-    def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, bool, int, str, tuple, list, dict]:
+    def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, str]:
         """
         Read the ppm table.
 
         :param return_data: flag to indicate if read data should be returned
         :return: return data or None if False
         """
-        if 'pp_power_profile_mode' in self.read_disabled:
-            return None
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return None
         if not env.GUT_CONST.force_all:
@@ -1042,6 +1040,8 @@ class GpuItem:
                 return None
 
         rdata = ''
+        if 'pp_power_profile_mode' in self.read_disabled:
+            return None
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
             print('Error: ppm table file does not exist: {}'.format(file_path), file=sys.stderr)
@@ -1069,16 +1069,7 @@ class GpuItem:
             self.read_disabled.append('pp_power_profile_mode')
             return None
 
-        rdata_dpm = self.read_gpu_sensor('power_dpm_force', vendor=GpuItem.GPU_Vendor.AMD, sensor_type='DEVICE')
-        if not rdata_dpm:
-            message = 'Error: ppm table file not readable: {}'.format(file_path)
-            print(message, file=sys.stderr)
-            LOGGER.debug(message)
-        else:
-            self.set_params_value('power_dpm_force', rdata_dpm)
-
-        if return_data:
-            return rdata
+        return rdata if return_data else None
 
     def read_gpu_pstates(self) -> None:
         """
