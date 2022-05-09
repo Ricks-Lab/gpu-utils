@@ -272,9 +272,10 @@ class GutConst:
         # Check Linux Init Type
         init_type = 'Unknown'
         cmd_init = shutil.which('init')
-        if os.path.islink(cmd_init):
-            sys_path = os.readlink(cmd_init)
-            init_type = 'systemd' if 'systemd' in sys_path else sys_path
+        if cmd_init:
+            if os.path.islink(cmd_init):
+                sys_path = os.readlink(cmd_init)
+                init_type = 'systemd' if 'systemd' in sys_path else sys_path
         print('System Type: {}'.format(init_type))
         LOGGER.debug('Using System Type: %s', init_type)
 
