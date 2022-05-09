@@ -311,7 +311,7 @@ class GutConst:
 
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
-            print('Package addon [clinfo] executable not found.  Use sudo apt-get install clinfo to install')
+            print('Package addon [clinfo] executable not found.  Use \'sudo apt install clinfo\' to install')
         LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
 
         # Package Reader

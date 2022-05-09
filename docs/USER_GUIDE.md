@@ -52,6 +52,10 @@ source rickslab-gpu-utils-env/bin/activate
 pip install --no-cache-dir -r requirements-venv.txt
 ```
 
+On newer systems, I have found that I get a `ModuleNotFoundError: No module named 'numpy'`, even though `numpy` was
+successfully installed in the newly created virtual environment.  To resolve this, I deactivated the venv and installed
+it for the system instance of python.  When back in the venv, the issue is resolved.  No idea why this is happening.
+
 You then run the desired commands by specifying the full path: `./gpu-ls`
 
 ### PyPI Installation
