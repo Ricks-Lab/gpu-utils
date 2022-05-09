@@ -33,7 +33,6 @@ import re
 import subprocess
 import platform
 import sys
-from os import path as os_path
 import logging
 from pathlib import Path
 import inspect
@@ -82,14 +81,14 @@ class GutConst:
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids']
-    _module_path: str = os_path.dirname(str(Path(__file__).resolve()))
-    _repository_path: str = os_path.join(_module_path, '..')
+    _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
+    _repository_path: str = os.path.join(_module_path, '..')
     _local_config_list: Dict[str, str] = {
         'repository': _repository_path,
         'debian':     '/usr/share/rickslab-gpu-utils/config',
-        'pypi-linux': os_path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
+        'pypi-linux': os.path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
     _local_icon_list: Dict[str, str] = {
-        'repository': os_path.join(_repository_path, 'icons'),
+        'repository': os.path.join(_repository_path, 'icons'),
         'debian':     '/usr/share/rickslab-gpu-utils/icons',
         'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
@@ -111,13 +110,13 @@ class GutConst:
         else:
             self.install_type = 'repository'
         self.icon_path = self._local_icon_list[self.install_type]
-        if not os_path.isfile(os_path.join(self.icon_path, 'gpu-mon.icon.png')):
+        if not os.path.isfile(os.path.join(self.icon_path, 'gpu-mon.icon.png')):
             print('Error: Invalid icon path')
             self.icon_path = None
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
-            if os_path.isfile(try_pciid_path):
+            if os.path.isfile(try_pciid_path):
                 self.sys_pciid = try_pciid_path
                 break
         else:
@@ -273,7 +272,7 @@ class GutConst:
         # Check Linux Init Type
         init_type = 'Unknown'
         cmd_init = shutil.which('init')
-        if os_path.islink(cmd_init):
+        if os.path.islink(cmd_init):
             sys_path = os.readlink(cmd_init)
             init_type = 'systemd' if 'systemd' in sys_path else sys_path
         print('System Type: {}'.format(init_type))
@@ -286,11 +285,11 @@ class GutConst:
                                                shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             for lsbr_line in lsbr_out:
                 if 'Distributor ID' in lsbr_line:
-                    lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
+                    lsbr_item = re.sub(r'Distributor ID:\s*', '', lsbr_line)
                     LOGGER.debug('Using Linux Distro: %s', lsbr_item)
                     self.distro['Distributor'] = lsbr_item.strip()
                 if 'Description' in lsbr_line:
-                    lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
+                    lsbr_item = re.sub(r'Description:\s*', '', lsbr_line)
                     LOGGER.debug('Linux Distro Description: %s', lsbr_item)
                     self.distro['Description'] = lsbr_item.strip()
 
@@ -374,7 +373,7 @@ class GutConst:
                         continue
                     if re.search(driverpkg, dpkg_line):
                         LOGGER.debug(dpkg_line)
-                        dpkg_line = re.sub(r'.*\][\s]*', '', dpkg_line)
+                        dpkg_line = re.sub(r'.*]\s*', '', dpkg_line)
                         print('AMD: {} version: {}'.format(driverpkg, dpkg_line))
                         return True
         print('amdgpu/rocm version: UNKNOWN')
