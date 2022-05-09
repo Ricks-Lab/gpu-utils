@@ -68,34 +68,34 @@ class GutConst:
         # Check python version
         required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        print('Using python ' + python_major + '.' + python_minor + '.' + python_patch)
+        print('Using python {}.{}.{}'.format(python_major, python_minor, python_patch))
         if int(python_major) < required_pversion[0]:
-            print('          ' + '\x1b[1;37;41m' + ' but rickslab-gpu-utils requires python ' +
-                  str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or newer.' + '\x1b[0m')
+            print('          \x1b[1;37;41m but rickslab-gpu-utils requires python {}.{} or newer\x1b[0m'.format(
+                  required_pversion[0], required_pversion[1]))
             ret_val['python'] = False
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
-            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-utils requires python ' +
-                  str(required_pversion[0]) + '.' + str(required_pversion[1]) + ' or newer.' + '\x1b[0m')
+            print('          \x1b[1;37;41m but rickslab-gpu-utils requires python {}.{} or newer \x1b[0m'.format(
+                  required_pversion[0], required_pversion[1]))
             ret_val['python'] = False
         else:
-            print('          ' + '\x1b[1;37;42m' + ' Python version OK. ' + '\x1b[0m')
+            print('          \x1b[1;37;42m Python version OK. \x1b[0m')
             ret_val['python'] = True
 
         # Check Linux Kernel version
         required_kversion = [4, 8]
         linux_version = platform.release()
-        print('Using Linux Kernel: ' + str(linux_version))
+        print('Using Linux Kernel: {}'.format(linux_version))
         if int(linux_version.split('.')[0]) < required_kversion[0]:
-            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-util requires ' +
-                  str(required_kversion[0]) + '.' + str(required_kversion[1]) + ' or newer.' + '\x1b[0m')
+            print('          \x1b[1;37;41m but rickslab-gpu-utils requires {}.{} or newer \x1b[0m'.format(
+                  required_kversion[0], required_kversion[1]))
             ret_val['kernel'] = False
         elif int(linux_version.split('.')[0]) == required_kversion[0] and \
                 int(linux_version.split('.')[1]) < required_kversion[1]:
-            print('          ' + '\x1b[1;37;41m' + ' but amdgpu-util requires ' +
-                  str(required_kversion[0]) + '.' + str(required_kversion[1]) + ' or newer.' + '\x1b[0m')
+            print('          \x1b[1;37;41m but rickslab-gpu-utils requires {}.{} or newer. \x1b[0m'.format(
+                  required_kversion[0], required_kversion[1]))
             ret_val['kernel'] = False
         else:
-            print('          ' + '\x1b[1;37;42m' + ' OS kernel OK. ' + '\x1b[0m')
+            print('          \x1b[1;37;42m OS kernel OK. \x1b[0m')
             ret_val['kernel'] = True
 
         # Check Linux System Type
@@ -106,10 +106,10 @@ class GutConst:
             init_type = 'systemd' if 'systemd' in sys_path else sys_path
         print('Using system type: {}'.format(init_type))
         if init_type == 'systemd':
-            print('          ' + '\x1b[1;37;42m' + ' System type has been Validated. ' + '\x1b[0m')
+            print('          \x1b[1;37;42m System type has been Validated. \x1b[0m')
             ret_val['system'] = True
         else:
-            print('          ' + '\x1b[1;30;43m' + ' System type has not been verified. ' + '\x1b[0m')
+            print('          \x1b[1;30;43m System type has not been verified. \x1b[0m')
             ret_val['system'] = False
 
         # Check Linux Distribution
@@ -121,24 +121,24 @@ class GutConst:
                                                shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             for lsbr_line in lsbr_out:
                 if re.search('Distributor ID', lsbr_line):
-                    lsbr_item = re.sub(r'Distributor ID:[\s]*', '', lsbr_line)
+                    lsbr_item = re.sub(r'Distributor ID:\s*', '', lsbr_line)
                     distributor = lsbr_item.strip()
                 if re.search('Description', lsbr_line):
-                    lsbr_item = re.sub(r'Description:[\s]*', '', lsbr_line)
+                    lsbr_item = re.sub(r'Description:\s*', '', lsbr_line)
                     if self.DEBUG: print('Distro Description: {}'.format(lsbr_item))
                     description = lsbr_item.strip()
 
             if distributor:
                 print(description)
                 if distributor in GutConst._verified_distros:
-                    print('          ' + '\x1b[1;37;42m' + ' Distro has been Validated. ' + '\x1b[0m')
+                    print('          \x1b[1;37;42m Distro has been Validated. \x1b[0m')
                     ret_val['distribution'] = True
                 else:
-                    print('          ' + '\x1b[1;30;43m' + ' Distro has not been verified. ' + '\x1b[0m')
+                    print('          \x1b[1;30;43m Distro has not been verified. \x1b[0m')
                     ret_val['distribution'] = False
         else:
             print('unknown')
-            print('          ' + '\x1b[1;30;43m' + '[lsb_release] executable not found.' + '\x1b[0m')
+            print('          \x1b[1;30;43m [lsb_release] executable not found. \x1b[0m')
             ret_val['distribution'] = True
 
         # Check for amdgpu driver
@@ -154,7 +154,7 @@ class GutConst:
         cmd_dpkg = shutil.which('dpkg')
         if not cmd_dpkg:
             print('Command dpkg not found. Can not determine amdgpu version.')
-            print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+            print('          \x1b[1;30;43m rickslab-gpu-utils can still be used. \x1b[0m')
             return True
         for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
             try:
@@ -169,11 +169,11 @@ class GutConst:
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
-                            print('AMD: ' + driverpkg + ' version: ' + dpkg_items[2])
-                            print('          ' + '\x1b[1;37;42m' + ' AMD driver OK. ' + '\x1b[0m')
+                            print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
+                            print('          \x1b[1;37;42m AMD driver OK. \x1b[0m')
                             return True
         print('amdgpu/rocm version: UNKNOWN')
-        print('          ' + '\x1b[1;30;43m' + ' gpu-utils can still be used. ' + '\x1b[0m')
+        print('          \x1b[1;30;43m rickslab-gpu-utils can still be used. \x1b[0m')
         return False
 
 
@@ -196,28 +196,27 @@ def is_venv_installed() -> bool:
         output, _error = p.communicate()
         if not re.fullmatch(r'.*No module named.*', output.decode()):
             print('python3 venv is installed')
-            print('          ' + '\x1b[1;37;42m' + ' python3-venv OK. ' + '\x1b[0m')
+            print('          \x1b[1;37;42m python3-venv OK. \x1b[0m')
             return True
     print('python3 venv is NOT installed')
-    print('          ' + '\x1b[1;30;43m' + ' Python3 venv package \'python3-venv\' package is recommended. ' +
-          'for developers' + '\x1b[0m')
+    print('          \x1b[1;30;43m Python3 venv package \'python3-venv\' is recommended for developers \x1b[0m')
     return False
 
 
-def does_amdgpu_utils_env_exist() -> bool:
+def does_gpu_utils_env_exist() -> bool:
     """
     Check if venv exists.
 
     :return:  Return True if venv exists.
     """
-    env_name = './' + ENV_DIR + '/bin/activate'
+    env_name = os.path.join('.', ENV_DIR, 'bin/activate')
 
     if os.path.isfile(env_name):
-        print(ENV_DIR + ' available')
-        print('          ' + '\x1b[1;37;42m ' + ENV_DIR + ' OK. ' + '\x1b[0m')
+        print('{} available'.format(ENV_DIR))
+        print('          \x1b[1;37;42m {} OK. \x1b[0m'.format(ENV_DIR))
         return True
-    print(ENV_DIR + ' is NOT available')
-    print('          ' + '\x1b[1;30;43m ' + ENV_DIR + ' can be configured per User Guide. ' + '\x1b[0m')
+    print('{} is NOT available'.format(ENV_DIR))
+    print('          \x1b[1;30;43m {} can be configured per User Guide. \x1b[0m'.format(ENV_DIR))
     return False
 
 
@@ -232,11 +231,11 @@ def is_in_venv() -> bool:
         print('Maybe python version compatibility issue.')
     else:
         if re.search(ENV_DIR, python_path):
-            print('In ' + ENV_DIR)
-            print('          ' + '\x1b[1;37;42m ' + ENV_DIR + ' is activated. ' + '\x1b[0m')
+            print('In {}'.format(ENV_DIR))
+            print('          \x1b[1;37;42m {} is activated. \x1b[0m'.format(ENV_DIR))
             return True
-        print('Not in ' + ENV_DIR + ' (Only needed if you want to duplicate dev env)')
-        print('          ' + '\x1b[1;30;43m' + ENV_DIR + ' can be activated per User Guide. ' + '\x1b[0m')
+        print('Not in {}, (Only needed if you want to duplicate development env)'.format(ENV_DIR))
+        print('          \x1b[1;30;43m {} can be activated per User Guide. \x1b[0m'.format(ENV_DIR))
     return False
 
 
@@ -266,7 +265,7 @@ def main() -> None:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    if not is_venv_installed() or not does_amdgpu_utils_env_exist():
+    if not is_venv_installed() or not does_gpu_utils_env_exist():
         print('Virtual Environment not configured. Only required by developers.')
 
     if not is_in_venv():
