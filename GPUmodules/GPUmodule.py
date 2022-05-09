@@ -1081,7 +1081,6 @@ class GpuItem:
             return
         if not env.GUT_CONST.force_all:
             if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Modern,
                                                               GpuItem.GPU_Type.Unsupported,
                                                               GpuItem.GPU_Type.APU]:
                 return
@@ -1108,7 +1107,7 @@ class GpuItem:
                     line = re.sub(r'@', ' ', line)
                     lineitems: List[any] = line.split()
                     lineitems_len = len(lineitems)
-                    if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported]:
+                    if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported, self.GPU_Type.Modern]:
                         if len(lineitems) == 3:
                             self.prm.gpu_type = self.GPU_Type.PStates
                         elif len(lineitems) == 2:
@@ -1498,8 +1497,6 @@ class GpuItem:
         print('{}{}: {}'.format(pre, self._GPU_Param_Labels['gpu_type'], self.prm.gpu_type.name))
 
         # DPM States
-        if 'power_dpm_force' not in self.read_disabled:
-            print('Read of DPM States may not possible')
         if self.prm.gpu_type == self.GPU_Type.CurvePts:
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}DPM States:'.format(pre))
@@ -1512,8 +1509,6 @@ class GpuItem:
                     print('')
 
         # pp_od_clk_voltage states
-        if 'pp_od_clk_voltages' not in self.read_disabled:
-            print('Read of P-states not possible')
         print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
         print('{}PP OD States:'.format(pre))
         print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
@@ -1950,8 +1945,6 @@ class GpuList:
                 elif GpuItem.is_apu(gpu_name):
                     readable = True
                     gpu_type = GpuItem.GPU_Type.APU
-                #else:
-                    #gpu_type = GpuItem.GPU_Type.Unsupported
 
                 if not os.path.isfile(pp_od_clk_voltage_file):
                     LOGGER.debug('%s file does not exist', pp_od_clk_voltage_file)
