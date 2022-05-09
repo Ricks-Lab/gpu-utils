@@ -61,7 +61,8 @@ with the *--short* command line option.  A simplified table of current GPU state
 displayed with the *--table* option. The *--no_fan* can be used to ignore fan settings.
 The *--pstate* option can be used to output the p-state table for each GPU instead of
 the list of basic parameters.  The *--ppm* option is used to output the table of available
-power/performance modes instead of basic parameters.
+power/performance modes instead of basic parameters.  The *--force_all* results in an attempt
+to read all possible sensors, regardless of how the GPU is classified.
 
 ### gpu-mon
 
@@ -110,6 +111,9 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Fixed error in calculating power when invalid sensor data is returned.
 * Check for OSError when reading from all AMD sensor files.  Disable GPU reading on error.
 * Check for system type.  Only systemD is fully supported.  Issues in reading sockets in systemV are handled.
+* Added read of Power DPM State for AMD GPU.
+* Make read for a parameter False instead of indicating card is not readable.
+* Add option *--force_all* to attempt to read all relevant sensors, regardless of card classification.
 
 ## Development Plans
 
