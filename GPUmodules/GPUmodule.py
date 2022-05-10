@@ -1562,16 +1562,21 @@ class GpuItem:
                 if param_name not in self.short_list:
                     continue
 
+            # Hard limits on what types/vendors can print what params
             if self.prm.vendor == GpuItem.GPU_Vendor.NVIDIA:
                 if param_name in self.NV_Skip_List:
                     continue
             elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
                 if param_name in self.AMD_Skip_List:
                     continue
-
-            if not self.prm.readable:
+            elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED:
                 if param_name not in self.get_nc_params_list():
                     continue
+            if self.prm.gpu_type == self.GPU_Type.Unsupported:
+                if param_name not in self.get_nc_params_list():
+                    continue
+
+            # Situations where parameter limits can be overridden by force_all
             if not env.GUT_CONST.force_all:
                 if self.prm.gpu_type == self.GPU_Type.APU:
                     if param_name in self._fan_item_list:
@@ -1876,6 +1881,7 @@ class GpuList:
             if re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.ASPEED
                 gpu_type = GpuItem.GPU_Type.Unsupported
+                readable = True
             if re.search(PATTERNS['MTRX_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.MATROX
                 gpu_type = GpuItem.GPU_Type.Unsupported
