@@ -68,6 +68,8 @@ def main() -> None:
                         action='store_true', default=False)
     parser.add_argument('--clinfo', help='Include openCL with card details',
                         action='store_true', default=False)
+    parser.add_argument('--verbose', help='Display informational message of GPU util progress',
+                        action='store_true', default=False)
     parser.add_argument('--force_all', help='Force attempt to read all sensors',
                         action='store_true', default=False)
     parser.add_argument('--no_fan', help='Do not include fan setting options',
@@ -150,6 +152,7 @@ def main() -> None:
             com_gpu_list.print_table(title='Status of Readable GPUs:')
         else:
             gpu_list.print(short=args.short, clflag=args.clinfo)
+
     sys.exit(0)
 
 
