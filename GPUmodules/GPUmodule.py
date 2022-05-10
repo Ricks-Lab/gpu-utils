@@ -590,7 +590,7 @@ class GpuItem:
             else:
                 print('Error: Invalid power value read [{}]'.format(value))
                 LOGGER.debug('Invalid power value read: [%s]', value)
-                self.read_disabled.append('power')
+                self.disable_param_read('power')
         elif name == 'sclk_ps':
             mask = ''
             ps_key = 'NA'
@@ -666,6 +666,19 @@ class GpuItem:
                 break
             fit_name = re.sub(r'\s*/\s*', '/', '{} {}'.format(fit_name, name_component))
         return fit_name
+
+    def disable_param_read(self, parameter_name: str) -> None:
+        """
+
+        :param parameter_name:
+        :return:
+        """
+        if parameter_name not in self.read_disabled:
+            message = 'Warning: Can not read parameter: {}, ' \
+                      'disabling for this GPU: {}'.format(parameter_name, self.prm.card_num)
+            LOGGER.debug(message)
+            print(message, file=sys.stderr)
+            self.read_disabled.append(parameter_name)
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
         """
@@ -752,12 +765,12 @@ class GpuItem:
         """
         if not env.GUT_CONST.sys_pciid:
             message = 'Error: pciid file not defined'
-            print(message)
+            print(message, file=sys.stderr)
             LOGGER.debug(message)
             return ''
         if not os.path.isfile(env.GUT_CONST.sys_pciid):
             message = 'Error: Can not access system pci.ids file [{}]'.format(env.GUT_CONST.sys_pciid)
-            print(message)
+            print(message, file=sys.stderr)
             LOGGER.debug(message)
             return ''
         with open(env.GUT_CONST.sys_pciid, 'r', encoding='utf8') as pci_id_file_ptr:
@@ -1047,7 +1060,7 @@ class GpuItem:
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
             print('Error: ppm table file does not exist: {}'.format(file_path), file=sys.stderr)
-            self.read_disabled.append('pp_power_profile_mode')
+            self.disable_param_read('pp_power_profile_mode')
             return None
         try:
             with open(file_path) as card_file:
@@ -1067,8 +1080,8 @@ class GpuItem:
                 self.ppm_modes['-1'] = ['AUTO', 'Auto']
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
-            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
-            self.read_disabled.append('pp_power_profile_mode')
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id), file=sys.stderr)
+            self.disable_param_read('pp_power_profile_mode')
             return None
 
         return rdata if return_data else None
@@ -1092,7 +1105,7 @@ class GpuItem:
         file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
         if not os.path.isfile(file_path):
             print('Error getting p-states: {}'.format(file_path), file=sys.stderr)
-            self.read_disabled.append('pp_od_clk_voltage')
+            self.disable_param_read('pp_od_clk_voltage')
             return
         try:
             with open(file_path) as card_file:
@@ -1147,7 +1160,7 @@ class GpuItem:
                                 index = re.sub(r'VDDC_CURVE_.*\[', '', lineitems[0])
                                 index = re.sub(r'\].*', '', index)
                                 if not index.isnumeric():
-                                    print('Error: Invalid index for line item: {}'.format(line))
+                                    print('Error: Invalid index for line item: {}'.format(line), file=sys.stderr)
                                     LOGGER.debug('Invalid index for pstate line item: %s', line)
                                     continue
                                 index = int(index)
@@ -1165,8 +1178,8 @@ class GpuItem:
 
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
-            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
-            self.read_disabled.append('pp_od_clk_voltage')
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id), file=sys.stderr)
+            self.disable_param_read('pp_od_clk_voltage')
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1183,7 +1196,7 @@ class GpuItem:
             return self.read_gpu_sensor_generic(parameter, vendor, sensor_type)
         if vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_nv(parameter)
-        print('Error: Invalid vendor [{}]'.format(vendor))
+        print('Error: Invalid vendor [{}]'.format(vendor), file=sys.stderr)
         return None
 
     def read_gpu_sensor_nv(self, parameter: str) -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1204,7 +1217,7 @@ class GpuItem:
             LOGGER.debug('NV raw query response: [%s]', nsmi_item)
         except (subprocess.CalledProcessError, OSError) as except_err:
             LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
-            self.read_disabled.append(parameter)
+            self.disable_param_read(parameter)
             return False
         return_item = nsmi_item[0].strip() if nsmi_item else None
         LOGGER.debug('NV query result: [%s]', return_item)
@@ -1227,11 +1240,11 @@ class GpuItem:
             if not self.prm.readable and parameter != 'id':
                 return None
         if sensor_type not in self._sensor_details[vendor].keys():
-            print('Error: Invalid sensor_type [{}]'.format(sensor_type))
+            print('Error: Invalid sensor_type [{}]'.format(sensor_type), file=sys.stderr)
             return None
         sensor_dict = self._sensor_details[vendor][sensor_type]
         if parameter not in sensor_dict.keys():
-            print('Error: Invalid parameter [{}]'.format(parameter))
+            print('Error: Invalid parameter [{}]'.format(parameter), file=sys.stderr)
             return None
         if parameter in self.read_disabled:
             return None
@@ -1264,7 +1277,7 @@ class GpuItem:
                         elif '_crit' in file_path:
                             file_path = file_path.replace('_crit', '_label')
                         else:
-                            print('Error in sensor label pair: {}'.format(target_sensor))
+                            print('Error in sensor label pair: {}'.format(target_sensor), file=sys.stderr)
                         if os.path.isfile(file_path):
                             with open(file_path) as hwmon_file:
                                 values.append(hwmon_file.readline().strip())
@@ -1272,11 +1285,11 @@ class GpuItem:
                             values.append(os.path.basename(sensor_file))
                 except OSError as err:
                     LOGGER.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
-                    self.read_disabled.append(parameter)
+                    self.disable_param_read(parameter)
                     return False
             else:
                 LOGGER.debug('HW file does not exist: %s', file_path)
-                self.read_disabled.append(parameter)
+                self.disable_param_read(parameter)
                 return False
 
         if target_sensor['type'] == self.SensorType.SingleParam:
@@ -1446,10 +1459,7 @@ class GpuItem:
                 rdata = self.read_gpu_sensor(param, vendor=self.prm.vendor, sensor_type=sensor_type)
                 if rdata is False:
                     if param != 'unique_id':
-                        message = 'Warning: Can not read parameter: {}, ' \
-                                  'disabling for this GPU: {}'.format(param, self.prm.card_num)
-                        LOGGER.debug(message)
-                        print(message)
+                        self.disable_param_read('unique_id')
                 elif rdata is None:
                     LOGGER.debug('Read data [%s], Invalid or disabled parameter: %s', rdata, param)
                 else:
@@ -1734,7 +1744,7 @@ class GpuList:
         try:
             lspci_output = subprocess.check_output(env.GUT_CONST.cmd_lspci, shell=False).decode().split('\n')
         except (subprocess.CalledProcessError, OSError) as except_err:
-            print('Error [{}]: lspci failed to find GPUs'.format(except_err))
+            print('Error [{}]: lspci failed to find GPUs'.format(except_err), file=sys.stderr)
             return None
 
         for lspci_line in lspci_output:
@@ -1772,7 +1782,7 @@ class GpuList:
 
         pcie_ids = self.get_gpu_pci_list()
         if not pcie_ids:
-            print('Error [empty list]: lspci failed to find GPUs')
+            print('Error [empty list]: lspci failed to find GPUs', file=sys.stderr)
             return False
 
         LOGGER.debug('Found %s GPUs', len(pcie_ids))
@@ -1798,7 +1808,7 @@ class GpuList:
             except (subprocess.CalledProcessError, OSError) as except_err:
                 message = 'Fatal Error [{}]: Can not get GPU details with lspci.'.format(except_err)
                 LOGGER.debug(message)
-                print(message)
+                print(message, file=sys.stderr)
                 sys.exit(-1)
             LOGGER.debug('lspci output items:\n %s', lspci_items)
 
