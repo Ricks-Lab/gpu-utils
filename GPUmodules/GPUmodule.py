@@ -1592,7 +1592,7 @@ class GpuItem:
         """
         self.print(short=True)
         for sensor_type, sensors in self.raw.items():
-            print(sensor_type)
+            print('\n## {} {}'.format(sensor_type, '#'.ljust(41, '#')))
             for name, value in sensors.items():
                 description = self._GPU_Param_Labels[name] if name in self._GPU_Param_Labels else ''
                 print('{}:{}:{}'.format(name, description, value))
