@@ -72,6 +72,8 @@ def main() -> None:
                         action='store_true', default=False)
     parser.add_argument('--force_all', help='Force attempt to read all sensors',
                         action='store_true', default=False)
+    parser.add_argument('--raw', help='Show all raw GPU sensor data',
+                        action='store_true', default=False)
     parser.add_argument('--no_fan', help='Do not include fan setting options',
                         action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug logger output',
@@ -133,6 +135,11 @@ def main() -> None:
     num_gpus = gpu_list.num_gpus()
     print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                 num_gpus['r-only'], num_gpus['w-only']))
+
+    if args.raw:
+        gpu_list.read_raw_sensors()
+        gpu_list.print_raw()
+        sys.exit(0)
 
     # Read report specific details
     if args.clinfo:

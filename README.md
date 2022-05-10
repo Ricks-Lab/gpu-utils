@@ -114,6 +114,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Added read of Power DPM State for AMD GPU.
 * Make read for a parameter False instead of indicating card is not readable.
 * Add option *--force_all* to attempt to read all relevant sensors, regardless of card classification.
+* Improve error message handling.  Minor (expected) errors suppressed unless *--verbose* is specified.  GPU output will indicate all sensors that were disabled due to read errors.
+* Implemented *gpu-ls --raw* to give a raw view of the content of all available sensors.
 
 ## Development Plans
 

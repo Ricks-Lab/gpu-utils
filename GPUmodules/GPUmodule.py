@@ -503,13 +503,14 @@ class GpuItem:
         self.vddc_curve: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
         self.vddc_curve_range: Dict[int, dict] = {}  # {1: {'SCLK': ['val1', 'val2'], 'VOLT': ['val1', 'val2']}
         self.ppm_modes: Dict[str, List[str]] = {}    # {'1': ['Name', 'Description']}
+        self.raw: Dict[str, dict] = {'DEVICE': {}, 'HWMON': {}}
         self.finalize_fan_option()
 
     @classmethod
     def finalize_fan_option(cls) -> None:
         """
         Finalize class variables of gpu parameters based on command line options. This must be
-        done after setting of env.  Doing at at the instantiation of a GpuItem assures that.
+        done after setting of env.  Doing it at the instantiation of a GpuItem assures that.
         """
         if cls._finalized:
             return
@@ -1040,6 +1041,31 @@ class GpuItem:
         ppm_item = self.prm.ppm.split('-')
         return [int(ppm_item[0]), ppm_item[1]]
 
+    def read_raw_sensors(self) -> Dict[str, str]:
+        """
+
+        :return:
+        """
+        for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
+            if path:
+                for file in os.listdir(self.prm.card_path):
+                    file_path = os.path.join(self.prm.card_path, file)
+                    if not os.path.isfile(file_path): continue
+                    try:
+                        with open(file_path, 'r') as file_ptr:
+                            contents = file_ptr.read().strip()
+                    except OSError as except_err:
+                        contents = except_err
+                    except UnicodeDecodeError:
+                        contents = 'BINARY'
+
+                    try:
+                        if not all(ord(c) < 128 for c in contents):
+                            contents = 'BINARY'
+                    except:
+                        contents = 'UNKNOWN'
+                    self.raw[sensor_type].update({file: contents})
+
     def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, str]:
         """
         Read the ppm table.
@@ -1475,9 +1501,18 @@ class GpuItem:
         :return:
         """
         if not self.read_disabled: return
+
         pre = '   '
         print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
-        print('{}Disabled Parameters: {}'.format(pre, self.read_disabled))
+        print('{}Disabled Parameters:'.format(pre), end='')
+        for i, parameter in enumerate(self.read_disabled):
+            if i == 0:
+                print(' {}'.format(parameter), end='')
+            elif not i % 4:
+                print('\n{}                     {}'.format(pre, parameter), end='')
+            else:
+                print(', {}'.format(parameter), end='')
+        print('')
 
     def print_ppm_table(self) -> None:
         """
@@ -1549,6 +1584,19 @@ class GpuItem:
             for vc_index, vc_vals in self.vddc_curve.items():
                 print('{} {}: {}'.format(pre, vc_index, vc_vals))
         print('')
+
+    def print_raw(self) -> None:
+        """
+
+        :return:
+        """
+        self.print(short=True)
+        for sensor_type, sensors in self.raw.items():
+            print(sensor_type)
+            for name, value in sensors.items():
+                description = self._GPU_Param_Labels[name] if name in self._GPU_Param_Labels else ''
+                print('{}:{}:{}'.format(name, description, value))
+        print('{}\n\n'.format('#'.ljust(50, '#')))
 
     def print(self, short: bool = False, clflag: bool = False) -> None:
         """
@@ -2212,6 +2260,14 @@ class GpuList:
                 result_list[uuid] = gpu
         return result_list
 
+    def read_raw_sensors(self) -> None:
+        """
+
+        :return:
+        """
+        for gpu in self.gpus():
+            gpu.read_raw_sensors()
+
     def read_gpu_ppm_table(self) -> None:
         """
         Read GPU ppm data and populate GpuItem.
@@ -2253,6 +2309,10 @@ class GpuList:
                 gpu.read_gpu_sensor_set(data_type)
 
     # Printing Methods follow.
+    def print_raw(self) -> None:
+        for gpu in self.gpus():
+            gpu.print_raw()
+
     def print(self, short: bool = False, clflag: bool = False) -> None:
         """
         Print all GpuItem.
