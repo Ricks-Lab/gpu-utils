@@ -271,7 +271,7 @@ class GutConst:
 
         # Check Linux Init Type
         init_type = 'Unknown'
-        cmd_init = shutil.which('init')
+        cmd_init = '/sbin/init' if os.path.isfile('/sbin/init') else shutil.which('init')
         if cmd_init:
             if os.path.islink(cmd_init):
                 sys_path = os.readlink(cmd_init)

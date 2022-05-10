@@ -100,11 +100,12 @@ class GutConst:
 
         # Check Linux System Type
         init_type = 'Unknown'
-        cmd_init = shutil.which('init')
-        if os.path.islink(cmd_init):
-            sys_path = os.readlink(cmd_init)
-            init_type = 'systemd' if 'systemd' in sys_path else sys_path
-        print('Using system type: {}'.format(init_type))
+        cmd_init = '/sbin/init' if os.path.isfile('/sbin/init') else shutil.which('init')
+        if cmd_init:
+            if os.path.islink(cmd_init):
+                sys_path = os.readlink(cmd_init)
+                init_type = 'systemd' if 'systemd' in sys_path else sys_path
+            print('Using system type: {}'.format(init_type))
         if init_type == 'systemd':
             print('          \x1b[1;37;42m System type has been Validated. \x1b[0m')
             ret_val['system'] = True
