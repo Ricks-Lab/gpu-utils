@@ -54,7 +54,8 @@ class GutConst:
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg',
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
-    _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log', 'force_write']
+    _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
+                            'force_all', 'force_write', 'verbose']
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
@@ -129,6 +130,7 @@ class GutConst:
         # From args
         self.force_all: bool = False
         self.execute_pac: bool = False
+        self.verbose: bool = False
         self.DEBUG: bool = False
         self.PDEBUG: bool = False
         self.SIMLOG: bool = False
@@ -165,6 +167,8 @@ class GutConst:
                 elif target_arg == 'ltz': self.USELTZ = self.args.ltz
                 elif target_arg == 'simlog': self.SIMLOG = self.args.simlog
                 elif target_arg == 'log': self.LOG = self.args.log
+                elif target_arg == 'force_all': self.force_all = self.args.force_all
+                elif target_arg == 'verbose': self.verbose = self.args.verbose
                 elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
                 else: print('Invalid arg: {}'.format(target_arg))
         LOGGER.propagate = False
@@ -209,6 +213,17 @@ class GutConst:
         epoch = time_mktime(utc.timetuple())
         offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
         return utc + offset
+
+    def process_message(self, message: str, log_flag: bool = False) -> None:
+        """
+
+        :param message:
+        :param log_flag:
+        """
+        if message and self.verbose:
+            print(message, file=sys.stderr)
+        if log_flag:
+            LOGGER.debug(message)
 
     def read_amdfeaturemask(self) -> int:
         """
@@ -276,8 +291,7 @@ class GutConst:
             if os.path.islink(cmd_init):
                 sys_path = os.readlink(cmd_init)
                 init_type = 'systemd' if 'systemd' in sys_path else sys_path
-        print('System Type: {}'.format(init_type))
-        LOGGER.debug('Using System Type: %s', init_type)
+        self.process_message('System Type: {}'.format(init_type), log_flag=True)
 
         # Check Linux Distro
         self.cmd_lsb_release = shutil.which('lsb_release')
