@@ -121,7 +121,7 @@ class GpuItem:
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
     GPU_Type = GpuEnum('type',
-                       'Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
+                       'All Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
@@ -698,9 +698,10 @@ class GpuItem:
                     return None
                 for temp_name in ['edge', 'temperature.gpu', 'temp1_input']:
                     if temp_name in self.prm['temperatures'].keys():
-                        if num_as_int:
-                            return int(self.prm['temperatures'][temp_name])
-                        return round(self.prm['temperatures'][temp_name], 1)
+                        if self.prm['temperatures'][temp_name]:
+                            if num_as_int:
+                                return int(self.prm['temperatures'][temp_name])
+                            return round(self.prm['temperatures'][temp_name], 1)
                 for value in self.prm['temperatures'].values():
                     return value
                     # return list(self.prm['temperatures'].keys())[0] - Not sure what I was doing here
@@ -710,7 +711,8 @@ class GpuItem:
                     return np_nan
                 if 'vddgfx' not in self.prm['voltages']:
                     return np_nan
-                return int(self.prm['voltages']['vddgfx'])
+                if isinstance(self.prm['voltages']['vddgfx'], str) and self.prm['voltages']['vddgfx'].isnumeric():
+                    return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
@@ -718,7 +720,8 @@ class GpuItem:
                     return None
                 for clock_name in ['sclk', 'clocks.gr']:
                     if clock_name in self.prm['frequencies'].keys():
-                        return int(self.prm['frequencies'][clock_name])
+                        if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
+                            return int(self.prm['frequencies'][clock_name])
                 return self.prm['sclk_ps'][1]
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
@@ -727,7 +730,8 @@ class GpuItem:
                     return None
                 for clock_name in ['mclk', 'clocks.mem']:
                     if clock_name in self.prm['frequencies'].keys():
-                        return int(self.prm['frequencies'][clock_name])
+                        if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
+                            return int(self.prm['frequencies'][clock_name])
                 return self.prm['mclk_ps'][1]
 
         # Set type for params that could be float or int
@@ -919,14 +923,21 @@ class GpuItem:
         :return: Return True if valid
         """
         mclk_range = self.prm.mclk_f_range
-        mclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[0])))
-        mclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[1])))
+        try:
+            mclk_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[0])))
+            mclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(mclk_range[1])))
+        except TypeError:
+            return False
+
         if pstate[1] < mclk_min or pstate[1] > mclk_max:
             return False
         if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             vddc_range = self.prm.vddc_range
-            vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
-            vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+            try:
+                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
+                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+            except TypeError:
+                return False
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -945,8 +956,11 @@ class GpuItem:
             return False
         if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
             vddc_range = self.prm.vddc_range
-            vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
-            vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+            try:
+                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
+                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+            except TypeError:
+                return False
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -2224,13 +2238,17 @@ class GpuList:
             results_dict['total'] += 1
         return results_dict
 
-    def list_gpus(self, vendor: Enum = GpuItem.GPU_Vendor.ALL,
+    def list_gpus(self, reverse: bool = False,
+                  vendor: Enum = GpuItem.GPU_Vendor.ALL,
+                  gpu_type: Enum = GpuItem.Type.ALL,
                   compatibility: Enum = GpuItem.GPU_Comp.ALL) -> 'class GpuList':
         """
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
         Only one flag should be set.
 
+        :param reverse: return items not matching conditions.
         :param vendor: Only count vendor GPUs or ALL by default.
+        :param gpu_type: Only count type GPUs or ALL by default.
         :param compatibility: Only count GPUs with specified compatibility (all, readable, writable)
         :return: GpuList of compatible GPUs
         """
@@ -2240,9 +2258,14 @@ class GpuList:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
                 compatibility, GpuItem.GPU_Comp))
         try:
+            _ = type.name
+        except AttributeError:
+            raise AttributeError('Error: {} not a valid type name: [{}]'.format(type, GpuItem.GPU_Vendor))
+        try:
             _ = vendor.name
         except AttributeError:
             raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
+
         result_list = GpuList()
         for uuid, gpu in self.items():
             if vendor != GpuItem.GPU_Vendor.ALL:
