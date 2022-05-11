@@ -2490,6 +2490,53 @@ class GpuList:
         return True
 
 
+# Utility Helper Functions
+def print_gpu_rw_summary(gpu_list: GpuList) -> None:
+    """
+
+    :param gpu_list:
+    :return:
+    """
+    num_gpus = gpu_list.num_gpus()
+    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
+                                                                num_gpus['r-only'], num_gpus['w-only']))
+
+
+def print_driver_vendor_summary(gpu_list: GpuList) -> None:
+    """
+    Display vendor and driver details
+
+    :param gpu_list:
+    :return:
+    """
+    num_gpus = gpu_list.num_vendor_gpus()
+    print('Detected GPUs: ', end='')
+    for i, (type_name, type_value) in enumerate(num_gpus.items()):
+        if i:
+            print(', {}: {}'.format(type_name, type_value), end='')
+        else:
+            print('{}: {}'.format(type_name, type_value), end='')
+    print('')
+    if 'AMD' in num_gpus.keys():
+        env.GUT_CONST.read_amd_driver_version()
+        print('AMD: {}'.format(gpu_list.wattman_status()))
+    if 'NV' in num_gpus.keys():
+        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+
+
+def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
+    """
+
+    :return:
+    """
+    com_gpu_list = gpu_list.list_gpus(compatibility=GpuItem.GPU_Comp.Readable)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Unsupported, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Undefined, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.APU, reverse=True)
+
+    return com_gpu_list
+
+
 def about() -> None:
     """
     Print details about this module.

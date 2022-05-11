@@ -108,21 +108,10 @@ def main() -> None:
     gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list(clinfo_flag=True)
 
-    # Check list of GPUs
-    num_gpus = gpu_list.num_vendor_gpus()
-    print('Detected GPUs: ', end='')
-    for i, (type_name, type_value) in enumerate(num_gpus.items()):
-        if i:
-            print(', {}: {}'.format(type_name, type_value), end='')
-        else:
-            print('{}: {}'.format(type_name, type_value), end='')
-    print('')
-    if 'AMD' in num_gpus.keys():
-        env.GUT_CONST.read_amd_driver_version()
-        print('AMD: {}'.format(gpu_list.wattman_status()))
-    if 'NV' in num_gpus.keys():
-        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+    # Check list of GPUs and display vendor and driver details
+    Gpu.print_driver_vendor_summary(gpu_list)
 
+    # Exit if no GPUs detected
     num_gpus = gpu_list.num_gpus()
     if num_gpus['total'] == 0:
         print('No GPUs detected, exiting...')
@@ -132,16 +121,15 @@ def main() -> None:
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
     # Check number of readable/writable GPUs again
-    num_gpus = gpu_list.num_gpus()
-    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
-                                                                num_gpus['r-only'], num_gpus['w-only']))
+    Gpu.print_gpu_rw_summary(gpu_list)
 
+    # If specified, display raw sensor details
     if args.raw:
         gpu_list.read_raw_sensors()
         gpu_list.print_raw()
         sys.exit(0)
 
-    # Read report specific details
+    # Read report clinfo specific details
     if args.clinfo:
         if not gpu_list.read_gpu_opencl_data():
             args.clinfo = False
