@@ -121,7 +121,7 @@ class GpuItem:
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     # Define Class Labels
     GPU_Type = GpuEnum('type',
-                       'All Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
+                       'ALL Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: List[str] = ['Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
@@ -711,8 +711,9 @@ class GpuItem:
                     return np_nan
                 if 'vddgfx' not in self.prm['voltages']:
                     return np_nan
-                if isinstance(self.prm['voltages']['vddgfx'], str) and self.prm['voltages']['vddgfx'].isnumeric():
+                if isinstance(self.prm['voltages']['vddgfx'], str):
                     return int(self.prm['voltages']['vddgfx'])
+                return int(self.prm['voltages']['vddgfx'])
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
@@ -722,6 +723,7 @@ class GpuItem:
                     if clock_name in self.prm['frequencies'].keys():
                         if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                             return int(self.prm['frequencies'][clock_name])
+                        return int(self.prm['frequencies'][clock_name])
                 return self.prm['sclk_ps'][1]
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
@@ -732,6 +734,7 @@ class GpuItem:
                     if clock_name in self.prm['frequencies'].keys():
                         if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                             return int(self.prm['frequencies'][clock_name])
+                        return int(self.prm['frequencies'][clock_name])
                 return self.prm['mclk_ps'][1]
 
         # Set type for params that could be float or int
@@ -2240,7 +2243,7 @@ class GpuList:
 
     def list_gpus(self, reverse: bool = False,
                   vendor: Enum = GpuItem.GPU_Vendor.ALL,
-                  gpu_type: Enum = GpuItem.Type.ALL,
+                  gpu_type: Enum = GpuItem.GPU_Type.ALL,
                   compatibility: Enum = GpuItem.GPU_Comp.ALL) -> 'class GpuList':
         """
         Return GPU_Item of GPUs.  Contains all by default, but can be a subset with vendor and compatibility args.
@@ -2258,9 +2261,9 @@ class GpuList:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
                 compatibility, GpuItem.GPU_Comp))
         try:
-            _ = type.name
+            _ = gpu_type.name
         except AttributeError:
-            raise AttributeError('Error: {} not a valid type name: [{}]'.format(type, GpuItem.GPU_Vendor))
+            raise AttributeError('Error: {} not a valid type name: [{}]'.format(gpu_type, GpuItem.GPU_Vendor))
         try:
             _ = vendor.name
         except AttributeError:
@@ -2269,18 +2272,28 @@ class GpuList:
         result_list = GpuList()
         for uuid, gpu in self.items():
             if vendor != GpuItem.GPU_Vendor.ALL:
-                if vendor != gpu.prm.vendor:
-                    continue
-            if compatibility == GpuItem.GPU_Comp.Readable:
-                # Skip Legacy GPU type, since most parameters can not be read.
-                if gpu.prm.gpu_type != GpuItem.GPU_Type.Legacy:
-                    if gpu.prm.readable:
-                        result_list[uuid] = gpu
-            elif compatibility == GpuItem.GPU_Comp.Writable:
-                if gpu.prm.writable:
-                    result_list[uuid] = gpu
-            else:
-                result_list[uuid] = gpu
+                if reverse:
+                    if vendor == gpu.prm.vendor: continue
+                else:
+                    if vendor != gpu.prm.vendor: continue
+            if gpu_type != GpuItem.GPU_Type.ALL:
+                if reverse:
+                    if gpu_type == gpu.prm.gpu_type: continue
+                else:
+                    if gpu_type != gpu.prm.gpu_type: continue
+            if compatibility != GpuItem.GPU_Comp.ALL:
+                if compatibility == GpuItem.GPU_Comp.Readable:
+                    if reverse:
+                        if gpu.prm.readable: continue
+                    else:
+                        if not gpu.prm.readable: continue
+                elif compatibility == GpuItem.GPU_Comp.Writable:
+                    if reverse:
+                        if gpu.prm.writable: continue
+                    else:
+                        if gpu.prm.writable: continue
+            result_list[uuid] = gpu
+
         return result_list
 
     def read_raw_sensors(self) -> None:
