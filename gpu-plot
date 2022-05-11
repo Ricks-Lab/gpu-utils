@@ -71,7 +71,7 @@ try:
 except ModuleNotFoundError as error:
     print('matplotlib import error: {}'.format(error))
     print('matplotlib is required for {}'.format(__program_name__))
-    print('Use \'sudo apt-get install python3-matplotlib\' to install')
+    print('Use \'sudo apt install python3-matplotlib\' to install')
     sys.exit(0)
 
 try:
