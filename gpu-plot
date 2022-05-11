@@ -431,7 +431,6 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             comp_item['title_obj'] = Gtk.Label(name='white_label')
-            print('model_val:{}:{}'.format(type(model_val), model_val))
             if not model_val or isinstance(model_val, type(np.nan)): model_val = 'UNKNOWN'
             if len(model_val) > 30: model_val = model_val[:30]
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
@@ -522,7 +521,6 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                 except:
                     print('Fatal Data Error - Exiting')
                     plot_data.kill_thread()
-                    #sys.exit(-1)
                 bar_col.append(gc.gpu_color[l])
             x_index = np.arange(gc.num_gpus)  # the x locations for the groups
             width = 0.65       # the width of the bars
@@ -760,7 +758,10 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
         plot_data.df.reset_index(drop=True, inplace=True)
 
         # Truncate df in place
-        plot_length = int(len(plot_data.df.index) / plot_data.num_gpus)
+        try:
+            plot_length = int(len(plot_data.df.index) / plot_data.num_gpus)
+        except TypeError:
+            plot_length = 1
         if plot_length > plot_data.length:
             trun_index = plot_length - plot_data.length
             plot_data.df.drop(np.arange(0, trun_index), inplace=True)
@@ -870,18 +871,29 @@ def main() -> None:
 
         # Check number of readable/writable GPUs again
         num_gpus = gpu_list.num_gpus()
+        print('All GPUs:')
+        print('{} total GPUs, {} rw, {} r-only, {} w-only'.format(num_gpus['total'], num_gpus['rw'],
+                                                                  num_gpus['r-only'], num_gpus['w-only']))
+
+        # Select GPU's appropriate for plotting
+        com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
+        com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Unsupported, reverse=True)
+        com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Undefined, reverse=True)
+
+        # Check readable and compatible
+        num_gpus = com_gpu_list.num_gpus()
+        if num_gpus['total'] == 0:
+            print('No readable and compatible GPUs detected, exiting...')
+            sys.exit(-1)
+
+        num_gpus = com_gpu_list.num_gpus()
+        print('Compatible GPUs:')
         print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                     num_gpus['r-only'], num_gpus['w-only']))
 
-        # Check number of compatible GPUs again
-        #readable_gpus = com_gpu_list.num_gpus()['total']
-        readable_gpus = com_gpu_list.num_gpus()['rw'] + com_gpu_list.num_gpus()['r-only']
-        if not readable_gpus:
-            print('None are readable, exiting...')
-            sys.exit(-1)
-
         # Set gpu quantity in plot_data
-        plot_data.num_gpus = readable_gpus
+        plot_data.num_gpus = num_gpus['total']
+        plot_data.com_gpu_list = com_gpu_list
     # end of if args.stdin == False
 
     if args.stdin or args.simlog:
@@ -892,7 +904,6 @@ def main() -> None:
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     i = 0
     while len(plot_data.df.index) < 4:
-        print(plot_data.df.values)
         try:
             if (plot_data.df['model_display'].values[-1] in [None, 'None', np.nan] or
                     plot_data.df['loading'].values[-1] in [None, 'None', np.nan]):

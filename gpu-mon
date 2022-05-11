@@ -330,7 +330,8 @@ def main() -> None:
 
     # Check number of readable/writable GPUs again
     num_gpus = gpu_list.num_gpus()
-    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
+    print('All GPUs:')
+    print('{} total GPUs, {} rw, {} r-only, {} w-only'.format(num_gpus['total'], num_gpus['rw'],
                                                                 num_gpus['r-only'], num_gpus['w-only']))
 
     sleep(1)
@@ -338,12 +339,22 @@ def main() -> None:
     if num_gpus['r-only'] + num_gpus['rw'] < 1:
         print('No readable GPUs, exiting...')
         sys.exit(0)
+
+    # Select GPU's appropriate for monitor
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Unsupported, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Undefined, reverse=True)
+
     # Check readable and compatible
     num_gpus = com_gpu_list.num_gpus()
     if num_gpus['total'] == 0:
         print('No readable and compatible GPUs detected, exiting...')
         sys.exit(-1)
+
+    num_gpus = com_gpu_list.num_gpus()
+    print('Compatible GPUs:')
+    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
+                                                                num_gpus['r-only'], num_gpus['w-only']))
 
     if args.log:
         env.GUT_CONST.LOG = True
