@@ -119,6 +119,12 @@ class GpuItem:
                                    'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
                                    'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
+    APU_Skip_List: List[str] = ['unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+                                'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                                'power_cap_range', 'power', 'power_cap', 'fan_speed_range',
+                                'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
+                                'pwm_mode', 'fan_pwm']
+
     # Define Class Labels
     GPU_Type = GpuEnum('type',
                        'ALL Undefined Unsupported Supported Legacy APU Modern PStatesNE PStates CurvePts')
@@ -845,7 +851,7 @@ class GpuItem:
                         self.read_disabled = GpuItem.MODERN_Skip_List[:]
                 elif source_value == GpuItem.GPU_Type.APU:
                     if not env.GUT_CONST.force_all:
-                        self.read_disabled = GpuItem._fan_item_list[:]
+                        self.read_disabled = GpuItem.MODERN_Skip_List[:]
 
         # Compute platform requires that compute bool be set first
         if set_ocl_ver:
@@ -1526,7 +1532,7 @@ class GpuItem:
             if i == 0:
                 print(' {}'.format(parameter), end='')
             elif not i % 4:
-                print('\n{}                     {}'.format(pre, parameter), end='')
+                print(',\n{}                     {}'.format(pre, parameter), end='')
             else:
                 print(', {}'.format(parameter), end='')
         print('')
