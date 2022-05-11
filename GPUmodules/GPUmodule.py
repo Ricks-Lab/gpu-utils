@@ -710,27 +710,28 @@ class GpuItem:
                             return round(self.prm['temperatures'][temp_name], 1)
                 for value in self.prm['temperatures'].values():
                     return value
-                    # return list(self.prm['temperatures'].keys())[0] - Not sure what I was doing here
                 return None
             if name == 'vddgfx_val':
                 if not self.prm['voltages']:
                     return np_nan
-                if 'vddgfx' not in self.prm['voltages']:
-                    return np_nan
-                if isinstance(self.prm['voltages']['vddgfx'], str):
+                if 'vddgfx' in self.prm['voltages']:
+                    if isinstance(self.prm['voltages']['vddgfx'], str):
+                        return int(self.prm['voltages']['vddgfx'])
                     return int(self.prm['voltages']['vddgfx'])
-                return int(self.prm['voltages']['vddgfx'])
+                for value in self.prm['voltages'].values():
+                    return value
             if name == 'sclk_ps_val':
                 return self.prm['sclk_ps'][0]
             if name == 'sclk_f_val':
-                if not self.prm['frequencies']:
-                    return None
                 for clock_name in ['sclk', 'clocks.gr']:
                     if clock_name in self.prm['frequencies'].keys():
                         if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                             return int(self.prm['frequencies'][clock_name])
                         return int(self.prm['frequencies'][clock_name])
-                return self.prm['sclk_ps'][1]
+                if self.prm['sclk_ps'][1]:
+                    return self.prm['sclk_ps'][1]
+                for value in self.prm['frequencies'].values():
+                    return value
             if name == 'mclk_ps_val':
                 return self.prm['mclk_ps'][0]
             if name == 'mclk_f_val':
@@ -1071,8 +1072,8 @@ class GpuItem:
         """
         for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
             if path:
-                for file in os.listdir(self.prm.card_path):
-                    file_path = os.path.join(self.prm.card_path, file)
+                for file in os.listdir(path):
+                    file_path = os.path.join(path, file)
                     if not os.path.isfile(file_path): continue
                     try:
                         with open(file_path, 'r') as file_ptr:
@@ -2294,7 +2295,7 @@ class GpuList:
                     if reverse:
                         if gpu.prm.writable: continue
                     else:
-                        if gpu.prm.writable: continue
+                        if not gpu.prm.writable: continue
             result_list[uuid] = gpu
 
         return result_list
