@@ -1064,7 +1064,7 @@ class GpuItem:
         ppm_item = self.prm.ppm.split('-')
         return [int(ppm_item[0]), ppm_item[1]]
 
-    def read_raw_sensors(self) -> Dict[str, str]:
+    def read_raw_sensors(self) -> None:
         """
 
         :return:
@@ -1081,12 +1081,6 @@ class GpuItem:
                         contents = except_err
                     except UnicodeDecodeError:
                         contents = 'BINARY'
-
-                    try:
-                        if not all(ord(c) < 128 for c in contents):
-                            contents = 'BINARY'
-                    except:
-                        contents = 'UNKNOWN'
                     self.raw[sensor_type].update({file: contents})
 
     def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, str]:
@@ -1640,6 +1634,9 @@ class GpuItem:
             elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
                 if param_name in self.AMD_Skip_List:
                     continue
+            elif self.prm.gpu_type == GpuItem.GPU_Type.APU:
+                if param_name in self._fan_item_list:
+                    continue
             elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED:
                 if param_name not in self.get_nc_params_list():
                     continue
@@ -1650,7 +1647,7 @@ class GpuItem:
             # Situations where parameter limits can be overridden by force_all
             if not env.GUT_CONST.force_all:
                 if self.prm.gpu_type == self.GPU_Type.APU:
-                    if param_name in self._fan_item_list:
+                    if param_name in self.APU_Skip_List:
                         continue
                     if 'Range' in param_label:
                         continue
