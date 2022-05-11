@@ -431,8 +431,11 @@ class GPUPlotWindow(Gtk.Window):
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             comp_item['title_obj'] = Gtk.Label(name='white_label')
+            print('model_val:{}:{}'.format(type(model_val), model_val))
+            if not model_val or isinstance(model_val, type(np.nan)): model_val = 'UNKNOWN'
+            if len(model_val) > 30: model_val = model_val[:30]
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
-                                      comp_num, plot_data.get_gpu_pcieid(comp_num), model_val[:30], data_val))
+                                      comp_num, plot_data.get_gpu_pcieid(comp_num), model_val, data_val))
             set_gtk_prop(comp_item['title_obj'], align=(0.5, 0.5), top=1, bottom=1, right=4, left=4)
             box_name = comp_item['color'][1:]
             lbox = Gtk.Box(spacing=box_spacing_val, name=box_name)
@@ -513,8 +516,13 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             # Set Plot Parameters
             for card_num in plot_data.gpu_name_list:
                 l, d = ldf[ldf['Card#'].isin([card_num])][['Card#', comp_item['df_name']]].iloc[-1]
-                label_val.append(int(l))
-                data_val.append(float(d))
+                try:
+                    label_val.append(int(l))
+                    data_val.append(float(d))
+                except:
+                    print('Fatal Data Error - Exiting')
+                    plot_data.kill_thread()
+                    #sys.exit(-1)
                 bar_col.append(gc.gpu_color[l])
             x_index = np.arange(gc.num_gpus)  # the x locations for the groups
             width = 0.65       # the width of the bars
@@ -528,7 +536,10 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                     comp_item['ax1'].text(x=a, y=b-5, s=str(b), fontsize=8, ha='center')
                 plt.ylim((15, 99))
             else:
-                data_val = list(map(int, data_val))
+                try:
+                    data_val = list(map(int, data_val))
+                except:
+                    pass
                 for a, b in zip(x_index, data_val):
                     y_val = b + width if b == 0 else b - width
                     comp_item['ax1'].text(x=a, y=y_val, s=str(b), fontsize=10, ha='center')
@@ -687,6 +698,11 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
         #########################
         # Update plots
         #########################
+        if plot_data.quit:
+            print('Exit stack size: {}'.format(get_stack_size()))
+            PD_SEM.acquire()
+            PD_SEM.release()
+            sys.exit(0)
         if skip_update:
             continue
         if plot_data.gui_comp is None:
@@ -858,7 +874,8 @@ def main() -> None:
                                                                     num_gpus['r-only'], num_gpus['w-only']))
 
         # Check number of compatible GPUs again
-        readable_gpus = com_gpu_list.num_gpus()['total']
+        #readable_gpus = com_gpu_list.num_gpus()['total']
+        readable_gpus = com_gpu_list.num_gpus()['rw'] + com_gpu_list.num_gpus()['r-only']
         if not readable_gpus:
             print('None are readable, exiting...')
             sys.exit(-1)
@@ -873,20 +890,33 @@ def main() -> None:
         threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
-    while len(plot_data.df.index) < 2:
+    i = 0
+    while len(plot_data.df.index) < 4:
+        print(plot_data.df.values)
+        try:
+            if (plot_data.df['model_display'].values[-1] in [None, 'None', np.nan] or
+                    plot_data.df['loading'].values[-1] in [None, 'None', np.nan]):
+                plot_data.kill_thread()
+                PD_SEM.acquire()
+                PD_SEM.release()
+                print('Insufficient valid data: Exiting')
+                break
+        except:
+            pass
         print('.', end='', flush=True)
-        sleep(args.sleep/4.0)
+        sleep(args.sleep/2.0)
     print('')
 
     # After reading initial data, set gpus
     plot_data.set_gpus()
 
-    gc = GuiComponents(plot_data)
-    gplot = GPUPlotWindow(gc, plot_data)
-    gplot.connect('delete-event', Gtk.main_quit)
-    gplot.show_all()
-    gc.set_ready(True)
-    Gtk.main()
+    if not plot_data.quit:
+        gc = GuiComponents(plot_data)
+        gplot = GPUPlotWindow(gc, plot_data)
+        gplot.connect('delete-event', Gtk.main_quit)
+        gplot.show_all()
+        gc.set_ready(True)
+        Gtk.main()
     plot_data.kill_thread()
 
 

@@ -364,11 +364,12 @@ def main() -> None:
         cmd = None
         if args.plot:
             env.GUT_CONST.PLOT = True
-            plot_util = shutil.which('gpu-plot')
-            if not plot_util:
-                plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
             if env.GUT_CONST.install_type == 'repository':
                 plot_util = './gpu-plot'
+            else:
+                plot_util = shutil.which('gpu-plot')
+            if not plot_util:
+                plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
             if os.path.isfile(plot_util):
                 if env.GUT_CONST.PDEBUG:
                     cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
