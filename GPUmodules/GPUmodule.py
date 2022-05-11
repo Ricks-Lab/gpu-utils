@@ -1078,8 +1078,10 @@ class GpuItem:
                     try:
                         with open(file_path, 'r') as file_ptr:
                             contents = file_ptr.read().strip()
+                    except PermissionError:
+                        contents = 'PermissionError'
                     except OSError as except_err:
-                        contents = except_err
+                        contents = 'OSError'
                     except UnicodeDecodeError:
                         contents = 'BINARY'
                     self.raw[sensor_type].update({file: contents})
@@ -1613,7 +1615,9 @@ class GpuItem:
             print('\n## {} {}'.format(sensor_type, '#'.ljust(41, '#')))
             for name, value in sensors.items():
                 description = self._GPU_Param_Labels[name] if name in self._GPU_Param_Labels else ''
-                print('{}:{}:{}'.format(name, description, value))
+                print('### {}:{}:'.format(name, description))
+                for line in value.split('\n'):
+                    print('   {}'.format(line))
         print('{}\n\n'.format('#'.ljust(50, '#')))
 
     def print(self, short: bool = False, clflag: bool = False) -> None:
