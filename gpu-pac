@@ -1318,12 +1318,20 @@ def main() -> None:
     print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                 num_gpus['r-only'], num_gpus['w-only']))
 
-    # Check number of compatible GPUs again
+    # Select GPU's appropriate for monitor
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Writable)
+
+    # Check number of compatible GPUs again
     writable_gpus = com_gpu_list.num_gpus()['total']
+    print('Compatible GPUs:')
     if not writable_gpus:
         print('None are writable, exiting...')
         sys.exit(-1)
+    # Check writable and compatible
+    num_gpus = com_gpu_list.num_gpus()
+    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
+                                                                num_gpus['r-only'], num_gpus['w-only']))
+
     com_gpu_list.read_gpu_pstates()
     com_gpu_list.read_gpu_ppm_table()
 

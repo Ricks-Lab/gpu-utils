@@ -882,12 +882,10 @@ def main() -> None:
 
         # Check readable and compatible
         num_gpus = com_gpu_list.num_gpus()
+        print('Compatible GPUs:')
         if num_gpus['total'] == 0:
             print('No readable and compatible GPUs detected, exiting...')
             sys.exit(-1)
-
-        num_gpus = com_gpu_list.num_gpus()
-        print('Compatible GPUs:')
         print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
                                                                     num_gpus['r-only'], num_gpus['w-only']))
 
