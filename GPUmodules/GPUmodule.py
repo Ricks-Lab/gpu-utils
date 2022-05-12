@@ -41,6 +41,7 @@ from pathlib import Path
 from uuid import uuid4
 from enum import Enum
 import glob
+from datetime import datetime
 from numpy import nan as np_nan
 
 from GPUmodules import __version__, __status__
@@ -429,6 +430,7 @@ class GpuItem:
         """
         time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.validated_sensors: bool = False
+        self.read_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy: Dict[str, Any] = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.read_disabled: List[str] = []    # List of parameters that failed during read.
         self.write_disabled: List[str] = []   # List of parameters that failed during write.
@@ -591,6 +593,7 @@ class GpuItem:
         :param name:  Parameter name
         :param value:  parameter value
         """
+        self.read_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         LOGGER.debug('Set param value: [%s], type: [%s]', value, type(value))
         if isinstance(value, tuple):
             self.prm[name] = list(value)
@@ -702,7 +705,7 @@ class GpuItem:
             env.GUT_CONST.process_message(message, log_flag=True)
             self.read_disabled.append(parameter_name)
 
-    def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None]:
+    def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None, datetime]:
         """
         Get parameter value for given name.
 
@@ -710,6 +713,10 @@ class GpuItem:
         :param num_as_int: Convert float to int if True
         :return: Parameter value
         """
+        if name == 'read_time':
+            if 'energy' in self.read_disabled:
+                return self.read_time
+            return self.energy['tn']
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
             if name == 'temp_val':
@@ -2510,7 +2517,7 @@ class GpuList:
 
         # Print Data
         for gpu in self.gpus():
-            print('{}|{}'.format(gpu.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT), gpu.prm.card_num),
+            print('{}|{}'.format(gpu.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT), gpu.prm.card_num),
                   sep='', end='', file=log_file_ptr)
             for table_item in self.table_parameters():
                 print('|{}'.format(re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item)).strip())),
@@ -2614,7 +2621,7 @@ def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
     com_gpu_list = gpu_list.list_gpus(compatibility=GpuItem.GPU_Comp.Readable)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Unsupported, reverse=True)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Undefined, reverse=True)
-    com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.LegacyAPU, reverse=True)
+    #com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.LegacyAPU, reverse=True)
 
     return com_gpu_list
 

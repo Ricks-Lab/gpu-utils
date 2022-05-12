@@ -502,7 +502,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
     ldf = plot_data.df
     y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
-    try:
+    if True:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
         # Update Bar Plots
@@ -574,6 +574,15 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
                                               comp_num, plot_data.get_gpu_pcieid(comp_num), model_val[:30], data_val))
 
+            # Select plot items with data
+            active_gpu = plot_data.com_gpu_list.select_gpu(int(l))
+            y1_items = []
+            for test_y1_items in ['loading', 'power_cap', 'power', 'temp_val']:
+                if active_gpu.table_parameters_status[test_y1_items]: y1_items.append(test_y1_items)
+            y2_items = []
+            for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
+                if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
+
             # Plot GPUs
             plt.figure(comp_item['figure_num'])
             comp_item['ax1'].set_xticklabels([])
@@ -616,14 +625,14 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
-    except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
-        LOGGER.exception('plot exception: %s', err)
-        LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
-        LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
-        LOGGER.debug('ticker increment: %s', tick_inc)
-        print('matplotlib error: {}'.format(err))
-        print('matplotlib error, stack size is {}'.format(get_stack_size()))
-        plot_data.kill_thread()
+    #except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
+        #LOGGER.exception('plot exception: %s', err)
+        #LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
+        #LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
+        #LOGGER.debug('ticker increment: %s', tick_inc)
+        #print('matplotlib error: {}'.format(err))
+        #print('matplotlib error, stack size is {}'.format(get_stack_size()))
+        #plot_data.kill_thread()
 
     # SEMAPHORE ###########
     PD_SEM.release()
