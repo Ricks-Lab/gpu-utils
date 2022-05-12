@@ -142,7 +142,6 @@ def main() -> None:
     if not args.pstates and not args.ppm:
         if args.table:
             com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
-            #com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Readable)
             com_gpu_list.print_table(title='Status of Compatible GPUs:')
         else:
             gpu_list.print(short=args.short, clflag=args.clinfo)
