@@ -520,6 +520,7 @@ class GpuItem:
         self.table_parameters_status: Dict[str, bool] = {}
         for item in self.table_parameters:
             self.table_parameters_status.update({item: True})
+
         self.finalize_fan_option()
 
     @classmethod

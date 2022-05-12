@@ -501,7 +501,6 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     PD_SEM.acquire()
     #######################
     ldf = plot_data.df
-    print(ldf)
     y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
@@ -553,14 +552,14 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         for test_y1_items in ['loading', 'power_cap', 'power', 'temp_val']:
             if active_gpu.table_parameters_status[test_y1_items]: y1_items.append(test_y1_items)
         if y1_items:
-            y1lim_max_val = 10*(ldf.loc[:, y1_items].max().max() // 10) + 10
-            y1lim_min_val = 10*(ldf.loc[:, y1_items].min().min() // 10) - 5
+            y1lim_max_val = 10*(np.nanmax(ldf.loc[:, y1_items]).max() // 10) + 10
+            y1lim_min_val = 10*(np.nanmin(ldf.loc[:, y1_items]).min() // 10) - 5
         y2_items = []
         for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
             if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
         if y1_items:
-            y2lim_max_val = 100*(ldf.loc[:, y2_items].max().max() // 100) + 300
-            y2lim_min_val = 100*(ldf.loc[:, y2_items].min().min() // 100) - 100
+            y2lim_max_val = 100*(np.nanmax(ldf.loc[:, y2_items]).max() // 100) + 300
+            y2lim_min_val = 100*(np.nanmin(ldf.loc[:, y2_items]).min() // 100) - 100
 
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
             print('comp_num: {}'.format(comp_num))
@@ -669,7 +668,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
                     new_line_items.append(int(item))
                 elif re.fullmatch(PATTERNS['IS_FLOAT'], item):
                     new_line_items.append(float(item))
-                elif item == '' or item == '-1' or item == 'NA' or item is None:
+                elif item in ['', '-1', 'NA', 'None'] or item is None:
                     new_line_items.append(np.nan)
                 else:
                     new_line_items.append(item)
@@ -893,11 +892,12 @@ def main() -> None:
         try:
             if (plot_data.df['model_display'].values[-1] in [None, 'None', np.nan] or
                     plot_data.df['loading'].values[-1] in [None, 'None', np.nan]):
-                plot_data.kill_thread()
-                PD_SEM.acquire()
-                PD_SEM.release()
-                print('Insufficient valid data: Exiting')
-                break
+                pass
+                #plot_data.kill_thread()
+                #PD_SEM.acquire()
+                #PD_SEM.release()
+                #print('Insufficient valid data: Exiting')
+                #break
         except:
             pass
         print('.', end='', flush=True)
