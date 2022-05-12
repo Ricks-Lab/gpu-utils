@@ -36,7 +36,7 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, IO, Generator, Any
+from typing import Union, List, Dict, TextIO, IO, Generator, Any, Tuple
 from pathlib import Path
 from uuid import uuid4
 from enum import Enum
@@ -1605,6 +1605,33 @@ class GpuItem:
                 print('{} {}: {}'.format(pre, vc_index, vc_vals))
         print('')
 
+    def get_key_description(self, filename: str) -> Tuple[str, str]:
+        """
+
+        :param filename:
+        :return:
+        """
+        if filename == 'pp_od_clk_voltage': return 'pp_od_clk_voltage', 'read/write driver file'
+        for (gpu_vendor, sensor_dict) in self._sensor_details.items():
+            for (sensor_type, sensor_type_dict) in sensor_dict.items():
+                for (sensor_key, sensor_key_dict) in sensor_type_dict.items():
+                    for sensor_files in sensor_key_dict['sensor']:
+                        if re.match(PATTERNS['InputLabelX'], filename):
+                            test_sf = (sensor_files,) if isinstance(sensor_files, str) else sensor_files
+                            for sensor_filename in test_sf:
+                                if re.match(PATTERNS['InputLabelX'], sensor_filename):
+                                    description = 'Input/Label Pair'
+                                    return sensor_key, description
+                        else:
+                            if filename in sensor_files:
+                                if sensor_key in self._GPU_Param_Labels:
+                                    description = self._GPU_Param_Labels[sensor_key]
+                                    return sensor_key, description
+                                else:
+                                    description = 'Ignored by gpu-utils'
+                                    return sensor_key, description
+        return 'None', 'Not defined in gpu-utils'
+
     def print_raw(self) -> None:
         """
 
@@ -1612,10 +1639,9 @@ class GpuItem:
         """
         self.print(short=True)
         for sensor_type, sensors in self.raw.items():
-            print('\n## {} {}'.format(sensor_type, '#'.ljust(41, '#')))
             for name, value in sensors.items():
-                description = self._GPU_Param_Labels[name] if name in self._GPU_Param_Labels else ''
-                print('### {}:{}:'.format(name, description))
+                (sensor_key, description) = self.get_key_description(name)
+                print('### File: {}, SensorKey: {}, Label: {}'.format(name, sensor_key, description))
                 for line in value.split('\n'):
                     print('   {}'.format(line))
         print('{}\n\n'.format('#'.ljust(50, '#')))

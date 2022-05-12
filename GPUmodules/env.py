@@ -67,6 +67,7 @@ class GutConst:
                 'INTC_GPU':     re.compile(r'(INTEL|intel|Intel)'),
                 'ASPD_GPU':     re.compile(r'(ASPEED|aspeed|Aspeed)'),
                 'MTRX_GPU':     re.compile(r'(MATROX|matrox|Matrox)'),
+                'InputLabelX':  re.compile(r'[a-zA-Z]*(\d|\*)_(input|label)'),  # 'freq*_input'
                 'MHz':          re.compile(r'M[Hh]z'),
                 'PPM_CHK':      re.compile(r'[*].*'),
                 'PCI_GPU':      re.compile(r'(VGA|3D|Display)'),
