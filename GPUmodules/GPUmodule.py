@@ -517,6 +517,9 @@ class GpuItem:
         self.vddc_curve_range: Dict[int, dict] = {}  # {1: {'SCLK': ['val1', 'val2'], 'VOLT': ['val1', 'val2']}
         self.ppm_modes: Dict[str, List[str]] = {}    # {'1': ['Name', 'Description']}
         self.raw: Dict[str, dict] = {'DEVICE': {}, 'HWMON': {}}
+        self.table_parameters_status: Dict[str, bool] = {}
+        for item in self.table_parameters:
+            self.table_parameters_status.update({item: True})
         self.finalize_fan_option()
 
     @classmethod
@@ -1389,7 +1392,17 @@ class GpuItem:
             return self.read_gpu_sensor_set_amd(data_type)
         if self.prm.vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_set_nv(data_type)
+        self.update_table_items_status()
         return False
+
+    def update_table_items_status(self) -> None:
+        """
+
+        :return:
+        """
+        for table_item, status in self.table_parameters_status.items():
+            if self.get_params_value(table_item) not in [None, '']:
+                self.table_parameters_status[table_item] = False
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
         """
@@ -1644,7 +1657,6 @@ class GpuItem:
                                     description = '\033[33mIgnored by gpu-utils\x1b[0m'
                                     return sensor_key, description
         return 'None', '\033[33mNot defined in gpu-utils\x1b[0m'
-        # \x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m
 
     def print_raw(self) -> None:
         """
@@ -2541,6 +2553,17 @@ class GpuList:
             log_file_ptr.write(line_str.encode('utf-8'))
         log_file_ptr.flush()
         return True
+
+    def select_gpu(self, card_number: int) -> Union[GpuItem, None]:
+        """
+
+        :param card_number:
+        :return:
+        """
+        for gpu in self.gpus():
+            if gpu.prm.card_num == card_number:
+                return gpu
+        return None
 
 
 # Utility Helper Functions

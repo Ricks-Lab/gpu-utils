@@ -501,6 +501,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     PD_SEM.acquire()
     #######################
     ldf = plot_data.df
+    print(ldf)
     y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
@@ -546,11 +547,23 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['canvas'].flush_events()
 
         # Update GPU Plots
-        y1lim_max_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].max().max() // 10) + 10
-        y1lim_min_val = 10*(ldf.loc[:, ['loading', 'power_cap', 'power', 'temp_val']].min().min() // 10) - 5
-        y2lim_max_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].max().max() // 100) + 300
-        y2lim_min_val = 100*(ldf.loc[:, ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']].min().min() // 100) - 100
+        active_gpu = plot_data.com_gpu_list.select_gpu(int(l))
+        # Setting limits may be based on all data
+        y1_items = []
+        for test_y1_items in ['loading', 'power_cap', 'power', 'temp_val']:
+            if active_gpu.table_parameters_status[test_y1_items]: y1_items.append(test_y1_items)
+        if y1_items:
+            y1lim_max_val = 10*(ldf.loc[:, y1_items].max().max() // 10) + 10
+            y1lim_min_val = 10*(ldf.loc[:, y1_items].min().min() // 10) - 5
+        y2_items = []
+        for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
+            if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
+        if y1_items:
+            y2lim_max_val = 100*(ldf.loc[:, y2_items].max().max() // 100) + 300
+            y2lim_min_val = 100*(ldf.loc[:, y2_items].min().min() // 100) - 100
+
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
+            print('comp_num: {}'.format(comp_num))
             data_val = ldf[ldf['Card#'].isin([comp_num])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
@@ -562,7 +575,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['ax1'].clear()
             comp_item['ax1'].set_ylabel('Loading/Power/Temp',
                                         color=GPUgui.GuiProps.color_name_to_hex('white_off'), fontsize=10)
-            for plot_item in ['loading', 'power_cap', 'power', 'temp_val']:
+            for plot_item in y1_items:
                 if gc.plot_items[plot_item]:
                     comp_item['ax1'].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
                                           ldf[ldf['Card#'].isin([comp_num])][plot_item],
@@ -576,7 +589,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['ax2'].clear()
             comp_item['ax2'].set_xticklabels([])
             comp_item['ax2'].set_ylabel('MHz/mV', color=GPUgui.GuiProps.color_name_to_hex('gray95'), fontsize=10)
-            for plot_item in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
+            for plot_item in y2_items:
                 if gc.plot_items[plot_item]:
                     if np.isnan((ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])):
                         continue
