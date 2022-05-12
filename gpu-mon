@@ -301,7 +301,7 @@ def main() -> None:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    # Get list of GPUs
+    # Get list of GPUs and exit if no GPUs detected
     gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list()
     num_gpus = gpu_list.num_gpus()
@@ -309,22 +309,20 @@ def main() -> None:
         print('No GPUs detected, exiting...')
         sys.exit(-1)
 
-    # Check list of GPUs and display vendor and driver details
+    # Display vendor and driver details
     Gpu.print_driver_vendor_summary(gpu_list)
-
-    # Exit if no GPUs detected
 
     # Read data static/dynamic/info/state driver information for GPUs
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
-    # Check number of readable/writable GPUs again
+    # Check number of readable/writable
     print('All GPUs:')
     Gpu.print_gpu_rw_summary(gpu_list)
 
     # Select GPU's appropriate for monitor
     com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
 
-    # Check readable and compatible
+    # Check readable and compatible GPUs
     num_gpus = com_gpu_list.num_gpus()
     print('Compatible GPUs:')
     if num_gpus['total'] == 0:

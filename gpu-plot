@@ -837,11 +837,9 @@ def main() -> None:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
-    # Get list of GPUs and get basic non-driver details
+    # Get list of GPUs and exit if no GPUs detected
     gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list()
-
-    # Check if any GPUs left in list
     num_gpus = gpu_list.num_gpus()
     if num_gpus['total'] == 0:
         print('No GPUs detected, exiting...')
@@ -853,7 +851,6 @@ def main() -> None:
     # Select GPU's appropriate for monitor
     com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
     num_gpus = com_gpu_list.num_gpus()
-    print('Compatible GPUs:')
     if num_gpus['total'] == 0:
         print('No readable and compatible GPUs detected, exiting...')
         sys.exit(-1)
@@ -873,6 +870,8 @@ def main() -> None:
     if args.stdin or args.simlog:
         threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
     else:
+        print('Compatible GPUs:')
+        Gpu.print_gpu_rw_summary(com_gpu_list)
         threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)

@@ -104,18 +104,16 @@ def main() -> None:
     if (args.pstates or args.ppm) and args.table:
         print('The --table option can not be used with --pstate or --ppm, ignoring --table')
 
-    # Get list of GPUs and get basic non-driver details
+    # Get list of GPUs and exit if no GPUs detected
     gpu_list = Gpu.GpuList()
     gpu_list.set_gpu_list(clinfo_flag=True)
-
-    # Check list of GPUs and display vendor and driver details
-    Gpu.print_driver_vendor_summary(gpu_list)
-
-    # Exit if no GPUs detected
     num_gpus = gpu_list.num_gpus()
     if num_gpus['total'] == 0:
         print('No GPUs detected, exiting...')
         sys.exit(-1)
+
+    # Display vendor and driver details
+    Gpu.print_driver_vendor_summary(gpu_list)
 
     # Read data static/dynamic/info/state driver information for GPUs
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)

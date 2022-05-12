@@ -1301,7 +1301,7 @@ def main() -> None:
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
     # Check number of readable/writable GPUs again
-    num_gpus = gpu_list.num_gpus()
+    print('All GPUs:')
     Gpu.print_gpu_rw_summary(gpu_list)
 
     # Select GPU's appropriate for monitor
