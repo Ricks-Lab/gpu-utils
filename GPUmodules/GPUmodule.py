@@ -1390,10 +1390,13 @@ class GpuItem:
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
         """
         if self.prm.vendor == self.GPU_Vendor.AMD:
-            return self.read_gpu_sensor_set_amd(data_type)
+            return_stat = self.read_gpu_sensor_set_amd(data_type)
+            self.update_table_items_status()
+            return return_stat
         if self.prm.vendor == self.GPU_Vendor.NVIDIA:
-            return self.read_gpu_sensor_set_nv(data_type)
-        self.update_table_items_status()
+            return_stat = self.read_gpu_sensor_set_nv(data_type)
+            self.update_table_items_status()
+            return return_stat
         return False
 
     def update_table_items_status(self) -> None:
@@ -1402,8 +1405,10 @@ class GpuItem:
         :return:
         """
         for table_item, status in self.table_parameters_status.items():
-            if self.get_params_value(table_item) not in [None, '']:
+            print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
+            if self.get_params_value(table_item) in [None, '', np_nan]:
                 self.table_parameters_status[table_item] = False
+        print(self.table_parameters_status)
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
         """
