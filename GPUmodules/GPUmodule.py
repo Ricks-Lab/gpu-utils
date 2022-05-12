@@ -1780,7 +1780,7 @@ class GpuItem:
 
         :return: Dictionary of GPU state info for plot data.
         """
-        gpu_state = {'Time': str(self.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)),
+        gpu_state = {'Time': str(self.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)),
                      'Card#': int(self.prm.card_num)}
 
         for table_item in self.table_parameters:
@@ -2557,7 +2557,7 @@ class GpuList:
 
         # Print Data
         for gpu in self.gpus():
-            line_str_item = ['{}|{}'.format(str(gpu.energy['tn'].strftime(env.GUT_CONST.TIME_FORMAT)),
+            line_str_item = ['{}|{}'.format(str(gpu.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)),
                                             gpu.prm.card_num)]
             for table_item in self.table_parameters():
                 line_str_item.append('|' + re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item))).strip())
