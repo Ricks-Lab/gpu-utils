@@ -117,7 +117,7 @@ class GpuItem:
     LEGACY_Skip_List: List[str] = ['vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                    'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                    'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
-                                   'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'voltages',
+                                   'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range']
     LegacyAPU_Skip_List: List[str] = ['unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
                                       'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
@@ -708,8 +708,6 @@ class GpuItem:
         """
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
-            if self.prm.gpu_type == self.GPU_Type.Legacy:
-                return None
             if name == 'temp_val':
                 if not self.prm['temperatures']:
                     return None
@@ -2108,8 +2106,9 @@ class GpuList:
                             gpu_type = GpuItem.GPU_Type.Modern
                     else:
                         # if no pp_od_clk_voltage or pp_dpm_sclk but has power_dpm_state, assume legacy
-                        readable = True
-                        gpu_type = GpuItem.GPU_Type.Legacy
+                        if not GpuItem.is_apu(gpu_name):
+                            readable = True
+                            gpu_type = GpuItem.GPU_Type.Legacy
 
                 if not os.path.isfile(pp_od_clk_voltage_file):
                     LOGGER.debug('%s file does not exist', pp_od_clk_voltage_file)
