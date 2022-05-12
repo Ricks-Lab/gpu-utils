@@ -506,14 +506,18 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
         # Update Bar Plots
-        for comp_item in [gc.gui_components['sclk_pstate_status'],
-                          gc.gui_components['mclk_pstate_status'],
-                          gc.gui_components['temp_status']]:
+        bar_plot_types = {'sclk_pstate_status': 'sclk_ps_val',
+                          'mclk_pstate_status': 'mclk_ps_val',
+                          'temp_status': 'temp_val'}
+        for item_name, sensor_name in bar_plot_types.items():
+            comp_item = gc.gui_components[item_name]
             data_val = []
             label_val = []
             bar_col = []
             # Set Plot Parameters
             for card_num in plot_data.gpu_name_list:
+                active_gpu = plot_data.com_gpu_list.select_gpu(int(card_num))
+                if not active_gpu.table_parameters_status[sensor_name]: continue
                 l, d = ldf[ldf['Card#'].isin([card_num])][['Card#', comp_item['df_name']]].iloc[-1]
                 try:
                     label_val.append(int(l))
@@ -554,12 +558,14 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         if y1_items:
             y1lim_max_val = 10*(np.nanmax(ldf.loc[:, y1_items]).max() // 10) + 10
             y1lim_min_val = 10*(np.nanmin(ldf.loc[:, y1_items]).min() // 10) - 5
+        print('y1_items: {}'.format(y1_items))
         y2_items = []
         for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
             if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
-        if y1_items:
+        if y2_items:
             y2lim_max_val = 100*(np.nanmax(ldf.loc[:, y2_items]).max() // 100) + 300
             y2lim_min_val = 100*(np.nanmin(ldf.loc[:, y2_items]).min() // 100) - 100
+        print('y2_items: {}'.format(y2_items))
 
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
             print('comp_num: {}'.format(comp_num))
