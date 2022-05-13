@@ -1263,6 +1263,8 @@ def main() -> None:
     parser.add_argument('--no_fan', help='do not include fan setting options', action='store_true', default=False)
     parser.add_argument('--force_write', help='write all parameters, even if unchanged',
                         action='store_true', default=False)
+    parser.add_argument('--verbose', help='Display informational message of GPU util progress',
+                        action='store_true', default=False)
     parser.add_argument('-d', '--debug', help='Debug output', action='store_true', default=False)
     args = parser.parse_args()
 

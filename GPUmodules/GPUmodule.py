@@ -714,10 +714,10 @@ class GpuItem:
         :return: Parameter value
         """
         if name == 'read_time':
-            if 'energy' in self.read_disabled:
-                print('{}: {}'.format('read_time:', str(self.read_time)))
+            if 'energy' in self.read_disabled or 'power' in self.read_disabled:
+                print('{}: {}'.format('read_time', str(self.read_time)))
                 return self.read_time
-            print('{}: {}'.format('energy_time:', str(self.energy['tn'])))
+            print('{}: {}'.format('energy_time', str(self.energy['tn'])))
             return self.energy['tn']
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
@@ -1481,6 +1481,8 @@ class GpuItem:
                 if results['power.draw'] and re.fullmatch(PATTERNS['IS_FLOAT'], results['power.draw']):
                     power = float(results['power.draw'])
                 else:
+                    self.disable_param_read('power')
+                    self.disable_param_read('energy')
                     power = None
                 self.set_params_value('power', power)
             elif param_name == 'pstates':
