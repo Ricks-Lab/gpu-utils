@@ -1408,6 +1408,7 @@ class GpuItem:
 
     def update_table_items_status(self) -> None:
         """
+        Update the readable status of table related parameters.
 
         :return:
         """
@@ -1648,9 +1649,11 @@ class GpuItem:
 
     def get_key_description(self, filename: str) -> Tuple[str, str]:
         """
+        Used in the printing of raw reading of GPU.  It adds details about key word and descriptions for
+        file found in driver related paths.
 
-        :param filename:
-        :return:
+        :param filename: Name of driver file.
+        :return: Tuple of the key and description as color annotated strings.
         """
         if filename == 'pp_od_clk_voltage': return 'pp_od_clk_voltage', '\x1b[1;36mread/write driver file\x1b[0m'
         for (gpu_vendor, sensor_dict) in self._sensor_details.items():
@@ -1675,6 +1678,7 @@ class GpuItem:
 
     def print_raw(self) -> None:
         """
+        Formatted print of raw read of all available GPU driver files.
 
         :return:
         """
@@ -2386,8 +2390,7 @@ class GpuList:
 
     def read_raw_sensors(self) -> None:
         """
-
-        :return:
+        Raw read of all driver files for all GPUs.
         """
         for gpu in self.gpus():
             gpu.read_raw_sensors()
@@ -2434,6 +2437,9 @@ class GpuList:
 
     # Printing Methods follow.
     def print_raw(self) -> None:
+        """
+        Print raw read data for all GPUs.
+        """
         for gpu in self.gpus():
             gpu.print_raw()
 
@@ -2584,6 +2590,7 @@ class GpuList:
 # Utility Helper Functions
 def print_gpu_rw_summary(gpu_list: GpuList) -> None:
     """
+    Print formatted display of all GPU read/write status.
 
     :param gpu_list:
     :return:
@@ -2595,7 +2602,7 @@ def print_gpu_rw_summary(gpu_list: GpuList) -> None:
 
 def print_driver_vendor_summary(gpu_list: GpuList) -> None:
     """
-    Display vendor and driver details
+    Display vendor and driver details.
 
     :param gpu_list:
     :return:
@@ -2617,13 +2624,13 @@ def print_driver_vendor_summary(gpu_list: GpuList) -> None:
 
 def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
     """
+    Function to select only Monitor/Plot compatible GPUs.
 
-    :return:
+    :return: The resultant list of GPUs
     """
     com_gpu_list = gpu_list.list_gpus(compatibility=GpuItem.GPU_Comp.Readable)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Unsupported, reverse=True)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Undefined, reverse=True)
-    #com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.LegacyAPU, reverse=True)
 
     return com_gpu_list
 

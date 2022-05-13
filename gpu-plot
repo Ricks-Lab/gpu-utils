@@ -53,6 +53,7 @@ import os
 import logging
 from time import sleep
 import numpy as np
+import warnings
 
 try:
     import gi
@@ -88,6 +89,8 @@ from GPUmodules import __version__, __status__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
@@ -222,7 +225,12 @@ class GuiComponents:
                        GPUgui.GuiProps.color_name_to_hex('teal'),
                        GPUgui.GuiProps.color_name_to_hex('olive')]
 
-    def __init__(self, plot_data):
+    def __init__(self, plot_data: PlotData):
+        """
+        Initialize GUI Components to support plot window.
+
+        :param plot_data:
+        """
         plot_data.gui_comp = self
         self.ready = False
         self.gpu_name_list = plot_data.gpu_name_list
@@ -294,9 +302,15 @@ class GuiComponents:
 
 class GPUPlotWindow(Gtk.Window):
     """
-    Plot window.
+    Plot window object.
     """
     def __init__(self, gc: GuiComponents, plot_data: PlotData):
+        """
+        Initialize and open the plot Window.
+
+        :param gc:
+        :param plot_data:
+        """
         init_chk_value = Gtk.init_check(sys.argv)
         LOGGER.debug('init_check: %s', init_chk_value)
         if not init_chk_value[0]:
@@ -563,12 +577,12 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                 plot_limits.update({axis_name: {'min': None, 'max': None}})
                 for test_item in plot_items:
                     if active_gpu.table_parameters_status[test_item]: active_plot_items.append(test_item)
-                    if axis_name == 'ax1':
-                        max_val = 10*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 10) + 10
-                        min_val = 10*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 10) - 5
-                    else:
-                        max_val = 100*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 100) + 300
-                        min_val = 100*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 100) - 100
+                if axis_name == 'ax1':
+                    max_val = 10*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 10) + 10
+                    min_val = 10*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 10) - 5
+                else:
+                    max_val = 100*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 100) + 300
+                    min_val = 100*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 100) - 100
                 if not plot_limits[axis_name]['min'] or min_val < plot_limits[axis_name]['min']:
                     plot_limits[axis_name]['min'] = min_val
                 if not plot_limits[axis_name]['max'] or max_val > plot_limits[axis_name]['max']:
@@ -900,7 +914,6 @@ def main() -> None:
     while len(plot_data.df.index) < 4:
         valid_items = []
         for gpu in plot_data.com_gpu_list:
-            #valid_items = []
             for plot_num, item_list in plot_data.plot_list.items():
                 for test_item in item_list:
                     if gpu.table_parameters_status[test_item] and test_item not in valid_items:
