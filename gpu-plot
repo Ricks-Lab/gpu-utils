@@ -118,6 +118,9 @@ class PlotData:
     """
     Plot data object.
     """
+    plot_list = {'ax1': ['loading', 'power_cap', 'power', 'temp_val'],
+                 'ax2': ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']}
+
     def __init__(self):
         self.df = pd.DataFrame()
         self.pcie_dict = {}
@@ -502,7 +505,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
     ldf = plot_data.df
     y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
-    if True:
+    try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
         # Update Bar Plots
@@ -553,35 +556,32 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         active_gpu = plot_data.com_gpu_list.select_gpu(int(l))
         # Setting limits may be based on all data
         y1_items = []
-        for test_y1_items in ['loading', 'power_cap', 'power', 'temp_val']:
-            if active_gpu.table_parameters_status[test_y1_items]: y1_items.append(test_y1_items)
+        for test_items in plot_data.plot_list['ax1']:
+            if active_gpu.table_parameters_status[test_items]: y1_items.append(test_items)
         if y1_items:
             y1lim_max_val = 10*(np.nanmax(ldf.loc[:, y1_items]).max() // 10) + 10
             y1lim_min_val = 10*(np.nanmin(ldf.loc[:, y1_items]).min() // 10) - 5
-        print('y1_items: {}'.format(y1_items))
         y2_items = []
-        for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
-            if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
+        for test_items in plot_data.plot_list['ax2']:
+            if active_gpu.table_parameters_status[test_items]: y2_items.append(test_items)
         if y2_items:
             y2lim_max_val = 100*(np.nanmax(ldf.loc[:, y2_items]).max() // 100) + 300
             y2lim_min_val = 100*(np.nanmin(ldf.loc[:, y2_items]).min() // 100) - 100
-        print('y2_items: {}'.format(y2_items))
 
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
-            print('comp_num: {}'.format(comp_num))
             data_val = ldf[ldf['Card#'].isin([comp_num])]['energy'].iloc[-1]
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
                                               comp_num, plot_data.get_gpu_pcieid(comp_num), model_val[:30], data_val))
 
             # Select plot items with data
-            active_gpu = plot_data.com_gpu_list.select_gpu(int(l))
+            active_gpu = plot_data.com_gpu_list.select_gpu(comp_num)
             y1_items = []
-            for test_y1_items in ['loading', 'power_cap', 'power', 'temp_val']:
-                if active_gpu.table_parameters_status[test_y1_items]: y1_items.append(test_y1_items)
+            for test_items in plot_data.plot_list['ax1']:
+                if active_gpu.table_parameters_status[test_items]: y1_items.append(test_items)
             y2_items = []
-            for test_y2_items in ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']:
-                if active_gpu.table_parameters_status[test_y2_items]: y2_items.append(test_y2_items)
+            for test_items in plot_data.plot_list['ax2']:
+                if active_gpu.table_parameters_status[test_items]: y2_items.append(test_items)
 
             # Plot GPUs
             plt.figure(comp_item['figure_num'])
@@ -625,14 +625,14 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
             comp_item['canvas'].draw()
             comp_item['canvas'].flush_events()
-    #except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
-        #LOGGER.exception('plot exception: %s', err)
-        #LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
-        #LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
-        #LOGGER.debug('ticker increment: %s', tick_inc)
-        #print('matplotlib error: {}'.format(err))
-        #print('matplotlib error, stack size is {}'.format(get_stack_size()))
-        #plot_data.kill_thread()
+    except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
+        LOGGER.exception('plot exception: %s', err)
+        LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
+        LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
+        LOGGER.debug('ticker increment: %s', tick_inc)
+        print('matplotlib error: {}'.format(err))
+        print('matplotlib error, stack size is {}'.format(get_stack_size()))
+        plot_data.kill_thread()
 
     # SEMAPHORE ###########
     PD_SEM.release()
@@ -906,17 +906,19 @@ def main() -> None:
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
     i = 0
     while len(plot_data.df.index) < 4:
-        try:
-            if (plot_data.df['model_display'].values[-1] in [None, 'None', np.nan] or
-                    plot_data.df['loading'].values[-1] in [None, 'None', np.nan]):
-                pass
-                #plot_data.kill_thread()
-                #PD_SEM.acquire()
-                #PD_SEM.release()
-                #print('Insufficient valid data: Exiting')
-                #break
-        except:
-            pass
+        valid_items = []
+        for gpu in plot_data.com_gpu_list:
+            #valid_items = []
+            for plot_num, item_list in plot_data.plot_list.items():
+                for test_item in item_list:
+                    if gpu.table_parameters_status[test_item] and test_item not in valid_items:
+                        valid_items.append(test_item)
+        if not valid_items:
+            plot_data.kill_thread()
+            PD_SEM.acquire()
+            PD_SEM.release()
+            print('Insufficient valid data: Exiting')
+            break
         print('.', end='', flush=True)
         sleep(args.sleep/2.0)
     print('')
