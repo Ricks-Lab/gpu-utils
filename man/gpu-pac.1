@@ -1,4 +1,4 @@
-.TH GPU\-PAC 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
+.TH GPU\-PAC 1 "May 2022" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
 gpu-pac \- program and control compatible GPUs
@@ -8,7 +8,7 @@ gpu-pac \- program and control compatible GPUs
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B gpu-pac
-.RB [ \-\-execute_pac "] [" \-\-no_fan "] [" \-\-force_write "] [" \-\-debug "]
+.RB [ \-\-execute_pac "] [" \-\-no_fan "] [" \-\-force_write "] [" \-\-debug "] [" \-\-verbose "]"
 
 .SH DESCRIPTION
 .B gpu-pac
@@ -20,7 +20,8 @@ used to execute commands in the bash file, as a result, you will be prompted for
 in the terminal where you executed \fBgpu-pac\fR. The \fB--no_fan\fR option can be used to
 eliminate fan details from the utility. The \fB--force_write\fR option can be used to force
 all configuration parameters to be written to the GPU.  The default behavior is to only
-write changes.
+write changes.  Finally, the \fB--verbose\fR option will result in informational messages
+to be displayed.
 
 .SH OPTIONS
 .TP
@@ -40,6 +41,9 @@ GPU operating conditions.
 .BR " \-\-force_write"
 Will result in all parameters being writen to the selected GPU/GPUs instead of the default behavior of
 only writing changes.
+.TP
+.BR " \-\-verbose"
+Display informational messages generated during execution.
 .TP
 .BR " \-\-debug"
 Will output additional useful debug/troubleshooting details to a log file.
@@ -76,7 +80,7 @@ provides support of the GPUs you have installed.  If using AMD GPUs, installing 
 driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
 GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
 to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+cards and with the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing sudo update-grub.
 

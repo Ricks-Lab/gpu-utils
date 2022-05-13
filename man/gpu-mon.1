@@ -1,4 +1,4 @@
-.TH GPU\-MON 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
+.TH GPU\-MON 1 "May 2022" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
 gpu-mon \- continuously update a table with the state of all compatible GPUs
@@ -8,7 +8,7 @@ gpu-mon \- continuously update a table with the state of all compatible GPUs
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B gpu-mon
-.RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "]
+.RB [ \-\-gui "] [" \-\-no_fan "] [" \-\-plot "] [" \-\-ltz "] [" \-\-sleep " \fIN\fP] [" \-\-debug "] [" \-\-pdebug "] [" \-\-verbose"]"
 
 .SH DESCRIPTION
 .B gpu-mon
@@ -24,7 +24,8 @@ the window with a message that includes the log file name. The \fB--plot\fR will
 plot of critical GPU parameters which updates at the specified \fB--sleep N\fR interval. If
 you need both the plot and monitor displays, then using the \fB--plot\fR option is preferred
 over running both tools as a single read of the GPUs is used to update both displays.
-The \fB--ltz\fR option results in the use of local time instead of UTC.
+The \fB--ltz\fR option results in the use of local time instead of UTC.  Finally, the
+\fB--verbose\fR option will result in informational messages to be displayed.
 
 .SH OPTIONS
 .TP
@@ -53,6 +54,9 @@ Open and write to, \fBgpu-plot\fR, the gpu-util plotting utility.
 .TP
 .BR " \-\-sleep " \fIN\fR
 Specifies N, the number of seconds to sleep between updates.
+.TP
+.BR " \-\-verbose"
+Display informational messages generated during execution.
 .TP
 .BR " \-\-debug"
 Will output additional useful debug/troubleshooting details to a log file.
@@ -91,7 +95,7 @@ provides support of the GPUs you have installed.  If using AMD GPUs, installing 
 driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
 GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
 to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+cards and with the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing sudo update-grub.
 

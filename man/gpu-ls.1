@@ -1,4 +1,4 @@
-.TH GPU\-LS 1 "June 2020" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
+.TH GPU\-LS 1 "May 2022" "rickslab-gpu-utils" "Ricks-Lab GPU Utilities"
 .nh
 .SH NAME
 gpu-ls \- display details about compatible GPU cards
@@ -11,7 +11,10 @@ gpu-ls \- display details about compatible GPU cards
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B gpu-ls
-.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "]
+.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "] [" \-\-raw "]
+.br
+.B gpu-ls
+.RB [ \-\-force_all "] [" \-\-verbose "]"
 
 .SH DESCRIPTION
 .B gpu-ls
@@ -23,6 +26,11 @@ GPU state is displayed with the \fB--table\fR option. The \fB--no_fan\fR can be 
 ignore fan settings.  The \fB--pstate\fR option can be used to output the p-state table
 for each GPU instead of the list of basic parameters.  The \fB--ppm\fR option is used
 to output the table of available power/performance modes instead of basic parameters.
+The \fB--force_all\fR option will result in the attempt read of all of the sensors defined
+in \fBrickslab-gpu-utils\fR.  The  \fB--raw\fR option will attempt to read all possible
+driver files and display a lightly formatted version of the results.  Finally, the
+\fB--verbose\fR option will result in informational messages to be displayed.
+
 
 .SH OPTIONS
 .TP
@@ -43,11 +51,22 @@ Will display short list of key descriptive parameters for each installed GPU.
 .BR " \-\-table"
 Will display table of basic GPU parameters.
 .TP
+.BR " \-\-raw"
+Will display a summary from the reading of all driver files, evening those not
+used by \fBrickslab-gpu-utils\fR. The output will indicate which sensors are
+used and the contents of all driver files that are readable.
+.TP
 .BR " \-\-ppm"
 Will display descriptions of available power performance modes.
 .TP
 .BR " \-\-pstates"
 Will display P-state table for system and memory clocks.
+.TP
+.BR " \-\-force_all"
+Forces the read of all configured sensors and includes a summary of sensors that could not be read.
+.TP
+.BR " \-\-verbose"
+Display informational messages generated during execution.
 .TP
 .BR " \-\-debug"
 Will output additional useful debug/troubleshooting details to a log file.
@@ -69,10 +88,11 @@ Vddc range, current GPU loading, memory details, link speed, link width, current
 current Sclk frequency, Sclk range, current Mclk p-state, current Mclk frequency,
 Mclk range, power performance mode, and power force performance level.
 .P
-.B gpu-ls \-\-short
+.B gpu-ls \-\-short \-\-verbose
 
 .fi
-This will produce a short list of key descriptive parameters for each installed GPU.
+This will produce a short list of key descriptive parameters for each installed GPU.  Informational
+messages on utility execution will be displayed before the GPU summary output.
 .P
 .B gpu-ls \-\-clinfo
 
@@ -90,6 +110,14 @@ Instead of the basic parameters, a table of power/performance modes is displayed
 .fi
 Instead of the basic parameters, a table of power states or curve points is displayed.
 .P
+.B gpu-ls \-\-raw
+
+.fi
+This option will probe all possible driver files and display a summary that shows the results
+of reading the files.  If the driver file used by the utility, then the utility keyword and
+description will be included in the output colored green.  Details read from each file are displayed
+in cyan.
+.P
 
 .SH CONFIGURATION
 In order to get maximum capability of these utilities, you should be running with a kernel that
@@ -97,7 +125,7 @@ provides support of the GPUs you have installed.  If using AMD GPUs, installing 
 driver package or the latest ROCm release, may provide additional capabilities. If you have Nvidia
 GPUs installed, nvidia-smi must also be installed in order for the utility reading of the cards
 to be possible.  Writing to GPUs is currently only possible for AMD GPUs, and only with compatible
-cards and with the the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
+cards and with the AMD ppfeaturemask set to 0xfffd7fff. This can be accomplished by adding
 amdgpu.ppfeaturemask=0xfffd7fff to the GRUB_CMDLINE_LINUX_DEFAULT value in
 /etc/default/grub and executing sudo update-grub.
 
