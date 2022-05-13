@@ -504,7 +504,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     PD_SEM.acquire()
     #######################
     ldf = plot_data.df
-    y1lim_max_val = y1lim_min_val = y2lim_max_val = y2lim_min_val = tick_inc = None
+    tick_inc = None
+    plot_limits = {}
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
@@ -553,20 +554,25 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
             comp_item['canvas'].flush_events()
 
         # Update GPU Plots
-        active_gpu = plot_data.com_gpu_list.select_gpu(int(l))
         # Setting limits may be based on all data
-        y1_items = []
-        for test_items in plot_data.plot_list['ax1']:
-            if active_gpu.table_parameters_status[test_items]: y1_items.append(test_items)
-        if y1_items:
-            y1lim_max_val = 10*(np.nanmax(ldf.loc[:, y1_items]).max() // 10) + 10
-            y1lim_min_val = 10*(np.nanmin(ldf.loc[:, y1_items]).min() // 10) - 5
-        y2_items = []
-        for test_items in plot_data.plot_list['ax2']:
-            if active_gpu.table_parameters_status[test_items]: y2_items.append(test_items)
-        if y2_items:
-            y2lim_max_val = 100*(np.nanmax(ldf.loc[:, y2_items]).max() // 100) + 300
-            y2lim_min_val = 100*(np.nanmin(ldf.loc[:, y2_items]).min() // 100) - 100
+        plot_limits = {}
+        for comp_num in gc.gui_components['card_plots'].keys():
+            active_gpu = plot_data.com_gpu_list.select_gpu(comp_num)
+            for axis_name, plot_items in plot_data.plot_list.items():
+                active_plot_items = []
+                plot_limits.update({axis_name: {'min': None, 'max': None}})
+                for test_item in plot_items:
+                    if active_gpu.table_parameters_status[test_item]: active_plot_items.append(test_item)
+                    if axis_name == 'ax1':
+                        max_val = 10*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 10) + 10
+                        min_val = 10*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 10) - 5
+                    else:
+                        max_val = 100*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 100) + 300
+                        min_val = 100*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 100) - 100
+                if not plot_limits[axis_name]['min'] or min_val < plot_limits[axis_name]['min']:
+                    plot_limits[axis_name]['min'] = min_val
+                if not plot_limits[axis_name]['max'] or max_val > plot_limits[axis_name]['max']:
+                    plot_limits[axis_name]['max'] = max_val
 
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([comp_num])]['energy'].iloc[-1]
@@ -576,59 +582,45 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
             # Select plot items with data
             active_gpu = plot_data.com_gpu_list.select_gpu(comp_num)
-            y1_items = []
-            for test_items in plot_data.plot_list['ax1']:
-                if active_gpu.table_parameters_status[test_items]: y1_items.append(test_items)
-            y2_items = []
-            for test_items in plot_data.plot_list['ax2']:
-                if active_gpu.table_parameters_status[test_items]: y2_items.append(test_items)
+            for axis_name, plot_items in plot_data.plot_list.items():
+                active_plot_items = []
+                for test_item in plot_items:
+                    if active_gpu.table_parameters_status[test_item]: active_plot_items.append(test_item)
+                if not active_plot_items:
+                    continue
 
-            # Plot GPUs
-            plt.figure(comp_item['figure_num'])
-            comp_item['ax1'].set_xticklabels([])
-            comp_item['ax1'].clear()
-            comp_item['ax1'].set_ylabel('Loading/Power/Temp',
-                                        color=GPUgui.GuiProps.color_name_to_hex('white_off'), fontsize=10)
-            for plot_item in y1_items:
-                if gc.plot_items[plot_item]:
-                    comp_item['ax1'].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
-                                          ldf[ldf['Card#'].isin([comp_num])][plot_item],
-                                          color=gc.get_color(plot_item), linewidth=0.5)
-                    comp_item['ax1'].text(x=ldf[ldf['Card#'].isin([comp_num])]['datetime'].iloc[-1],
-                                          y=ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1],
-                                          s=str(int(ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])),
-                                          bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)),
-                                          fontsize=6)
+                # Plot GPUs
+                plt.figure(comp_item['figure_num'])
+                axis_label = 'Loading/Power/Temp' if axis_name == 'ax1' else 'MHz/mV'
+                axis_label_col = 'white_off' if axis_name == 'ax1' else 'gray95'
+                comp_item[axis_name].clear()
+                comp_item[axis_name].set_xticklabels([])
+                comp_item[axis_name].set_ylabel(axis_label,
+                                                color=GPUgui.GuiProps.color_name_to_hex(axis_label_col), fontsize=10)
+                for plot_item in active_plot_items:
+                    if gc.plot_items[plot_item]:
+                        comp_item[axis_name].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
+                                                  ldf[ldf['Card#'].isin([comp_num])][plot_item],
+                                                  color=gc.get_color(plot_item), linewidth=0.5)
+                        comp_item[axis_name].text(x=ldf[ldf['Card#'].isin([comp_num])]['datetime'].iloc[-1],
+                                                  y=ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1],
+                                                  s=str(int(ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])),
+                                                  bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)),
+                                                  fontsize=6)
 
-            comp_item['ax2'].clear()
-            comp_item['ax2'].set_xticklabels([])
-            comp_item['ax2'].set_ylabel('MHz/mV', color=GPUgui.GuiProps.color_name_to_hex('gray95'), fontsize=10)
-            for plot_item in y2_items:
-                if gc.plot_items[plot_item]:
-                    if np.isnan((ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])):
-                        continue
-                    comp_item['ax2'].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
-                                          ldf[ldf['Card#'].isin([comp_num])][plot_item],
-                                          color=gc.get_color(plot_item), linewidth=0.5)
-                    comp_item['ax2'].text(x=ldf[ldf['Card#'].isin([comp_num])]['datetime'].iloc[-1],
-                                          y=ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1],
-                                          s=str(int(ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])),
-                                          bbox=dict(boxstyle='round,pad=0.2', facecolor=gc.get_color(plot_item)),
-                                          fontsize=6)
+                # Set axis range and tick increments
+                tick_inc = int(10 * round(((plot_limits[axis_name]['max'] - plot_limits[axis_name]['min']) // 12)/10.0, 0))
+                if axis_name == 'ax1':
+                    if tick_inc < 5: tick_inc = 5
+                else:
+                    if tick_inc < 50: tick_inc = 50
+                comp_item[axis_name].set_yticks(np.arange(plot_limits[axis_name]['min'], plot_limits[axis_name]['max'], tick_inc))
 
-            tick_inc = int(10 * round(((y1lim_max_val - y1lim_min_val) // 12)/10.0, 0))
-            if tick_inc < 5: tick_inc = 5
-            comp_item['ax1'].set_yticks(np.arange(y1lim_min_val, y1lim_max_val, tick_inc))
-            tick_inc = int(100 * round(((y2lim_max_val - y2lim_min_val) // 12)/100.0, 0))
-            if tick_inc < 50: tick_inc = 50
-            comp_item['ax2'].set_yticks(np.arange(y2lim_min_val, y2lim_max_val, tick_inc))
-
-            comp_item['canvas'].draw()
-            comp_item['canvas'].flush_events()
+                comp_item['canvas'].draw()
+                comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
         LOGGER.exception('plot exception: %s', err)
-        LOGGER.debug('AX1 min_max: %s %s', y1lim_max_val, y1lim_min_val)
-        LOGGER.debug('AX2 min_max: %s %s', y2lim_max_val, y2lim_min_val)
+        LOGGER.debug('Plot limits min_max: %s', plot_limits)
         LOGGER.debug('ticker increment: %s', tick_inc)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
