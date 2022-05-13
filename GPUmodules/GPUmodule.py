@@ -715,9 +715,7 @@ class GpuItem:
         """
         if name == 'read_time':
             if 'energy' in self.read_disabled or 'power' in self.read_disabled:
-                print('{}: {}'.format('read_time', str(self.read_time)))
                 return self.read_time
-            print('{}: {}'.format('energy_time', str(self.energy['tn'])))
             return self.energy['tn']
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
@@ -1414,10 +1412,10 @@ class GpuItem:
         :return:
         """
         for table_item, status in self.table_parameters_status.items():
-            print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
+            if env.GUT_CONST.verbose:
+                print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
             if self.get_params_value(table_item) in [None, '', np_nan]:
                 self.table_parameters_status[table_item] = False
-        print(self.table_parameters_status)
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
         """
