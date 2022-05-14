@@ -53,8 +53,8 @@ import threading
 import os
 import logging
 from time import sleep
-import numpy as np
 import warnings
+import numpy as np
 
 try:
     import gi
@@ -911,11 +911,10 @@ def main() -> None:
         threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)
-    i = 0
     while len(plot_data.df.index) < 4:
         valid_items = []
         for gpu in plot_data.com_gpu_list:
-            for plot_num, item_list in plot_data.plot_list.items():
+            for item_list in plot_data.plot_list.values():
                 for test_item in item_list:
                     if gpu.table_parameters_status[test_item] and test_item not in valid_items:
                         valid_items.append(test_item)
