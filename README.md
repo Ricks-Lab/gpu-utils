@@ -118,11 +118,11 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Check for OSError when reading from all sensor files.  Disable sensor reading on error.
 * Check for system type.  Only systemD is fully supported.  Issues in reading sockets in systemV are handled.
 * Added read of Power DPM State for AMD GPUs.
-* Make read for a parameter False instead of indicating card is not readable.
-* Add option *--force_all* to attempt to read all relevant sensors, regardless of card classification.
-* Improve error message handling.  Minor (expected) errors suppressed unless *--verbose* is specified.  GPU output will indicate all sensors that were disabled due to read errors.
-* Implemented *gpu-ls --raw* to give a raw view of the content of all available driver files.
-* Enable plot function for GPUs with incomplete driver coverage.
+* On read error, make read for the parameter False instead of indicating card is not readable.
+* Add `gpu-ls` option *--force_all* to attempt to read all relevant sensors, regardless of card classification.
+* Improve error message handling.  Minor (expected) errors are suppressed unless *--verbose* is specified.  GPU output will indicate all sensors that were disabled due to read errors.
+* Implemented `gpu-ls` option *--raw* to give a summary view of the content of all available driver files.
+* Enable `gpu-plot` and `gpu-mon` capability to include GPUs with incomplete driver coverage.
 
 ## Development Plans
 
