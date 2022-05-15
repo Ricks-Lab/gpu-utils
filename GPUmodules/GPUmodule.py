@@ -106,7 +106,7 @@ class GpuItem:
                               'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id')
 
     # List of parameters for non-compatible AMD GPUs.
-    _GPU_NC_Param_List: List[str] = [*short_list, 'model', 'driver', 'model_device_decode']
+    _GPU_NC_Param_List: Tuple[str] = (*short_list, 'model', 'driver', 'model_device_decode')
 
     # Vendor and Type skip lists for reporting
     AMD_Skip_List: Tuple[str] = ('frequencies_max', 'compute_mode', 'serial_number', 'card_index')
