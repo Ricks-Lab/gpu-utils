@@ -2116,11 +2116,18 @@ class GpuList:
                         gpu_type = GpuItem.GPU_Type.Unsupported
                         writable = False
                     else:
-                        LOGGER.debug('%s exists, read/write/Supported set.', pp_od_clk_voltage_file)
-                        gpu_type = GpuItem.GPU_Type.Supported
-                        readable = True
-                        if self.amd_writable:
-                            writable = True
+                        LOGGER.debug('%s exists, opened, and read.', pp_od_clk_voltage_file)
+                        if not pp_od_file_details:
+                            LOGGER.debug('%s exists, but empty on read.', pp_od_clk_voltage_file)
+                            gpu_type = GpuItem.GPU_Type.Unsupported
+                            readable = True
+                            writable = False
+                        else:
+                            LOGGER.debug('%s exists, and is readable.', pp_od_clk_voltage_file)
+                            gpu_type = GpuItem.GPU_Type.Supported
+                            readable = True
+                            if self.amd_writable:
+                                writable = True
                     finally:
                         LOGGER.debug('%s contents:\n%s', pp_od_clk_voltage_file, pp_od_file_details)
                 if GpuItem.is_apu(gpu_name):
