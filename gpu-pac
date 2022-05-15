@@ -126,37 +126,38 @@ class PACWindow(Gtk.Window):
 
             # Card Power Cap
             power_cap_range = gpu.get_params_value('power_cap_range')
-            devices[gpu.prm.uuid]['power_cap'] = Gtk.Label(name='white_label')
-            devices[gpu.prm.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
-                                                          power_cap_range[0], power_cap_range[1]))
-            set_gtk_prop(devices[gpu.prm.uuid]['power_cap'], align=(0.0, 0.5), top=1, bottom=1, right=4, left=4)
-            lbox = Gtk.Box(spacing=6, name='dark_box')
-            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-            lbox.pack_start(devices[gpu.prm.uuid]['power_cap'], True, True, 0)
-            grid.attach(lbox, col, row, 1, 1)
-            row += 1
+            if 'power_cap' not in gpu.read_disabled and (power_cap_range and None not in power_cap_range):
+                devices[gpu.prm.uuid]['power_cap'] = Gtk.Label(name='white_label')
+                devices[gpu.prm.uuid]['power_cap'].set_markup('<b>Power Cap: </b> Range ({} - {} W)'.format(
+                                                              power_cap_range[0], power_cap_range[1]))
+                set_gtk_prop(devices[gpu.prm.uuid]['power_cap'], align=(0.0, 0.5), top=1, bottom=1, right=4, left=4)
+                lbox = Gtk.Box(spacing=6, name='dark_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+                lbox.pack_start(devices[gpu.prm.uuid]['power_cap'], True, True, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
-            # Card Power Cap Value and Entry
-            devices[gpu.prm.uuid]['power_cap_cur'] = Gtk.Label(name='white_label')
-            set_gtk_prop(devices[gpu.prm.uuid]['power_cap_cur'], top=1, bottom=1, right=2, left=2)
-            devices[gpu.prm.uuid]['power_cap_ent'] = Gtk.Entry()
-            set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent'], top=1, bottom=1, right=0, left=2, xalign=1,
-                         width_chars=5, max_length=5)
-            devices[gpu.prm.uuid]['power_cap_ent_unit'] = Gtk.Label(name='white_label')
-            devices[gpu.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
-            set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0,
-                         align=(0.0, 0.5))
-            lbox = Gtk.Box(spacing=2, name='med_box')
-            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-            lbox.pack_start(devices[gpu.prm.uuid]['power_cap_cur'], False, False, 0)
-            lbox.pack_start(devices[gpu.prm.uuid]['power_cap_ent'], False, False, 0)
-            lbox.pack_start(devices[gpu.prm.uuid]['power_cap_ent_unit'], False, False, 0)
-            grid.attach(lbox, col, row, 1, 1)
-            row += 1
+                # Card Power Cap Value and Entry
+                devices[gpu.prm.uuid]['power_cap_cur'] = Gtk.Label(name='white_label')
+                set_gtk_prop(devices[gpu.prm.uuid]['power_cap_cur'], top=1, bottom=1, right=2, left=2)
+                devices[gpu.prm.uuid]['power_cap_ent'] = Gtk.Entry()
+                set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent'], top=1, bottom=1, right=0, left=2, xalign=1,
+                             width_chars=5, max_length=5)
+                devices[gpu.prm.uuid]['power_cap_ent_unit'] = Gtk.Label(name='white_label')
+                devices[gpu.prm.uuid]['power_cap_ent_unit'].set_text('W   (value or \'reset\')')
+                set_gtk_prop(devices[gpu.prm.uuid]['power_cap_ent_unit'], top=1, bottom=1, right=0, left=0,
+                             align=(0.0, 0.5))
+                lbox = Gtk.Box(spacing=2, name='med_box')
+                set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+                lbox.pack_start(devices[gpu.prm.uuid]['power_cap_cur'], False, False, 0)
+                lbox.pack_start(devices[gpu.prm.uuid]['power_cap_ent'], False, False, 0)
+                lbox.pack_start(devices[gpu.prm.uuid]['power_cap_ent_unit'], False, False, 0)
+                grid.attach(lbox, col, row, 1, 1)
+                row += 1
 
-            if env.GUT_CONST.show_fans:
+            fan_pwm_range = gpu.get_params_value('fan_pwm_range')
+            if env.GUT_CONST.show_fans and fan_pwm_range and None not in fan_pwm_range:
                 # Fan PWM Value
-                fan_pwm_range = gpu.get_params_value('fan_pwm_range')
                 devices[gpu.prm.uuid]['fan_pwm_range'] = Gtk.Label(name='white_label')
                 devices[gpu.prm.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
                                                                   fan_pwm_range[0], fan_pwm_range[1]))
@@ -1309,6 +1310,10 @@ def main() -> None:
 
     # Select GPU's appropriate for monitor
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Writable)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Unsupported, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Undefined, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.LegacyAPU, reverse=True)
+    com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.APU, reverse=True)
 
     # Check number of compatible GPUs again
     writable_gpus = com_gpu_list.num_gpus()['total']
