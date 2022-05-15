@@ -632,8 +632,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                     if tick_inc < 50: tick_inc = 50
                 comp_item[axis_name].set_yticks(np.arange(plot_limits[axis_name]['min'], plot_limits[axis_name]['max'], tick_inc))
 
-                comp_item['canvas'].draw()
-                comp_item['canvas'].flush_events()
+            comp_item['canvas'].draw()
+            comp_item['canvas'].flush_events()
     except (OSError, ArithmeticError, NameError, TypeError, ValueError) as err:
         LOGGER.exception('plot exception: %s', err)
         LOGGER.debug('Plot limits min_max: %s', plot_limits)
