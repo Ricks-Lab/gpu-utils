@@ -53,6 +53,7 @@ import threading
 import os
 import logging
 from time import sleep
+from typing import Dict, Tuple
 import warnings
 import numpy as np
 
@@ -122,8 +123,8 @@ class PlotData:
     """
     Plot data object.
     """
-    plot_list = {'ax1': ['loading', 'power_cap', 'power', 'temp_val'],
-                 'ax2': ['vddgfx_val', 'sclk_f_val', 'mclk_f_val']}
+    plot_list: Dict[str, Tuple[str]] = {'ax1': ('loading', 'power_cap', 'power', 'temp_val'),
+                                        'ax2': ('vddgfx_val', 'sclk_f_val', 'mclk_f_val')}
 
     def __init__(self):
         self.df = pd.DataFrame()

@@ -40,7 +40,7 @@ import shlex
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, List, TextIO
+from typing import Dict, Union, List, TextIO, Tuple
 from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -50,12 +50,12 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros: List[str] = ['Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch']
-    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg',
+    _verified_distros: Tuple[str] = ('Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan')
+    _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg', 'Devuan': 'dpkg',
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
-    _all_args: List[str] = ['execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
-                            'force_all', 'force_write', 'verbose']
+    _all_args: Tuple[str] = ('execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
+                             'force_all', 'force_write', 'verbose')
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
@@ -82,7 +82,7 @@ class GutConst:
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    _sys_pciid_list: List[str] = ['/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids']
+    _sys_pciid_list: Tuple[str] = ('/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids')
     _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
     _repository_path: str = os.path.join(_module_path, '..')
     _local_config_list: Dict[str, str] = {
