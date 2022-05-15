@@ -870,13 +870,13 @@ class GpuItem:
                 self.prm.gpu_type = source_value
                 if source_value == GpuItem.GPU_Type.Legacy:
                     if not env.GUT_CONST.force_all:
-                        self.read_disabled = GpuItem.LEGACY_Skip_List[:]
+                        self.read_disabled = list(GpuItem.LEGACY_Skip_List[:])
                 elif source_value == GpuItem.GPU_Type.Modern:
                     if not env.GUT_CONST.force_all:
-                        self.read_disabled = GpuItem.MODERN_Skip_List[:]
+                        self.read_disabled = list(GpuItem.MODERN_Skip_List[:])
                 elif source_value == GpuItem.GPU_Type.APU:
                     if not env.GUT_CONST.force_all:
-                        self.read_disabled = GpuItem.MODERN_Skip_List[:]
+                        self.read_disabled = list(GpuItem.MODERN_Skip_List[:])
 
         # Compute platform requires that compute bool be set first
         if set_ocl_ver:
