@@ -93,6 +93,7 @@ class GpuItem:
                                       'data':   '\033[36m',
                                       'warn':   '\033[33m',
                                       'good':   '\033[32m',
+                                      'red':    '\033[31m',
                                       'amd':    '\033[1;37;41m',
                                       'nvidia': '\033[1;30;42m',
                                       'other':  '\033[1;37;44m',
@@ -266,7 +267,7 @@ class GpuItem:
                                             'DEVICE': ['loading', 'mem_loading', 'mem_gtt_used', 'mem_vram_used',
                                                        'sclk_ps', 'mclk_ps', 'ppm']},
                    SensorSet.All:          {'DEVICE': ['unique_id', 'vbios', 'loading', 'mem_loading',
-                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps',
+                                                       'link_spd', 'link_wth', 'sclk_ps', 'mclk_ps', 'pstates',
                                                        'ppm', 'power_dpm_force', 'power_dpm_state',
                                                        'mem_vram_total', 'mem_gtt_total',
                                                        'mem_vram_used', 'mem_gtt_used'],
@@ -275,7 +276,8 @@ class GpuItem:
                                                        'fan_speed_range', 'fan_pwm_range', 'fan_enable', 'fan_target',
                                                        'fan_speed', 'pwm_mode', 'fan_pwm']}}
 
-    SensorType = Enum('type', 'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS')
+    SensorType = Enum('type',
+                      'SingleParam SingleString SingleStringSelect MinMax MLSS InputLabel InputLabelX MLMS AllPStates')
     _gbcf: float = 1.0/(1024*1024*1024)
     _sensor_details = {GPU_Vendor.AMD: {
                                'HWMON': {
@@ -335,6 +337,8 @@ class GpuItem:
                                                        'cf': None, 'sensor': ('pp_dpm_sclk', )},
                                    'mclk_ps':         {'type': SensorType.MLSS,
                                                        'cf': None, 'sensor': ('pp_dpm_mclk', )},
+                                   'pstates':         {'type': SensorType.AllPStates,
+                                                       'cf': None, 'sensor': ('pp_dpm_*clk', )},
                                    'power_dpm_state': {'type': SensorType.SingleString,
                                                        'cf': None,
                                                        'sensor': ('power_dpm_state', )},
@@ -519,6 +523,7 @@ class GpuItem:
             'max_wg_size': '',
             'prf_wg_size': '',
             'prf_wg_multiple': ''})
+        self.all_pstates: Dict[str, Dict[int, str]] = {}
         self.sclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
         self.mclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
         self.sclk_state: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
@@ -1334,7 +1339,7 @@ class GpuItem:
         ret_value = []
         ret_dict = {}
         target_sensor = sensor_dict[parameter]
-        if target_sensor['type'] == self.SensorType.InputLabelX:
+        if target_sensor['type'] in [self.SensorType.InputLabelX, self.SensorType.AllPStates]:
             sensor_files = glob.glob(os.path.join(sensor_path, target_sensor['sensor'][0]))
         else:
             sensor_files = target_sensor['sensor']
@@ -1343,22 +1348,36 @@ class GpuItem:
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
-                        if target_sensor['type'] in [self.SensorType.SingleStringSelect, self.SensorType.MLSS]:
+                        if target_sensor['type'] in [self.SensorType.SingleStringSelect,
+                                                     self.SensorType.MLSS,
+                                                     self.SensorType.InputLabelX,
+                                                     self.SensorType.AllPStates]:
                             lines = hwmon_file.readlines()
                             for line in lines:
                                 values.append(line.strip())
                         else:
                             values.append(hwmon_file.readline().strip())
-                    if target_sensor['type'] == self.SensorType.InputLabelX:
+                    if target_sensor['type'] == self.SensorType.AllPStates:
+                        clock_name = re.sub(r'.*pp_dpm_', '', sensor_file)
+                        if clock_name not in self.all_pstates.keys():
+                            self.all_pstates.update({clock_name: {}})
+                        for ps_values in values:
+                            ps_val_list = re.sub(':', '', ps_values).split()
+                            if len(ps_val_list) == 2:
+                                self.all_pstates[clock_name].update({int(ps_val_list[0]): ps_val_list[1]})
+                            elif len(ps_val_list) == 3:
+                                self.all_pstates[clock_name].update({int(ps_val_list[0]): '{}{}'.format(
+                                    ps_val_list[2], ps_val_list[1])})
+                    elif target_sensor['type'] == self.SensorType.InputLabelX:
                         if '_input' in file_path:
-                            file_path = file_path.replace('_input', '_label')
+                            label_file_path = file_path.replace('_input', '_label')
                         elif '_crit' in file_path:
-                            file_path = file_path.replace('_crit', '_label')
+                            label_file_path = file_path.replace('_crit', '_label')
                         else:
                             env.GUT_CONST.process_message('Error in sensor label pair: {}'.format(target_sensor))
-                        if os.path.isfile(file_path):
-                            with open(file_path) as hwmon_file:
-                                values.append(hwmon_file.readline().strip())
+                        if os.path.isfile(label_file_path):
+                            with open(label_file_path) as sensor_label_file:
+                                values.append(sensor_label_file.readline().strip())
                         else:
                             values.append(os.path.basename(sensor_file))
                 except OSError as err:
@@ -1384,6 +1403,9 @@ class GpuItem:
             ret_value.append(int(int(values[0]) * target_sensor['cf']))
             ret_value.append(int(int(values[1]) * target_sensor['cf']))
             return tuple(ret_value)
+        if target_sensor['type'] == self.SensorType.AllPStates:
+            # Already set dict in object
+            return None
         if target_sensor['type'] == self.SensorType.InputLabelX:
             for i in range(0, len(values), 2):
                 ret_dict.update({values[i+1]: int(values[i]) * target_sensor['cf']})
@@ -1619,16 +1641,16 @@ class GpuItem:
                 LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
                 return
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
+        active_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['red']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
         pre = '   '
         print('{} P-State Data {}'.format('#'.ljust(3, '#'), '#'.ljust(39, '#')))
         # DPM States
-        print('{}'.format(color), end='')
         if self.prm.gpu_type == self.GPU_Type.CurvePts:
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}DPM States:'.format(pre))
-            print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
+            print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
             for ps_num, ps_freq in self.sclk_dpm_state.items():
                 print('{} {:>1}:  {:<8}            '.format(pre, ps_num, ps_freq), end='')
                 if ps_num in self.mclk_dpm_state.keys():
@@ -1637,9 +1659,9 @@ class GpuItem:
                     print('')
 
         # pp_od_clk_voltage states
-        print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+        print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
         print('{}PP OD States:'.format(pre))
-        print('{}SCLK: {:<17} MCLK:'.format(pre, ' '))
+        print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
         for ps_num, ps_vals in self.sclk_state.items():
             print('{} {:>1}:  {:<8}  {:<8}  '.format(pre, ps_num, ps_vals[0], ps_vals[1]), end='')
             if ps_num in self.mclk_state.keys():
@@ -1648,10 +1670,22 @@ class GpuItem:
                 print('')
         if self.prm.gpu_type == self.GPU_Type.CurvePts:
             # Curve points
-            print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
-            print('{}VDDC_CURVE:'.format(pre))
+            print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
+            print('{}VDDC_CURVE:{}'.format(pre, color))
             for vc_index, vc_vals in self.vddc_curve.items():
                 print('{} {}: {}'.format(pre, vc_index, vc_vals))
+
+        print('{}'.format(color_reset), end='')
+        if self.all_pstates:
+            print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
+            print('{}All Pstates:'.format(pre))
+            for clock_name, pstates in self.all_pstates.items():
+                print('{}{}:{}'.format(pre, clock_name, color))
+                for i, (ps, freq) in enumerate(pstates.items()):
+                    cur_color = active_color if '*' in freq else color
+                    if not i: print('{}{}{}: {}{}'.format(pre, cur_color, ps, freq, color), end='')
+                    else: print(', {}{}: {}{}'.format(cur_color, ps, freq, color), end='')
+                print('{}'.format(color_reset))
         print('{}'.format(color_reset))
 
     def get_key_description(self, filename: str) -> Tuple[str, str]:
@@ -1803,7 +1837,7 @@ class GpuItem:
                 print('{}: {}{}{}'.format(param_label, color, self.get_clinfo_value(param_name), color_reset))
         if env.GUT_CONST.force_all:
             self.print_disabled_params()
-        print('')
+        print('{}'.format(color_reset))
 
     def get_plot_data(self) -> dict:
         """
