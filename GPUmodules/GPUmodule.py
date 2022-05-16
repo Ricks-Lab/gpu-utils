@@ -94,6 +94,7 @@ class GpuItem:
                                       'warn':   '\033[33m',
                                       'good':   '\033[32m',
                                       'red':    '\033[31m',
+                                      'blue':   '\033[34m',
                                       'amd':    '\033[1;37;41m',
                                       'nvidia': '\033[1;30;42m',
                                       'other':  '\033[1;37;44m',
@@ -1640,14 +1641,16 @@ class GpuItem:
                                                               GpuItem.GPU_Type.Unsupported]:
                 LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
                 return
+        info_printed = False
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
-        active_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['red']
+        active_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['blue']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
         pre = '   '
         print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(30, '#')))
         # DPM States
         if 'pp_od_clk_voltage' not in self.read_disabled:
+            info_printed = True
             if self.prm.gpu_type == self.GPU_Type.CurvePts:
                 print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
                 print('{}DPM States:'.format(pre))
@@ -1675,9 +1678,9 @@ class GpuItem:
                 print('{}VDDC_CURVE:{}'.format(pre, color))
                 for vc_index, vc_vals in self.vddc_curve.items():
                     print('{} {}: {}'.format(pre, vc_index, vc_vals))
-
-        print('{}'.format(color_reset), end='')
+            print('{}'.format(color_reset), end='')
         if self.all_pstates:
+            info_printed = True
             print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
             print('{}All Pstates:'.format(pre))
             for clock_name, pstates in self.all_pstates.items():
@@ -1687,7 +1690,9 @@ class GpuItem:
                     if not i: print('{}{}{}{}: {}{}'.format(pre, pre, cur_color, ps, freq, color), end='')
                     else: print(', {}{}: {}{}'.format(cur_color, ps, freq, color), end='')
                 print('{}'.format(color_reset))
-        print('{}'.format(color_reset))
+            print('{}'.format(color_reset))
+        if not info_printed:
+            print('No P-State Data Available')
 
     def get_key_description(self, filename: str) -> Tuple[str, str]:
         """
