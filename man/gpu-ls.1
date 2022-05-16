@@ -11,10 +11,16 @@ gpu-ls \- display details about compatible GPU cards
 .RB [ \-\-help " | " \-\-about "]"
 .br
 .B gpu-ls
-.RB [ \-\-clinfo "] [" \-\-no_fan "] [" \-\-ppm "] [" \-\-pstates "] [" \-\-raw "]
+.RB [ \-\-no_fan "] [" \-\-table "]"
 .br
 .B gpu-ls
-.RB [ \-\-force_all "] [" \-\-verbose "]"
+.RB [ \-\-ppm "] [" \-\-pstates "]"
+.br
+.B gpu-ls
+.RB [ \-\-raw "] ["\-\-no_markup "]"
+.br
+.B gpu-ls
+.RB [ \-\-clinfo "] [" \-\-force_all "] [" \-\-verbose "]"
 
 .SH DESCRIPTION
 .B gpu-ls
@@ -29,7 +35,9 @@ to output the table of available power/performance modes instead of basic parame
 The \fB--force_all\fR option will result in the attempt read of all of the sensors defined
 in \fBrickslab-gpu-utils\fR.  The  \fB--raw\fR option will attempt to read all possible
 driver files and display a lightly formatted version of the results.  Finally, the
-\fB--verbose\fR option will result in informational messages to be displayed.
+\fB--verbose\fR option will result in informational messages to be displayed.  By default,
+output data is formatted and color coded, so the \fB--no_markup\fR option can be specified
+to get plain text.
 
 
 .SH OPTIONS
@@ -61,6 +69,9 @@ Will display descriptions of available power performance modes.
 .TP
 .BR " \-\-pstates"
 Will display P-state table for system and memory clocks.
+.TP
+.BR " \-\-no_markup"
+Outputs plain text instead of color formatted text.
 .TP
 .BR " \-\-force_all"
 Forces the read of all configured sensors and includes a summary of sensors that could not be read.

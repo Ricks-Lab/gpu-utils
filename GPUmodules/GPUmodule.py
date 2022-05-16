@@ -1603,6 +1603,7 @@ class GpuItem:
                 return
         read_data = self.read_gpu_ppm_table(return_data=True)
         self.print(short=True)
+        print('{} PPM Table Data {}'.format('#'.ljust(3, '#'), '#'.ljust(31, '#')))
         print('{}{}{}'.format(color, read_data, color_reset))
 
     def print_pstates(self) -> None:
@@ -1621,6 +1622,7 @@ class GpuItem:
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
         pre = '   '
+        print('{} P-State Data {}'.format('#'.ljust(3, '#'), '#'.ljust(39, '#')))
         # DPM States
         print('{}'.format(color), end='')
         if self.prm.gpu_type == self.GPU_Type.CurvePts:
@@ -1695,6 +1697,7 @@ class GpuItem:
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
+        print('{} Raw Diver File Data {}'.format('#'.ljust(3, '#'), '#'.ljust(29, '#')))
         for sensor_type, sensors in self.raw.items():
             for name, value in sensors.items():
                 (sensor_key, description) = self.get_key_description(name)
