@@ -1645,35 +1645,36 @@ class GpuItem:
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
         pre = '   '
-        print('{} P-State Data {}'.format('#'.ljust(3, '#'), '#'.ljust(39, '#')))
+        print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(30, '#')))
         # DPM States
-        if self.prm.gpu_type == self.GPU_Type.CurvePts:
-            print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
-            print('{}DPM States:'.format(pre))
+        if 'pp_od_clk_voltage' not in self.read_disabled:
+            if self.prm.gpu_type == self.GPU_Type.CurvePts:
+                print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+                print('{}DPM States:'.format(pre))
+                print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
+                for ps_num, ps_freq in self.sclk_dpm_state.items():
+                    print('{} {:>1}:  {:<8}            '.format(pre, ps_num, ps_freq), end='')
+                    if ps_num in self.mclk_dpm_state.keys():
+                        print('{:3>}:  {:<8}'.format(ps_num, self.mclk_dpm_state[ps_num]))
+                    else:
+                        print('')
+
+            # pp_od_clk_voltage states
+            print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
+            print('{}PP OD States:'.format(pre))
             print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
-            for ps_num, ps_freq in self.sclk_dpm_state.items():
-                print('{} {:>1}:  {:<8}            '.format(pre, ps_num, ps_freq), end='')
-                if ps_num in self.mclk_dpm_state.keys():
-                    print('{:3>}:  {:<8}'.format(ps_num, self.mclk_dpm_state[ps_num]))
+            for ps_num, ps_vals in self.sclk_state.items():
+                print('{} {:>1}:  {:<8}  {:<8}  '.format(pre, ps_num, ps_vals[0], ps_vals[1]), end='')
+                if ps_num in self.mclk_state.keys():
+                    print('{:3>}:  {:<8}  {:<8}'.format(ps_num, self.mclk_state[ps_num][0], self.mclk_state[ps_num][1]))
                 else:
                     print('')
-
-        # pp_od_clk_voltage states
-        print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
-        print('{}PP OD States:'.format(pre))
-        print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
-        for ps_num, ps_vals in self.sclk_state.items():
-            print('{} {:>1}:  {:<8}  {:<8}  '.format(pre, ps_num, ps_vals[0], ps_vals[1]), end='')
-            if ps_num in self.mclk_state.keys():
-                print('{:3>}:  {:<8}  {:<8}'.format(ps_num, self.mclk_state[ps_num][0], self.mclk_state[ps_num][1]))
-            else:
-                print('')
-        if self.prm.gpu_type == self.GPU_Type.CurvePts:
-            # Curve points
-            print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
-            print('{}VDDC_CURVE:{}'.format(pre, color))
-            for vc_index, vc_vals in self.vddc_curve.items():
-                print('{} {}: {}'.format(pre, vc_index, vc_vals))
+            if self.prm.gpu_type == self.GPU_Type.CurvePts:
+                # Curve points
+                print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
+                print('{}VDDC_CURVE:{}'.format(pre, color))
+                for vc_index, vc_vals in self.vddc_curve.items():
+                    print('{} {}: {}'.format(pre, vc_index, vc_vals))
 
         print('{}'.format(color_reset), end='')
         if self.all_pstates:
@@ -1683,7 +1684,7 @@ class GpuItem:
                 print('{}{}:{}'.format(pre, clock_name, color))
                 for i, (ps, freq) in enumerate(pstates.items()):
                     cur_color = active_color if '*' in freq else color
-                    if not i: print('{}{}{}: {}{}'.format(pre, cur_color, ps, freq, color), end='')
+                    if not i: print('{}{}{}{}: {}{}'.format(pre, pre, cur_color, ps, freq, color), end='')
                     else: print(', {}{}: {}{}'.format(cur_color, ps, freq, color), end='')
                 print('{}'.format(color_reset))
         print('{}'.format(color_reset))
