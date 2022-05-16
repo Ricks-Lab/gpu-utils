@@ -55,7 +55,7 @@ class GutConst:
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
     _all_args: Tuple[str] = ('execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
-                             'force_all', 'force_write', 'verbose')
+                             'force_all', 'force_write', 'verbose', 'no_markup')
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
@@ -129,6 +129,7 @@ class GutConst:
         self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
+        self.no_markup: bool = False
         self.force_all: bool = False
         self.execute_pac: bool = False
         self.verbose: bool = False
@@ -168,6 +169,7 @@ class GutConst:
                 elif target_arg == 'ltz': self.USELTZ = self.args.ltz
                 elif target_arg == 'simlog': self.SIMLOG = self.args.simlog
                 elif target_arg == 'log': self.LOG = self.args.log
+                elif target_arg == 'no_markup': self.no_markup = self.args.no_markup
                 elif target_arg == 'force_all': self.force_all = self.args.force_all
                 elif target_arg == 'verbose': self.verbose = self.args.verbose
                 elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
