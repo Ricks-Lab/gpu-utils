@@ -90,11 +90,16 @@ class GpuItem:
     # pylint: disable=attribute-defined-outside-init
     # pylint: disable=too-many-instance-attributes
     _mark_up_codes: Dict[str, str] = {'none': '',
+                                      'white':  '\033[37m',
                                       'data':   '\033[36m',
-                                      'warn':   '\033[33m',
-                                      'good':   '\033[32m',
-                                      'red':    '\033[31m',
+                                      'cyan':   '\033[36m',
+                                      'purple': '\033[35m',
                                       'blue':   '\033[34m',
+                                      'warn':   '\033[33m',
+                                      'yellow': '\033[33m',
+                                      'good':   '\033[32m',
+                                      'green':  '\033[32m',
+                                      'red':    '\033[31m',
                                       'amd':    '\033[1;37;41m',
                                       'nvidia': '\033[1;30;42m',
                                       'other':  '\033[1;37;44m',
@@ -524,14 +529,15 @@ class GpuItem:
             'max_wg_size': '',
             'prf_wg_size': '',
             'prf_wg_multiple': ''})
-        self.all_pstates: Dict[str, Dict[int, str]] = {}
-        self.sclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
-        self.mclk_dpm_state: Dict[int, str] = {}     # {1: 'Mhz'}
-        self.sclk_state: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
-        self.mclk_state: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
-        self.vddc_curve: Dict[int, List[str]] = {}   # {1: ['Mhz', 'mV']}
-        self.vddc_curve_range: Dict[int, dict] = {}  # {1: {'SCLK': ['val1', 'val2'], 'VOLT': ['val1', 'val2']}
-        self.ppm_modes: Dict[str, List[str]] = {}    # {'1': ['Name', 'Description']}
+        #self.all_pstates: Dict[str, Dict[int, str]] = {}
+        self.all_pstates: Dict[str, Dict[int, dict]] = {}  # 'CLK': {N: {'value': 'MHz', 'state': bool}}
+        self.sclk_dpm_state: Dict[int, str] = {}           # {1: 'Mhz'}
+        self.mclk_dpm_state: Dict[int, str] = {}           # {1: 'Mhz'}
+        self.sclk_state: Dict[int, List[str]] = {}         # {1: ['Mhz', 'mV']}
+        self.mclk_state: Dict[int, List[str]] = {}         # {1: ['Mhz', 'mV']}
+        self.vddc_curve: Dict[int, List[str]] = {}         # {1: ['Mhz', 'mV']}
+        self.vddc_curve_range: Dict[int, dict] = {}        # {1: {'SCLK': ['val1', 'val2'], 'VOLT': ['val1', 'val2']}
+        self.ppm_modes: Dict[str, List[str]] = {}          # {'1': ['Name', 'Description']}
         self.raw: Dict[str, dict] = {'DEVICE': {}, 'HWMON': {}}
         self.table_parameters_status: Dict[str, bool] = {}
         for item in self.table_parameters:
@@ -1359,16 +1365,23 @@ class GpuItem:
                         else:
                             values.append(hwmon_file.readline().strip())
                     if target_sensor['type'] == self.SensorType.AllPStates:
+                        # clock_name: {ps_num: {'value': ps_val, 'state': ps_sts}}
                         clock_name = re.sub(r'.*pp_dpm_', '', sensor_file)
                         if clock_name not in self.all_pstates.keys():
                             self.all_pstates.update({clock_name: {}})
-                        for ps_values in values:
-                            ps_val_list = re.sub(':', '', ps_values).split()
-                            if len(ps_val_list) == 2:
-                                self.all_pstates[clock_name].update({int(ps_val_list[0]): ps_val_list[1]})
-                            elif len(ps_val_list) == 3:
-                                self.all_pstates[clock_name].update({int(ps_val_list[0]): '{}{}'.format(
-                                    ps_val_list[2], ps_val_list[1])})
+                        for ps_value in values:
+                            ps_val_list = re.sub(':', '', ps_value).split()
+                            if len(ps_val_list) > 1:
+                                ps_num = int(ps_val_list[0])
+                                ps_val = ps_val_list[1]
+                                ps_sts = False
+                                if len(ps_val_list) > 2:
+                                    ps_sts = True
+                                if ps_num not in self.all_pstates[clock_name].keys():
+                                    self.all_pstates[clock_name].update({ps_num: {'value': ps_val, 'state': ps_sts}})
+                                else:
+                                    self.all_pstates[clock_name][ps_num]['value'] = ps_val
+                                    self.all_pstates[clock_name][ps_num]['state'] = ps_sts
                     elif target_sensor['type'] == self.SensorType.InputLabelX:
                         if '_input' in file_path:
                             label_file_path = file_path.replace('_input', '_label')
@@ -1643,11 +1656,11 @@ class GpuItem:
                 return
         info_printed = False
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
-        active_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['blue']
+        active_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['green']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
         pre = '   '
-        print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(30, '#')))
+        print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(33, '#')))
         # DPM States
         if 'pp_od_clk_voltage' not in self.read_disabled:
             info_printed = True
@@ -1680,13 +1693,15 @@ class GpuItem:
                     print('{} {}: {}'.format(pre, vc_index, vc_vals))
             print('{}'.format(color_reset), end='')
         if self.all_pstates:
+            # clock_name: {ps_num: {'value': ps_val, 'state': ps_sts}}
             info_printed = True
             print('{}{}{}{}'.format(pre, color_reset, '', '#'.ljust(50, '#')))
             print('{}All Pstates:'.format(pre))
             for clock_name, pstates in self.all_pstates.items():
                 print('{}{}:{}'.format(pre, clock_name, color))
-                for i, (ps, freq) in enumerate(pstates.items()):
-                    cur_color = active_color if '*' in freq else color
+                for i, (ps, ps_data) in enumerate(pstates.items()):
+                    cur_color = active_color if ps_data['state'] else color
+                    freq = '*' + ps_data['value'] if env.GUT_CONST.args.no_markup and ps_data['state'] else ps_data['value']
                     if not i: print('{}{}{}{}: {}{}'.format(pre, pre, cur_color, ps, freq, color), end='')
                     else: print(', {}{}: {}{}'.format(cur_color, ps, freq, color), end='')
                 print('{}'.format(color_reset))
