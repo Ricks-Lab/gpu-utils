@@ -40,7 +40,7 @@ import shlex
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, List, TextIO, Tuple
+from typing import Dict, Union, TextIO, Tuple
 from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')

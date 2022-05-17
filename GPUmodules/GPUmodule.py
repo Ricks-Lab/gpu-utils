@@ -103,6 +103,7 @@ class GpuItem:
                                       'amd':    '\033[1;37;41m',
                                       'nvidia': '\033[1;30;42m',
                                       'other':  '\033[1;37;44m',
+                                      'label':  '\033[1;37;46m',
                                       'reset':  '\033[0;0;0m'}
     _finalized: bool = False
     _button_labels: Dict[str, str] = {'loading':     'Load%',
@@ -1124,7 +1125,7 @@ class GpuItem:
                             contents = file_ptr.read().strip()
                     except PermissionError:
                         contents = 'PermissionError'
-                    except OSError as except_err:
+                    except OSError:
                         contents = 'OSError'
                     except UnicodeDecodeError:
                         contents = 'BINARY'
@@ -1720,8 +1721,8 @@ class GpuItem:
         color = self._mark_up_codes['none']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         if filename == 'pp_od_clk_voltage': return 'pp_od_clk_voltage', '\x1b[1;36mread/write driver file\x1b[0m'
-        for (gpu_vendor, sensor_dict) in self._sensor_details.items():
-            for (sensor_type, sensor_type_dict) in sensor_dict.items():
+        for sensor_dict in self._sensor_details.values():
+            for sensor_type_dict in sensor_dict.values():
                 for (sensor_key, sensor_key_dict) in sensor_type_dict.items():
                     for sensor_files in sensor_key_dict['sensor']:
                         if re.match(PATTERNS['InputLabelX'], filename):
@@ -1750,10 +1751,14 @@ class GpuItem:
         :return:
         """
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
+        label_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['label']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         self.print(short=True)
-        print('{} Raw Diver File Data {}'.format('#'.ljust(3, '#'), '#'.ljust(29, '#')))
+        print('{} Raw Diver File Data {}'.format('#'.ljust(3, '#'), '#'.ljust(26, '#')))
         for sensor_type, sensors in self.raw.items():
+            label_length = len(sensor_type) + 2 + 3
+            print('{}{} {} {}{}'.format('#'.ljust(3, '#'), label_color, sensor_type, color_reset,
+                                        '#'.ljust(50 - label_length, '#')))
             for name, value in sensors.items():
                 (sensor_key, description) = self.get_key_description(name)
                 print('### File: {}, SensorKey: {}, Label: {}'.format(name, sensor_key, description))
