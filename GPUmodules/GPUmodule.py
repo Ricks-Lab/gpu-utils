@@ -1372,7 +1372,7 @@ class GpuItem:
                         for ps_value in values:
                             ps_val_list = re.sub(':', '', ps_value).split()
                             if len(ps_val_list) > 1:
-                                ps_num = int(ps_val_list[0])
+                                ps_num = int(ps_val_list[0]) if ps_val_list[0].isnumeric() else ps_val_list[0]
                                 ps_val = ps_val_list[1]
                                 ps_sts = False
                                 if len(ps_val_list) > 2:
