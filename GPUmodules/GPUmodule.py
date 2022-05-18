@@ -451,6 +451,7 @@ class GpuItem:
         self.validated_sensors: bool = False
         self.read_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
         self.energy: Dict[str, Any] = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
+        self.read_skip: Tuple[str] = ()    # List of parameters that are to be skipped.
         self.read_disabled: List[str] = []    # List of parameters that failed during read.
         self.write_disabled: List[str] = []   # List of parameters that failed during write.
         self.prm: ObjDict = ObjDict({
@@ -530,7 +531,6 @@ class GpuItem:
             'max_wg_size': '',
             'prf_wg_size': '',
             'prf_wg_multiple': ''})
-        #self.all_pstates: Dict[str, Dict[int, str]] = {}
         self.all_pstates: Dict[str, Dict[int, dict]] = {}  # 'CLK': {N: {'value': 'MHz', 'state': bool}}
         self.sclk_dpm_state: Dict[int, str] = {}           # {1: 'Mhz'}
         self.mclk_dpm_state: Dict[int, str] = {}           # {1: 'Mhz'}
@@ -714,13 +714,24 @@ class GpuItem:
             fit_name = re.sub(r'\s*/\s*', '/', '{} {}'.format(fit_name, name_component))
         return fit_name
 
+    def param_is_active(self, parameter_name: str) -> bool:
+        """
+        Return True if given parameter is not skipped and not disabled.
+
+        :param parameter_name:
+        :return:
+        """
+        if parameter_name in self.read_disabled: return False
+        if parameter_name in self.read_skip: return False
+        return True
+
     def disable_param_read(self, parameter_name: str) -> None:
         """
 
         :param parameter_name:
         :return:
         """
-        if parameter_name not in self.read_disabled:
+        if self.param_is_active(parameter_name):
             message = 'Warning: Can not read parameter: {}, ' \
                       'disabling for this GPU: {}'.format(parameter_name, self.prm.card_num)
             env.GUT_CONST.process_message(message, log_flag=True)
@@ -735,9 +746,9 @@ class GpuItem:
         :return: Parameter value
         """
         if name == 'read_time':
-            if 'energy' in self.read_disabled or 'power' in self.read_disabled:
-                return self.read_time
-            return self.energy['tn']
+            if self.param_is_active('energy') and self.param_is_active('power'):
+                return self.energy['tn']
+            return self.read_time
         # Parameters with '_val' as a suffix are derived from a direct source.
         if re.fullmatch(PATTERNS['VAL_ITEM'], name):
             if name == 'temp_val':
@@ -890,14 +901,13 @@ class GpuItem:
             elif source_name == 'gpu_type' and source_value:
                 self.prm.gpu_type = source_value
                 if source_value == GpuItem.GPU_Type.Legacy:
-                    if not env.GUT_CONST.force_all:
-                        self.read_disabled = list(GpuItem.LEGACY_Skip_List[:])
+                    self.read_skip = GpuItem.LEGACY_Skip_List
                 elif source_value == GpuItem.GPU_Type.Modern:
-                    if not env.GUT_CONST.force_all:
-                        self.read_disabled = list(GpuItem.MODERN_Skip_List[:])
+                    self.read_skip = GpuItem.MODERN_Skip_List
                 elif source_value == GpuItem.GPU_Type.APU:
-                    if not env.GUT_CONST.force_all:
-                        self.read_disabled = list(GpuItem.MODERN_Skip_List[:])
+                    self.read_skip = GpuItem.MODERN_Skip_List
+                elif source_value == GpuItem.GPU_Type.LegacyAPU:
+                    self.read_skip = GpuItem.LegacyAPU_Skip_List
 
         # Compute platform requires that compute bool be set first
         if set_ocl_ver:
@@ -1146,7 +1156,7 @@ class GpuItem:
                 return None
 
         rdata = ''
-        if 'pp_power_profile_mode' in self.read_disabled:
+        if not self.param_is_active('pp_power_profile_mode'):
             return None
         file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
         if not os.path.isfile(file_path):
@@ -1182,7 +1192,7 @@ class GpuItem:
         Read GPU pstate definitions and parameter ranges from driver files.
         Set card type based on pstate configuration
         """
-        if 'pp_od_clk_voltage' in self.read_disabled:
+        if not self.param_is_active('pp_od_clk_voltage'):
             return
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
@@ -1297,7 +1307,7 @@ class GpuItem:
         :param parameter:  Target parameter for reading
         :return: read results
         """
-        if parameter in self.read_disabled:
+        if not self.param_is_active(parameter):
             return False
         cmd_str = '{} -i {} --query-gpu={} --format=csv,noheader,nounits'.format(
                   env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, parameter)
@@ -1337,7 +1347,7 @@ class GpuItem:
         if parameter not in sensor_dict.keys():
             env.GUT_CONST.process_message('Error: Invalid parameter [{}]'.format(parameter))
             return None
-        if parameter in self.read_disabled:
+        if not self.param_is_active(parameter):
             return None
 
         device_sensor_path = self.prm.card_path if self.prm.card_path else self.prm.sys_card_path
@@ -1476,7 +1486,7 @@ class GpuItem:
         sensor_dict = GpuItem.nv_query_items[data_type]
         nsmi_items = []
         query_list = [item for sublist in sensor_dict.values() for item in sublist]
-        query_list = [item for item in query_list if item not in self.read_disabled]
+        query_list = [item for item in query_list if not self.param_is_active(item)]
 
         if self.validated_sensors:
             qry_string = ','.join(query_list)
@@ -1607,22 +1617,32 @@ class GpuItem:
 
         :return:
         """
-        if not self.read_disabled: return
+        param_lists = []
+        if env.GUT_CONST.verbose:
+            if self.read_skip:
+                param_lists.append('Skipped')
+        if self.read_disabled:
+            param_lists.append('Disabled')
+        if not param_lists:
+            return
+        param_lists = tuple(param_lists[:],)
 
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         pre = '   '
-        print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
-        print('{}Disabled Parameters:'.format(pre), end='')
-        print('{}'.format(color), end='')
-        for i, parameter in enumerate(self.read_disabled):
-            if i == 0:
-                print(' {}'.format(parameter), end='')
-            elif not i % 4:
-                print(',\n{}                     {}'.format(pre, parameter), end='')
-            else:
-                print(', {}'.format(parameter), end='')
-        print('{}'.format(color_reset))
+        for param_list_name in param_lists:
+            param_list = self.read_disabled if param_list_name == 'Disabled' else self.read_skip
+            print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
+            print('{}{} Parameters:'.format(pre, param_list_name), end='')
+            print('{}'.format(color), end='')
+            for i, parameter in enumerate(param_list):
+                if i == 0:
+                    print(' {}'.format(parameter), end='')
+                elif not i % 4:
+                    print(',\n{}                     {}'.format(pre, parameter), end='')
+                else:
+                    print(', {}'.format(parameter), end='')
+            print('{}'.format(color_reset))
 
     def print_ppm_table(self) -> None:
         """
@@ -1663,7 +1683,7 @@ class GpuItem:
         pre = '   '
         print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(33, '#')))
         # DPM States
-        if 'pp_od_clk_voltage' not in self.read_disabled:
+        if self.param_is_active('pp_od_clk_voltage'):
             info_printed = True
             if self.prm.gpu_type == self.GPU_Type.CurvePts:
                 print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
@@ -1785,40 +1805,26 @@ class GpuItem:
             elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
                 if param_name in self.AMD_Skip_List:
                     continue
-            elif self.prm.gpu_type == GpuItem.GPU_Type.LegacyAPU:
+            elif self.prm.gpu_type in [GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU]:
                 if param_name in self._fan_item_list:
                     continue
-            elif self.prm.gpu_type == GpuItem.GPU_Type.APU:
-                if param_name in self._fan_item_list:
-                    continue
-            elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED:
-                if param_name not in self.get_nc_params_list():
-                    continue
-            if self.prm.gpu_type == self.GPU_Type.Unsupported:
+            elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED or self.prm.gpu_type == self.GPU_Type.Unsupported:
                 if param_name not in self.get_nc_params_list():
                     continue
 
             # Situations where parameter limits can be overridden by force_all
             if not env.GUT_CONST.force_all:
+                if param_name in self.read_skip:
+                    continue
                 if self.prm.gpu_type == self.GPU_Type.LegacyAPU:
                     if param_name in self.LegacyAPU_Skip_List:
                         continue
                     if 'Range' in param_label:
                         continue
-                if self.prm.gpu_type == self.GPU_Type.APU:
-                    if param_name in self.APU_Skip_List:
-                        continue
-                if self.prm.gpu_type == self.GPU_Type.Modern:
-                    if param_name in self.MODERN_Skip_List:
-                        continue
-                if self.prm.gpu_type == self.GPU_Type.Legacy:
-                    if param_name in self.LEGACY_Skip_List:
-                        continue
                 if not self.prm.readable:
                     if param_name not in self.get_nc_params_list():
                         continue
-            else:
-                if param_name in self.read_disabled:
+                if not self.param_is_active(param_name):
                     continue
 
             color = self._mark_up_codes['none']
@@ -1861,8 +1867,7 @@ class GpuItem:
                     continue
                 if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['data']
                 print('{}: {}{}{}'.format(param_label, color, self.get_clinfo_value(param_name), color_reset))
-        if env.GUT_CONST.force_all:
-            self.print_disabled_params()
+        self.print_disabled_params()
         print('{}'.format(color_reset))
 
     def get_plot_data(self) -> dict:
@@ -2196,6 +2201,7 @@ class GpuList:
                             pp_od_file_details = file_ptr.read()
                     except OSError as except_err:
                         pp_od_file_details = '{} not readable'.format(pp_od_clk_voltage_file)
+                        self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
                         message = 'Error: system support issue for {}: [{}]'.format(pcie_id, except_err)
                         LOGGER.debug(message)
                         print(message)
@@ -2205,6 +2211,7 @@ class GpuList:
                         LOGGER.debug('%s exists, opened, and read.', pp_od_clk_voltage_file)
                         if not pp_od_file_details:
                             LOGGER.debug('%s exists, but empty on read.', pp_od_clk_voltage_file)
+                            self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
                             gpu_type = GpuItem.GPU_Type.Unsupported
                             readable = True
                             writable = False
