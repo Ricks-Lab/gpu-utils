@@ -1632,13 +1632,13 @@ class GpuItem:
         pre = '   '
         for param_list_name in param_lists:
             param_list = self.read_disabled if param_list_name == 'Disabled' else self.read_skip
-            label = '{} Parameters:'.format(param_list_name)
+            label = '{} Parameters: '.format(param_list_name)
             print('{}{}{}'.format(pre, '', '#'.ljust(50, '#')))
             print('{}{}'.format(pre, label), end='')
             print('{}'.format(color), end='')
             for i, parameter in enumerate(param_list):
                 if i == 0:
-                    print(' {}'.format(parameter), end='')
+                    print('{}'.format(parameter), end='')
                 elif not i % 4:
                     print(',\n{}{}{}'.format(pre, ' '.ljust(len(label), ' '), parameter), end='')
                 else:
