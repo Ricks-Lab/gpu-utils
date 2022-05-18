@@ -90,21 +90,20 @@ class GpuItem:
     # pylint: disable=attribute-defined-outside-init
     # pylint: disable=too-many-instance-attributes
     _mark_up_codes: Dict[str, str] = {'none': '',
-                                      'white':  '\033[37m',
-                                      'data':   '\033[36m',
-                                      'cyan':   '\033[36m',
-                                      'purple': '\033[35m',
-                                      'blue':   '\033[34m',
-                                      'warn':   '\033[33m',
-                                      'yellow': '\033[33m',
-                                      'good':   '\033[32m',
-                                      'green':  '\033[32m',
-                                      'red':    '\033[31m',
-                                      'amd':    '\033[1;37;41m',
-                                      'nvidia': '\033[1;30;42m',
-                                      'other':  '\033[1;37;44m',
-                                      'label':  '\033[1;37;46m',
-                                      'reset':  '\033[0;0;0m'}
+                                      'white':     '\033[37m',
+                                      'data':      '\033[36m',
+                                      'cyan':      '\033[36m',
+                                      'purple':    '\033[35m',
+                                      'blue':      '\033[34m',
+                                      'yellow':    '\033[33m',
+                                      'green':     '\033[32m',
+                                      'red':       '\033[31m',
+                                      'bold_cyan': '\033[1;36m',
+                                      'amd':       '\033[1;37;41m',
+                                      'nvidia':    '\033[1;30;42m',
+                                      'other':     '\033[1;37;44m',
+                                      'label':     '\033[1;37;46m',
+                                      'reset':     '\033[0;0;0m'}
     _finalized: bool = False
     _button_labels: Dict[str, str] = {'loading':     'Load%',
                                       'power':       'Power',
@@ -138,14 +137,10 @@ class GpuItem:
                                     'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range')
     LegacyAPU_Skip_List: Tuple[str] = ('unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
                                        'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                       'power_cap_range', 'power', 'power_cap', 'fan_speed_range',
-                                       'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                       'pwm_mode', 'fan_pwm')
-    APU_Skip_List: Tuple[str] = ('unique_id', 'loading', 'ppm',
+                                       'power_cap_range', 'power', 'power_cap', *_fan_item_list)
+    APU_Skip_List: Tuple[str] = ('unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
                                  'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                 'power_cap_range', 'power_cap', 'fan_speed_range',
-                                 'fan_pwm_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                 'pwm_mode', 'fan_pwm')
+                                 'power_cap_range', 'power_cap', *_fan_item_list)
 
     # Define Class Labels
     GPU_Type = GpuEnum('type',
@@ -361,7 +356,7 @@ class GpuItem:
                                    'id':              {'type': SensorType.MLMS,
                                                        'cf': None, 'sensor': ('vendor', 'device',
                                                                               'subsystem_vendor',
-                                                                              'subsystem_device', )}}}}
+                                                                              'subsystem_device')}}}}
 
     nv_query_items = {SensorSet.Static: {
                                    'power_cap':        ('power.limit', ),
@@ -727,6 +722,7 @@ class GpuItem:
 
     def disable_param_read(self, parameter_name: str) -> None:
         """
+        Disable further reading of the specified parameter.
 
         :param parameter_name:
         :return:
@@ -754,7 +750,7 @@ class GpuItem:
             if name == 'temp_val':
                 if not self.prm['temperatures']:
                     return None
-                for temp_name in ['edge', 'temperature.gpu', 'temp1_input']:
+                for temp_name in ('edge', 'temperature.gpu', 'temp1_input'):
                     if temp_name in self.prm['temperatures'].keys():
                         if self.prm['temperatures'][temp_name]:
                             if num_as_int:
@@ -801,7 +797,7 @@ class GpuItem:
                 return None
 
         # Set type for params that could be float or int
-        if name in ['fan_pwm', 'fan_speed', 'power_cap', 'power']:
+        if name in ('fan_pwm', 'fan_speed', 'power_cap', 'power'):
             if num_as_int:
                 if isinstance(self.prm[name], int):
                     return self.prm[name]
@@ -942,11 +938,11 @@ class GpuItem:
         """
         return self.clinfo[name]
 
-    def get_nc_params_list(self) -> List[str]:
+    def get_nc_params_list(self) -> Tuple[str]:
         """
         Get list of parameter names for use with non-compatible cards.
 
-        :return: List of parameter names
+        :return: Tuple of parameter names
         """
         return self._GPU_NC_Param_List
 
@@ -996,7 +992,7 @@ class GpuItem:
 
         if pstate[1] < mclk_min or pstate[1] > mclk_max:
             return False
-        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
             vddc_range = self.prm.vddc_range
             try:
                 vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
@@ -1019,7 +1015,7 @@ class GpuItem:
         sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(sclk_range[1])))
         if pstate[1] < sclk_min or pstate[1] > sclk_max:
             return False
-        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
             vddc_range = self.prm.vddc_range
             try:
                 vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
@@ -1039,7 +1035,7 @@ class GpuItem:
         """
         if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][0])) != pstate[1]:
             return True
-        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
             if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.sclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
@@ -1053,7 +1049,7 @@ class GpuItem:
         """
         if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][0])) != pstate[1]:
             return True
-        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
             if int(re.sub(PATTERNS['END_IN_ALPHA'], '', self.mclk_state[pstate[0]][1])) != pstate[2]:
                 return True
         return False
@@ -1122,6 +1118,7 @@ class GpuItem:
 
     def read_raw_sensors(self) -> None:
         """
+        Read all possible device driver files and populate self's raw dictionary.
 
         :return:
         """
@@ -1151,8 +1148,8 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return None
         if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported]:
+            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.Unsupported):
                 return None
 
         rdata = ''
@@ -1197,9 +1194,9 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
         if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
+            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
                                                               GpuItem.GPU_Type.Unsupported,
-                                                              GpuItem.GPU_Type.APU]:
+                                                              GpuItem.GPU_Type.APU):
                 return
 
         range_mode = False
@@ -1224,7 +1221,7 @@ class GpuItem:
                     line = re.sub(r'@', ' ', line)
                     lineitems: List[any] = line.split()
                     lineitems_len = len(lineitems)
-                    if self.prm.gpu_type in [self.GPU_Type.Undefined, self.GPU_Type.Supported, self.GPU_Type.Modern]:
+                    if self.prm.gpu_type in (self.GPU_Type.Undefined, self.GPU_Type.Supported, self.GPU_Type.Modern):
                         if len(lineitems) == 3:
                             self.prm.gpu_type = self.GPU_Type.PStates
                         elif len(lineitems) == 2:
@@ -1236,7 +1233,7 @@ class GpuItem:
                             continue
                     if not range_mode:
                         lineitems[0] = int(re.sub(':', '', lineitems[0]))
-                        if self.prm.gpu_type in [self.GPU_Type.PStatesNE, self.GPU_Type.PStates]:
+                        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
                             if clk_name == 'OD_SCLK:':
                                 self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
                             elif clk_name == 'OD_MCLK:':
@@ -1293,7 +1290,7 @@ class GpuItem:
         :param sensor_type: GPU sensor name (HWMON or DEVICE)
         :return: Value from reading sensor.
         """
-        if vendor in [self.GPU_Vendor.AMD, self.GPU_Vendor.PCIE]:
+        if vendor in (self.GPU_Vendor.AMD, self.GPU_Vendor.PCIE):
             return self.read_gpu_sensor_generic(parameter, vendor, sensor_type)
         if vendor == self.GPU_Vendor.NVIDIA:
             return self.read_gpu_sensor_nv(parameter)
@@ -1336,7 +1333,7 @@ class GpuItem:
         :return: Value from reading sensor.
         """
         if not env.GUT_CONST.force_all:
-            if self.prm.gpu_type in [GpuItem.GPU_Type.Unsupported] and parameter != 'id':
+            if self.prm.gpu_type == GpuItem.GPU_Type.Unsupported and parameter != 'id':
                 return None
             if not self.prm.readable and parameter != 'id':
                 return None
@@ -1357,7 +1354,7 @@ class GpuItem:
         ret_value = []
         ret_dict = {}
         target_sensor = sensor_dict[parameter]
-        if target_sensor['type'] in [self.SensorType.InputLabelX, self.SensorType.AllPStates]:
+        if target_sensor['type'] in (self.SensorType.InputLabelX, self.SensorType.AllPStates):
             sensor_files = glob.glob(os.path.join(sensor_path, target_sensor['sensor'][0]))
         else:
             sensor_files = target_sensor['sensor']
@@ -1366,10 +1363,10 @@ class GpuItem:
             if os.path.isfile(file_path):
                 try:
                     with open(file_path) as hwmon_file:
-                        if target_sensor['type'] in [self.SensorType.SingleStringSelect,
+                        if target_sensor['type'] in (self.SensorType.SingleStringSelect,
                                                      self.SensorType.MLSS,
                                                      self.SensorType.InputLabelX,
-                                                     self.SensorType.AllPStates]:
+                                                     self.SensorType.AllPStates):
                             lines = hwmon_file.readlines()
                             for line in lines:
                                 values.append(line.strip())
@@ -1422,7 +1419,7 @@ class GpuItem:
             ret_value.append(int(values[0]) * target_sensor['cf'])
             ret_value.append(values[1])
             return tuple(ret_value)
-        if target_sensor['type'] in [self.SensorType.MLSS, self.SensorType.MLMS]:
+        if target_sensor['type'] in (self.SensorType.MLSS, self.SensorType.MLMS):
             return values
         if target_sensor['type'] == self.SensorType.MinMax:
             ret_value.append(int(int(values[0]) * target_sensor['cf']))
@@ -1467,11 +1464,16 @@ class GpuItem:
 
         :return:
         """
+        if env.GUT_CONST.verbose:
+            print('### read_time_val: {}'.format(
+                self.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)))
         for table_item, status in self.table_parameters_status.items():
             if env.GUT_CONST.verbose:
                 print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
-            if self.get_params_value(table_item) in [None, '', np_nan]:
+            if self.get_params_value(table_item) in (None, '', np_nan):
                 self.table_parameters_status[table_item] = False
+        if env.GUT_CONST.verbose:
+            print('')
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
         """
@@ -1544,7 +1546,7 @@ class GpuItem:
                 pstate = int(pstate_str) if pstate_str.isnumeric() else None
                 self.prm['sclk_ps'][0] = pstate
                 self.prm['mclk_ps'][0] = pstate
-            elif param_name in ['temperatures', 'voltages', 'frequencies', 'frequencies_max']:
+            elif param_name in ('temperatures', 'voltages', 'frequencies', 'frequencies_max'):
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
                     if sn_k not in results: continue
@@ -1614,8 +1616,6 @@ class GpuItem:
     def print_disabled_params(self) -> None:
         """
         Print list of disabled parameters.
-
-        :return:
         """
         param_lists = []
         if env.GUT_CONST.verbose:
@@ -1655,8 +1655,8 @@ class GpuItem:
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported]:
+            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.Unsupported):
                 LOGGER.debug('PPM for card number %s not readable.', self.prm.card_num)
                 return
         read_data = self.read_gpu_ppm_table(return_data=True)
@@ -1672,8 +1672,8 @@ class GpuItem:
             return
 
         if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in [GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported]:
+            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
+                                                              GpuItem.GPU_Type.Unsupported):
                 LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
                 return
         info_printed = False
@@ -1739,9 +1739,11 @@ class GpuItem:
         :param filename: Name of driver file.
         :return: Tuple of the key and description as color annotated strings.
         """
-        color = self._mark_up_codes['none']
+        active_color = color = self._mark_up_codes['none']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
-        if filename == 'pp_od_clk_voltage': return 'pp_od_clk_voltage', '\x1b[1;36mread/write driver file\x1b[0m'
+        if not env.GUT_CONST.args.no_markup: active_color = self._mark_up_codes['green']
+        if filename == 'pp_od_clk_voltage':
+            return 'pp_od_clk_voltage', '{}read/write driver file{}'.format(active_color, color_reset)
         for sensor_dict in self._sensor_details.values():
             for sensor_type_dict in sensor_dict.values():
                 for (sensor_key, sensor_key_dict) in sensor_type_dict.items():
@@ -1749,27 +1751,25 @@ class GpuItem:
                         if re.match(PATTERNS['InputLabelX'], filename):
                             for sensor_filename in sensor_files:
                                 if re.match(PATTERNS['InputLabelX'], sensor_filename):
-                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['good']
+                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['green']
                                     description = 'Input/Label Pair'
                                     return sensor_key, '{}{}{}'.format(color, description, color_reset)
                         else:
                             if filename in sensor_files:
                                 if sensor_key in self._GPU_Param_Labels:
-                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['good']
+                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['green']
                                     description = self._GPU_Param_Labels[sensor_key]
                                     return sensor_key, '{}{}{}'.format(color, description.strip(), color_reset)
                                 else:
-                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['warn']
+                                    if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['yellow']
                                     description = '{}Ignored by gpu-utils{}'.format(color, color_reset)
                                     return sensor_key, description
-        if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['warn']
+        if not env.GUT_CONST.args.no_markup: color = self._mark_up_codes['yellow']
         return 'None', '{}Not defined in gpu-utils{}'.format(color, color_reset)
 
     def print_raw(self) -> None:
         """
         Formatted print of raw read of all available GPU driver files.
-
-        :return:
         """
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
         label_color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['label']
@@ -1806,7 +1806,7 @@ class GpuItem:
             elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
                 if param_name in self.AMD_Skip_List:
                     continue
-            elif self.prm.gpu_type in [GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU]:
+            elif self.prm.gpu_type in (GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU):
                 if param_name in self._fan_item_list:
                     continue
             elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED or self.prm.gpu_type == self.GPU_Type.Unsupported:
@@ -2008,7 +2008,7 @@ class GpuList:
         """
         Use call to lspci to get a list of pci addresses of all GPUs.
 
-        :return: List of GPU pci addresses.
+        :return: List of GPU pci addresses or None.
         """
         pci_list = []
         try:
@@ -2211,8 +2211,8 @@ class GpuList:
                     else:
                         LOGGER.debug('%s exists, opened, and read.', pp_od_clk_voltage_file)
                         if not pp_od_file_details:
-                            LOGGER.debug('%s exists, but empty on read.', pp_od_clk_voltage_file)
                             self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
+                            LOGGER.debug('%s exists, but empty on read.', pp_od_clk_voltage_file)
                             gpu_type = GpuItem.GPU_Type.Unsupported
                             readable = True
                             writable = False
@@ -2559,21 +2559,23 @@ class GpuList:
 
         :return: True if success
         """
+        color = GpuItem._mark_up_codes['bold_cyan']
+        color_reset = GpuItem._mark_up_codes['reset']
         table_width: int = 20
         if self.num_gpus()['total'] < 1:
             return False
 
         if title:
-            print('\x1b[1;36m{}\x1b[0m'.format(title))
+            print('{}{}{}'.format(color, title, color_reset))
 
         print('┌', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.gpus():
             print('┬', '─'.ljust(table_width, '─'), sep='', end='')
         print('┐')
 
-        print('│\x1b[1;36m' + 'Card #'.ljust(13, ' ') + '\x1b[0m', sep='', end='')
+        print('│{}{}{}'.format(color, 'Card #'.ljust(13, ' '), color_reset), sep='', end='')
         for gpu in self.gpus():
-            print('│\x1b[1;36mcard{:<16}\x1b[0m'.format(gpu.prm.card_num), end='')
+            print('│{}card{:<16}{}'.format(color, gpu.prm.card_num, color_reset), end='')
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
@@ -2582,7 +2584,7 @@ class GpuList:
         print('┤')
 
         for table_item in self.table_parameters():
-            print('│\x1b[1;36m{:<13}\x1b[0m'.format(str(self.table_param_labels()[table_item])[:13]), end='')
+            print('│{}{:<13}{}'.format(color, str(self.table_param_labels()[table_item])[:13], color_reset), end='')
             for gpu in self.gpus():
                 data_value_raw = gpu.get_params_value(table_item)
                 if isinstance(data_value_raw, float):
@@ -2692,8 +2694,7 @@ def print_gpu_rw_summary(gpu_list: GpuList) -> None:
     """
     Print formatted display of all GPU read/write status.
 
-    :param gpu_list:
-    :return:
+    :param gpu_list: Target list of GPUs for the summary.
     """
     num_gpus = gpu_list.num_gpus()
     print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
@@ -2704,8 +2705,7 @@ def print_driver_vendor_summary(gpu_list: GpuList) -> None:
     """
     Display vendor and driver details.
 
-    :param gpu_list:
-    :return:
+    :param gpu_list: Target list of GPUs for the summary.
     """
     num_gpus = gpu_list.num_vendor_gpus()
     print('Detected GPUs: ', end='')
