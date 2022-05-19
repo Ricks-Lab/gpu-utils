@@ -353,8 +353,7 @@ class GutConst:
         LOGGER.debug('%s package query tool: %s', self.distro["Distributor"], self.cmd_dpkg)
 
         self.cmd_nvidia_smi = shutil.which('nvidia-smi')
-        if self.cmd_nvidia_smi:
-            print('OS command [nvidia-smi] executable found: [{}]'.format(self.cmd_nvidia_smi))
+        LOGGER.debug('nvidia-smi executable full path: [%s]', self.cmd_nvidia_smi)
         if command_access_fail:
             return -3
         return 0
@@ -399,7 +398,7 @@ class GutConst:
                         dpkg_line = re.sub(r'.*]\s*', '', dpkg_line)
                         print('AMD: {} version: {}'.format(driverpkg, dpkg_line))
                         return True
-        print('amdgpu/rocm version: UNKNOWN')
+        print('AMD: amdgpu/rocm version: UNKNOWN')
         return False
 
     def read_amd_driver_version_arch(self) -> bool:
@@ -422,7 +421,7 @@ class GutConst:
                         if len(dpkg_items) >= 2:
                             print('AMD: {} version: {}'.format(driverpkg, dpkg_items[1]))
                             return True
-        print('amdgpu/rocm version: UNKNOWN')
+        print('AMD: amdgpu/rocm version: UNKNOWN')
         return False
 
     def read_amd_driver_version_debian(self) -> bool:
@@ -446,7 +445,7 @@ class GutConst:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
                             print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
                             return True
-        print('amdgpu/rocm version: UNKNOWN')
+        print('AMD: amdgpu/rocm version: UNKNOWN')
         return False
 
 

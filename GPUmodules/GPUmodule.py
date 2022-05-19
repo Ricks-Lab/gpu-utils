@@ -2718,7 +2718,10 @@ def print_driver_vendor_summary(gpu_list: GpuList) -> None:
         env.GUT_CONST.read_amd_driver_version()
         print('AMD: {}'.format(gpu_list.wattman_status()))
     if 'NV' in num_gpus.keys():
-        print('nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+        if env.GUT_CONST.cmd_nvidia_smi:
+            print('NV: nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
+        else:
+            print('NV: Addon package [nvidia-smi] executable not found.')
 
 
 def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
