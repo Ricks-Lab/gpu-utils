@@ -55,7 +55,7 @@ class GutConst:
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
     _all_args: Tuple[str] = ('execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
-                             'force_all', 'force_write', 'verbose', 'no_markup')
+                             'force_all', 'force_write', 'verbose', 'no_markup', 'clinfo')
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
@@ -129,6 +129,7 @@ class GutConst:
         self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
+        self.clinfo: bool = False
         self.no_markup: bool = False
         self.force_all: bool = False
         self.execute_pac: bool = False
@@ -173,6 +174,7 @@ class GutConst:
                 elif target_arg == 'force_all': self.force_all = self.args.force_all
                 elif target_arg == 'verbose': self.verbose = self.args.verbose
                 elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
+                elif target_arg == 'clinfo': self.clinfo = self.args.clinfo
                 else: print('Invalid arg: {}'.format(target_arg))
         LOGGER.propagate = False
         formatter = logging.Formatter("%(levelname)s:%(name)s:%(module)s.%(funcName)s:%(message)s")
@@ -219,9 +221,11 @@ class GutConst:
 
     def process_message(self, message: str, log_flag: bool = False) -> None:
         """
+        For given message, print to stderr and/or LOGGER depending on command line options and
+        the value of log_flag.
 
-        :param message:
-        :param log_flag:
+        :param message: A string containing the message to be processed.
+        :param log_flag:  If True, write to LOGGER.
         """
         if message and self.verbose:
             print(message, file=sys.stderr)
@@ -327,10 +331,11 @@ class GutConst:
             command_access_fail = True
         LOGGER.debug('lspci path: %s', self.cmd_lspci)
 
-        self.cmd_clinfo = shutil.which('clinfo')
-        if not self.cmd_clinfo:
-            print('Package addon [clinfo] executable not found.  Use \'sudo apt install clinfo\' to install')
-        LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
+        if self.clinfo:
+            self.cmd_clinfo = shutil.which('clinfo')
+            if not self.cmd_clinfo:
+                print('Addon Package [clinfo] executable not found.  Use \'sudo apt install clinfo\' to install')
+            LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
 
         # Package Reader
         if self.distro['Distributor'] in GutConst._dpkg_tool:

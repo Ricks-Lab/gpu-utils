@@ -2272,8 +2272,7 @@ class GpuList:
         .. todo:: Read of Intel pcie_id is not working.
         """
         # Check access to clinfo command
-        if not env.GUT_CONST.cmd_clinfo:
-            print('OS Command [clinfo] not found.  Use sudo apt-get install clinfo to install')
+        if not env.GUT_CONST.clinfo or not env.GUT_CONST.cmd_clinfo:
             return False
 
         # Run the clinfo command
