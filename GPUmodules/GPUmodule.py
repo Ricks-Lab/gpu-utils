@@ -1464,15 +1464,15 @@ class GpuItem:
 
         :return:
         """
-        if env.GUT_CONST.verbose:
+        if env.GUT_CONST.DEBUG:
             print('### read_time_val: {}'.format(
                 self.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)))
         for table_item, status in self.table_parameters_status.items():
-            if env.GUT_CONST.verbose:
+            if env.GUT_CONST.DEBUG:
                 print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
             if self.get_params_value(table_item) in (None, '', np_nan):
                 self.table_parameters_status[table_item] = False
-        if env.GUT_CONST.verbose:
+        if env.GUT_CONST.DEBUG:
             print('')
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
