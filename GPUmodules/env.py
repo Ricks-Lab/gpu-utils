@@ -40,7 +40,7 @@ import shlex
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Tuple
+from typing import Dict, Union, TextIO, Tuple, Set
 from GPUmodules import __version__, __status__
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -50,12 +50,12 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
-    _verified_distros: Tuple[str] = ('Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan')
+    _verified_distros: Set[str] = {'Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan'}
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg', 'Devuan': 'dpkg',
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
-    _all_args: Tuple[str] = ('execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
-                             'force_all', 'force_write', 'verbose', 'no_markup', 'clinfo')
+    _all_args: Set[str] = {'execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
+                           'force_all', 'force_write', 'verbose', 'no_markup', 'clinfo'}
     PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
                 'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
@@ -82,7 +82,7 @@ class GutConst:
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    _sys_pciid_list: Tuple[str] = ('/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids')
+    _sys_pciid_list: Set[str] = {'/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids'}
     _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
     _repository_path: str = os.path.join(_module_path, '..')
     _local_config_list: Dict[str, str] = {
@@ -381,7 +381,7 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in ['dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils']:
+        for pkgname in {'dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils'}:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} list {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
@@ -390,7 +390,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 if '!!!' in dpkg_line:
                     continue
-                for driverpkg in ['amdgpu', 'rocm']:
+                for driverpkg in {'amdgpu', 'rocm'}:
                     if re.search('Searching', dpkg_line):
                         continue
                     if re.search(driverpkg, dpkg_line):
@@ -407,14 +407,14 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in ['amdgpu', 'rocm', 'rocm-utils']:
+        for pkgname in {'amdgpu', 'rocm', 'rocm-utils'}:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -Qs {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                for driverpkg in ['amdgpu', 'rocm']:
+                for driverpkg in {'amdgpu', 'rocm'}:
                     if re.search(driverpkg, dpkg_line):
                         LOGGER.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()
@@ -430,14 +430,14 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
+        for pkgname in {'amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'}:
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                for driverpkg in ['amdgpu', 'rocm']:
+                for driverpkg in {'amdgpu', 'rocm'}:
                     if re.search(driverpkg, dpkg_line):
                         LOGGER.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()

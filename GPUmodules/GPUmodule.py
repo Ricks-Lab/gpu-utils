@@ -115,43 +115,43 @@ class GpuItem:
                                       'mclk_ps_val': 'MCLK Pstate',
                                       'mclk_f_val':  'MCLK'}
 
-    _fan_item_list: Tuple[str] = ('fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
-                                  'pwm_mode', 'fan_pwm', 'fan_pwm_range')
-    short_list: Tuple[str] = ('vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
-                              'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id')
+    _fan_item_list: Tuple[str] = {'fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
+                                  'pwm_mode', 'fan_pwm', 'fan_pwm_range'}
+    short_list: Tuple[str] = {'vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
+                              'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
 
     # List of parameters for non-compatible AMD GPUs.
-    _GPU_NC_Param_List: Tuple[str] = (*short_list, 'model', 'driver', 'model_device_decode')
+    _GPU_NC_Param_List: Tuple[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
 
     # Vendor and Type skip lists for reporting
-    AMD_Skip_List: Tuple[str] = ('frequencies_max', 'compute_mode', 'serial_number', 'card_index')
-    NV_Skip_List: Tuple[str] = ('fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+    AMD_Skip_List: Tuple[str] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
+    NV_Skip_List: Tuple[str] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
                                 'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
                                 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                                'temp_crits', 'voltages')
-    MODERN_Skip_List: Tuple[str] = ('vddc_range', 'sclk_f_range', 'mclk_f_range')
-    LEGACY_Skip_List: Tuple[str] = ('vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
+                                'temp_crits', 'voltages'}
+    MODERN_Skip_List: Tuple[str] = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
+    LEGACY_Skip_List: Tuple[str] = {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                     'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                     'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
                                     'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range')
-    LegacyAPU_Skip_List: Tuple[str] = ('unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range'}
+    LegacyAPU_Skip_List: Tuple[str] = {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
                                        'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                       'power_cap_range', 'power', 'power_cap', *_fan_item_list)
-    APU_Skip_List: Tuple[str] = ('unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
+                                       'power_cap_range', 'power', 'power_cap', *_fan_item_list}
+    APU_Skip_List: Tuple[str] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
                                  'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                 'power_cap_range', 'power_cap', *_fan_item_list)
+                                 'power_cap_range', 'power_cap', *_fan_item_list}
 
     # Define Class Labels
     GPU_Type = GpuEnum('type',
                        'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
-    _apu_gpus: Tuple[str] = ('Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
+    _apu_gpus: Tuple[str] = {'Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
                              'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
                              'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
                              'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
-                             'Barcelo', 'Beema', 'Mullins')
+                             'Barcelo', 'Beema', 'Mullins'}
 
     # Table parameters labels
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
@@ -750,7 +750,7 @@ class GpuItem:
             if name == 'temp_val':
                 if not self.prm['temperatures']:
                     return None
-                for temp_name in ('edge', 'temperature.gpu', 'temp1_input'):
+                for temp_name in {'edge', 'temperature.gpu', 'temp1_input'}:
                     if temp_name in self.prm['temperatures'].keys():
                         if self.prm['temperatures'][temp_name]:
                             if num_as_int:
@@ -797,7 +797,7 @@ class GpuItem:
                 return None
 
         # Set type for params that could be float or int
-        if name in ('fan_pwm', 'fan_speed', 'power_cap', 'power'):
+        if name in {'fan_pwm', 'fan_speed', 'power_cap', 'power'}:
             if num_as_int:
                 if isinstance(self.prm[name], int):
                     return self.prm[name]
@@ -1546,7 +1546,7 @@ class GpuItem:
                 pstate = int(pstate_str) if pstate_str.isnumeric() else None
                 self.prm['sclk_ps'][0] = pstate
                 self.prm['mclk_ps'][0] = pstate
-            elif param_name in ('temperatures', 'voltages', 'frequencies', 'frequencies_max'):
+            elif param_name in {'temperatures', 'voltages', 'frequencies', 'frequencies_max'}:
                 self.prm[param_name] = {}
                 for sn_k in sensor_list:
                     if sn_k not in results: continue

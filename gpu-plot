@@ -732,7 +732,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
         # Update plots
         #########################
         if plot_data.quit:
-            print('Exit stack size: {}'.format(get_stack_size()))
+            env.GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()))
             PD_SEM.acquire()
             PD_SEM.release()
             sys.exit(0)
