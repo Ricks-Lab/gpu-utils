@@ -1652,6 +1652,7 @@ class GpuItem:
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return
 
+        pre = '   '
         color = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['data']
         color_reset = self._mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self._mark_up_codes['reset']
         if not env.GUT_CONST.force_all:
@@ -1661,8 +1662,11 @@ class GpuItem:
                 return
         read_data = self.read_gpu_ppm_table(return_data=True)
         self.print(short=True)
-        print('{} PPM Table Data {}'.format('#'.ljust(3, '#'), '#'.ljust(31, '#')))
-        print('{}{}{}'.format(color, read_data, color_reset))
+        print('{}{} PPM Table Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(31, '#')))
+        for line in read_data.split('\n'):
+            print('{}{}{}{}'.format(pre, color, line, color_reset))
+        else:
+            print('{}{}No PPM Data Available{}'.format(pre, color, color_reset))
 
     def print_pstates(self) -> None:
         """
@@ -1729,7 +1733,7 @@ class GpuItem:
                 print('{}'.format(color_reset))
             print('{}'.format(color_reset))
         if not info_printed:
-            print('No P-State Data Available')
+            print('{}{}No P-State Data Available{}'.format(pre, color, color_reset))
 
     def get_key_description(self, filename: str) -> Tuple[str, str]:
         """
