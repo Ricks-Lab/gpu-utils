@@ -1123,7 +1123,7 @@ class GpuItem:
         :return:
         """
         for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
-            if path:
+            if path and os.path.isdir(path):
                 for file in os.listdir(path):
                     file_path = os.path.join(path, file)
                     if not os.path.isfile(file_path): continue
@@ -1137,6 +1137,7 @@ class GpuItem:
                     except UnicodeDecodeError:
                         contents = 'BINARY'
                     self.raw[sensor_type].update({file: contents})
+            env.GUT_CONST.process_message('Invalid path for {} path: [{}]'.format(sensor_type, path))
 
     def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, str]:
         """
@@ -1669,6 +1670,7 @@ class GpuItem:
                     print('{}{}{}{}'.format(pre, color, line.strip('\n'), color_reset))
         else:
             print('{}{}No PPM Data Available{}'.format(pre, color, color_reset))
+        print('')
 
     def print_pstates(self) -> None:
         """
@@ -1733,9 +1735,10 @@ class GpuItem:
                     if not i: print('{}{}{}{}: {}{}'.format(pre, pre, cur_color, ps, freq, color), end='')
                     else: print(', {}{}: {}{}'.format(cur_color, ps, freq, color), end='')
                 print('{}'.format(color_reset))
-            print('{}'.format(color_reset))
+            print('{}'.format(color_reset), end='')
         if not info_printed:
             print('{}{}No P-State Data Available{}'.format(pre, color, color_reset))
+        print('')
 
     def get_key_description(self, filename: str) -> Tuple[str, str]:
         """
