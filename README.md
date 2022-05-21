@@ -120,7 +120,6 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## Development Plans
 
-* Implement timeout to handle cases where drivers become unreadable.
 * Add status read capabilities for Intel GPUs.
 * Add pac capabilities for Nvidia GPUs.
 
