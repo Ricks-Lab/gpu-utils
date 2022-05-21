@@ -1663,9 +1663,10 @@ class GpuItem:
         read_data = self.read_gpu_ppm_table(return_data=True)
         self.print(short=True)
         print('{}{} PPM Table Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(31, '#')))
-        if not read_data: read_data = ''
-        for line in read_data.split('\n'):
-            print('{}{}{}{}'.format(pre, color, line, color_reset))
+        if read_data:
+            for line in read_data.split('\n'):
+                if line.strip('\n'):
+                    print('{}{}{}{}'.format(pre, color, line.strip('\n'), color_reset))
         else:
             print('{}{}No PPM Data Available{}'.format(pre, color, color_reset))
 
