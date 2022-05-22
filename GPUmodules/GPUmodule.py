@@ -103,8 +103,8 @@ class GpuItem:
 
     _fan_item_list: Tuple[str] = {'fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
                                   'pwm_mode', 'fan_pwm', 'fan_pwm_range'}
-    short_list: Tuple[str] = {'vendor', 'readable', 'writable', 'compute', 'card_num', 'id', 'model_device_decode',
-                              'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
+    short_list: Tuple[str] = {'vendor', 'pp_features', 'readable', 'writable', 'compute', 'card_num', 'id',
+                              'model_device_decode', 'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
 
     # List of parameters for non-compatible AMD GPUs.
     _GPU_NC_Param_List: Tuple[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
@@ -112,7 +112,7 @@ class GpuItem:
     # Vendor and Type skip lists for reporting
     AMD_Skip_List: Tuple[str] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
     NV_Skip_List: Tuple[str] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
-                                'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage',
+                                'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
                                 'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
                                 'temp_crits', 'voltages'}
     MODERN_Skip_List: Tuple[str] = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
@@ -183,6 +183,7 @@ class GpuItem:
     _GPU_Param_Labels: Dict[str, str] = {
         'card_num':            'Card Number',
         'vendor':              'Vendor',
+        'pp_features':         'PP Features',
         'readable':            'Readable',
         'writable':            'Writable',
         'compute':             'Compute',
@@ -442,6 +443,7 @@ class GpuItem:
             'pcie_id': '',
             'driver': '',
             'vendor': self.GPU_Vendor.Undefined,
+            'pp_features': '',
             'readable': False,
             'writable': False,
             'compute': False,
@@ -1126,31 +1128,52 @@ class GpuItem:
             env.GUT_CONST.process_message('Invalid path for {} path: [{}]'.format(sensor_type, path))
 
     def is_amd_readable(self) -> bool:
+        """
+        Check if GPU is AMD and readable and readable type.
+
+        :return: True if is AMD and readable.
+        """
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return False
         if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported):
+            # Originally APU was also disabled for pstates but not ppm
+            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy, GpuItem.GPU_Type.Unsupported):
                 return False
         return True
 
-    """
     def read_gpu_pp_features(self, return_data: bool = False) -> Union[None, str]:
-        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return None
-        if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported):
-                return None
+        """
+        Read amdgpu PP Feature enablement.
+
+        :param return_data: Return raw file read data if True
+        :return:  Raw file read data or None
+        """
+        if not self.is_amd_readable(): return None
+        parameter_file = 'pp_features'
+        if not self.param_is_active(parameter_file): return None
 
         rdata = ''
-        if not self.param_is_active('pp_features'):
-            return None
-        file_path = os.path.join(self.prm.card_path, 'pp_features')
+        if not self.param_is_active(parameter_file): return None
+        file_path = os.path.join(self.prm.card_path, parameter_file)
         if not os.path.isfile(file_path):
             env.GUT_CONST.process_message('Error: pp_features file does not exist: {}'.format(file_path))
-            self.disable_param_read('pp_features')
-    """
+            self.disable_param_read(parameter_file)
+            return None
+        try:
+            with open(file_path) as feature_file:
+                for line in feature_file:
+                    if return_data: rdata += line
+                    line_str = line.strip()
+                    line_items = line_str.split(':')
+                    if len(line_items) > 1:
+                        self.prm.pp_features = line_items[1].strip()
+        except OSError as except_err:
+            LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.disable_param_read(parameter_file)
+            return None
+
+        return rdata if return_data else None
 
     def read_gpu_ppm_table(self, return_data: bool = False) -> Union[None, str]:
         """
@@ -1160,14 +1183,14 @@ class GpuItem:
         :return: return data or None if False
         """
         if not self.is_amd_readable(): return None
+        parameter_file = 'pp_power_profile_mode'
+        if not self.param_is_active(parameter_file): return None
 
         rdata = ''
-        if not self.param_is_active('pp_power_profile_mode'):
-            return None
-        file_path = os.path.join(self.prm.card_path, 'pp_power_profile_mode')
+        file_path = os.path.join(self.prm.card_path, parameter_file)
         if not os.path.isfile(file_path):
             env.GUT_CONST.process_message('Error: ppm table file does not exist: {}'.format(file_path))
-            self.disable_param_read('pp_power_profile_mode')
+            self.disable_param_read(parameter_file)
             return None
         try:
             with open(file_path) as card_file:
@@ -1188,7 +1211,7 @@ class GpuItem:
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
-            self.disable_param_read('pp_power_profile_mode')
+            self.disable_param_read(parameter_file)
             return None
 
         return rdata if return_data else None
@@ -1199,22 +1222,14 @@ class GpuItem:
         Set card type based on pstate configuration
         """
         if not self.is_amd_readable(): return
-        """
-        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return
-        if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported,
-                                                              GpuItem.GPU_Type.APU):
-                return
-        """
+        parameter_file = 'pp_od_clk_voltage'
+        if not self.param_is_active(parameter_file): return
 
-        if not self.param_is_active('pp_od_clk_voltage'): return
         range_mode = False
-        file_path = os.path.join(self.prm.card_path, 'pp_od_clk_voltage')
+        file_path = os.path.join(self.prm.card_path, parameter_file)
         if not os.path.isfile(file_path):
             env.GUT_CONST.process_message('Error getting p-states: {}'.format(file_path))
-            self.disable_param_read('pp_od_clk_voltage')
+            self.disable_param_read(parameter_file)
             return
         try:
             with open(file_path) as card_file:
@@ -1288,7 +1303,7 @@ class GpuItem:
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
-            self.disable_param_read('pp_od_clk_voltage')
+            self.disable_param_read(parameter_file)
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
@@ -1656,49 +1671,48 @@ class GpuItem:
                     print(', {}'.format(parameter), end='')
             print('{}'.format(color_reset))
 
-    def print_ppm_table(self) -> None:
+    def print_param_table(self, param_name: str, short: bool = True) -> None:
         """
-        Print human friendly table of ppm parameters.
+        Print human friendly table of specified parameters.
+
+        :param param_name: Target parameter key name.
+        :param short: Print short gpu first if True
         """
-        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return
+        if not self.is_amd_readable(): return
+        param_table_definitions = {'pp_features': {'func': self.read_gpu_pp_features, 'name': 'PP Feature'},
+                                   'ppm': {'func': self.read_gpu_ppm_table, 'name': 'PPM'}}
+        if param_name not in param_table_definitions.keys(): return
 
         pre = '   '
         color = self.mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self.mark_up_codes['data']
         color_reset = self.mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self.mark_up_codes['reset']
-        if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported):
-                LOGGER.debug('PPM for card number %s not readable.', self.prm.card_num)
-                return
-        read_data = self.read_gpu_ppm_table(return_data=True)
-        self.print(short=True)
-        print('{}{} PPM Table Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(31, '#')))
+
+        param_details = param_table_definitions[param_name]
+        read_data = param_details['func'](return_data=True)
+
+        if short: self.print(short=True)
+        print('{}{} {} Table Data {}'.format(pre, '#'.ljust(3, '#'), param_details['name'], '#'.ljust(31, '#')))
         if read_data:
             for line in read_data.split('\n'):
                 if line.strip('\n'):
                     print('{}{}{}{}'.format(pre, color, line.strip('\n'), color_reset))
         else:
-            print('{}{}No PPM Data Available{}'.format(pre, color, color_reset))
+            print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
         print('')
 
-    def print_pstates(self) -> None:
+    def print_pstates(self, short: bool = True) -> None:
         """
         Print human friendly table of p-states.
-        """
-        if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
-            return
 
-        if not env.GUT_CONST.force_all:
-            if not self.prm.readable or self.prm.gpu_type in (GpuItem.GPU_Type.Legacy,
-                                                              GpuItem.GPU_Type.Unsupported):
-                LOGGER.debug('P-states for card number %s not readable.', self.prm.card_num)
-                return
+        :param short: Print short gpu first if True
+        """
+        if not self.is_amd_readable(): return
+
         info_printed = False
         color = self.mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self.mark_up_codes['data']
         active_color = self.mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self.mark_up_codes['green']
         color_reset = self.mark_up_codes['none'] if env.GUT_CONST.args.no_markup else self.mark_up_codes['reset']
-        self.print(short=True)
+        if short: self.print(short=True)
         pre = '   '
         print('{}{} P-State Data {}'.format(pre, '#'.ljust(3, '#'), '#'.ljust(33, '#')))
         # DPM States
@@ -1925,6 +1939,7 @@ class GpuList:
         self.list: GpuDict = {}
         self.opencl_map: dict = {}
         self.amd_featuremask: Union[int, None] = None
+        self.current_amd_featuremask: Union[str, int, None] = None
         self.amd_wattman: bool = False
         self.amd_writable: bool = False
         self.nv_readwritable: bool = False
@@ -2001,7 +2016,7 @@ class GpuList:
         """
         LOGGER.debug('AMD featuremask: %s', hex(self.amd_featuremask))
         if self.amd_wattman:
-            print('Wattman features enabled: {}'.format(bin(self.amd_featuremask)))
+            #print('Wattman features enabled: {}'.format(bin(self.amd_featuremask)))
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
 
@@ -2275,6 +2290,7 @@ class GpuList:
             LOGGER.debug('Card flags: readable: %s, writable: %s, type: %s',
                          readable, writable, self[gpu_uuid].prm.gpu_type)
 
+            self[gpu_uuid].read_gpu_pp_features()
             # Read GPU ID
             rdata = self[gpu_uuid].read_gpu_sensor('id', vendor=GpuItem.GPU_Vendor.PCIE, sensor_type='DEVICE')
             if rdata:
@@ -2522,12 +2538,19 @@ class GpuList:
             if gpu.prm.readable:
                 gpu.read_gpu_ppm_table()
 
-    def print_ppm_table(self) -> None:
+    def print_param_table(self, param_name) -> None:
         """
         Print the GpuItem ppm data.
         """
         for gpu in self.gpus():
-            gpu.print_ppm_table()
+            gpu.print_param_table(param_name=param_name)
+
+    def print_pstates(self) -> None:
+        """
+        Print the GpuItem pstates data.
+        """
+        for gpu in self.gpus():
+            gpu.print_pstates()
 
     def read_gpu_pstates(self) -> None:
         """
@@ -2536,13 +2559,6 @@ class GpuList:
         for gpu in self.gpus():
             if gpu.prm.readable:
                 gpu.read_gpu_pstates()
-
-    def print_pstates(self) -> None:
-        """
-        Print the GpuItem p-state data.
-        """
-        for gpu in self.gpus():
-            gpu.print_pstates()
 
     def read_gpu_sensor_set(self, data_type: Enum = GpuItem.SensorSet.All) -> None:
         """
