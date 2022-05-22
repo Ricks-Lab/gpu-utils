@@ -56,10 +56,31 @@ class GutConst:
                                   'Gentoo': 'equery'}
     _all_args: Set[str] = {'execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
                            'force_all', 'force_write', 'verbose', 'no_markup', 'clinfo'}
-    PATTERNS = {'HEXRGB':       re.compile(r'^#[0-9a-fA-F]{6}'),
-                'PCIIID_L0':    re.compile(r'^[0-9a-fA-F]{4}.*'),
-                'PCIIID_L1':    re.compile(r'^\t[0-9a-fA-F]{4}.*'),
-                'PCIIID_L2':    re.compile(r'^\t\t[0-9a-fA-F]{4}.*'),
+    mark_up_codes: Dict[str, str] = {'none':      '',
+                                     'bold':      '\033[1m',
+                                     # Foreground colors
+                                     'white':     '\033[37m',
+                                     'data':      '\033[36m',
+                                     'cyan':      '\033[36m',
+                                     'purple':    '\033[35m',
+                                     'blue':      '\033[34m',
+                                     'yellow':    '\033[33m',
+                                     'green':     '\033[32m',
+                                     'red':       '\033[31m',
+                                     # Named formats
+                                     'amd':       '\033[1;37;41m',
+                                     'error':     '\033[1;37;41m',
+                                     'ok':        '\033[1;37;42m',
+                                     'nvidia':    '\033[1;30;42m',
+                                     'warn':      '\033[1;30;43m',
+                                     'other':     '\033[1;37;44m',
+                                     'label':     '\033[1;37;46m',
+                                     'reset':     '\033[0;0;0m'}
+
+    PATTERNS = {'HEXRGB':       re.compile(r'^#[\da-fA-F]{6}'),
+                'PCIIID_L0':    re.compile(r'^[\da-fA-F]{4}.*'),
+                'PCIIID_L1':    re.compile(r'^\t[\da-fA-F]{4}.*'),
+                'PCIIID_L2':    re.compile(r'^\t\t[\da-fA-F]{4}.*'),
                 'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
                 'ALPHA':        re.compile(r'[a-zA-Z]+'),
                 'AMD_GPU':      re.compile(r'(AMD|amd|ATI|ati)'),
@@ -71,13 +92,13 @@ class GutConst:
                 'MHz':          re.compile(r'M[Hh]z'),
                 'PPM_CHK':      re.compile(r'[*].*'),
                 'PCI_GPU':      re.compile(r'(VGA|3D|Display)'),
-                'PCI_ADD':      re.compile(r'^(([0-9a-fA-F]{4}:)?[0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F])'),
-                'PCI_ADD_LONG': re.compile(r'^([0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F])'),
-                'PCI_ADD_SHRT': re.compile(r'^([0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F])'),
-                'PPM_NOTCHK':   re.compile(r'[ ]+'),
-                'VALID_PS_STR': re.compile(r'[0-9]+(\s[0-9])*'),
+                'PCI_ADD':      re.compile(r'^(([\da-fA-F]{4}:)?[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
+                'PCI_ADD_LONG': re.compile(r'^([\da-fA-F]{4}:[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
+                'PCI_ADD_SHRT': re.compile(r'^([\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
+                'PPM_NOTCHK':   re.compile(r'\s+'),
+                'VALID_PS_STR': re.compile(r'\d+(\s\d)*'),
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
-                'DIGITS':       re.compile(r'^[0-9]+[0-9]*$'),
+                'DIGITS':       re.compile(r'^\d+\d*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
@@ -381,7 +402,7 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in {'dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils'}:
+        for pkgname in ('dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils'):
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} list {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
@@ -390,7 +411,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 if '!!!' in dpkg_line:
                     continue
-                for driverpkg in {'amdgpu', 'rocm'}:
+                for driverpkg in ('amdgpu', 'rocm'):
                     if re.search('Searching', dpkg_line):
                         continue
                     if re.search(driverpkg, dpkg_line):
@@ -407,14 +428,14 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in {'amdgpu', 'rocm', 'rocm-utils'}:
+        for pkgname in ('amdgpu', 'rocm', 'rocm-utils'):
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -Qs {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                for driverpkg in {'amdgpu', 'rocm'}:
+                for driverpkg in ('amdgpu', 'rocm'):
                     if re.search(driverpkg, dpkg_line):
                         LOGGER.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()
@@ -430,14 +451,14 @@ class GutConst:
 
         :return: True if successful
         """
-        for pkgname in {'amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'}:
+        for pkgname in ('amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'):
             try:
                 dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                for driverpkg in {'amdgpu', 'rocm'}:
+                for driverpkg in ('amdgpu', 'rocm'):
                     if re.search(driverpkg, dpkg_line):
                         LOGGER.debug(dpkg_line)
                         dpkg_items = dpkg_line.split()
