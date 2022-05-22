@@ -36,8 +36,8 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
-               'Keith Myers - Testing, Debug, Verification of NV Capability']
+__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation',
+               'Keith Myers - Testing, Debug, Verification of NV Capability')
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-mon'
 __maintainer__ = 'RueiKe'
@@ -380,9 +380,14 @@ def main() -> None:
                 com_gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
                 os.system('clear')
                 if env.GUT_CONST.DEBUG:
-                    print('{}DEBUG logger is active{}'.format('\033[31m \033[01m', '\033[0m'))
+                    print('{}DEBUG logger is active{}'.format((env.GUT_CONST.mark_up_codes['red'] +
+                                                               env.GUT_CONST.mark_up_codes['bold']),
+                                                              env.GUT_CONST.mark_up_codes['reset']))
                 if env.GUT_CONST.LOG:
-                    print('{}Logging to:  {}{}'.format('\033[31m \033[01m', env.GUT_CONST.log_file, '\033[0m'))
+                    print('{}Logging to: {}{}'.format((env.GUT_CONST.mark_up_codes['red'] +
+                                                       env.GUT_CONST.mark_up_codes['bold']),
+                                                      env.GUT_CONST.log_file,
+                                                      env.GUT_CONST.mark_up_codes['reset']))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
                 sleep(env.GUT_CONST.SLEEP)

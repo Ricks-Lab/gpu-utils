@@ -31,7 +31,7 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
+__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation', )
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-pac'
 __maintainer__ = 'RueiKe'
@@ -186,7 +186,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStatesNE, gpu.GPU_Type.PStates]:
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.PStatesNE, gpu.GPU_Type.PStates):
                 # Sclk P-States
                 devices[gpu.prm.uuid]['sclk_range'] = Gtk.Label(name='white_label')
                 devices[gpu.prm.uuid]['sclk_range'].set_markup('<b>Sclk P-States: </b> Ranges {}-{}, {}-{} '.format(
@@ -267,7 +267,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.CurvePts, gpu.GPU_Type.PStates]:
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, gpu.GPU_Type.PStates):
                 # SCLK P-State Mask
                 devices[gpu.prm.uuid]['sclk_pst_mask_cur'] = Gtk.Label(name='white_label')
                 set_gtk_prop(devices[gpu.prm.uuid]['sclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
@@ -362,7 +362,7 @@ class PACWindow(Gtk.Window):
                     grid.attach(lbox, col, row, 1, 1)
                     row += 1
 
-            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.CurvePts, gpu.GPU_Type.PStates]:
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, gpu.GPU_Type.PStates):
                 # MCLK P-State Mask
                 devices[gpu.prm.uuid]['mclk_pst_mask_cur'] = Gtk.Label(name='white_label')
                 set_gtk_prop(devices[gpu.prm.uuid]['mclk_pst_mask_cur'], top=1, bottom=1, right=2, left=2)
@@ -626,7 +626,7 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['fan_pwm_ent'].set_text(str(gpu.get_params_value('fan_pwm', num_as_int=True)))
                 LOGGER.debug('Refresh got current pwm speed: %s', devices[gpu.prm.uuid]['fan_pwm_ent'].get_text())
             # SCLK
-            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates]:
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.PStates, ):
                 for ps, psd in gpu.sclk_state.items():
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -651,7 +651,7 @@ class PACWindow(Gtk.Window):
                     '    SCLK Default: {}    Set Mask: '.format(gpu.prm.sclk_mask))
                 devices[gpu.prm.uuid]['sclk_pst_mask_ent'].set_text(gpu.prm.sclk_mask)
             # MCLK
-            if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates]:
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.PStates, ):
                 for ps, psd in gpu.mclk_state.items():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -1035,7 +1035,7 @@ class PACWindow(Gtk.Window):
         else:
             print('# No clock changes made, commit skipped', file=fileptr)
 
-        if gpu.get_params_value('gpu_type') in [gpu.GPU_Type.PStates, gpu.GPU_Type.CurvePts]:
+        if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.PStates, gpu.GPU_Type.CurvePts):
             # Writes of pstate Masks must come after commit of pstate changes
             # Sclk Mask
             sclk_mask_file = os.path.join(gpu.prm.card_path, 'pp_dpm_sclk')

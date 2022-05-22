@@ -23,7 +23,7 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation']
+__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation', )
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-chk'
 __maintainer__ = 'RueiKe'
@@ -45,6 +45,13 @@ from GPUmodules import __version__, __status__
 
 warnings.filterwarnings('ignore')
 ENV_DIR = 'rickslab-gpu-utils-env'
+COLORS: dict = {'none':  '',
+                'error': '\033[1;37;41m',
+                'ok':    '\033[1;37;42m',
+                'warn':  '\033[1;30;43m',
+                'label': '\033[1;37;46m',
+                'other': '\033[1;37;44m',
+                'reset': '\033[0;0;0m'}
 
 
 class GutConst:
@@ -52,7 +59,7 @@ class GutConst:
     Base object for chk util.  These are simplified versions of what are in env module designed to run in python2
     in order to detect setup issues even if wrong version of python.
     """
-    _verified_distros = ['Debian', 'Ubuntu', 'Gentoo', 'Arch']
+    _verified_distros = ('Debian', 'Ubuntu', 'Gentoo', 'Arch')
     _dpkg_tool = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'portage'}
 
     def __init__(self):
@@ -65,20 +72,22 @@ class GutConst:
         :return:  A list of 4 integers representing status of 3 check items.
         """
         ret_val = {'python': 0, 'kernel': 0, 'system': 0, 'distribution': 0, 'driver': 0}
+        print('Using rickslab-gpu-utils {} {} {}'.format(COLORS['other'], __version__, COLORS['reset']))
+
         # Check python version
         required_pversion = [3, 6]
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
         print('Using python {}.{}.{}'.format(python_major, python_minor, python_patch))
         if int(python_major) < required_pversion[0]:
-            print('          \x1b[1;37;41m but rickslab-gpu-utils requires python {}.{} or newer\x1b[0m'.format(
-                  required_pversion[0], required_pversion[1]))
+            print('          {} but rickslab-gpu-utils requires python {}.{} or newer {}'.format(
+                  COLORS['error'], required_pversion[0], required_pversion[1], COLORS['reset']))
             ret_val['python'] = False
         elif int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
-            print('          \x1b[1;37;41m but rickslab-gpu-utils requires python {}.{} or newer \x1b[0m'.format(
-                  required_pversion[0], required_pversion[1]))
+            print('          {} but rickslab-gpu-utils requires python {}.{} or newer {}'.format(
+                  COLORS['error'], required_pversion[0], required_pversion[1], COLORS['reset']))
             ret_val['python'] = False
         else:
-            print('          \x1b[1;37;42m Python version OK. \x1b[0m')
+            print('          {} Python version OK. {}'.format(COLORS['ok'], COLORS['reset']))
             ret_val['python'] = True
 
         # Check Linux Kernel version
@@ -86,16 +95,16 @@ class GutConst:
         linux_version = platform.release()
         print('Using Linux Kernel: {}'.format(linux_version))
         if int(linux_version.split('.')[0]) < required_kversion[0]:
-            print('          \x1b[1;37;41m but rickslab-gpu-utils requires {}.{} or newer \x1b[0m'.format(
-                  required_kversion[0], required_kversion[1]))
+            print('          {} but rickslab-gpu-utils requires {}.{} or newer {}'.format(
+                  COLORS['error'], required_kversion[0], required_kversion[1], COLORS['reset']))
             ret_val['kernel'] = False
         elif int(linux_version.split('.')[0]) == required_kversion[0] and \
                 int(linux_version.split('.')[1]) < required_kversion[1]:
-            print('          \x1b[1;37;41m but rickslab-gpu-utils requires {}.{} or newer. \x1b[0m'.format(
-                  required_kversion[0], required_kversion[1]))
+            print('          {} but rickslab-gpu-utils requires {}.{} or newer. {}'.format(
+                  COLORS['error'], required_kversion[0], required_kversion[1], COLORS['reset']))
             ret_val['kernel'] = False
         else:
-            print('          \x1b[1;37;42m OS kernel OK. \x1b[0m')
+            print('          {} OS kernel OK. {}'.format(COLORS['ok'], COLORS['reset']))
             ret_val['kernel'] = True
 
         # Check Linux System Type
@@ -107,10 +116,10 @@ class GutConst:
                 init_type = 'systemd' if 'systemd' in sys_path else sys_path
             print('Using system type: {}'.format(init_type))
         if init_type == 'systemd':
-            print('          \x1b[1;37;42m System type has been Validated. \x1b[0m')
+            print('          {} System type has been Validated. {}'.format(COLORS['ok'], COLORS['reset']))
             ret_val['system'] = True
         else:
-            print('          \x1b[1;30;43m System type has not been verified. \x1b[0m')
+            print('          {} System type has not been verified. {}'.format(COLORS['warn'], COLORS['reset']))
             ret_val['system'] = False
 
         # Check Linux Distribution
@@ -132,14 +141,14 @@ class GutConst:
             if distributor:
                 print(description)
                 if distributor in GutConst._verified_distros:
-                    print('          \x1b[1;37;42m Distro has been Validated. \x1b[0m')
+                    print('          {} Distro has been Validated. {}'.format(COLORS['ok'], COLORS['reset']))
                     ret_val['distribution'] = True
                 else:
-                    print('          \x1b[1;30;43m Distro has not been verified. \x1b[0m')
-                    ret_val['distribution'] = False
+                    print('          {} Distro has not been verified. {}'.format(COLORS['warn'], COLORS['reset']))
+                    ret_val['distribution'] = True
         else:
             print('unknown')
-            print('          \x1b[1;30;43m [lsb_release] executable not found. \x1b[0m')
+            print('          {} [lsb_release] executable not found. {}'.format(COLORS['warn'], COLORS['reset']))
             ret_val['distribution'] = True
 
         # Check for amdgpu driver
@@ -155,26 +164,26 @@ class GutConst:
         cmd_dpkg = shutil.which('dpkg')
         if not cmd_dpkg:
             print('Command dpkg not found. Can not determine amdgpu version.')
-            print('          \x1b[1;30;43m rickslab-gpu-utils can still be used. \x1b[0m')
+            print('          {} rickslab-gpu-utils can still be used. {}'.format(COLORS['warn'], COLORS['reset']))
             return True
-        for pkgname in ['amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils']:
+        for pkgname in ('amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'):
             try:
                 dpkg_out = subprocess.check_output(shlex.split(cmd_dpkg + ' -l ' + pkgname),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
             for dpkg_line in dpkg_out:
-                for driverpkg in ['amdgpu', 'rocm']:
+                for driverpkg in ('amdgpu', 'rocm'):
                     if re.search(driverpkg, dpkg_line):
                         if self.DEBUG: print('Debug: ' + dpkg_line)
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
                             print('AMD: {} version: {}'.format(driverpkg, dpkg_items[2]))
-                            print('          \x1b[1;37;42m AMD driver OK. \x1b[0m')
+                            print('          {} AMD driver OK. {}'.format(COLORS['ok'], COLORS['reset']))
                             return True
         print('amdgpu/rocm version: UNKNOWN')
-        print('          \x1b[1;30;43m rickslab-gpu-utils can still be used. \x1b[0m')
+        print('          {} rickslab-gpu-utils can still be used. {}'.format(COLORS['warn'], COLORS['reset']))
         return False
 
 
@@ -197,10 +206,11 @@ def is_venv_installed() -> bool:
         output, _error = p.communicate()
         if not re.fullmatch(r'.*No module named.*', output.decode()):
             print('python3 venv is installed')
-            print('          \x1b[1;37;42m python3-venv OK. \x1b[0m')
+            print('          {} python3-venv OK. {}'.format(COLORS['ok'], COLORS['reset']))
             return True
     print('python3 venv is NOT installed')
-    print('          \x1b[1;30;43m Python3 venv package \'python3-venv\' is recommended for developers \x1b[0m')
+    print('          {} Python3 venv package \'python3-venv\' is recommended for developers {}'.format(
+          COLORS['warn'], COLORS['reset']))
     return False
 
 
@@ -214,10 +224,10 @@ def does_gpu_utils_env_exist() -> bool:
 
     if os.path.isfile(env_name):
         print('{} available'.format(ENV_DIR))
-        print('          \x1b[1;37;42m {} OK. \x1b[0m'.format(ENV_DIR))
+        print('          {} {} OK. {}'.format(COLORS['ok'], ENV_DIR, COLORS['reset']))
         return True
     print('{} is NOT available'.format(ENV_DIR))
-    print('          \x1b[1;30;43m {} can be configured per User Guide. \x1b[0m'.format(ENV_DIR))
+    print('          {} {} can be configured per User Guide. {}'.format(COLORS['warn'], ENV_DIR, COLORS['reset']))
     return False
 
 
@@ -233,10 +243,10 @@ def is_in_venv() -> bool:
     else:
         if re.search(ENV_DIR, python_path):
             print('In {}'.format(ENV_DIR))
-            print('          \x1b[1;37;42m {} is activated. \x1b[0m'.format(ENV_DIR))
+            print('          {} {} is activated. {}'.format(COLORS['ok'], ENV_DIR, COLORS['reset']))
             return True
         print('Not in {}, (Only needed if you want to duplicate development env)'.format(ENV_DIR))
-        print('          \x1b[1;30;43m {} can be activated per User Guide. \x1b[0m'.format(ENV_DIR))
+        print('          {} {} can be activated per User Guide. {}'.format(COLORS['warn'], ENV_DIR, COLORS['reset']))
     return False
 
 
