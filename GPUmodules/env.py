@@ -83,6 +83,7 @@ class GutConst:
                 'PCIIID_L2':    re.compile(r'^\t\t[\da-fA-F]{4}.*'),
                 'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
                 'ALPHA':        re.compile(r'[a-zA-Z]+'),
+                'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
                 'AMD_GPU':      re.compile(r'(AMD|amd|ATI|ati)'),
                 'NV_GPU':       re.compile(r'(NVIDIA|nvidia|nVidia)'),
                 'INTC_GPU':     re.compile(r'(INTEL|intel|Intel)'),
