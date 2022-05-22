@@ -1164,9 +1164,10 @@ class GpuItem:
                 for line in feature_file:
                     if return_data: rdata += line
                     line_str = line.strip()
-                    line_items = line_str.split(':')
-                    if len(line_items) > 1:
-                        self.prm.pp_features = line_items[1].strip()
+                    if not self.prm.pp_features:
+                        line_items = line_str.split(':', maxsplit=2)
+                        if len(line_items) > 1:
+                            self.prm.pp_features = line_items[1].strip()
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
