@@ -101,7 +101,7 @@ class GutConst:
                 'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
                 'DIGITS':       re.compile(r'^\d+\d*$'),
                 'VAL_ITEM':     re.compile(r'.*_val$'),
-                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|\])', re.IGNORECASE),
+                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
     _sys_pciid_list: Set[str] = {'/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids'}
@@ -353,11 +353,11 @@ class GutConst:
             command_access_fail = True
         LOGGER.debug('lspci path: %s', self.cmd_lspci)
 
-        if self.clinfo:
-            self.cmd_clinfo = shutil.which('clinfo')
-            if not self.cmd_clinfo:
+        self.cmd_clinfo = shutil.which('clinfo')
+        if not self.cmd_clinfo:
+            if self.clinfo:
                 print('Addon Package [clinfo] executable not found.  Use \'sudo apt install clinfo\' to install')
-            LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
+        LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
 
         # Package Reader
         if self.distro['Distributor'] in GutConst._dpkg_tool:

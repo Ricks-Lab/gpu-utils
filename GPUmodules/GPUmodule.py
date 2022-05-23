@@ -19,8 +19,8 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ['Craig Echt - Testing, Debug, Verification, and Documentation',
-               'Keith Myers - Testing, Debug, Verification of NV Capability']
+__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation',
+               'Keith Myers - Testing, Debug, Verification of NV Capability')
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
@@ -165,7 +165,6 @@ class GpuItem:
 
     # Complete GPU print items, use skip lists where appropriate
     _GPU_CLINFO_Labels: Dict[str, str] = {
-        #'sep4': '#',
         'opencl_version':     '   Device OpenCL C Version',
         'device_name':        '   Device Name',
         'device_version':     '   Device Version',
@@ -205,7 +204,7 @@ class GpuItem:
         'gpu_type':            'GPU Type',
         'hwmon_path':          'HWmon',
         'card_path':           'Card Path',
-        'sys_card_path':      'System Card Path',
+        'sys_card_path':       'System Card Path',
         'sep2':                '#',
         'power':               'Current Power (W)',
         'power_cap':           'Power Cap (W)',
@@ -535,8 +534,7 @@ class GpuItem:
         Finalize class variables of gpu parameters based on command line options. This must be
         done after setting of env.  Doing it at the instantiation of a GpuItem assures that.
         """
-        if cls._finalized:
-            return
+        if cls._finalized: return
         cls.finalized = True
         if not env.GUT_CONST.show_fans:
             for fan_item in cls._fan_item_list:
@@ -674,7 +672,7 @@ class GpuItem:
             self.prm[name] = value
             self.set_memory_usage()
         elif name == 'id':
-            self.prm.id = dict(zip(['vendor', 'device', 'subsystem_vendor', 'subsystem_device'], list(value)))
+            self.prm.id = dict(zip(('vendor', 'device', 'subsystem_vendor', 'subsystem_device'), list(value)))
             self.prm.model_device_decode = self.read_pciid_model()
             self.prm.model_display = self.fit_display_name(self.prm.model_device_decode)
         else:
@@ -801,8 +799,6 @@ class GpuItem:
     def set_memory_usage(self) -> None:
         """
         Set system and vram memory usage percentage.
-
-        :return: A tuple of the system and vram memory usage percentage.
         """
         if self.prm.mem_gtt_used is None or self.prm.mem_gtt_total is None:
             self.prm.mem_gtt_usage = None
@@ -922,7 +918,6 @@ class GpuItem:
 
         :param name:  clinfo Parameter name
         :return: clinfo Parameter value
-        .. note: Maybe not needed
         """
         return self.clinfo[name]
 
@@ -1095,7 +1090,6 @@ class GpuItem:
         Read GPU ppm definitions and current settings from driver files.
 
         :return: ppm state
-        :rtype: list
         """
         if self.prm.vendor != GpuItem.GPU_Vendor.AMD:
             return None
@@ -1107,8 +1101,6 @@ class GpuItem:
     def read_raw_sensors(self) -> None:
         """
         Read all possible device driver files and populate self's raw dictionary.
-
-        :return:
         """
         for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
             if path and os.path.isdir(path):
@@ -1472,6 +1464,7 @@ class GpuItem:
         by data_type.
 
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
+        :return: True on success.
         """
         if self.prm.vendor == self.GPU_Vendor.AMD:
             return_stat = self.read_gpu_sensor_set_amd(data_type)
@@ -1486,8 +1479,6 @@ class GpuItem:
     def update_table_items_status(self) -> None:
         """
         Update the readable status of table related parameters.
-
-        :return:
         """
         if env.GUT_CONST.DEBUG:
             print('### read_time_val: {}'.format(
@@ -1695,10 +1686,14 @@ class GpuItem:
         title_str = '{} {} Table Data '.format('#'.ljust(3, '#'), param_details['name'])
         print('{}{}{}'.format(pre, title_str, '#'.ljust(50 - len(title_str), '#')))
         if param_name == 'clinfo':
+            item_count = 0
             if self.prm.compute:
                 for ocl_param_name, ocl_param_label in self._GPU_CLINFO_Labels.items():
-                    print('{}: {}{}{}'.format(ocl_param_label, color, self.get_clinfo_value(ocl_param_name), color_reset))
-            else:
+                    if self.get_clinfo_value(ocl_param_name):
+                        item_count += 1
+                        print('{}: {}{}{}'.format(ocl_param_label, color,
+                                                  self.get_clinfo_value(ocl_param_name), color_reset))
+            if not item_count:
                 print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
             return
         if param_name == 'pstate':
@@ -1713,11 +1708,9 @@ class GpuItem:
             else:
                 print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
 
-    def print_pstates(self, short: bool = True) -> None:
+    def print_pstates(self) -> None:
         """
         Print human friendly table of p-states.
-
-        :param short: Print short gpu first if True
         """
         if not self.is_amd_readable(): return
 
@@ -2031,6 +2024,7 @@ class GpuList:
 
         :return: Dictionary of table parameters/labels
         """
+        # TODO: Implement as iterator
         return GpuItem.table_param_labels
 
     @staticmethod
@@ -2040,6 +2034,7 @@ class GpuList:
 
         :return: List of table parameters
         """
+        # TODO: Implement as iterator
         return GpuItem.table_parameters
 
     @staticmethod
@@ -2081,6 +2076,8 @@ class GpuList:
             self.amd_featuremask = env.GUT_CONST.read_amdfeaturemask()
         except FileNotFoundError:
             self.amd_wattman = self.amd_writable = False
+
+        # TODO: Need to research on specifically which bits are required to write to GPU.
         self.amd_wattman = self.amd_writable = (self.amd_featuremask == int(0xffff7fff) or
                                                 self.amd_featuremask == int(0xffffffff) or
                                                 self.amd_featuremask == int(0xfffd7fff))
@@ -2135,42 +2132,33 @@ class GpuList:
             if re.search(PATTERNS['AMD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.AMD
                 gpu_type = GpuItem.GPU_Type.Supported
-                if self.opencl_map:
-                    if pcie_id in self.opencl_map.keys():
-                        if 'device_version' in self.opencl_map[pcie_id].keys():
-                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                            compute = True
-                else:
-                    compute = True
-            if re.search(PATTERNS['NV_GPU'], gpu_name):
+            elif re.search(PATTERNS['NV_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.NVIDIA
                 if env.GUT_CONST.cmd_nvidia_smi:
                     readable = True
                 gpu_type = GpuItem.GPU_Type.Supported
-                if self.opencl_map:
-                    if pcie_id in self.opencl_map.keys():
-                        if 'device_version' in self.opencl_map[pcie_id].keys():
-                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                            compute = True
-                else:
-                    compute = True
-            if re.search(PATTERNS['INTC_GPU'], gpu_name):
+            elif re.search(PATTERNS['INTC_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.INTEL
                 gpu_type = GpuItem.GPU_Type.Unsupported
-                if self.opencl_map:
-                    if pcie_id in self.opencl_map.keys():
-                        if 'device_version' in self.opencl_map[pcie_id].keys():
-                            opencl_device_version = self.opencl_map[pcie_id]['device_version']
-                            compute = True
-                else:
-                    compute = not bool(re.search(r' 530', gpu_name))
-            if re.search(PATTERNS['ASPD_GPU'], gpu_name):
+            elif re.search(PATTERNS['ASPD_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.ASPEED
                 gpu_type = GpuItem.GPU_Type.Unsupported
                 readable = True
-            if re.search(PATTERNS['MTRX_GPU'], gpu_name):
+            elif re.search(PATTERNS['MTRX_GPU'], gpu_name):
                 vendor = GpuItem.GPU_Vendor.MATROX
                 gpu_type = GpuItem.GPU_Type.Unsupported
+
+            # Set compute flag
+            if self.opencl_map:
+                if pcie_id in self.opencl_map.keys():
+                    if 'device_version' in self.opencl_map[pcie_id].keys():
+                        opencl_device_version = self.opencl_map[pcie_id]['device_version']
+                        compute = True
+                    else:
+                        compute = False
+            else:
+                # compute = not bool(re.search(r' 530', gpu_name))
+                compute = False
 
             # Get Driver Name
             for lspci_line in lspci_items:
@@ -2607,11 +2595,9 @@ class GpuList:
         color = GpuItem.mark_up_codes['bold'] + GpuItem.mark_up_codes['cyan']
         color_reset = GpuItem.mark_up_codes['reset']
         table_width: int = 20
-        if self.num_gpus()['total'] < 1:
-            return False
+        if self.num_gpus()['total'] < 1: return False
 
-        if title:
-            print('{}{}{}'.format(color, title, color_reset))
+        if title: print('{}{}{}'.format(color, title, color_reset))
 
         print('┌', '─'.ljust(13, '─'), sep='', end='')
         for _ in self.gpus():
@@ -2650,8 +2636,7 @@ class GpuList:
         :param log_file_ptr: File pointer for target output.
         :return: True if success
         """
-        if self.num_gpus()['total'] < 1:
-            return False
+        if self.num_gpus()['total'] < 1: return False
 
         # Print Header
         print('Time|Card#', end='', file=log_file_ptr)
@@ -2667,8 +2652,7 @@ class GpuList:
         :param log_file_ptr: File pointer for target output.
         :return: True if success
         """
-        if self.num_gpus()['total'] < 1:
-            return False
+        if self.num_gpus()['total'] < 1: return False
 
         # Print Data
         for gpu in self.gpus():
@@ -2687,8 +2671,7 @@ class GpuList:
         :param log_file_ptr: File pointer for target output.
         :return: True if success
         """
-        if self.num_gpus()['total'] < 1:
-            return False
+        if self.num_gpus()['total'] < 1: return False
 
         # Print Header
         line_str_item = ['Time|Card#']
@@ -2707,8 +2690,7 @@ class GpuList:
         :param log_file_ptr: File pointer for target output.
         :return: True on success
         """
-        if self.num_gpus()['total'] < 1:
-            return False
+        if self.num_gpus()['total'] < 1: return False
 
         # Print Data
         for gpu in self.gpus():
@@ -2724,9 +2706,10 @@ class GpuList:
 
     def select_gpu(self, card_number: int) -> Union[GpuItem, None]:
         """
+        Select GPU that matches the given card number.
 
-        :param card_number:
-        :return:
+        :param card_number:  The integer that identifies the GPU.
+        :return: GpuItem of the matching GPU or None if no match.
         """
         for gpu in self.gpus():
             if gpu.prm.card_num == card_number:

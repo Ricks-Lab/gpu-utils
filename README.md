@@ -117,7 +117,9 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.2
 
-* Nothing yet
+* Implemented long version of gpu-ls, which will display all information from ppm, pstate, features, and clinfo.
+* Improved gpu-ls argument pasring.
+* Various code optimizations.
 
 ## Development Plans
 

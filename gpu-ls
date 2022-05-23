@@ -114,7 +114,6 @@ def main() -> None:
         sys.exit(0)
 
     if args.short: args.no_fan = True
-    if args.long: args.clinfo = True   # args.clinfo must be True in order for command path to be set
     env.GUT_CONST.set_args(args)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
 
