@@ -5,28 +5,16 @@ gpu-ls \- display details about compatible GPU cards
 
 .SH SYNOPSIS
 .B gpu-ls
-.RB [ \-\-short ]
+.RB [ \-\-short " | " \-\-long " | " \-\-raw " | " \-\-table "]"
+.br
+.B gpu-ls
+.RB [ \-\-pstates " | " \-\-ppm " | " \-\-features " | " \-\-clinfo "]"
+.br
+.B gpu-ls
+.RB [ \-\-no_markup "] [" \-\-force_all "] [" \-\-verbose "] [" \-\-no_fan "] [" \-\-debug "]"
 .br
 .B gpu-ls
 .RB [ \-\-help " | " \-\-about "]"
-.br
-.B gpu-ls
-.RB [ \-\-no_fan "] [" \-\-table "]"
-.br
-.B gpu-ls
-.RB [ \-\-pstates ]
-.br
-.B gpu-ls
-.RB [ \-\-ppm ]
-.br
-.B gpu-ls
-.RB  [ \-\-features ]
-.br
-.B gpu-ls
-.RB [ \-\-raw "] ["\-\-no_markup "]"
-.br
-.B gpu-ls
-.RB [ \-\-clinfo "] [" \-\-force_all "] [" \-\-verbose "]"
 
 .SH DESCRIPTION
 .B gpu-ls
@@ -53,15 +41,12 @@ option can be specified to get plain text.
 Will display details about 
 .B gpu-ls\fP.
 .TP
-.BR " \-\-clinfo"
-If the clinfo package is installed, openCL details will be included in the output
-for each compatible GPU.
-.TP
-.BR " \-\-no_fan"
-Will exclude fan information from the display.  Useful with water cooled GPUs.
-.TP
 .BR " \-\-short"
 Will display short list of key descriptive parameters for each installed GPU.
+.TP
+.BR " \-\-long"
+Will display long list of descriptive parameters and all of output for \fBppm\fR, \fBpstate\fR,
+\fBfeatures\fR, and \fBclinfo\fR reports for each installed GPU.
 .TP
 .BR " \-\-table"
 Will display table of basic GPU parameters.
@@ -79,6 +64,13 @@ Will display P-state table for system and memory clocks.
 .TP
 .BR " \-\-features"
 Will display PP Features table that gives details of driver feature status.
+.TP
+.BR " \-\-clinfo"
+If the clinfo package is installed, openCL details will be included in the output
+for each compatible GPU.
+.TP
+.BR " \-\-no_fan"
+Will exclude fan information from the display.  Useful with water cooled GPUs.
 .TP
 .BR " \-\-no_markup"
 Outputs plain text instead of color formatted text.

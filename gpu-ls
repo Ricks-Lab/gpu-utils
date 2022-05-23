@@ -64,23 +64,33 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
                         action='store_true', default=False)
-    parser.add_argument('--short', help='Short listing of basic GPU details',
-                        action='store_true', default=False)
-    parser.add_argument('--table', help='Current status of readable GPUs',
-                        action='store_true', default=False)
-    parser.add_argument('--features', help='Output amdgpu Feature table instead of GPU details',
-                        action='store_true', default=False)
-    parser.add_argument('--pstates', help='Output pstate tables instead of GPU details',
-                        action='store_true', default=False)
-    parser.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
-                        action='store_true', default=False)
-    parser.add_argument('--clinfo', help='Include openCL with card details',
-                        action='store_true', default=False)
+
+    # Arguments affecting overall format.
+    format_group = parser.add_mutually_exclusive_group(required=False)
+    format_group.add_argument('--long', help='Long listing of GPU details. Includes ppm, pstate, and features.',
+                              action='store_true', default=False)
+    format_group.add_argument('--short', help='Short listing of basic GPU details',
+                              action='store_true', default=False)
+    format_group.add_argument('--table', help='Current status of readable GPUs',
+                              action='store_true', default=False)
+    format_group.add_argument('--raw', help='Show all raw GPU sensor data',
+                              action='store_true', default=False)
+
+    # Arguments to select detail reports.
+    detail_group = parser.add_mutually_exclusive_group(required=False)
+    detail_group.add_argument('--features', help='Output amdgpu Feature table instead of GPU details',
+                              action='store_true', default=False)
+    detail_group.add_argument('--pstates', help='Output pstate tables instead of GPU details',
+                              action='store_true', default=False)
+    detail_group.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
+                              action='store_true', default=False)
+    detail_group.add_argument('--clinfo', help='Include openCL with card details',
+                              action='store_true', default=False)
+
+    # Arguments that influence report behavior.
     parser.add_argument('--verbose', help='Display informational message of GPU util progress',
                         action='store_true', default=False)
     parser.add_argument('--force_all', help='Force attempt to read all sensors',
-                        action='store_true', default=False)
-    parser.add_argument('--raw', help='Show all raw GPU sensor data',
                         action='store_true', default=False)
     parser.add_argument('--no_markup', help='Do not format ls output',
                         action='store_true', default=False)
@@ -104,16 +114,13 @@ def main() -> None:
         sys.exit(0)
 
     if args.short: args.no_fan = True
+    if args.long: args.clinfo = True   # args.clinfo must be True in order for command path to be set
     env.GUT_CONST.set_args(args)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
-
-    if (args.pstates or args.ppm) and (args.table or args.raw or args.features):
-        print('The --table/--raw options can not be used with --pstate/--ppm/--features, ignoring --table/--raw')
-        args.table = args.raw = False
 
     # Get list of GPUs and exit if no GPUs detected
     gpu_list = Gpu.GpuList()
@@ -138,25 +145,27 @@ def main() -> None:
         gpu_list.print_raw()
         sys.exit(0)
 
-    # Read report clinfo specific details
-    if args.clinfo:
-        if not gpu_list.read_gpu_opencl_data():
-            args.clinfo = False
-
     # Print out user requested details
-    if args.pstates:
-        gpu_list.read_gpu_pstates()
-        gpu_list.print_pstates()
-    if args.ppm:
-        gpu_list.print_param_table(param_name='ppm')
-    if args.features:
-        gpu_list.print_param_table(param_name='pp_features')
-    if not (args.pstates or args.ppm or args.features):
-        if args.table:
-            com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
-            com_gpu_list.print_table(title='Status of Compatible GPUs:')
-        else:
-            gpu_list.print(short=args.short, clflag=args.clinfo)
+    if args.long:
+        gpu_list.print(long=args.long)
+    elif args.short:
+        gpu_list.print(short=args.short)
+    elif args.table:
+        com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
+        com_gpu_list.print_table(title='Status of Compatible GPUs:')
+    elif args.pstates or args.ppm or args.features or args.clinfo:
+        if args.pstates:
+            gpu_list.read_gpu_pstates()
+            gpu_list.print_param_table(param_name='pstate')
+        elif args.ppm:
+            gpu_list.print_param_table(param_name='ppm')
+        elif args.features:
+            gpu_list.print_param_table(param_name='pp_features')
+        elif args.clinfo:
+            gpu_list.print_param_table(param_name='clinfo')
+        print('')
+    else:
+        gpu_list.print()
 
     sys.exit(0)
 
