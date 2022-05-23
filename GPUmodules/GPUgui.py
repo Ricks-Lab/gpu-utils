@@ -18,7 +18,7 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2020 RicksLab'
-__credits__ = ['@berturion - Testing and Verification']
+__credits__ = ('@berturion - Testing and Verification', )
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
@@ -108,6 +108,7 @@ class GuiProps:
     def color_name_to_hex(value: str) -> str:
         """
         Return the hex code for the given string.  The specified string must exist in the project color list.
+
         :param value: Color name
         :return: Color hex code
         """
@@ -135,7 +136,6 @@ class GuiProps:
 
         :param value: hex color value as string
         :return:  rgba tuple
-
         .. note:: Code copied from Stack Overflow
         """
         if not re.fullmatch(PATTERNS['HEXRGB'], value):

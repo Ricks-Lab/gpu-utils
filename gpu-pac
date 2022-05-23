@@ -554,7 +554,7 @@ class PACWindow(Gtk.Window):
         Set PAC message using default message if no message specified.
 
         :param devices:  Dictionary of GUI items and GPU data.
-        :param message:
+        :param message:  Message as a string.
         :param color: Valid color strings: gray, yellow, white, red
         """
         if message == '':
