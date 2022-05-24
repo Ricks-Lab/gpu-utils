@@ -2618,7 +2618,7 @@ class GpuList:
             print('│{}{:<13}{}'.format(color, str(self.table_param_labels()[table_item])[:13], color_reset), end='')
             for gpu in self.gpus():
                 data_value_raw = gpu.get_params_value(table_item)
-                data_value_raw = format_table_value(data_value_raw)
+                data_value_raw = format_table_value(data_value_raw, table_item)
                 print('│{:<20}'.format(str(data_value_raw)[:table_width].center(table_width)), end='')
             print('│')
 
@@ -2765,15 +2765,17 @@ def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
     return com_gpu_list
 
 
-def format_table_value(data_value_raw: Any) -> Union[str, int, float]:
+def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, float]:
     """
     Format fields for monitor table.
 
     :param data_value_raw:
+    :param data_name:
     :return: Formatted data value
     """
     if isinstance(data_value_raw, float):
-        return round(data_value_raw, 3)
+        if data_name == 'energy': return '{:.3e}'.format(data_value_raw) if data_value_raw > 0.0000001 else '---'
+        else: return round(data_value_raw, 3)
     elif isinstance(data_value_raw, int):
         return data_value_raw
     elif not data_value_raw:

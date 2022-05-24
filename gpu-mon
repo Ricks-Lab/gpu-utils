@@ -222,7 +222,7 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
             else:
                 data_value_raw = gpu_list[uuid].get_params_value(comp_name)
                 LOGGER.debug('raw data value: %s', data_value_raw)
-                data_value_raw = Gpu.format_table_value(data_value_raw)
+                data_value_raw = Gpu.format_table_value(data_value_raw, comp_name)
                 data_value = str(data_value_raw)[:MonitorWindow.item_width]
                 comp_item.set_text(data_value)
             set_gtk_prop(comp_item, width_chars=MonitorWindow.item_width)
