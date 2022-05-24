@@ -445,7 +445,7 @@ class GpuItem:
             'pp_features': '',
             'readable': False,
             'writable': False,
-            'compute': False,
+            'compute': 'Unkown',
             'compute_platform': None,
             'compute_mode': None,
             'gpu_type': self.GPU_Type.Undefined,
@@ -2157,8 +2157,7 @@ class GpuList:
                     else:
                         compute = False
             else:
-                # compute = not bool(re.search(r' 530', gpu_name))
-                compute = False
+                compute = 'Unknown' if not env.GUT_CONST.cmd_clinfo else False
 
             # Get Driver Name
             for lspci_line in lspci_items:
