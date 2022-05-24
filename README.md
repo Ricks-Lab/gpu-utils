@@ -117,7 +117,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.3
 
-* Nothing yet.
+* Improved Icon file management.
+* Improved compute status logic.  Add *Unknown* status for when *clinfo* is not available.
 
 ## Development Plans
 
