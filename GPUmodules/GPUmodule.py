@@ -2605,7 +2605,8 @@ class GpuList:
 
         print('│{}{}{}'.format(color, 'Card #'.ljust(13, ' '), color_reset), sep='', end='')
         for gpu in self.gpus():
-            print('│{}card{:<16}{}'.format(color, gpu.prm.card_num, color_reset), end='')
+            card_str = 'card{}'.format(gpu.prm.card_num).center(table_width)
+            print('│{}{:<20}{}'.format(color, card_str, color_reset), end='')
         print('│')
 
         print('├', '─'.ljust(13, '─'), sep='', end='')
@@ -2617,9 +2618,8 @@ class GpuList:
             print('│{}{:<13}{}'.format(color, str(self.table_param_labels()[table_item])[:13], color_reset), end='')
             for gpu in self.gpus():
                 data_value_raw = gpu.get_params_value(table_item)
-                if isinstance(data_value_raw, float):
-                    data_value_raw = round(data_value_raw, 3)
-                print('│{:<20}'.format(str(data_value_raw)[:table_width]), end='')
+                data_value_raw = format_table_value(data_value_raw)
+                print('│{:<20}'.format(str(data_value_raw)[:table_width].center(table_width)), end='')
             print('│')
 
         print('└', '─'.ljust(13, '─'), sep='', end='')
@@ -2763,6 +2763,22 @@ def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=GpuItem.GPU_Type.Undefined, reverse=True)
 
     return com_gpu_list
+
+
+def format_table_value(data_value_raw: Any) -> Union[str, int, float]:
+    """
+    Format fields for monitor table.
+
+    :param data_value_raw:
+    :return: Formatted data value
+    """
+    if isinstance(data_value_raw, float):
+        return round(data_value_raw, 3)
+    elif isinstance(data_value_raw, int):
+        return data_value_raw
+    elif not data_value_raw:
+        return '---'
+    return str(data_value_raw)
 
 
 def about() -> None:
