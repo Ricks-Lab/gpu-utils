@@ -92,10 +92,10 @@ class PACWindow(Gtk.Window):
 
         GPUgui.GuiProps.set_style()
 
-        if env.GUT_CONST.icon_path:
-            icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-pac.icon.png')
-            if os.path.isfile(icon_file):
-                self.set_icon_from_file(icon_file)
+        if env.GUT_CONST.icon_file:
+            LOGGER.debug('Icon file: [%s]', env.GUT_CONST.icon_file)
+            if os.path.isfile(env.GUT_CONST.icon_file):
+                self.set_icon_from_file(env.GUT_CONST.icon_file)
 
         num_com_gpus = gpu_list.num_gpus()['total']
         max_rows = 0
@@ -1283,7 +1283,7 @@ def main() -> None:
         print('Status: ', __status__)
         sys.exit(0)
 
-    env.GUT_CONST.set_args(args)
+    env.GUT_CONST.set_args(args, __program_name__)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
 
     if env.GUT_CONST.check_env() < 0:

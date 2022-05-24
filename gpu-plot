@@ -348,10 +348,10 @@ class GPUPlotWindow(Gtk.Window):
         self.set_border_width(0)
         GPUgui.GuiProps.set_style()
 
-        if env.GUT_CONST.icon_path:
-            icon_file = os.path.join(env.GUT_CONST.icon_path, 'gpu-plot.icon.png')
-            if os.path.isfile(icon_file):
-                self.set_icon_from_file(icon_file)
+        if env.GUT_CONST.icon_file:
+            LOGGER.debug('Icon file: [%s]', env.GUT_CONST.icon_file)
+            if os.path.isfile(env.GUT_CONST.icon_file):
+                self.set_icon_from_file(env.GUT_CONST.icon_file)
 
         grid = Gtk.Grid()
         self.add(grid)
@@ -867,7 +867,7 @@ def main() -> None:
         print('numpy version: ', np.__version__)
         sys.exit(0)
 
-    env.GUT_CONST.set_args(args)
+    env.GUT_CONST.set_args(args, __program_name__)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
     LOGGER.debug('pandas version: %s', pd.__version__)
     LOGGER.debug('numpy version: %s', np.__version__)

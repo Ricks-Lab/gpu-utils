@@ -55,7 +55,7 @@ class GutConst:
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
     _all_args: Set[str] = {'execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
-                           'force_all', 'force_write', 'verbose', 'no_markup', 'clinfo'}
+                           'force_all', 'force_write', 'verbose', 'no_markup'}
     mark_up_codes: Dict[str, str] = {'none':      '',
                                      'bold':      '\033[1m',
                                      # Foreground colors
@@ -104,6 +104,7 @@ class GutConst:
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
+    # Private class variables
     _sys_pciid_list: Set[str] = {'/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids'}
     _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
     _repository_path: str = os.path.join(_module_path, '..')
@@ -115,13 +116,18 @@ class GutConst:
         'repository': os.path.join(_repository_path, 'icons'),
         'debian':     '/usr/share/rickslab-gpu-utils/icons',
         'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
+    _icons: Dict[str, str] = {'gpu-mon': 'gpu-mon.icon.png', 'gpu-plot': 'gpu-plot.icon.png', 'gpu-pac': 'gpu-pac.icon.png'}
+
+    # Public class variables
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root: str = '/sys/class/drm/'
     hwmon_sub: str = 'hwmon/hwmon'
     gui_window_title: str = 'Ricks-Lab GPU Utilities'
-    mon_field_width = 20
+    mon_field_width: int = 20
+    TIME_FORMAT: str = '%d-%b-%Y %H:%M:%S'
 
     def __init__(self):
+        self.calling_program = ''
         self.args: Union[argparse.Namespace, None] = None
         self.repository_path: str = self._repository_path
         self.install_type: Union[str, None] = None
@@ -133,10 +139,8 @@ class GutConst:
             self.install_type = 'pypi-linux'
         else:
             self.install_type = 'repository'
-        self.icon_path = self._local_icon_list[self.install_type]
-        if not os.path.isfile(os.path.join(self.icon_path, 'gpu-mon.icon.png')):
-            print('Error: Invalid icon path')
-            self.icon_path = None
+        self._icon_path = self._local_icon_list[self.install_type]
+        self.icon_file = ''
 
         # Set pciid Path
         for try_pciid_path in GutConst._sys_pciid_list:
@@ -144,6 +148,7 @@ class GutConst:
                 self.sys_pciid = try_pciid_path
                 break
         else:
+            print('Error: Invalid pciid path')
             self.sys_pciid = None
 
         self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
@@ -151,7 +156,6 @@ class GutConst:
         self.log_file_ptr: Union[TextIO, None] = None
 
         # From args
-        self.clinfo: bool = False
         self.no_markup: bool = False
         self.force_all: bool = False
         self.execute_pac: bool = False
@@ -166,7 +170,6 @@ class GutConst:
         self.SLEEP: int = 2
         self.USELTZ: bool = False
         # Time
-        self.TIME_FORMAT: str = '%d-%b-%Y %H:%M:%S'
         self.LTZ: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
         # Command access
         self.cmd_lsb_release: Union[str, None] = None
@@ -175,12 +178,14 @@ class GutConst:
         self.cmd_dpkg: Union[str, None] = None
         self.cmd_nvidia_smi: Union[str, None] = None
 
-    def set_args(self, args: argparse.Namespace) -> None:
+    def set_args(self, args: argparse.Namespace, program_name: str = '') -> None:
         """
         Set arguments for the give args object.
 
         :param args: The object return by args parser.
+        :param program_name: The name of the calling program.
         """
+        self.calling_program = program_name
         self.args = args
         for target_arg in self._all_args:
             if target_arg in self.args:
@@ -196,7 +201,6 @@ class GutConst:
                 elif target_arg == 'force_all': self.force_all = self.args.force_all
                 elif target_arg == 'verbose': self.verbose = self.args.verbose
                 elif target_arg == 'force_write': self.write_delta_only = not self.args.force_write
-                elif target_arg == 'clinfo': self.clinfo = self.args.clinfo
                 else: print('Invalid arg: {}'.format(target_arg))
         LOGGER.propagate = False
         formatter = logging.Formatter("%(levelname)s:%(name)s:%(module)s.%(funcName)s:%(message)s")
@@ -213,10 +217,17 @@ class GutConst:
             file_handler.setLevel(logging.DEBUG)
             LOGGER.addHandler(file_handler)
         LOGGER.debug('Install type: %s', self.install_type)
+        LOGGER.debug('Calling program: %s', program_name)
         LOGGER.debug('Command line arguments:\n  %s', args)
         LOGGER.debug('Local TZ: %s', self.LTZ)
         LOGGER.debug('pciid path set to: %s', self.sys_pciid)
-        LOGGER.debug('Icon path set to: %s', self.icon_path)
+        LOGGER.debug('Icon path set to: %s', self._icon_path)
+        try:
+            self.icon_file = os.path.join(self._icon_path, self._icons[program_name])
+            if not os.path.isfile(self.icon_file):
+                print('Error: Icon file not found: [{}]'.format(self.icon_file))
+        except KeyError:
+            self.icon_file = None
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
@@ -355,7 +366,7 @@ class GutConst:
 
         self.cmd_clinfo = shutil.which('clinfo')
         if not self.cmd_clinfo:
-            if self.clinfo:
+            if 'clinfo' in self.args:
                 print('Addon Package [clinfo] executable not found.  Use \'sudo apt install clinfo\' to install')
         LOGGER.debug('clinfo path: %s', self.cmd_clinfo)
 
