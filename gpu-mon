@@ -127,7 +127,7 @@ class MonitorWindow(Gtk.Window):
         col = 0
         row = 0
         num_amd_gpus = gpu_list.num_gpus()['total']
-        if env.GUT_CONST.DEBUG:
+        if env.GUT_CONST.debug:
             debug_label = Gtk.Label(name='warn_label')
             debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
             lbox = Gtk.Box(spacing=6, name='warn_box')
@@ -135,7 +135,7 @@ class MonitorWindow(Gtk.Window):
             lbox.pack_start(debug_label, True, True, 0)
             grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
         row += 1
-        if env.GUT_CONST.LOG:
+        if env.GUT_CONST.log:
             log_label = Gtk.Label(name='warn_label')
             log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
             lbox = Gtk.Box(spacing=6, name='warn_box')
@@ -204,15 +204,15 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
         return
     ########################
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
-    if env.GUT_CONST.LOG:
+    if env.GUT_CONST.log:
         gpu_list.print_log(env.GUT_CONST.log_file_ptr)
-    if env.GUT_CONST.PLOT:
+    if env.GUT_CONST.plot:
         try:
             gpu_list.print_plot(cmd.stdin)
         except (OSError, KeyboardInterrupt) as except_err:
             LOGGER.debug('gpu-plot has closed: [%s]', except_err)
             print('gpu-plot has closed')
-            env.GUT_CONST.PLOT = False
+            env.GUT_CONST.plot = False
 
     # update gui
     for uuid, gui_component in devices.items():
@@ -330,9 +330,9 @@ def main() -> None:
     Gpu.print_gpu_rw_summary(com_gpu_list)
 
     if args.log:
-        env.GUT_CONST.LOG = True
+        env.GUT_CONST.log = True
         env.GUT_CONST.log_file = './log_monitor_{}.txt'.format(
-            env.GUT_CONST.now(ltz=env.GUT_CONST.USELTZ).strftime('%m%d_%H%M%S'))
+            env.GUT_CONST.now(ltz=env.GUT_CONST.useltz).strftime('%m%d_%H%M%S'))
         env.GUT_CONST.log_file_ptr = open(env.GUT_CONST.log_file, 'w', 1)
         gpu_list.print_log_header(env.GUT_CONST.log_file_ptr)
 
@@ -347,7 +347,7 @@ def main() -> None:
 
         cmd = None
         if args.plot:
-            env.GUT_CONST.PLOT = True
+            env.GUT_CONST.plot = True
             if env.GUT_CONST.install_type == 'repository':
                 plot_util = './gpu-plot'
             else:
@@ -355,10 +355,10 @@ def main() -> None:
             if not plot_util:
                 plot_util = os.path.join(env.GUT_CONST.repository_path, 'gpu-plot')
             if os.path.isfile(plot_util):
-                if env.GUT_CONST.PDEBUG:
-                    cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
+                if env.GUT_CONST.pdebug:
+                    cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.sleep)
                 else:
-                    cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.SLEEP)
+                    cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.sleep)
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 com_gpu_list.print_plot_header(cmd.stdin)
             else:
@@ -366,7 +366,7 @@ def main() -> None:
 
         # Start thread to update Monitor
         threading.Thread(target=refresh, daemon=True,
-                         args=[env.GUT_CONST.SLEEP, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
+                         args=[env.GUT_CONST.sleep, update_data, com_gpu_list, devices, cmd, gmonitor]).start()
 
         Gtk.main()
     else:
@@ -375,22 +375,22 @@ def main() -> None:
             while True:
                 com_gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
                 os.system('clear')
-                if env.GUT_CONST.DEBUG:
+                if env.GUT_CONST.debug:
                     print('{}DEBUG logger is active{}'.format((env.GUT_CONST.mark_up_codes['red'] +
                                                                env.GUT_CONST.mark_up_codes['bold']),
                                                               env.GUT_CONST.mark_up_codes['reset']))
-                if env.GUT_CONST.LOG:
+                if env.GUT_CONST.log:
                     print('{}Logging to: {}{}'.format((env.GUT_CONST.mark_up_codes['red'] +
                                                        env.GUT_CONST.mark_up_codes['bold']),
                                                       env.GUT_CONST.log_file,
                                                       env.GUT_CONST.mark_up_codes['reset']))
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
-                sleep(env.GUT_CONST.SLEEP)
+                sleep(env.GUT_CONST.sleep)
                 if MonitorWindow.quit:
                     sys.exit(-1)
         except KeyboardInterrupt:
-            if env.GUT_CONST.LOG:
+            if env.GUT_CONST.log:
                 env.GUT_CONST.log_file_ptr.close()
             sys.exit(0)
 

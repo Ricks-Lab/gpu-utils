@@ -247,7 +247,7 @@ class PACWindow(Gtk.Window):
 
                 # Sclk Curve End Points Values and Entry
                 devices[gpu.prm.uuid]['sclk_pstate'] = {}
-                for ps, psd in gpu.sclk_state.items():
+                for ps in gpu.sclk_state.keys():
                     devices[gpu.prm.uuid]['sclk_pstate'][ps] = {}
 
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label(name='white_label')
@@ -298,7 +298,7 @@ class PACWindow(Gtk.Window):
 
                 # Mclk P-State Values and Entry
                 devices[gpu.prm.uuid]['mclk_pstate'] = {}
-                for ps, psd in gpu.mclk_state.items():
+                for ps in gpu.mclk_state.keys():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label(name='white_label')
@@ -342,7 +342,7 @@ class PACWindow(Gtk.Window):
 
                 # Mclk Curve End Points Values and Entry
                 devices[gpu.prm.uuid]['mclk_pstate'] = {}
-                for ps, psd in gpu.mclk_state.items():
+                for ps in gpu.mclk_state.keys():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps] = {}
 
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'] = Gtk.Label(name='white_label')
@@ -394,7 +394,7 @@ class PACWindow(Gtk.Window):
 
                 # VDDC CURVE Points Values and Entry
                 devices[gpu.prm.uuid]['vddc_curve_pt'] = {}
-                for ps, psd in gpu.vddc_curve.items():
+                for ps in gpu.vddc_curve.keys():
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps] = {}
 
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'] = Gtk.Label(name='white_label')
@@ -1015,9 +1015,9 @@ class PACWindow(Gtk.Window):
 
         tree_iter = devices[uuid]['ppm_modes_combo'].get_active_iter()
         if tree_iter is not None:
-            model = devices[uuid]['ppm_modes_combo'].get_model()
-            row_id, name = model[tree_iter][:2]
-            selected_mode = devices[uuid]['new_ppm'][0]
+            # model = devices[uuid]['ppm_modes_combo'].get_model()
+            # row_id, name = model[tree_iter][:2]
+            # selected_mode = devices[uuid]['new_ppm'][0]
             print('# Selected: ID={}, name={}'.format(devices[uuid]['new_ppm'][0], devices[uuid]['new_ppm'][1]),
                   file=fileptr)
             if gpu.get_current_ppm_mode()[0] != devices[uuid]['new_ppm'][0] or not env.GUT_CONST.write_delta_only:

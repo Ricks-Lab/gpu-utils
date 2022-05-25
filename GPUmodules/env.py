@@ -160,17 +160,17 @@ class GutConst:
         self.force_all: bool = False
         self.execute_pac: bool = False
         self.verbose: bool = False
-        self.DEBUG: bool = False
-        self.PDEBUG: bool = False
-        self.SIMLOG: bool = False
-        self.LOG: bool = False
-        self.PLOT: bool = False
+        self.debug: bool = False
+        self.pdebug: bool = False
+        self.simlog: bool = False
+        self.log: bool = False
+        self.plot: bool = False
         self.show_fans: bool = True
         self.write_delta_only: bool = False
-        self.SLEEP: int = 2
-        self.USELTZ: bool = False
+        self.sleep: int = 2
+        self.useltz: bool = False
         # Time
-        self.LTZ: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
+        self.ltz: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
         # Command access
         self.cmd_lsb_release: Union[str, None] = None
         self.cmd_lspci: Union[str, None] = None
@@ -189,14 +189,14 @@ class GutConst:
         self.args = args
         for target_arg in self._all_args:
             if target_arg in self.args:
-                if target_arg == 'debug': self.DEBUG = self.args.debug
+                if target_arg == 'debug': self.debug = self.args.debug
                 elif target_arg == 'execute_pac': self.execute_pac = self.args.execute_pac
-                elif target_arg == 'pdebug': self.PDEBUG = self.args.pdebug
-                elif target_arg == 'sleep': self.SLEEP = self.args.sleep
+                elif target_arg == 'pdebug': self.pdebug = self.args.pdebug
+                elif target_arg == 'sleep': self.sleep = self.args.sleep
                 elif target_arg == 'no_fan': self.show_fans = not self.args.no_fan
-                elif target_arg == 'ltz': self.USELTZ = self.args.ltz
-                elif target_arg == 'simlog': self.SIMLOG = self.args.simlog
-                elif target_arg == 'log': self.LOG = self.args.log
+                elif target_arg == 'ltz': self.useltz = self.args.ltz
+                elif target_arg == 'simlog': self.simlog = self.args.simlog
+                elif target_arg == 'log': self.log = self.args.log
                 elif target_arg == 'no_markup': self.no_markup = self.args.no_markup
                 elif target_arg == 'force_all': self.force_all = self.args.force_all
                 elif target_arg == 'verbose': self.verbose = self.args.verbose
@@ -209,7 +209,7 @@ class GutConst:
         stream_handler.setLevel(logging.WARNING)
         LOGGER.addHandler(stream_handler)
         LOGGER.setLevel(logging.WARNING)
-        if self.DEBUG:
+        if self.debug:
             LOGGER.setLevel(logging.DEBUG)
             file_handler = logging.FileHandler(
                 'debug_gpu-utils_{}.log'.format(datetime.now().strftime("%Y%m%d-%H%M%S")), 'w')
@@ -219,7 +219,7 @@ class GutConst:
         LOGGER.debug('Install type: %s', self.install_type)
         LOGGER.debug('Calling program: %s', program_name)
         LOGGER.debug('Command line arguments:\n  %s', args)
-        LOGGER.debug('Local TZ: %s', self.LTZ)
+        LOGGER.debug('Local TZ: %s', self.ltz)
         LOGGER.debug('pciid path set to: %s', self.sys_pciid)
         LOGGER.debug('Icon path set to: %s', self._icon_path)
         try:
@@ -348,7 +348,7 @@ class GutConst:
                     LOGGER.debug('Linux Distro Description: %s', lsbr_item)
                     self.distro['Description'] = lsbr_item.strip()
 
-            if self.distro['Distributor'] and self.DEBUG:
+            if self.distro['Distributor'] and self.debug:
                 print('{}: '.format(self.distro['Distributor']), end='')
                 if self.distro['Distributor'] in GutConst._verified_distros: print('Validated')
                 else: print('Unverified')

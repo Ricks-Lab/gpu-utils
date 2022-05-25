@@ -428,9 +428,9 @@ class GpuItem:
 
         :param item_id:  UUID of the new item.
         """
-        time_0 = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+        time_0 = env.GUT_CONST.now(env.GUT_CONST.useltz)
         self.validated_sensors: bool = False
-        self.read_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+        self.read_time = env.GUT_CONST.now(env.GUT_CONST.useltz)
         self.energy: Dict[str, Any] = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
         self.read_skip: Tuple[str] = ()    # List of parameters that are to be skipped.
         self.read_disabled: List[str] = []    # List of parameters that failed during read.
@@ -595,7 +595,7 @@ class GpuItem:
         :param name:  Parameter name
         :param value:  parameter value
         """
-        self.read_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+        self.read_time = env.GUT_CONST.now(env.GUT_CONST.useltz)
         LOGGER.debug('Set param value: [%s], type: [%s]', value, type(value))
         if isinstance(value, tuple):
             self.prm[name] = list(value)
@@ -609,7 +609,7 @@ class GpuItem:
             self.prm[name] = re.sub(PATTERNS['PPM_NOTCHK'], '-', self.prm[name])
         elif name == 'power':
             if isinstance(value, (int, float)):
-                time_n = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+                time_n = env.GUT_CONST.now(env.GUT_CONST.useltz)
                 self.prm[name] = value
                 delta_hrs = ((time_n - self.energy['tn']).total_seconds()) / 3600
                 self.energy['tn'] = time_n
@@ -1480,15 +1480,15 @@ class GpuItem:
         """
         Update the readable status of table related parameters.
         """
-        if env.GUT_CONST.DEBUG:
+        if env.GUT_CONST.debug:
             print('### read_time_val: {}'.format(
                 self.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)))
         for table_item, status in self.table_parameters_status.items():
-            if env.GUT_CONST.DEBUG:
+            if env.GUT_CONST.debug:
                 print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
             if self.get_params_value(table_item) in (None, '', np_nan):
                 self.table_parameters_status[table_item] = False
-        if env.GUT_CONST.DEBUG:
+        if env.GUT_CONST.debug:
             print('')
 
     def read_gpu_sensor_set_nv(self, data_type: Enum = SensorSet.All) -> bool:
@@ -1925,15 +1925,12 @@ class GpuItem:
         return gpu_state
 
 
-GpuDict = Dict[str, GpuItem]
-
-
 class GpuList:
     """
     A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
     """
     def __init__(self) -> None:
-        self.list: GpuDict = {}
+        self.list: Dict[str, GpuItem] = {}
         self.opencl_map: dict = {}
         self.amd_featuremask: Union[int, None] = None
         self.current_amd_featuremask: Union[str, int, None] = None
@@ -2296,7 +2293,6 @@ class GpuList:
         Use clinfo system call to get openCL details for relevant GPUs.
 
         :return:  Returns True if successful
-        .. todo:: Read of Intel pcie_id is not working.
         """
         # Check access to clinfo command
         if not env.GUT_CONST.cmd_clinfo:
@@ -2400,7 +2396,7 @@ class GpuList:
                 continue
 
             # Check for INTEL pcie_id details
-            # TODO don't know how to do this yet.
+            # TODO: Don't know how to do this yet.
 
         self.opencl_map.update({ocl_pcie_id: temp_map})
         return True
@@ -2775,7 +2771,7 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
     """
     if isinstance(data_value_raw, float):
         if data_name == 'energy': return '{:.3e}'.format(data_value_raw) if data_value_raw > 0.0000001 else '---'
-        else: return round(data_value_raw, 3)
+        return round(data_value_raw, 3)
     elif isinstance(data_value_raw, int):
         return data_value_raw
     elif not data_value_raw:
