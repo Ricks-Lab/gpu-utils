@@ -119,6 +119,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Improved Icon file management.
 * Improved compute status logic.  Add *Unknown* status for when *clinfo* is not available.
+* Do not display invalid energy reading in plot.
+* Resolved linter issues.
 
 ## Development Plans
 
