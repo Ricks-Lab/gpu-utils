@@ -447,6 +447,7 @@ class GPUPlotWindow(Gtk.Window):
         # row = plot_top_row
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([comp_num])]['energy'].iloc[-1]
+            data_val = Gpu.format_table_value(data_val, 'energy')
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             # Add GPU Plots Titles
             comp_item['title_obj'] = Gtk.Label(name='white_label')
@@ -592,6 +593,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
         for comp_num, comp_item in gc.gui_components['card_plots'].items():
             data_val = ldf[ldf['Card#'].isin([comp_num])]['energy'].iloc[-1]
+            data_val = Gpu.format_table_value(data_val, 'energy')
             model_val = ldf[ldf['Card#'].isin([comp_num])]['model_display'].iloc[-1]
             comp_item['title_obj'].set_markup('<big><b>Card{}  [{}]    {}    Energy:  {} kWh</b></big>'.format(
                                               comp_num, plot_data.get_gpu_pcieid(comp_num), model_val[:30], data_val))
@@ -662,16 +664,16 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
     header = True
     sync_add = 0
     while not plot_data.quit:
-        if env.GUT_CONST.SIMLOG: sleep(refresh_time/4.0)
+        if env.GUT_CONST.simlog: sleep(refresh_time/4.0)
         ndf = pd.DataFrame()
 
         # Process a set of GPUs at a time
         skip_update = False
         read_time = 0.0
         for _gpu_index in range(0, plot_data.num_gpus + sync_add):
-            start_time = env.GUT_CONST.now(env.GUT_CONST.USELTZ)
+            start_time = env.GUT_CONST.now(env.GUT_CONST.useltz)
             line = sys.stdin.readline()
-            tmp_read_time = (env.GUT_CONST.now(env.GUT_CONST.USELTZ) - start_time).total_seconds()
+            tmp_read_time = (env.GUT_CONST.now(env.GUT_CONST.useltz) - start_time).total_seconds()
             if tmp_read_time > read_time:
                 read_time = tmp_read_time
 
@@ -705,9 +707,9 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
             sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
         LOGGER.debug('dataFrame %s:\n%s',
-                     env.GUT_CONST.now(env.GUT_CONST.USELTZ).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string())
+                     env.GUT_CONST.now(env.GUT_CONST.useltz).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string())
 
-        if not env.GUT_CONST.SIMLOG:
+        if not env.GUT_CONST.simlog:
             if read_time < 0.003:
                 skip_update = True
                 LOGGER.debug('skipping update')
