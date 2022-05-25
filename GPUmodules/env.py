@@ -115,7 +115,9 @@ class GutConst:
         'repository': os.path.join(_repository_path, 'icons'),
         'debian':     '/usr/share/rickslab-gpu-utils/icons',
         'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
-    _icons: Dict[str, str] = {'gpu-mon': 'gpu-mon.icon.png', 'gpu-plot': 'gpu-plot.icon.png', 'gpu-pac': 'gpu-pac.icon.png'}
+    _icons: Dict[str, str] = {'gpu-mon': 'gpu-mon.icon.png',
+                              'gpu-plot': 'gpu-plot.icon.png',
+                              'gpu-pac': 'gpu-pac.icon.png'}
 
     # Public class variables
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
@@ -223,10 +225,11 @@ class GutConst:
         LOGGER.debug('Icon path set to: %s', self._icon_path)
         try:
             self.icon_file = os.path.join(self._icon_path, self._icons[program_name])
-            if not os.path.isfile(self.icon_file):
-                print('Error: Icon file not found: [{}]'.format(self.icon_file))
         except KeyError:
             self.icon_file = None
+        else:
+            if not os.path.isfile(self.icon_file):
+                self.process_message('Error: Icon file not found: [{}]'.format(self.icon_file), log_flag=True)
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
