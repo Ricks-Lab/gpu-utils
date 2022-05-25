@@ -36,8 +36,6 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation',
-               'Keith Myers - Testing, Debug, Verification of NV Capability')
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-mon'
 __maintainer__ = 'RueiKe'
@@ -69,7 +67,7 @@ except ModuleNotFoundError as error:
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 
-from GPUmodules import __version__, __status__
+from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
@@ -148,7 +146,7 @@ class MonitorWindow(Gtk.Window):
         row = row_start
         row_labels = {'card_num': Gtk.Label(name='white_label')}
         row_labels['card_num'].set_markup('<b>Card #</b>')
-        for param_name, param_label in gpu_list.table_param_labels().items():
+        for param_name, param_label in Gpu.GpuItem.table_param_labels.items():
             row_labels[param_name] = Gtk.Label(name='white_label')
             row_labels[param_name].set_markup('<b>{}</b>'.format(param_label))
         for row_label_item in row_labels.values():
@@ -162,7 +160,7 @@ class MonitorWindow(Gtk.Window):
             devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
             devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
             devices[gpu.prm.uuid]['card_num'].set_use_markup(True)
-            for param_name in gpu_list.table_param_labels():
+            for param_name in Gpu.GpuItem.table_param_labels:
                 devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
                                                               name='white_label')
                 devices[gpu.prm.uuid][param_name].set_width_chars(self.item_width)

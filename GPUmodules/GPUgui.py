@@ -18,7 +18,6 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2020 RicksLab'
-__credits__ = ('@berturion - Testing and Verification', )
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
@@ -48,7 +47,7 @@ try:
     from GPUmodules import env
 except ImportError:
     import env
-from GPUmodules import __version__, __status__
+from GPUmodules import __version__, __status__, __credits__
 
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')

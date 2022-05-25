@@ -19,8 +19,6 @@
 """
 __author__ = 'RueiKe'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
-__credits__ = ('Craig Echt - Testing, Debug, Verification, and Documentation',
-               'Keith Myers - Testing, Debug, Verification of NV Capability')
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
 __maintainer__ = 'RueiKe'
@@ -36,7 +34,7 @@ import shlex
 import os
 import sys
 import logging
-from typing import Union, List, Dict, TextIO, IO, Generator, Any, Tuple
+from typing import Union, List, Dict, TextIO, IO, Generator, Any, Tuple, Set
 from pathlib import Path
 from uuid import uuid4
 from enum import Enum
@@ -44,7 +42,7 @@ import glob
 from datetime import datetime
 from numpy import nan as np_nan
 
-from GPUmodules import __version__, __status__
+from GPUmodules import __version__, __status__, __credits__
 try:
     from GPUmodules import env
 except ImportError:
@@ -101,43 +99,43 @@ class GpuItem:
                                       'mclk_ps_val': 'MCLK Pstate',
                                       'mclk_f_val':  'MCLK'}
 
-    _fan_item_list: Tuple[str] = {'fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
-                                  'pwm_mode', 'fan_pwm', 'fan_pwm_range'}
-    short_list: Tuple[str] = {'vendor', 'pp_features', 'readable', 'writable', 'compute', 'card_num', 'id',
-                              'model_device_decode', 'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
+    _fan_item_list: Set[str] = {'fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
+                                'pwm_mode', 'fan_pwm', 'fan_pwm_range'}
+    short_list: Set[str] = {'vendor', 'pp_features', 'readable', 'writable', 'compute', 'card_num', 'id',
+                            'model_device_decode', 'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
 
     # List of parameters for non-compatible AMD GPUs.
-    _GPU_NC_Param_List: Tuple[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
+    GPU_NC_Param_List: Set[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
 
     # Vendor and Type skip lists for reporting
-    AMD_Skip_List: Tuple[str] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
-    NV_Skip_List: Tuple[str] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
-                                'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
-                                'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                                'temp_crits', 'voltages'}
-    MODERN_Skip_List: Tuple[str] = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
-    LEGACY_Skip_List: Tuple[str] = {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
-                                    'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
-                                    'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
-                                    'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                    'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range'}
-    LegacyAPU_Skip_List: Tuple[str] = {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
-                                       'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                       'power_cap_range', 'power', 'power_cap', *_fan_item_list}
-    APU_Skip_List: Tuple[str] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
-                                 'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                 'power_cap_range', 'power_cap', *_fan_item_list}
+    AMD_Skip_List: Set[str] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
+    NV_Skip_List: Set[str] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+                              'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
+                              'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                              'temp_crits', 'voltages'}
+    MODERN_Skip_List: Set[str] = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
+    LEGACY_Skip_List: Set[str] = {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
+                                  'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
+                                  'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
+                                  'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
+                                  'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range'}
+    LegacyAPU_Skip_List: Set[str] = {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+                                     'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                                     'power_cap_range', 'power', 'power_cap', *_fan_item_list}
+    APU_Skip_List: Set[str] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
+                               'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                               'power_cap_range', 'power_cap', *_fan_item_list}
 
     # Define Class Labels
     GPU_Type = GpuEnum('type',
                        'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
-    _apu_gpus: Tuple[str] = {'Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
-                             'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
-                             'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
-                             'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
-                             'Barcelo', 'Beema', 'Mullins'}
+    _apu_gpus: Set[str] = {'Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
+                           'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
+                           'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
+                           'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
+                           'Barcelo', 'Beema', 'Mullins'}
 
     # Table parameters labels
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
@@ -432,7 +430,7 @@ class GpuItem:
         self.validated_sensors: bool = False
         self.read_time = env.GUT_CONST.now(env.GUT_CONST.useltz)
         self.energy: Dict[str, Any] = {'t0': time_0, 'tn': time_0, 'cumulative': 0.0}
-        self.read_skip: Tuple[str] = ()    # List of parameters that are to be skipped.
+        self.read_skip: tuple = ()    # List of parameters that are to be skipped.
         self.read_disabled: List[str] = []    # List of parameters that failed during read.
         self.write_disabled: List[str] = []   # List of parameters that failed during write.
         self.prm: ObjDict = ObjDict({
@@ -569,8 +567,7 @@ class GpuItem:
         :param name: Target GPU name
         :return: True if name matches APU name
         """
-        if not name:
-            return False
+        if not name: return False
         for apu_name in cls._apu_gpus:
             if re.search(apu_name, name, re.IGNORECASE):
                 return True
@@ -893,41 +890,27 @@ class GpuItem:
         if set_ocl_ver:
             self.prm.compute_platform = set_ocl_ver if self.prm.compute else 'None'
 
-    def populate_ocl(self, ocl_dict: dict) -> None:
-        """
-        Populate ocl parameters in GpuItem.
-
-        :param ocl_dict: Dictionary of parameters for specific pcie_id
-        """
-        for ocl_name, ocl_val in ocl_dict.items():
-            if ocl_name in self.clinfo.keys():
-                self.set_clinfo_value(ocl_name, ocl_val)
-
-    def set_clinfo_value(self, name: str, value: Union[int, str, list]) -> None:
+    def set_clinfo_values(self, ocl_dict: Dict[str, Union[int, str, list]]) -> None:
         """
         Set clinfo values in GPU item dictionary.
 
-        :param name: clinfo parameter name
-        :param value:  parameter value
+        :param ocl_dict: dictionary of opencl name and values.
         """
-        self.clinfo[name] = value
+        for ocl_name, ocl_val in ocl_dict.items():
+            if ocl_name in self.clinfo.keys():
+                self.clinfo[ocl_name] = ocl_val
 
-    def get_clinfo_value(self, name: str) -> Union[int, str, list]:
+    def get_clinfo_value(self, name: str) -> Union[int, str, list, None]:
         """
         Get clinfo parameter value for give name.
 
         :param name:  clinfo Parameter name
         :return: clinfo Parameter value
         """
-        return self.clinfo[name]
-
-    def get_nc_params_list(self) -> Tuple[str]:
-        """
-        Get list of parameter names for use with non-compatible cards.
-
-        :return: Tuple of parameter names
-        """
-        return self._GPU_NC_Param_List
+        try:
+            return self.clinfo[name]
+        except KeyError:
+            return None
 
     def is_valid_power_cap(self, power_cap: int) -> bool:
         """
@@ -1846,7 +1829,7 @@ class GpuItem:
                 if param_name in self._fan_item_list:
                     continue
             elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED or self.prm.gpu_type == self.GPU_Type.Unsupported:
-                if param_name not in self.get_nc_params_list():
+                if param_name not in self.GPU_NC_Param_List:
                     continue
 
             # Situations where parameter limits can be overridden by force_all
@@ -1859,7 +1842,7 @@ class GpuItem:
                     if 'Range' in param_label:
                         continue
                 if not self.prm.readable:
-                    if param_name not in self.get_nc_params_list():
+                    if param_name not in self.GPU_NC_Param_List:
                         continue
                 if not self.param_is_active(param_name):
                     continue
@@ -2010,29 +1993,8 @@ class GpuList:
         """
         LOGGER.debug('AMD featuremask: %s', hex(self.amd_featuremask))
         if self.amd_wattman:
-            #print('Wattman features enabled: {}'.format(bin(self.amd_featuremask)))
             return 'Wattman features enabled: {}'.format(hex(self.amd_featuremask))
         return 'Wattman features not enabled: {}, See README file.'.format(hex(self.amd_featuremask))
-
-    @staticmethod
-    def table_param_labels() -> dict:
-        """
-        Get dictionary of parameter labels to be used in table reports.
-
-        :return: Dictionary of table parameters/labels
-        """
-        # TODO: Implement as iterator
-        return GpuItem.table_param_labels
-
-    @staticmethod
-    def table_parameters() -> List[str]:
-        """
-        Get list of parameters to be used in table reports.
-
-        :return: List of table parameters
-        """
-        # TODO: Implement as iterator
-        return GpuItem.table_parameters
 
     @staticmethod
     def get_gpu_pci_list() -> Union[List[str], None]:
@@ -2062,8 +2024,7 @@ class GpuList:
 
         :return: True on success
         """
-        if not env.GUT_CONST.cmd_lspci:
-            return False
+        if not env.GUT_CONST.cmd_lspci: return False
         if clinfo_flag:
             self.read_gpu_opencl_data()
             LOGGER.debug('OpenCL map: %s', self.opencl_map)
@@ -2254,10 +2215,7 @@ class GpuList:
                     if os.path.isfile(os.path.join(card_path, 'pp_dpm_sclk')):
                         # if no pp_od_clk_voltage but has pp_dpm_sclk, assume modern
                         readable = True
-                        if GpuItem.is_apu(gpu_name):
-                            gpu_type = GpuItem.GPU_Type.APU
-                        else:
-                            gpu_type = GpuItem.GPU_Type.Modern
+                        gpu_type = GpuItem.GPU_Type.APU if GpuItem.is_apu(gpu_name) else GpuItem.GPU_Type.Modern
                     else:
                         # if no pp_od_clk_voltage or pp_dpm_sclk but has power_dpm_state, assume legacy
                         if not GpuItem.is_apu(gpu_name):
@@ -2285,7 +2243,7 @@ class GpuList:
                 self[gpu_uuid].set_params_value('id', rdata)
             if clinfo_flag:
                 if pcie_id in self.opencl_map.keys():
-                    self[gpu_uuid].populate_ocl(self.opencl_map[pcie_id])
+                    self[gpu_uuid].set_clinfo_values(self.opencl_map[pcie_id])
         return True
 
     def read_gpu_opencl_data(self) -> bool:
@@ -2295,12 +2253,11 @@ class GpuList:
         :return:  Returns True if successful
         """
         # Check access to clinfo command
-        if not env.GUT_CONST.cmd_clinfo:
-            return False
+        if not env.GUT_CONST.cmd_clinfo: return False
 
         # Run the clinfo command
-        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)), shell=False,
-                               stdout=subprocess.PIPE)
+        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
+                               shell=False, stdout=subprocess.PIPE)
 
         # Clinfo Keywords and related opencl_map key.
         ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
@@ -2336,16 +2293,12 @@ class GpuList:
         # Read each line from clinfo --raw
         for line in cmd.stdout:
             linestr = line.decode('utf-8').strip()
-            if len(linestr) < 1:
-                continue
-            if linestr[0] != '[':
-                continue
+            if len(linestr) < 1: continue
+            if linestr[0] != '[': continue
             line_items = linestr.split(maxsplit=2)
-            if len(line_items) != 3:
-                continue
+            if len(line_items) != 3: continue
             cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
-            if cl_index == '*':
-                continue
+            if cl_index == '*': continue
             if not ocl_index:
                 ocl_index = cl_index
                 ocl_vendor = cl_vendor
@@ -2396,7 +2349,7 @@ class GpuList:
                 continue
 
             # Check for INTEL pcie_id details
-            # TODO: Don't know how to do this yet.
+            # TODO: Don't know how extract Intel pcie_id details.
 
         self.opencl_map.update({ocl_pcie_id: temp_map})
         return True
@@ -2610,8 +2563,8 @@ class GpuList:
             print('┼', '─'.ljust(table_width, '─'), sep='', end='')
         print('┤')
 
-        for table_item in self.table_parameters():
-            print('│{}{:<13}{}'.format(color, str(self.table_param_labels()[table_item])[:13], color_reset), end='')
+        for table_item in GpuItem.table_parameters:
+            print('│{}{:<13}{}'.format(color, str(GpuItem.table_param_labels[table_item])[:13], color_reset), end='')
             for gpu in self.gpus():
                 data_value_raw = gpu.get_params_value(table_item)
                 data_value_raw = format_table_value(data_value_raw, table_item)
@@ -2635,7 +2588,7 @@ class GpuList:
 
         # Print Header
         print('Time|Card#', end='', file=log_file_ptr)
-        for table_item in self.table_parameters():
+        for table_item in GpuItem.table_parameters:
             print('|{}'.format(table_item), end='', file=log_file_ptr)
         print('', file=log_file_ptr)
         return True
@@ -2653,7 +2606,7 @@ class GpuList:
         for gpu in self.gpus():
             print('{}|{}'.format(gpu.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT), gpu.prm.card_num),
                   sep='', end='', file=log_file_ptr)
-            for table_item in self.table_parameters():
+            for table_item in GpuItem.table_parameters:
                 print('|{}'.format(re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item)).strip())),
                       sep='', end='', file=log_file_ptr)
             print('', file=log_file_ptr)
@@ -2670,7 +2623,7 @@ class GpuList:
 
         # Print Header
         line_str_item = ['Time|Card#']
-        for table_item in self.table_parameters():
+        for table_item in GpuItem.table_parameters:
             line_str_item.append('|' + table_item)
         line_str_item.append('\n')
         line_str = ''.join(line_str_item)
@@ -2691,7 +2644,7 @@ class GpuList:
         for gpu in self.gpus():
             line_str_item = ['{}|{}'.format(str(gpu.get_params_value('read_time').strftime(env.GUT_CONST.TIME_FORMAT)),
                                             gpu.prm.card_num)]
-            for table_item in self.table_parameters():
+            for table_item in GpuItem.table_parameters:
                 line_str_item.append('|' + re.sub(PATTERNS['MHz'], '', str(gpu.get_params_value(table_item))).strip())
             line_str_item.append('\n')
             line_str = ''.join(line_str_item)
