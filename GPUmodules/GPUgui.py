@@ -26,10 +26,11 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: disable=bad-continuation
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Callable
 import sys
 import re
 import logging
+import signal
 import warnings
 
 try:
@@ -52,6 +53,36 @@ from GPUmodules import __version__, __status__, __credits__
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = env.GutConst.PATTERNS
+GUI_QUIT = False
+
+
+def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
+    """
+    Signal catcher for ctrl-c to exit monitor loop.
+
+    :param target_signal: Target signal name
+    :param _frame: Ignored
+    """
+    global GUI_QUIT
+    LOGGER.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
+    print('Setting quit flag...')
+    GUI_QUIT = True
+
+
+def gtk_quit(kill_function: Callable = None) -> None:
+    """
+
+    :param kill_function:
+    """
+    global GUI_QUIT
+    if kill_function: kill_function()
+    GUI_QUIT = True
+    while Gtk.events_pending(): Gtk.main_iteration_do()
+    print(Gtk.main_level())
+    #if Gtk.main_level(): Gtk.main_quit()
+
+
+signal.signal(signal.SIGINT, ctrl_c_handler)
 
 
 def get_color(value: str) -> str:

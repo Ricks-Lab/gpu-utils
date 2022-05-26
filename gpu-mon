@@ -53,7 +53,6 @@ import sys
 import shlex
 import shutil
 from time import sleep
-import signal
 from typing import Callable
 
 try:
@@ -76,20 +75,6 @@ set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 
 
-def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
-    """
-    Signal catcher for ctrl-c to exit monitor loop.
-
-    :param target_signal: Target signal name
-    :param _frame: Ignored
-    """
-    LOGGER.debug('ctrl_c_handler (ID: %s) has been caught. Setting quit flag...', target_signal)
-    print('Setting quit flag...')
-    MonitorWindow.quit = True
-
-
-signal.signal(signal.SIGINT, ctrl_c_handler)
-
 # SEMAPHORE ############
 UD_SEM = threading.Semaphore()
 ########################
@@ -99,7 +84,6 @@ class MonitorWindow(Gtk.Window):
     """
     Custom PAC Gtk window.
     """
-    quit: bool = False
     item_width: int = env.GUT_CONST.mon_field_width
     label_width: int = 12
 
@@ -181,11 +165,12 @@ class MonitorWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-    def set_quit(self, _arg2, _arg3) -> None:
+    @staticmethod
+    def set_quit(_arg2, _arg3) -> None:
         """
         Set quit flag when Gtk quit is selected.
         """
-        self.quit = True
+        GPUgui.GUI_QUIT = True
 
 
 def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
@@ -245,7 +230,7 @@ def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList,
     :param gmonitor:
     """
     while True:
-        if gmonitor.quit:
+        if GPUgui.GUI_QUIT:
             print('Quitting...')
             Gtk.main_quit()
             sys.exit(0)
@@ -385,9 +370,10 @@ def main() -> None:
                     com_gpu_list.print_log(env.GUT_CONST.log_file_ptr)
                 com_gpu_list.print_table()
                 sleep(env.GUT_CONST.sleep)
-                if MonitorWindow.quit:
+                if GPUgui.GUI_QUIT:
                     sys.exit(-1)
         except KeyboardInterrupt:
+            GPUgui.GUI_QUIT = False
             if env.GUT_CONST.log:
                 env.GUT_CONST.log_file_ptr.close()
             sys.exit(0)

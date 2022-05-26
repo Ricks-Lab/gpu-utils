@@ -130,7 +130,6 @@ class PlotData:
         self.gui_comp = None
         self.gui_ready: bool = False
         self.length: int = 200
-        self.quit: bool = False
         self.writer: bool = False
         self.reader: bool = False
         self.consec_writer: int = 0
@@ -138,6 +137,7 @@ class PlotData:
         self.gpu_name_list: List[str] = []
         self.num_gpus: int = 1
         self.com_gpu_list: Gpu.GpuList = Gpu.GpuList()
+        self.window = None
 
     def set_gpus(self) -> None:
         """
@@ -186,9 +186,9 @@ class PlotData:
         Sets flags that result in reader thread death.
         """
         self.reader = False
-        self.quit = True
         print('Stopping reader thread')
         sleep(0.2)
+        #Gtk.main_quit()
 
 
 class GuiComponents:
@@ -543,7 +543,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                     data_val.append(float(d))
                 except:
                     print('Fatal Data Error - Exiting')
-                    plot_data.kill_thread()
+                    GPUgui.gtk_quit(plot_data.kill_thread)
                 bar_col.append(gc.gpu_color[l])
             x_index = np.arange(gc.num_gpus)  # the x locations for the groups
             width = 0.65       # the width of the bars
@@ -642,7 +642,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         LOGGER.debug('ticker increment: %s', tick_inc)
         print('matplotlib error: {}'.format(err))
         print('matplotlib error, stack size is {}'.format(get_stack_size()))
-        plot_data.kill_thread()
+        GPUgui.gtk_quit(plot_data.kill_thread)
 
     # SEMAPHORE ###########
     PD_SEM.release()
@@ -661,7 +661,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
     first_update = True
     header = True
     sync_add = 0
-    while not plot_data.quit:
+    while not GPUgui.GUI_QUIT:
         if env.GUT_CONST.simlog: sleep(refresh_time/4.0)
         ndf = pd.DataFrame()
 
@@ -677,7 +677,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
 
             if line == '':
                 LOGGER.debug('Error: Null input line')
-                plot_data.kill_thread()
+                GPUgui.gtk_quit(plot_data.kill_thread)
                 break
             if header:
                 header_item = list(line.strip().split('|'))
@@ -733,10 +733,12 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
         #########################
         # Update plots
         #########################
-        if plot_data.quit:
-            env.GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()))
+        if GPUgui.GUI_QUIT:
+            env.GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()), log_flag=True)
             PD_SEM.acquire()
             PD_SEM.release()
+            while Gtk.events_pending(): Gtk.main_iteration()
+            Gtk.main_quit()
             sys.exit(0)
         if skip_update:
             continue
@@ -758,7 +760,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
         LOGGER.debug('update stack size: %s', get_stack_size())
 
     # Quit
-    print('Exit stack size: {}'.format(get_stack_size()))
+    env.GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()), log_flag=True)
     sys.exit(0)
 
 
@@ -771,7 +773,7 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
     .. note:: this should continuously read from GPUs and populate df and call plot/gui update
     """
     first_update = True
-    while not plot_data.quit:
+    while not GPUgui.GUI_QUIT:
         ndf = pd.DataFrame()
 
         plot_data.com_gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
@@ -833,7 +835,8 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
         sleep(refresh_time)
 
     # Quit
-    print('Exit stack size: {}'.format(get_stack_size()))
+    #GPUgui.gtk_quit(plot_data.kill_thread)
+    print('---Exit stack size: {}'.format(get_stack_size()))
     sys.exit(0)
 
 
@@ -934,14 +937,18 @@ def main() -> None:
     # After reading initial data, set gpus
     plot_data.set_gpus()
 
-    if not plot_data.quit:
+    if not GPUgui.GUI_QUIT:
         gc = GuiComponents(plot_data)
         gplot = GPUPlotWindow(gc, plot_data)
+        plot_data.window = gplot
         gplot.connect('delete-event', Gtk.main_quit)
+        gplot.connect('destroy', Gtk.main_quit)
         gplot.show_all()
         gc.set_ready(True)
         Gtk.main()
     plot_data.kill_thread()
+    while Gtk.events_pending(): Gtk.main_iteration()
+    Gtk.main_quit()
 
 
 if __name__ == '__main__':
