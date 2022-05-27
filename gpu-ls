@@ -65,7 +65,7 @@ def main() -> None:
 
     # Arguments affecting overall format.
     format_group = parser.add_mutually_exclusive_group(required=False)
-    format_group.add_argument('--long', help='Long listing of GPU details. Includes ppm, pstate, and features.',
+    format_group.add_argument('--long', help='Long listing of GPU details. Includes pstate, ppm, features, and clinfo.',
                               action='store_true', default=False)
     format_group.add_argument('--short', help='Short listing of basic GPU details',
                               action='store_true', default=False)
@@ -76,11 +76,11 @@ def main() -> None:
 
     # Arguments to select detail reports.
     detail_group = parser.add_mutually_exclusive_group(required=False)
-    detail_group.add_argument('--features', help='Output amdgpu Feature table instead of GPU details',
-                              action='store_true', default=False)
     detail_group.add_argument('--pstates', help='Output pstate tables instead of GPU details',
                               action='store_true', default=False)
     detail_group.add_argument('--ppm', help='Output power/performance mode tables instead of GPU details',
+                              action='store_true', default=False)
+    detail_group.add_argument('--features', help='Output amdgpu Feature table instead of GPU details',
                               action='store_true', default=False)
     detail_group.add_argument('--clinfo', help='Include openCL with card details',
                               action='store_true', default=False)
