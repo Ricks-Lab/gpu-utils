@@ -2,7 +2,7 @@
 
 A set of utilities for monitoring GPU performance and modifying control settings.
 
-## Current rickslab-gpu-utils Version: 3.6.x
+## Current rickslab-gpu-utils Version: 3.7.x
 
  - [Installation](#installation)
  - [Getting Started](#getting-started)
@@ -26,11 +26,9 @@ There are 4 methods of installation available and summarized here:
 
 ### Repository Installation
 
-For a developer/contributor to the project, it is expected that you duplicate the development environment using
-a virtual environment. So far, my development activities for this project have used python3.6, but I expect
-to move to python3.8 when I upgrade to Ubuntu 20.04. I suggest using the default version of Python for your
-distribution, but if it is a later release, limit your code to features of python3.6. The following
-are details on setting up a virtual environment with python3.6:
+For a developer/contributor to the project, it is expected that you duplicate the development environment
+using a virtual environment. So far, my development activities for this project have used python3.6. 
+The following are details on setting up a virtual environment with python3.6:
 
 ```shell
 sudo apt install -y python3.6-venv
