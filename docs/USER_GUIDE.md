@@ -308,19 +308,27 @@ If everything is working fine, you should see no warning or errors.  The listing
 also has other command line options:
 
 ```
-usage: gpu-ls [-h] [--about] [--short] [--table] [--pstates] [--ppm]
-              [--clinfo] [--no_fan] [-d]
+usage: gpu-ls [-h] [--about] [--long | --short | --table | --raw]
+              [--features | --pstates | --ppm | --clinfo] [--verbose]
+              [--force_all] [--no_markup] [--no_fan] [--debug]
 
 optional arguments:
-  -h, --help   show this help message and exit
-  --about      README
-  --short      Short listing of basic GPU details
-  --table      Current status of readable GPUs
-  --pstates    Output pstate tables instead of GPU details
-  --ppm        Output power/performance mode tables instead of GPU details
-  --clinfo     Include openCL with card details
-  --no_fan     Do not include fan setting options
-  -d, --debug  Debug logger output
+       -h, --help   show this help message and exit
+       --about      README
+       --long       Long listing of GPU details. Includes ppm, pstate, and
+                    features.
+       --short      Short listing of basic GPU details
+       --table      Current status of readable GPUs
+       --raw        Show all raw GPU sensor data
+       --features   Output amdgpu Feature table instead of GPU details
+       --pstates    Output pstate tables instead of GPU details
+       --ppm        Output power/performance mode tables instead of GPU details
+       --clinfo     Include openCL with card details
+       --verbose    Display informational message of GPU util progress
+       --force_all  Force attempt to read all sensors
+       --no_markup  Do not format ls output
+       --no_fan     Do not include fan setting options
+       -d, --debug  Debug logger output
 ```
 
 The *--clinfo* option will make a call to clinfo, if it is installed, and list openCL parameters
@@ -329,21 +337,35 @@ uses the PCIe slot id to associate clinfo results with the appropriate GPU in th
 
 If you have the clinfo package installed, then the command *gpu-ls --clinfo* should provide something like this at the end of each card's listing (example shown for an AMD GPU):
 ```
-   ##################################################
-   Device OpenCL C Version: OpenCL C 1.2
-   Device Name: Ellesmere
-   Device Version: OpenCL 1.2 AMD-APP (3224.4)
-   Driver Version: 3224.4
-   Max Compute Units: 32
+Card Number: 1
+   Vendor:  AMD 
+   PP Features: 0x0000000019f0e3cf
+   Readable: True
+   Writable: True
+   Compute: True
+   Device ID: {'device': '0x66af', 'subsystem_device': '0x1000', 'subsystem_vendor': '0x1458', 'vendor': '0x1002'}
+   Decoded Device ID: Vega 20 [Radeon VII]
+   PCIe ID: 43:00.0
+   GPU Type: Modern
+   HWmon: /sys/class/drm/card1/device/hwmon/hwmon1
+   Card Path: /sys/class/drm/card1/device
+   System Card Path: /sys/devices/pci0000:40/0000:40:01.1/0000:41:00.0/0000:42:00.0/0000:43:00.0
+   ### CLINFO Table Data ############################
+   Device OpenCL C Version: OpenCL C 2.0
+   Device Name: gfx906
+   Device Version: OpenCL 2.0 AMD-APP (3143.9)
+   Driver Version: 3143.9 (PAL,HSAIL)
+   Max Compute Units: 60
    SIMD per CU: 4
    SIMD Width: 16
    SIMD Instruction Width: 1
-   CL Max Memory Allocation: 1206165504
+   CL Max Memory Allocation: 14588628172
    Max Work Item Dimensions: 3
    Max Work Item Sizes: 1024 1024 1024
    Max Work Group Size: 1024
    Preferred Work Group Size: 256
    Preferred Work Group Multiple: 64
+
 ```
 If not, then to see the clinfo data you may need to add yourself to the 'video' and 'render' groups by using these commands:
 ```
@@ -351,79 +373,113 @@ sudo usermod -a -G video $LOGNAME
 sudo usermod -a -G render $LOGNAME
 ```
 
-The *--pstates* and *--ppm* options will display the P-State definition table and the power
-performance mode table.
+The *--pstates* option will display the GPU P-State definition table and all other available P-State details.
 
 ```
-gpu-ls --pstate --ppm
-Detected GPUs: AMD: 1, ASPEED: 1
-AMD: rocm version: 3.0.6
-AMD: Wattman features enabled: 0xfffd7fff
-2 total GPUs, 1 rw, 0 r-only, 0 w-only
-
 Card Number: 1
-   Card Model: Vega 20
+   Vendor:  AMD 
+   PP Features: 0x0000000019f0e3cf
+   Readable: True
+   Writable: True
+   Compute: True
+   Device ID: {'device': '0x66af', 'subsystem_device': '0x1000', 'subsystem_vendor': '0x1458', 'vendor': '0x1002'}
+   Decoded Device ID: Vega 20 [Radeon VII]
+   PCIe ID: 43:00.0
+   GPU Type: CurvePts
+   HWmon: /sys/class/drm/card1/device/hwmon/hwmon1
    Card Path: /sys/class/drm/card1/device
-   GPU Frequency/Voltage Control Type: CurvePts
+   System Card Path: /sys/devices/pci0000:40/0000:40:01.1/0000:41:00.0/0000:42:00.0/0000:43:00.0
+   ### P-State Table Data ###########################
    ##################################################
    DPM States:
    SCLK:                   MCLK:
-    0:  701Mhz              0:  351Mhz
-    1:  809Mhz              1:  801Mhz
-    2:  1085Mhz             2:  1051Mhz
-    3:  1287Mhz             
-    4:  1434Mhz             
-    5:  1550Mhz             
-    6:  1606Mhz             
-    7:  1627Mhz             
-    8:  1651Mhz             
+    0:  701Mhz              0:  351Mhz  
+    1:  809Mhz              1:  801Mhz  
+    2:  1135Mhz             2:  1001Mhz 
+    3:  1373Mhz             
+    4:  1547Mhz             
+    5:  1684Mhz             
+    6:  1750Mhz             
+    7:  1774Mhz             
+    8:  1802Mhz             
    ##################################################
    PP OD States:
    SCLK:                   MCLK:
     0:  808Mhz    -         
-    1:  1650Mhz   -         1:  1050Mhz   -       
-   ################################################## 
+    1:  1801Mhz   -         1:  1000Mhz   -       
+   ##################################################
    VDDC_CURVE:
-    0: ['808Mhz', '724mV']
-    1: ['1304Mhz', '822mV']
-    2: ['1801Mhz', '1124mV']
-
-Card Number: 1
-   Card Model: Vega 20
-   Card: /sys/class/drm/card1/device
-   Power Performance Mode: manual
-    0:   BOOTUP_DEFAULT
-    1:   3D_FULL_SCREEN
-    2:     POWER_SAVING
-    3:            VIDEO
-    4:               VR
-    5:          COMPUTE
-    6:           CUSTOM
-   -1:             AUTO
+    0: ['808Mhz', '722mV']
+    1: ['1304Mhz', '820mV']
+    2: ['1801Mhz', '1122mV']
+   ##################################################
+   All Pstates:
+   mclk:
+      0: *351Mhz, 1: 801Mhz, 2: 1001Mhz
+   dcefclk:
+      0: *358Mhz, 1: 454Mhz, 2: 567Mhz, 3: 680Mhz, 4: 756Mhz, 5: 850Mhz, 6: 972Mhz, 7: 1134Mhz
+   socclk:
+      0: 310Mhz, 1: 524Mhz, 2: 567Mhz, 3: 619Mhz, 4: 680Mhz, 5: 756Mhz, 6: 850Mhz, 7: *972Mhz
+   fclk:
+      0: 551Mhz, 1: 611Mhz, 2: 691Mhz, 3: 761Mhz, 4: 871Mhz, 5: 961Mhz, 6: 1081Mhz, 7: *1226Mhz
+   sclk:
+      0: 701Mhz, 1: *809Mhz, 2: 1135Mhz, 3: 1373Mhz, 4: 1547Mhz, 5: 1684Mhz, 6: 1750Mhz, 7: 1774Mhz, 8: 1802Mhz
 ```
 
 Different generations of cards will provide different information with the --ppm option. Here is an
 example for AMD Ellesmere and Polaris cards:
 
 ```
-gpu-ls --ppm
-Detected GPUs: INTEL: 1, AMD: 2
-AMD: amdgpu version: 19.50-967956
-AMD: Wattman features enabled: 0xfffd7fff
-3 total GPUs, 2 rw, 0 r-only, 0 w-only
-
 Card Number: 1
-   Card Model: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] (rev ef)
+   Vendor:  AMD 
+   PP Features: 0x0000000019f0e3cf
+   Readable: True
+   Writable: True
+   Compute: True
+   Device ID: {'device': '0x66af', 'subsystem_device': '0x1000', 'subsystem_vendor': '0x1458', 'vendor': '0x1002'}
+   Decoded Device ID: Vega 20 [Radeon VII]
+   PCIe ID: 43:00.0
+   GPU Type: Modern
+   HWmon: /sys/class/drm/card1/device/hwmon/hwmon1
    Card Path: /sys/class/drm/card1/device
-   Power DPM Force Performance Level: manual
-   NUM        MODE_NAME     SCLK_UP_HYST   SCLK_DOWN_HYST SCLK_ACTIVE_LEVEL     MCLK_UP_HYST   MCLK_DOWN_HYST MCLK_ACTIVE_LEVEL
-     0   BOOTUP_DEFAULT:        -                -                -                -                -                -
-     1   3D_FULL_SCREEN:        0              100               30                0              100               10
-     2     POWER_SAVING:       10                0               30                -                -                -
-     3            VIDEO:        -                -                -               10               16               31
-     4               VR:        0               11               50                0              100               10
-     5        COMPUTE *:        0                5               30                0              100               10
-     6           CUSTOM:        -                -                -                -                -                -
+   System Card Path: /sys/devices/pci0000:40/0000:40:01.1/0000:41:00.0/0000:42:00.0/0000:43:00.0
+   ### PPM Table Data ###############################
+   PROFILE_INDEX(NAME) CLOCK_TYPE(NAME) FPS UseRlcBusy MinActiveFreqType MinActiveFreq BoosterFreqType BoosterFreq PD_Data_limit_c PD_Data_error_coeff PD_Data_error_rate_coeff
+    0 BOOTUP_DEFAULT*:
+                       0(       GFXCLK)       0       0       1       0       4     800 4587520  -65536       0
+                       1(       SOCCLK)       0       0       1       0       4     800  327680   -6553       0
+                       2(         UCLK)       0       0       1       0       4     800  327680  -65536       0
+                       3(         FCLK)       0       0       0       0       4     800  327680   -6553       0
+    1 3D_FULL_SCREEN :
+                       0(       GFXCLK)       0       1       1       0       4     800 4587520  -65536       0
+                       1(       SOCCLK)       0       1       4     850       4     800  327680  -65536       0
+                       2(         UCLK)       0       1       4     850       4     800  327680  -65536       0
+                       3(         FCLK)       0       1       4     850       4     800  327680  -65536       0
+    2   POWER_SAVING :
+                       0(       GFXCLK)       0       0       1       0       3       0 5898240  -65536       0
+                       1(       SOCCLK)       0       0       1       0       3       0 1310720   -6553       0
+                       2(         UCLK)       0       0       1       0       3       0 1966080  -65536       0
+                       3(         FCLK)       0       0       0       0       3     800 1966080   -6553       0
+    3          VIDEO :
+                       0(       GFXCLK)       0       1       1       0       4     500 4587520   -6553       0
+                       1(       SOCCLK)       0       0       1       0       4     500 1310720   -6553       0
+                       2(         UCLK)       0       0       1       0       4     500 1966080  -65536       0
+                       3(         FCLK)       0       0       3       0       4     500 1966080   -6553       0
+    4             VR :
+                       0(       GFXCLK)       0       1       0    1540       4     800 5898240   -6553   65536
+                       1(       SOCCLK)       0       1       2       0       4     800  327680  -32768  -65536
+                       2(         UCLK)       0       1       2       0       4     800  327680  -32768  -65536
+                       3(         FCLK)       0       1       2       0       4     800  327680  -32768  -65536
+    5        COMPUTE :
+                       0(       GFXCLK)       0       1       0    1600       3       0 3932160  -65536  -65536
+                       1(       SOCCLK)       0       0       4     850       3       0  327680  -65536  -32768
+                       2(         UCLK)       0       0       4     850       3       0  327680  -65536  -32768
+                       3(         FCLK)       0       0       4     850       3       0  327680  -65536  -32768
+    6         CUSTOM :
+                       0(       GFXCLK)       0       0       1       0       4     800 4587520  -65536       0
+                       1(       SOCCLK)       0       0       1       0       4     800  327680   -6553       0
+                       2(         UCLK)       0       0       1       0       4     800  327680  -65536       0
+                       3(         FCLK)       0       0       0       0       4     800  327680   -6553       0
 ```
 
 ## GPU Type Dependent Behavior
@@ -436,6 +492,7 @@ and type.  So far, valid types are as follows:
 * **Unsupported** - This is the type assigned for cards which have no capability of reading beyond basic parameters typical of PCIe devices.
 * **Supported** - This is the type assigned for basic readability, including *nvidia-smi* readabile GPUs.
 * **Legacy** - Applies to legacy AMD GPUs with very basic parameters available to read. (pre-HD7)
+* **LegacyAPU** - Applies to older AMD integrated graphics with very few parameters available. (Ontario)
 * **APU** - Applies to AMD integrated graphics with limited parameters available. (Carizzo - Renoir)
 * **PStatesNE** - Applies to AMD GPUs with most parameters available, but Pstates not writeable. (HD7 series)
 * **PStates** - Applies to modern AMD GPUs with writeable Pstates. (R9 series thr RX-Vega)
