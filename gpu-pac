@@ -1307,7 +1307,7 @@ def main() -> None:
     print('All GPUs:')
     Gpu.print_gpu_rw_summary(gpu_list)
 
-    # Select GPU's appropriate for monitor
+    # Select GPU's appropriate for pac
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Writable)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Unsupported, reverse=True)
     com_gpu_list = com_gpu_list.list_gpus(gpu_type=Gpu.GpuItem.GPU_Type.Undefined, reverse=True)

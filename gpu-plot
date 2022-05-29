@@ -841,8 +841,12 @@ def main() -> None:
     """ Main flow for plot."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README', action='store_true', default=False)
-    parser.add_argument('--stdin', help='Read from stdin', action='store_true', default=False)
-    parser.add_argument('--simlog', help='Simulate with piped log file', action='store_true', default=False)
+
+    # Mutually exclusive input methods
+    in_group = parser.add_mutually_exclusive_group(required=False)
+    in_group.add_argument('--stdin', help='Read from stdin', action='store_true', default=False)
+    in_group.add_argument('--simlog', help='Simulate with piped log file', action='store_true', default=False)
+
     parser.add_argument('--ltz', help='Use local time zone instead of UTC', action='store_true', default=False)
     parser.add_argument('--sleep', help='Number of seconds to sleep between updates', type=int, default=3)
     parser.add_argument('--verbose', help='Display informational message of GPU util progress',

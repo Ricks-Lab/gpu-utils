@@ -117,7 +117,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.4
 
-* Nothing yet.
+* Documentation updates.
+* Code clean up.
 
 ## Development Plans
 
@@ -126,6 +127,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## Known Issues
 
+* Reset of Curve Points for Vega20 (Radeon VII) does not work.
 * Some windows do not support scrolling or resize, making it unusable for lower resolution installations.
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.
 * Doesn't work well with Fiji ProDuo cards.

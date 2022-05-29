@@ -49,12 +49,31 @@ class GutConst:
     """
     GPU Utils constants used throughout the project.
     """
+    # Private class variables
+    _required_pversion = (3, 6)
+    _required_kversion = (4, 8)
     _verified_distros: Set[str] = {'Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan'}
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg', 'Devuan': 'dpkg',
                                   'Arch': 'pacman',
                                   'Gentoo': 'equery'}
     _all_args: Set[str] = {'execute_pac', 'debug', 'pdebug', 'sleep', 'no_fan', 'ltz', 'simlog', 'log',
                            'force_all', 'force_write', 'verbose', 'no_markup'}
+    _sys_pciid_list: Set[str] = {'/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids'}
+    _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
+    _repository_path: str = os.path.join(_module_path, '..')
+    _local_config_list: Dict[str, str] = {
+        'repository': _repository_path,
+        'debian':     '/usr/share/rickslab-gpu-utils/config',
+        'pypi-linux': os.path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
+    _local_icon_list: Dict[str, str] = {
+        'repository': os.path.join(_repository_path, 'icons'),
+        'debian':     '/usr/share/rickslab-gpu-utils/icons',
+        'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
+    _icons: Dict[str, str] = {'gpu-mon': 'gpu-mon.icon.png',
+                              'gpu-plot': 'gpu-plot.icon.png',
+                              'gpu-pac': 'gpu-pac.icon.png'}
+
+    # Public class variables
     mark_up_codes: Dict[str, str] = {'none':      '',
                                      'bold':      '\033[1m',
                                      # Foreground colors
@@ -103,23 +122,6 @@ class GutConst:
                 'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|])', re.IGNORECASE),
                 'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
 
-    # Private class variables
-    _sys_pciid_list: Set[str] = {'/usr/share/misc/pci.ids', '/usr/share/hwdata/pci.ids', '/usr/share/doc/pci.ids'}
-    _module_path: str = os.path.dirname(str(Path(__file__).resolve()))
-    _repository_path: str = os.path.join(_module_path, '..')
-    _local_config_list: Dict[str, str] = {
-        'repository': _repository_path,
-        'debian':     '/usr/share/rickslab-gpu-utils/config',
-        'pypi-linux': os.path.join(str(Path.home()), '.local', 'share', 'rickslab-gpu-utils', 'config')}
-    _local_icon_list: Dict[str, str] = {
-        'repository': os.path.join(_repository_path, 'icons'),
-        'debian':     '/usr/share/rickslab-gpu-utils/icons',
-        'pypi-linux': '{}/.local/share/rickslab-gpu-utils/icons'.format(str(Path.home()))}
-    _icons: Dict[str, str] = {'gpu-mon': 'gpu-mon.icon.png',
-                              'gpu-plot': 'gpu-plot.icon.png',
-                              'gpu-pac': 'gpu-pac.icon.png'}
-
-    # Public class variables
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root: str = '/sys/class/drm/'
     hwmon_sub: str = 'hwmon/hwmon'
@@ -134,12 +136,9 @@ class GutConst:
         self.install_type: Union[str, None] = None
         self.package_path: str = inspect.getfile(inspect.currentframe())
 
-        if 'dist-packages' in self.package_path:
-            self.install_type = 'debian'
-        elif '.local' in self.package_path:
-            self.install_type = 'pypi-linux'
-        else:
-            self.install_type = 'repository'
+        if 'dist-packages' in self.package_path: self.install_type = 'debian'
+        elif '.local' in self.package_path: self.install_type = 'pypi-linux'
+        else: self.install_type = 'repository'
         self._icon_path = self._local_icon_list[self.install_type]
         self.icon_file = ''
 
@@ -262,10 +261,9 @@ class GutConst:
         :param message: A string containing the message to be processed.
         :param log_flag:  If True, write to LOGGER.
         """
-        if message and self.verbose:
-            print(message, file=sys.stderr)
-        if log_flag:
-            LOGGER.debug(message)
+        if not message: return
+        if self.verbose: print(message, file=sys.stderr)
+        if log_flag: LOGGER.debug(message)
 
     def read_amdfeaturemask(self) -> int:
         """
@@ -294,36 +292,34 @@ class GutConst:
         :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
         """
         # Check python version
-        required_pversion = (3, 6)
         (python_major, python_minor, python_patch) = platform.python_version_tuple()
         LOGGER.debug('Using python: %s.%s.%s', python_major, python_minor, python_patch)
-        if int(python_major) < required_pversion[0]:
+        if int(python_major) < self._required_pversion[0]:
             print('Using python {}, but {} requires python {}.{} or higher.'.format(python_major, __program_name__,
-                                                                                    required_pversion[0],
-                                                                                    required_pversion[1]),
+                                                                                    self._required_pversion[0],
+                                                                                    self._required_pversion[1]),
                   file=sys.stderr)
             return -1
-        if int(python_major) == required_pversion[0] and int(python_minor) < required_pversion[1]:
+        if int(python_major) == self._required_pversion[0] and int(python_minor) < self._required_pversion[1]:
             print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(python_major, python_minor,
                                                                                           python_patch,
                                                                                           __program_name__,
-                                                                                          required_pversion[0],
-                                                                                          required_pversion[1]),
+                                                                                          self._required_pversion[0],
+                                                                                          self._required_pversion[1]),
                   file=sys.stderr)
             return -1
 
         # Check Linux Kernel version
-        required_kversion = (4, 8)
         linux_version = platform.release()
         LOGGER.debug('Using Linux Kernel: %s', linux_version)
-        if int(linux_version.split('.')[0]) < required_kversion[0]:
+        if int(linux_version.split('.')[0]) < self._required_kversion[0]:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
-                  required_kversion[0], required_kversion[1]), file=sys.stderr)
+                  self._required_kversion[0], self._required_kversion[1]), file=sys.stderr)
             return -2
-        if int(linux_version.split('.')[0]) == required_kversion[0] and \
-                int(linux_version.split('.')[1]) < required_kversion[1]:
+        if int(linux_version.split('.')[0]) == self._required_kversion[0] and \
+                int(linux_version.split('.')[1]) < self._required_kversion[1]:
             print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
-                  required_kversion[0], required_kversion[1]), file=sys.stderr)
+                  self._required_kversion[0], self._required_kversion[1]), file=sys.stderr)
             return -2
 
         # Check Linux Init Type
