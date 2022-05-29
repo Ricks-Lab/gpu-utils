@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """ gpu-chk  -  Checks OS/Python compatibility
 
     Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon, gpu-pac, and

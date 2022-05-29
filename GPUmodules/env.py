@@ -176,6 +176,13 @@ class GutConst:
         self.cmd_dpkg: Union[str, None] = None
         self.cmd_nvidia_smi: Union[str, None] = None
 
+        """
+        base_prefix = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
+        print('base_prefix: {}, sys_prefix: {}'.format(base_prefix, sys.prefix))
+        if base_prefix != sys.prefix:
+            sys.path.append('/usr/lib/python3/dist-packages')
+        """
+
     def set_args(self, args: argparse.Namespace, program_name: str = '') -> None:
         """
         Set arguments for the give args object.
