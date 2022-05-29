@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""GPUmodules  -  Classes to represent GPUs and sets of GPUs used in rickslab-gpu-utils.
-
+"""GPUmodules  -  Classes to represent GPUs and sets of GPUs used in
+                  rickslab-gpu-utils.
 
     Copyright (C) 2019  RicksLab
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+    more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License along with
+    this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __author__ = 'RicksLab'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
@@ -537,10 +537,10 @@ class GpuItem:
         if not env.GUT_CONST.show_fans:
             for fan_item in cls._fan_item_list:
                 # Remove fan params from GPU_Param_Labels
-                if fan_item in cls._GPU_Param_Labels.keys():
+                if fan_item in cls._GPU_Param_Labels:
                     del cls._GPU_Param_Labels[fan_item]
                 # Remove fan params from Table_Param_Labels
-                if fan_item in cls.table_param_labels.keys():
+                if fan_item in cls.table_param_labels:
                     del cls.table_param_labels[fan_item]
                 # Remove fan params from SensorSets
                 if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
@@ -581,7 +581,7 @@ class GpuItem:
         :param name: Parameter name
         :return:  Button label
         """
-        if name not in cls._button_labels.keys():
+        if name not in cls._button_labels:
             raise KeyError('{} not in button_label dict'.format(name))
         return cls._button_labels[name]
 
@@ -734,7 +734,7 @@ class GpuItem:
                 if not self.prm['temperatures']:
                     return None
                 for temp_name in ('edge', 'temperature.gpu', 'temp1_input'):
-                    if temp_name in self.prm['temperatures'].keys():
+                    if temp_name in self.prm['temperatures']:
                         if self.prm['temperatures'][temp_name]:
                             if num_as_int:
                                 return int(self.prm['temperatures'][temp_name])
@@ -756,7 +756,7 @@ class GpuItem:
             if name == 'sclk_f_val':
                 if self.prm['frequencies']:
                     for clock_name in ('sclk', 'clocks.gr'):
-                        if clock_name in self.prm['frequencies'].keys():
+                        if clock_name in self.prm['frequencies']:
                             if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
                             return int(self.prm['frequencies'][clock_name])
@@ -771,7 +771,7 @@ class GpuItem:
             if name == 'mclk_f_val':
                 if self.prm['frequencies']:
                     for clock_name in ('mclk', 'clocks.mem'):
-                        if clock_name in self.prm['frequencies'].keys():
+                        if clock_name in self.prm['frequencies']:
                             if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
                             return int(self.prm['frequencies'][clock_name])
@@ -1711,7 +1711,7 @@ class GpuItem:
                 print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
                 for ps_num, ps_freq in self.sclk_dpm_state.items():
                     print('{} {:>1}:  {:<8}            '.format(pre, ps_num, ps_freq), end='')
-                    if ps_num in self.mclk_dpm_state.keys():
+                    if ps_num in self.mclk_dpm_state:
                         print('{:3>}:  {:<8}'.format(ps_num, self.mclk_dpm_state[ps_num]))
                     else:
                         print('')
@@ -1722,7 +1722,7 @@ class GpuItem:
             print('{}SCLK: {:<17} MCLK:{}'.format(pre, ' ', color))
             for ps_num, ps_vals in self.sclk_state.items():
                 print('{} {:>1}:  {:<8}  {:<8}  '.format(pre, ps_num, ps_vals[0], ps_vals[1]), end='')
-                if ps_num in self.mclk_state.keys():
+                if ps_num in self.mclk_state:
                     print('{:3>}:  {:<8}  {:<8}'.format(ps_num, self.mclk_state[ps_num][0], self.mclk_state[ps_num][1]))
                 else:
                     print('')
@@ -2108,8 +2108,8 @@ class GpuList:
 
             # Set compute flag
             if self.opencl_map:
-                if pcie_id in self.opencl_map.keys():
-                    if 'device_version' in self.opencl_map[pcie_id].keys():
+                if pcie_id in self.opencl_map:
+                    if 'device_version' in self.opencl_map[pcie_id]:
                         opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
                     else:
@@ -2130,7 +2130,7 @@ class GpuList:
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
                 LOGGER.debug('sysfpath: %s\ndevice_dir: %s', sysfspath, device_dir)
-                if pcie_id == sysfspath[-7:] or pcie_id == sysfspath[-12:]:
+                if pcie_id in (sysfspath[-7:], sysfspath[-12:]):
                     card_path = device_dir
                     sys_card_path = sysfspath
                     LOGGER.debug('card_path set to: %s', device_dir)
@@ -2242,7 +2242,7 @@ class GpuList:
             if rdata:
                 self[gpu_uuid].set_params_value('id', rdata)
             if clinfo_flag:
-                if pcie_id in self.opencl_map.keys():
+                if pcie_id in self.opencl_map:
                     self[gpu_uuid].set_clinfo_values(self.opencl_map[pcie_id])
         return True
 
@@ -2334,7 +2334,7 @@ class GpuList:
 
             # Check for NV pcie_id details
             if 'CL_DEVICE_PCI_BUS_ID_NV' in param_str:
-                ocl_pcie_bus_id = hex(int(line_items[2].strip()))
+                ocl_pcie_bus_id = str(hex(int(line_items[2].strip())))
                 if ocl_pcie_slot_id is not None:
                     ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                     ocl_pcie_slot_id = ocl_pcie_bus_id = None
@@ -2363,7 +2363,7 @@ class GpuList:
         """
         try:
             _ = compatibility.name
-        except AttributeError:
+        except AttributeError as error:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
                                  compatibility, GpuItem.GPU_Comp))
         results_dict = {}
@@ -2377,7 +2377,7 @@ class GpuList:
             if compatibility == GpuItem.GPU_Comp.WriteOnly:
                 if not gpu.prm.writable:
                     continue
-            if gpu.prm.vendor.name not in results_dict.keys():
+            if gpu.prm.vendor.name not in results_dict:
                 results_dict.update({gpu.prm.vendor.name: 1})
             else:
                 results_dict[gpu.prm.vendor.name] += 1
@@ -2691,10 +2691,10 @@ def print_driver_vendor_summary(gpu_list: GpuList) -> None:
         else:
             print('{}: {}'.format(type_name, type_value), end='')
     print('')
-    if 'AMD' in num_gpus.keys():
+    if 'AMD' in num_gpus:
         env.GUT_CONST.read_amd_driver_version()
         print('AMD: {}'.format(gpu_list.wattman_status()))
-    if 'NV' in num_gpus.keys():
+    if 'NV' in num_gpus:
         if env.GUT_CONST.cmd_nvidia_smi:
             print('NV: nvidia smi: [{}]'.format(env.GUT_CONST.cmd_nvidia_smi))
         else:
