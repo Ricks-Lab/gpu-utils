@@ -22,7 +22,7 @@ __author__ = 'RicksLab'
 __credits__ = []
 __license__ = 'GNU General Public License - GPL-3'
 __program_name__ = 'setup.py'
-__maintainer__ = 'RueiKe'
+__maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=line-too-long
@@ -31,10 +31,11 @@ import sys
 import os
 import pathlib
 from setuptools import setup, find_packages
-from GPUmodules import __version__, __status__
+from GPUmodules import __version__, __status__, __required_pversion__
 
-if sys.version_info < (3, 6):
-    print('rickslab-gpu-utils requires at least Python 3.6.')
+if sys.version_info[:2] < __required_pversion__:
+    print('rickslab-gpu-utils requires at least Python {}.{}.'.format(__required_pversion__[0],
+                                                                      __required_pversion__[1]))
     sys.exit(1)
 
 with open(os.path.join(pathlib.Path(__file__).parent, 'README.md'), 'r') as file_ptr:
@@ -45,7 +46,7 @@ setup(name='rickslab-gpu-utils',
       description='Ricks-Lab GPU Utilities',
       long_description_content_type='text/markdown',
       long_description=LONG_DESCRIPTION,
-      author='RueiKe',
+      author=__author__,
       keywords='gpu system monitoring overclocking underclocking linux amdgpu nvidia-smi rocm amd nvidia opencl boinc',
       platforms='posix',
       author_email='rueikes.homelab@gmail.com',
@@ -54,7 +55,7 @@ setup(name='rickslab-gpu-utils',
       include_package_data=True,
       scripts=['gpu-chk', 'gpu-ls', 'gpu-mon', 'gpu-pac', 'gpu-plot'],
       license='GPL-3',
-      python_requires='>=3.6',
+      python_requires='>={}.{}'.format(__required_pversion__[0], __required_pversion__[1]),
       project_urls={'Bug Tracker':   'https://github.com/Ricks-Lab/gpu-utils/issues',
                     'Documentation': 'https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md',
                     'Source Code':   'https://github.com/Ricks-Lab/gpu-utils'},

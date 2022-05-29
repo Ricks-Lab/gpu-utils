@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = 'RueiKe'
+__author__ = 'RicksLab'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
-__maintainer__ = 'RueiKe'
+__maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
@@ -40,7 +40,7 @@ import shutil
 from time import mktime as time_mktime
 from datetime import datetime
 from typing import Dict, Union, TextIO, Set
-from GPUmodules import __version__, __status__, __credits__
+from GPUmodules import __version__, __status__, __credits__, __required_pversion__, __required_kversion__
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -50,8 +50,6 @@ class GutConst:
     GPU Utils constants used throughout the project.
     """
     # Private class variables
-    _required_pversion = (3, 6)
-    _required_kversion = (4, 8)
     _verified_distros: Set[str] = {'Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan'}
     _dpkg_tool: Dict[str, str] = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Neon': 'dpkg', 'Devuan': 'dpkg',
                                   'Arch': 'pacman',
@@ -292,34 +290,22 @@ class GutConst:
         :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
         """
         # Check python version
-        (python_major, python_minor, python_patch) = platform.python_version_tuple()
-        LOGGER.debug('Using python: %s.%s.%s', python_major, python_minor, python_patch)
-        if int(python_major) < self._required_pversion[0]:
-            print('Using python {}, but {} requires python {}.{} or higher.'.format(python_major, __program_name__,
-                                                                                    self._required_pversion[0],
-                                                                                    self._required_pversion[1]),
-                  file=sys.stderr)
-            return -1
-        if int(python_major) == self._required_pversion[0] and int(python_minor) < self._required_pversion[1]:
-            print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(python_major, python_minor,
-                                                                                          python_patch,
-                                                                                          __program_name__,
-                                                                                          self._required_pversion[0],
-                                                                                          self._required_pversion[1]),
+        current_pversion = sys.version_info
+        LOGGER.debug('Using python: %s', current_pversion)
+        if current_pversion[:2] < __required_pversion__:
+            print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(
+                  current_pversion[0], current_pversion[1], current_pversion[2],
+                  __program_name__, __required_pversion__[0], __required_pversion__[1]),
                   file=sys.stderr)
             return -1
 
         # Check Linux Kernel version
-        linux_version = platform.release()
-        LOGGER.debug('Using Linux Kernel: %s', linux_version)
-        if int(linux_version.split('.')[0]) < self._required_kversion[0]:
-            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
-                  self._required_kversion[0], self._required_kversion[1]), file=sys.stderr)
-            return -2
-        if int(linux_version.split('.')[0]) == self._required_kversion[0] and \
-                int(linux_version.split('.')[1]) < self._required_kversion[1]:
-            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(linux_version, __program_name__,
-                  self._required_kversion[0], self._required_kversion[1]), file=sys.stderr)
+        current_kversion_str = platform.release()
+        current_kversion = tuple([int(x) for x in re.sub('-.*', '', current_kversion_str).split('.')])
+        LOGGER.debug('Using Linux Kernel: %s', current_kversion_str)
+        if current_kversion < __required_kversion__:
+            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(current_kversion_str,
+                  __program_name__, __required_kversion__[0], __required_kversion__[1]), file=sys.stderr)
             return -2
 
         # Check Linux Init Type

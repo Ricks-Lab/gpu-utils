@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-__author__ = 'RueiKe'
+__author__ = 'RicksLab'
 __copyright__ = 'Copyright (C) 2019 RicksLab'
 __license__ = 'GNU General Public License'
 __program_name__ = 'gpu-utils'
-__maintainer__ = 'RueiKe'
+__maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements

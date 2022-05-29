@@ -119,6 +119,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Documentation updates.
 * Code clean up.
+* Code simplification with tuple comparisons.
+* Moved high level requirement definitions to init file, modify setup.py and env checks to use these.
 
 ## Development Plans
 
