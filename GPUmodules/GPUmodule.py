@@ -26,7 +26,7 @@ __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: consider-using-f-string
+# pylint: disable=consider-using-f-string
 
 import re
 import subprocess
@@ -401,16 +401,16 @@ class GpuItem:
                                    'link_spd':         ('pcie.link.gen.current', ),
                                    'pstates':          ('pstate', )}}
 
-    def __repr__(self) -> Dict[str, Any]:
+    def __repr__(self) -> str:
         """
         Return dictionary representing all parts of the GpuItem object.
 
         :return: Dictionary of core GPU parameters.
         """
-        return {'params': self.prm, 'clinfo': self.clinfo,
-                'sclk_state': self.sclk_state, 'mclk_state': self.mclk_state,
-                'vddc_curve': self.vddc_curve, 'vddc_curve_range': self.vddc_curve_range,
-                'ppm_modes': self.ppm_modes}
+        return str({'params': self.prm, 'clinfo': self.clinfo,
+                    'sclk_state': self.sclk_state, 'mclk_state': self.mclk_state,
+                    'vddc_curve': self.vddc_curve, 'vddc_curve_range': self.vddc_curve_range,
+                    'ppm_modes': self.ppm_modes})
 
     def __str__(self) -> str:
         """
@@ -1683,13 +1683,12 @@ class GpuItem:
             self.read_gpu_pstates()
             self.print_pstates()
             return
+        if read_data:
+            for line in read_data.split('\n'):
+                if line.strip('\n'):
+                    print('{}{}{}{}'.format(pre, color, line.strip('\n'), color_reset))
         else:
-            if read_data:
-                for line in read_data.split('\n'):
-                    if line.strip('\n'):
-                        print('{}{}{}{}'.format(pre, color, line.strip('\n'), color_reset))
-            else:
-                print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
+            print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
 
     def print_pstates(self) -> None:
         """
@@ -1775,7 +1774,7 @@ class GpuItem:
                                     return sensor_key, '{}{}{}'.format(color, description, color_reset)
                         else:
                             if filename in sensor_files:
-                                if sensor_key in self._GPU_Param_Labels:
+                                if sensor_key in self._GPU_Param_Labels.keys():
                                     if not env.GUT_CONST.no_markup: color = self.mark_up_codes['green']
                                     description = self._GPU_Param_Labels[sensor_key]
                                     return sensor_key, '{}{}{}'.format(color, description.strip(), color_reset)
@@ -1928,7 +1927,7 @@ class GpuList:
         return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
 
     def __getitem__(self, uuid: str) -> GpuItem:
-        if uuid in self.list:
+        if uuid in self.list.keys():
             return self.list[uuid]
         raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
 
@@ -2108,7 +2107,7 @@ class GpuList:
 
             # Set compute flag
             if self.opencl_map:
-                if pcie_id in self.opencl_map:
+                if pcie_id in self.opencl_map.keys():
                     if 'device_version' in self.opencl_map[pcie_id]:
                         opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
@@ -2365,7 +2364,7 @@ class GpuList:
             _ = compatibility.name
         except AttributeError as error:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
-                                 compatibility, GpuItem.GPU_Comp))
+                                 compatibility, GpuItem.GPU_Comp)) from error
         results_dict = {}
         for gpu in self.gpus():
             if compatibility == GpuItem.GPU_Comp.ReadWrite:
@@ -2392,8 +2391,8 @@ class GpuList:
         """
         try:
             vendor_name = vendor.name
-        except AttributeError:
-            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
+        except AttributeError as error:
+            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor)) from error
         results_dict = {'vendor': vendor_name, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for gpu in self.gpus():
             if vendor != GpuItem.GPU_Vendor.ALL:
@@ -2424,17 +2423,17 @@ class GpuList:
         """
         try:
             _ = compatibility.name
-        except AttributeError:
+        except AttributeError as error:
             raise AttributeError('Error: {} not a valid compatibility name: [{}]'.format(
-                compatibility, GpuItem.GPU_Comp))
+                compatibility, GpuItem.GPU_Comp)) from error
         try:
             _ = gpu_type.name
-        except AttributeError:
-            raise AttributeError('Error: {} not a valid type name: [{}]'.format(gpu_type, GpuItem.GPU_Vendor))
+        except AttributeError as error:
+            raise AttributeError('Error: {} not a valid type name: [{}]'.format(gpu_type, GpuItem.GPU_Vendor)) from error
         try:
             _ = vendor.name
-        except AttributeError:
-            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor))
+        except AttributeError as error:
+            raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(vendor, GpuItem.GPU_Vendor)) from error
 
         result_list = GpuList()
         for uuid, gpu in self.items():

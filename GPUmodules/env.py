@@ -25,7 +25,7 @@ __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: consider-using-f-string
+# pylint: disable=consider-using-f-string
 
 import argparse
 import os

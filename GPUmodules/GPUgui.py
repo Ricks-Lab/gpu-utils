@@ -25,7 +25,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 # pylint: disable=bad-continuation
-# pylint: consider-using-f-string
+# pylint: disable=consider-using-f-string
 
 from typing import Tuple, Dict
 import sys
