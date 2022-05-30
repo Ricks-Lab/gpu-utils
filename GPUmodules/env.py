@@ -25,7 +25,7 @@ __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: disable=bad-continuation
+# pylint: consider-using-f-string
 
 import argparse
 import os
@@ -278,7 +278,7 @@ class GutConst:
         :return: AMD Feature Mask
         """
         try:
-            with open(self.featuremask) as fm_file:
+            with open(self.featuremask, 'r', encoding='utf-8') as fm_file:
                 fm_str = fm_file.readline().rstrip()
                 LOGGER.debug('Raw Featuremask string: [%s]', fm_str)
                 self.amdfeaturemask = int(fm_str, 0)

@@ -25,6 +25,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 # pylint: disable=bad-continuation
+# pylint: consider-using-f-string
 
 from typing import Tuple, Dict
 import sys
@@ -111,7 +112,7 @@ class GuiProps:
         :param value: Color name
         :return: Color hex code
         """
-        if value not in GuiProps._colors.keys():
+        if value not in GuiProps._colors:
             raise ValueError('Invalid color name {} not in {}'.format(value, GuiProps._colors))
         return GuiProps._colors[value]
 
@@ -124,7 +125,7 @@ class GuiProps:
         :param value:  Color name
         :return: Color tuple
         """
-        if value not in GuiProps._colors.keys():
+        if value not in GuiProps._colors:
             raise ValueError('Invalid color name {} not in {}'.format(value, GuiProps._colors))
         return GuiProps.hex_to_rgba(GuiProps._colors[value])
 

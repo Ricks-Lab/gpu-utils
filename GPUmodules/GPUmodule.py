@@ -26,7 +26,7 @@ __docformat__ = 'reStructuredText'
 
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: disable=bad-continuation
+# pylint: consider-using-f-string
 
 import re
 import subprocess
@@ -1091,7 +1091,7 @@ class GpuItem:
                     file_path = os.path.join(path, file)
                     if not os.path.isfile(file_path): continue
                     try:
-                        with open(file_path, 'r') as file_ptr:
+                        with open(file_path, 'r', encoding='utf-8') as file_ptr:
                             contents = file_ptr.read().strip()
                     except PermissionError:
                         contents = 'PermissionError'
@@ -1134,7 +1134,7 @@ class GpuItem:
             self.disable_param_read(parameter_file)
             return None
         try:
-            with open(file_path) as feature_file:
+            with open(file_path, 'r', encoding='utf-8') as feature_file:
                 for line in feature_file:
                     if return_data: rdata += line
                     line_str = line.strip()
@@ -1167,7 +1167,7 @@ class GpuItem:
             self.disable_param_read(parameter_file)
             return None
         try:
-            with open(file_path) as card_file:
+            with open(file_path, 'r', encoding='utf-8') as card_file:
                 for line in card_file:
                     if return_data: rdata += line
                     linestr = line.strip()
@@ -1206,7 +1206,7 @@ class GpuItem:
             self.disable_param_read(parameter_file)
             return
         try:
-            with open(file_path) as card_file:
+            with open(file_path, 'r', encoding='utf-8') as card_file:
                 for line in card_file:
                     line = line.strip()
                     if re.fullmatch('OD_.*:$', line):
@@ -1362,7 +1362,7 @@ class GpuItem:
             file_path = os.path.join(sensor_path, sensor_file)
             if os.path.isfile(file_path):
                 try:
-                    with open(file_path) as hwmon_file:
+                    with open(file_path, 'r', encoding='utf-8') as hwmon_file:
                         if target_sensor['type'] in (self.SensorType.SingleStringSelect,
                                                      self.SensorType.MLSS,
                                                      self.SensorType.InputLabelX,
@@ -1398,7 +1398,7 @@ class GpuItem:
                         else:
                             env.GUT_CONST.process_message('Error in sensor label pair: {}'.format(target_sensor))
                         if os.path.isfile(label_file_path):
-                            with open(label_file_path) as sensor_label_file:
+                            with open(label_file_path, 'r', encoding='utf-8') as sensor_label_file:
                                 values.append(sensor_label_file.readline().strip())
                         else:
                             values.append(os.path.basename(sensor_file))
@@ -1921,8 +1921,8 @@ class GpuList:
         self.amd_writable: bool = False
         self.nv_readwritable: bool = False
 
-    def __repr__(self) -> dict:
-        return self.list
+    def __repr__(self) -> str:
+        return str(self.list)
 
     def __str__(self) -> str:
         return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
@@ -2182,7 +2182,7 @@ class GpuList:
                 if os.path.isfile(pp_od_clk_voltage_file):
                     pp_od_file_details = 'Exists'
                     try:
-                        with open(pp_od_clk_voltage_file, 'r') as file_ptr:
+                        with open(pp_od_clk_voltage_file, 'r', encoding='utf-8') as file_ptr:
                             pp_od_file_details = file_ptr.read()
                     except OSError as except_err:
                         pp_od_file_details = '{} not readable'.format(pp_od_clk_voltage_file)
@@ -2256,100 +2256,100 @@ class GpuList:
         if not env.GUT_CONST.cmd_clinfo: return False
 
         # Run the clinfo command
-        cmd = subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
-                               shell=False, stdout=subprocess.PIPE)
+        with subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
+                              shell=False, stdout=subprocess.PIPE) as cmd:
 
-        # Clinfo Keywords and related opencl_map key.
-        ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
-                        'CL_DEVICE_MAX_WORK_GROUP_SIZE':                'max_wg_size',
-                        'CL_DEVICE_PREFERRED_WORK_GROUP_SIZE':          'prf_wg_size',
-                        'CL_DEVICE_MAX_WORK_ITEM_SIZES':                'max_wi_sizes',
-                        'CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS':           'max_wi_dim',
-                        'CL_DEVICE_MAX_MEM_ALLOC_SIZE':                 'max_mem_allocation',
-                        'CL_DEVICE_SIMD_INSTRUCTION_WIDTH':             'simd_ins_width',
-                        'CL_DEVICE_SIMD_WIDTH':                         'simd_width',
-                        'CL_DEVICE_SIMD_PER_COMPUTE_UNIT':              'simd_per_cu',
-                        'CL_DEVICE_MAX_COMPUTE_UNITS':                  'max_cu',
-                        'CL_DEVICE_NAME':                               'device_name',
-                        'CL_DEVICE_OPENCL_C_VERSION':                   'opencl_version',
-                        'CL_DRIVER_VERSION':                            'driver_version',
-                        'CL_DEVICE_VERSION':                            'device_version'}
+            # Clinfo Keywords and related opencl_map key.
+            ocl_keywords = {'CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE': 'prf_wg_multiple',
+                            'CL_DEVICE_MAX_WORK_GROUP_SIZE':                'max_wg_size',
+                            'CL_DEVICE_PREFERRED_WORK_GROUP_SIZE':          'prf_wg_size',
+                            'CL_DEVICE_MAX_WORK_ITEM_SIZES':                'max_wi_sizes',
+                            'CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS':           'max_wi_dim',
+                            'CL_DEVICE_MAX_MEM_ALLOC_SIZE':                 'max_mem_allocation',
+                            'CL_DEVICE_SIMD_INSTRUCTION_WIDTH':             'simd_ins_width',
+                            'CL_DEVICE_SIMD_WIDTH':                         'simd_width',
+                            'CL_DEVICE_SIMD_PER_COMPUTE_UNIT':              'simd_per_cu',
+                            'CL_DEVICE_MAX_COMPUTE_UNITS':                  'max_cu',
+                            'CL_DEVICE_NAME':                               'device_name',
+                            'CL_DEVICE_OPENCL_C_VERSION':                   'opencl_version',
+                            'CL_DRIVER_VERSION':                            'driver_version',
+                            'CL_DEVICE_VERSION':                            'device_version'}
 
-        def init_temp_map() -> dict:
-            """
-            Return an initialized clinfo dict.
+            def init_temp_map() -> dict:
+                """
+                Return an initialized clinfo dict.
 
-            :return:  Initialized clinfo dict
-            """
-            t_dict = {}
-            for temp_keys in ocl_keywords.values():
-                t_dict[temp_keys] = None
-            return t_dict
+                :return:  Initialized clinfo dict
+                """
+                t_dict = {}
+                for temp_keys in ocl_keywords.values():
+                    t_dict[temp_keys] = None
+                return t_dict
 
-        # Initialize dict variables
-        ocl_vendor = ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
-        temp_map = init_temp_map()
+            # Initialize dict variables
+            ocl_vendor = ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
+            temp_map = init_temp_map()
 
-        # Read each line from clinfo --raw
-        for line in cmd.stdout:
-            linestr = line.decode('utf-8').strip()
-            if len(linestr) < 1: continue
-            if linestr[0] != '[': continue
-            line_items = linestr.split(maxsplit=2)
-            if len(line_items) != 3: continue
-            cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
-            if cl_index == '*': continue
-            if not ocl_index:
-                ocl_index = cl_index
-                ocl_vendor = cl_vendor
-                ocl_pcie_slot_id = ocl_pcie_bus_id = None
+            # Read each line from clinfo --raw
+            for line in cmd.stdout:
+                linestr = line.decode('utf-8').strip()
+                if len(linestr) < 1: continue
+                if linestr[0] != '[': continue
+                line_items = linestr.split(maxsplit=2)
+                if len(line_items) != 3: continue
+                cl_vendor, cl_index = tuple(re.sub(r'[\[\]]', '', line_items[0]).split('/'))
+                if cl_index == '*': continue
+                if not ocl_index:
+                    ocl_index = cl_index
+                    ocl_vendor = cl_vendor
+                    ocl_pcie_slot_id = ocl_pcie_bus_id = None
 
-            # If new cl_index, then update opencl_map
-            if cl_vendor != ocl_vendor or cl_index != ocl_index:
-                # Update opencl_map with dict variables when new index is encountered.
-                self.opencl_map.update({ocl_pcie_id: temp_map})
-                LOGGER.debug('cl_vendor: %s, cl_index: %s, pcie_id: %s',
-                             ocl_vendor, ocl_index, self.opencl_map[ocl_pcie_id])
+                # If new cl_index, then update opencl_map
+                if cl_vendor != ocl_vendor or cl_index != ocl_index:
+                    # Update opencl_map with dict variables when new index is encountered.
+                    self.opencl_map.update({ocl_pcie_id: temp_map})
+                    LOGGER.debug('cl_vendor: %s, cl_index: %s, pcie_id: %s',
+                                 ocl_vendor, ocl_index, self.opencl_map[ocl_pcie_id])
 
-                # Initialize dict variables
-                ocl_index = cl_index
-                ocl_vendor = cl_vendor
-                ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
-                temp_map = init_temp_map()
+                    # Initialize dict variables
+                    ocl_index = cl_index
+                    ocl_vendor = cl_vendor
+                    ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
+                    temp_map = init_temp_map()
 
-            param_str = line_items[1]
-            # Check item in clinfo_keywords
-            for clinfo_keyword, opencl_map_keyword in ocl_keywords.items():
-                if clinfo_keyword in param_str:
-                    temp_map[opencl_map_keyword] = line_items[2].strip()
-                    LOGGER.debug('openCL map %s: [%s]', clinfo_keyword, temp_map[opencl_map_keyword])
+                param_str = line_items[1]
+                # Check item in clinfo_keywords
+                for clinfo_keyword, opencl_map_keyword in ocl_keywords.items():
+                    if clinfo_keyword in param_str:
+                        temp_map[opencl_map_keyword] = line_items[2].strip()
+                        LOGGER.debug('openCL map %s: [%s]', clinfo_keyword, temp_map[opencl_map_keyword])
+                        continue
+
+                # PCIe ID related clinfo_keywords
+                # Check for AMD pcie_id details
+                if 'CL_DEVICE_TOPOLOGY' in param_str:
+                    ocl_pcie_id = (line_items[2].split()[1]).strip()
+                    LOGGER.debug('AMD ocl_pcie_id [%s]', ocl_pcie_id)
                     continue
 
-            # PCIe ID related clinfo_keywords
-            # Check for AMD pcie_id details
-            if 'CL_DEVICE_TOPOLOGY' in param_str:
-                ocl_pcie_id = (line_items[2].split()[1]).strip()
-                LOGGER.debug('AMD ocl_pcie_id [%s]', ocl_pcie_id)
-                continue
+                # Check for NV pcie_id details
+                if 'CL_DEVICE_PCI_BUS_ID_NV' in param_str:
+                    ocl_pcie_bus_id = str(hex(int(line_items[2].strip())))
+                    if ocl_pcie_slot_id is not None:
+                        ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
+                        ocl_pcie_slot_id = ocl_pcie_bus_id = None
+                        LOGGER.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
+                    continue
+                if 'CL_DEVICE_PCI_SLOT_ID_NV' in param_str:
+                    ocl_pcie_slot_id = hex(int(line_items[2].strip()))
+                    if ocl_pcie_bus_id is not None:
+                        ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
+                        ocl_pcie_slot_id = ocl_pcie_bus_id = None
+                        LOGGER.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
+                    continue
 
-            # Check for NV pcie_id details
-            if 'CL_DEVICE_PCI_BUS_ID_NV' in param_str:
-                ocl_pcie_bus_id = str(hex(int(line_items[2].strip())))
-                if ocl_pcie_slot_id is not None:
-                    ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
-                    ocl_pcie_slot_id = ocl_pcie_bus_id = None
-                    LOGGER.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
-                continue
-            if 'CL_DEVICE_PCI_SLOT_ID_NV' in param_str:
-                ocl_pcie_slot_id = hex(int(line_items[2].strip()))
-                if ocl_pcie_bus_id is not None:
-                    ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
-                    ocl_pcie_slot_id = ocl_pcie_bus_id = None
-                    LOGGER.debug('NV ocl_pcie_id [%s]', ocl_pcie_id)
-                continue
-
-            # Check for INTEL pcie_id details
-            # TODO: Don't know how extract Intel pcie_id details.
+                # Check for INTEL pcie_id details
+                # TODO: Don't know how extract Intel pcie_id details.
 
         self.opencl_map.update({ocl_pcie_id: temp_map})
         return True

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ gpu-mon  -  Displays a continuously updating view of the status of all
-    active GPUs.
+                active GPUs.
 
     Part of the rickslab-gpu-utils package which includes gpu-ls, gpu-mon,
     gpu-pac, and gpu-plot.
@@ -46,7 +46,7 @@ __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: disable=bad-continuation
+# pylint: consider-using-f-string
 
 import argparse
 import subprocess
@@ -347,7 +347,7 @@ def main() -> None:
         env.GUT_CONST.log = True
         env.GUT_CONST.log_file = './log_monitor_{}.txt'.format(
             env.GUT_CONST.now(ltz=env.GUT_CONST.useltz).strftime('%m%d_%H%M%S'))
-        env.GUT_CONST.log_file_ptr = open(env.GUT_CONST.log_file, 'w', 1)
+        env.GUT_CONST.log_file_ptr = open(env.GUT_CONST.log_file, 'w', buffering=1, encoding='utf-8')
         gpu_list.print_log_header(env.GUT_CONST.log_file_ptr)
 
     if args.plot:
@@ -373,6 +373,7 @@ def main() -> None:
                     cmd_str = '{} --debug --stdin --sleep {}'.format(plot_util, env.GUT_CONST.sleep)
                 else:
                     cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.sleep)
+                # Do not use with, as cmd is meant to stay open as long as monitor is running.
                 cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 com_gpu_list.print_plot_header(cmd.stdin)
             else:

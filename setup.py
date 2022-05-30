@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """ setup.py  -  Used in producing source and binary distributions.
 
     Usage: python3 setup.py sdist bdist_wheel
@@ -19,7 +19,6 @@
     this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __author__ = 'RicksLab'
-__credits__ = []
 __license__ = 'GNU General Public License - GPL-3'
 __program_name__ = 'setup.py'
 __maintainer__ = 'RicksLab'

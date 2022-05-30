@@ -42,7 +42,7 @@ __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: disable=bad-continuation
+# pylint: consider-using-f-string
 
 import sys
 from gc import collect as garb_collect
@@ -163,7 +163,7 @@ class PlotData:
         :param card_num:
         :return: the pcie id as a string
         """
-        if card_num in self.pcie_dict.keys():
+        if card_num in self.pcie_dict:
             return self.pcie_dict[card_num]
         return 'Error'
 
@@ -269,8 +269,8 @@ class GuiComponents:
         :param color_name: Color Name
         :return: Color RGB hex code
         """
-        if color_name not in self._colors.keys():
-            raise KeyError('color name {} not in color dict {}'.format(color_name, self._colors.keys()))
+        if color_name not in self._colors:
+            raise KeyError('color name {} not in color dict {}'.format(color_name, self._colors))
         return self._colors[color_name]
 
     def get_font_color(self, color_name: str) -> str:
@@ -280,8 +280,8 @@ class GuiComponents:
         :param color_name: Color Name
         :return: Color RGB hex code
         """
-        if color_name not in self._font_colors.keys():
-            raise KeyError('color name {} not in color dict {}'.format(color_name, self._font_colors.keys()))
+        if color_name not in self._font_colors:
+            raise KeyError('color name {} not in color dict {}'.format(color_name, self._font_colors))
         return self._font_colors[color_name]
 
     def set_ready(self, mode: bool) -> None:
@@ -376,7 +376,7 @@ class GPUPlotWindow(Gtk.Window):
         lbox = Gtk.Box(spacing=box_spacing_val, name='dark_box')
         set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
         lbox.pack_start(gc.gui_components['legend']['gtk_obj'], True, True, 0)
-        for comp_name in gc.gui_components['legend']['plot_items'].keys():
+        for comp_name in gc.gui_components['legend']['plot_items']:
             but_label = Gpu.GpuItem.get_button_label(comp_name)
             but_name = 'but_{}'.format(comp_name)
             but_color = gc.get_color(comp_name)
@@ -572,7 +572,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
         # Update GPU Plots
         # Setting limits may be based on all data
         plot_limits = {}
-        for comp_num in gc.gui_components['card_plots'].keys():
+        for comp_num in gc.gui_components['card_plots']:
             active_gpu = plot_data.com_gpu_list.select_gpu(comp_num)
             for axis_name, plot_items in plot_data.plot_list.items():
                 active_plot_items = []
@@ -628,10 +628,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
                 # Set axis range and tick increments
                 tick_inc = int(10 * round(((plot_limits[axis_name]['max'] - plot_limits[axis_name]['min']) // 12)/10.0, 0))
-                if axis_name == 'ax1':
-                    if tick_inc < 5: tick_inc = 5
-                else:
-                    if tick_inc < 50: tick_inc = 50
+                tick_inc = max(tick_inc, 5) if axis_name == 'ax1' else max(tick_inc, 50)
                 comp_item[axis_name].set_yticks(np.arange(plot_limits[axis_name]['min'],
                                                 plot_limits[axis_name]['max'], tick_inc))
 
@@ -783,7 +780,7 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
             gpu_plot_data = gpu.get_plot_data()
             LOGGER.debug('gpu_plot_data: %s', gpu_plot_data)
 
-            rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data.keys()))
+            rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data))
             rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
