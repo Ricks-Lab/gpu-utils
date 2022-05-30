@@ -23,8 +23,8 @@ __license__ = 'GNU General Public License - GPL-3'
 __program_name__ = 'setup.py'
 __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
-
 # pylint: disable=line-too-long
+# pylint: disable=consider-using-f-string
 
 import sys
 import os

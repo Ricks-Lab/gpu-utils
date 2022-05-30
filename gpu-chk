@@ -31,14 +31,13 @@ __maintainer__ = 'RicksLab'
 __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
-# pylint: disable=bad-continuation
 # pylint: disable=consider-using-f-string
 
 import argparse
 import re
 import subprocess
 import os
-import shlex
+from shlex import split as shlex_split
 import platform
 import sys
 import shutil
@@ -61,7 +60,7 @@ class GutConst:
     Base object for chk util.  These are simplified versions of what are in env module designed to run in python2
     in order to detect setup issues even if wrong version of python.
     """
-    _verified_distros = ('Debian', 'Ubuntu', 'Gentoo', 'Arch')
+    _verified_distros = {'Debian', 'Ubuntu', 'Gentoo', 'Arch'}
     _dpkg_tool = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'portage'}
 
     def __init__(self):
@@ -121,7 +120,7 @@ class GutConst:
         print('Using Linux distribution: ', end='')
         if cmd_lsb_release:
             distributor = description = None
-            lsbr_out = subprocess.check_output(shlex.split('{} -a'.format(cmd_lsb_release)),
+            lsbr_out = subprocess.check_output(shlex_split('{} -a'.format(cmd_lsb_release)),
                                                shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             for lsbr_line in lsbr_out:
                 if re.search('Distributor ID', lsbr_line):
@@ -162,7 +161,7 @@ class GutConst:
             return True
         for pkgname in ('amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'):
             try:
-                dpkg_out = subprocess.check_output(shlex.split(cmd_dpkg + ' -l ' + pkgname),
+                dpkg_out = subprocess.check_output(shlex_split(cmd_dpkg + ' -l ' + pkgname),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
@@ -192,12 +191,12 @@ def is_venv_installed() -> bool:
     """
     cmdstr = 'python3 -m venv -h > /dev/null'
     try:
-        p = subprocess.Popen(shlex.split(cmdstr), shell=False, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        with subprocess.Popen(shlex_split(cmdstr), shell=False, stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            output, _error = p.communicate()
     except (subprocess.CalledProcessError, OSError):
         pass
     else:
-        output, _error = p.communicate()
         if not re.fullmatch(r'.*No module named.*', output.decode()):
             print('python3 venv is installed')
             print('          {} python3-venv OK. {}'.format(COLORS['ok'], COLORS['reset']))

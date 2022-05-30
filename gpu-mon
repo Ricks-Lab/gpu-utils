@@ -54,7 +54,7 @@ import threading
 import os
 import logging
 import sys
-import shlex
+from shlex import split as shlex_split
 import shutil
 from time import sleep
 import signal
@@ -374,7 +374,7 @@ def main() -> None:
                 else:
                     cmd_str = '{} --stdin --sleep {}'.format(plot_util, env.GUT_CONST.sleep)
                 # Do not use with, as cmd is meant to stay open as long as monitor is running.
-                cmd = subprocess.Popen(shlex.split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
+                cmd = subprocess.Popen(shlex_split(cmd_str), bufsize=-1, shell=False, stdin=subprocess.PIPE)
                 com_gpu_list.print_plot_header(cmd.stdin)
             else:
                 print('Fatal Error: gpu-plot not found.')

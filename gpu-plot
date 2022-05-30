@@ -546,6 +546,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                     print('Fatal Data Error - Exiting')
                     plot_data.kill_thread()
                 bar_col.append(gc.gpu_color[l])
+
             x_index = np.arange(gc.num_gpus)  # the x locations for the groups
             width = 0.65       # the width of the bars
 

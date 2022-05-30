@@ -31,12 +31,12 @@ import argparse
 import os
 import re
 import subprocess
-import platform
+from platform import release
 import sys
 import logging
 from pathlib import Path
 import inspect
-import shlex
+from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
@@ -308,7 +308,7 @@ class GutConst:
             return -1
 
         # Check Linux Kernel version
-        current_kversion_str = platform.release()
+        current_kversion_str = release()
         current_kversion = tuple([int(x) for x in re.sub('-.*', '', current_kversion_str).split('.')])
         LOGGER.debug('Using Linux Kernel: %s', current_kversion_str)
         if current_kversion < __required_kversion__:
@@ -328,7 +328,7 @@ class GutConst:
         # Check Linux Distro
         self.cmd_lsb_release = shutil.which('lsb_release')
         if self.cmd_lsb_release:
-            lsbr_out = subprocess.check_output(shlex.split('{} -a'.format(self.cmd_lsb_release)),
+            lsbr_out = subprocess.check_output(shlex_split('{} -a'.format(self.cmd_lsb_release)),
                                                shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             for lsbr_line in lsbr_out:
                 if 'Distributor ID' in lsbr_line:
@@ -408,7 +408,7 @@ class GutConst:
         """
         for pkgname in ('dev-libs/amdgpu', 'dev-libs/amdgpu-pro-opencl', 'dev-libs/rocm', 'dev-libs/rocm-utils'):
             try:
-                dpkg_out = subprocess.check_output(shlex.split('{} list {}'.format(self.cmd_dpkg, pkgname)),
+                dpkg_out = subprocess.check_output(shlex_split('{} list {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
@@ -434,7 +434,7 @@ class GutConst:
         """
         for pkgname in ('amdgpu', 'rocm', 'rocm-utils'):
             try:
-                dpkg_out = subprocess.check_output(shlex.split('{} -Qs {}'.format(self.cmd_dpkg, pkgname)),
+                dpkg_out = subprocess.check_output(shlex_split('{} -Qs {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue
@@ -457,7 +457,7 @@ class GutConst:
         """
         for pkgname in ('amdgpu', 'amdgpu-core', 'amdgpu-pro', 'rocm-utils'):
             try:
-                dpkg_out = subprocess.check_output(shlex.split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
+                dpkg_out = subprocess.check_output(shlex_split('{} -l {}'.format(self.cmd_dpkg, pkgname)),
                                                    shell=False, stderr=subprocess.DEVNULL).decode().split('\n')
             except (subprocess.CalledProcessError, OSError):
                 continue

@@ -20,24 +20,32 @@ appropriate kernel version with the AMD ppfeaturemask set to enable this capabil
 ## Installation
 
 There are 4 methods of installation available and summarized here:
-* [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) - This approach is recommended for those interested in contributing to the project or helping to troubleshoot an issue in realtime with the developer. This type of installation can exist alongside any of the other installation types.
-  
+
+* [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) -
+This approach is recommended for those interested in contributing to the project or helping to troubleshoot
+an issue in realtime with the developer. This type of installation can exist alongside any of the other
+installation types.
+
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fgh_version.json)
-* [PyPI](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#pypi-installation) - Meant for users wanting to run the very latest version.  All **PATCH** level versions are released here first.  This installation method is also meant for users not on a Debian distribution.
-  
+* [PyPI](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#pypi-installation) -
+Meant for users wanting to run the very latest version.  All **PATCH** level versions are released
+here first.  This installation method is also meant for users not on a Debian distribution.
+
   [![PyPI version](https://badge.fury.io/py/rickslab-gpu-utils.svg)](https://badge.fury.io/py/rickslab-gpu-utils)
   [![Downloads](https://pepy.tech/badge/rickslab-gpu-utils)](https://pepy.tech/project/rickslab-gpu-utils)
-* [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) - Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
+* [Rickslab.com Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#rickslabcom-debian-installation) -
+Lags the PyPI release in order to assure robustness. May not include every **PATCH** version.
 
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_version.json)
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fdeb_down.json)
-* [Official Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#official-debian-package-installation) - Only **MAJOR/MINOR** releases.  This works for releases of Ubuntu 22.04 or Bullseye 11.3 or later.
+* [Official Debian](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#official-debian-package-installation) -
+Only **MAJOR/MINOR** releases.  This works for releases of Ubuntu 22.04 or Bullseye 11.3 or later.
 
   ![Custom badge](https://img.shields.io/endpoint?color=%23417B5D&url=https%3A%2F%2Frickslab.com%2Fbadges%2Fofficial_deb_version.json)
 
 ## User Guide
 
-For a detailed introduction, a community sourced 
+For a detailed introduction, a community sourced
 [User Guide](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md)
 is available. All tools are demonstrated and use cases are presented.  Additions
 to the guide are welcome.  Please submit a pull request with your suggested additions!
@@ -118,8 +126,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 ## New in Development -  v3.7.4
 
 * Documentation updates.
-* Code clean up.
-* Code simplification with tuple comparisons.
+* Code clean up, simplification, and optimization.
 * Moved high level requirement definitions to init file, modify setup.py and env checks to use these.
 
 ## Development Plans
@@ -135,7 +142,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Doesn't work well with Fiji ProDuo cards.
 * P-state mask gets intermittently reset for GPU used as display output.
 * Utility *gpu-pac* doesn't show what the current P-state mask is.  Not sure if that can be read back.
-* Utility *gpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac interface shows actual values instead of set values.
+* Utility *gpu-pac* fan speed setting results in actual fan speeds a bit different from setting and pac
+interface shows actual values instead of set values.
 
 ## References
 
@@ -176,7 +184,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Added read of Power DPM State for AMD GPUs.
 * On read error, make read for the parameter False instead of indicating card is not readable.
 * Add `gpu-ls` option *--force_all* to attempt to read all relevant sensors, regardless of card classification.
-* Improve error message handling.  Minor (expected) errors are suppressed unless *--verbose* is specified.  GPU output will indicate all sensors that were disabled due to read errors.
+* Improve error message handling.  Minor (expected) errors are suppressed unless *--verbose* is
+specified.  GPU output will indicate all sensors that were disabled due to read errors.
 * Implemented `gpu-ls` option *--raw* to give a summary view of the content of all available driver files.
 * Enable `gpu-plot` and `gpu-mon` capability to include GPUs with incomplete driver coverage.
 * Allow plain text instead of formatted/color coded output with the *--no_markup* option.
@@ -240,7 +249,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Update name from **amdgpu-utils** to **rickslab-gpu-utils**.
 * Improved PyPI packaging.
 * Updated User Guide to cover latest features and capabilities.
-* Improved robustness of NV read by validating sensor support for each query item the first time read.  This will assure functionality on older model GPUs.
+* Improved robustness of NV read by validating sensor support for each query item the first time
+read.  This will assure functionality on older model GPUs.
 * Fixed issue in setting display model name for NV GPUs.
 * Improved how lack of voltage readings for NV is handled in the utilities.
 * Fixed an issue in assessing compute capability when GPUs of multiple vendors are installed.
@@ -263,23 +273,30 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Modified requirements to include min/max package versions for major packages.
 * Fixed crash for missing pci-ids file and add location for Arch Linux (@berturion).
 * Fixed a crash in *amdgpu-pac* when no fan details could be read (laptop GPU).
-* Fixed deprecation warnings for several property setting functions.  Consolidated all property setting to a single function in a new module, and ignore warnings for those that are deprecated.  All deprecated actions are marked with FIXME in GPUgui.py.
+* Fixed deprecation warnings for several property setting functions.  Consolidated all property setting to
+a single function in a new module, and ignore warnings for those that are deprecated.  All deprecated
+actions are marked with FIXME in GPUgui.py.
 * Replaced deprecated set properties statement for colors with css formatting.
 * Implemented a more robust string format of datetime to address datetime conversion for pandas in some installations.
 * Implemented dubug logging across the project.  Activated with --debug option and output saved to a .log file.
 * Updated color scheme of Gtk applications to work in Ubuntu 20.04. Unified color scheme across all utilities.
 * Additional memory parameters added to utilities.
-* Read ID information for all GPUs and attempt to decode GPU name.  For cards with no card path entry, determine system device path and use for reading ID.  Report system device path in *amdgpu-ls*.  Add *amdgpu-ls --short* report to give brief description of all installed GPUs.
+* Read ID information for all GPUs and attempt to decode GPU name.  For cards with no card path entry,
+determine system device path and use for reading ID.  Report system device path in *amdgpu-ls*.  Add
+*amdgpu-ls --short* report to give brief description of all installed GPUs.
 
 #### New in Previous Release  -  [v3.0.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v3.0.0)
 
 * Style and code robustness improvements
 * Deprecated  *amdgpu-pciid*  and removed all related code.
-* Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of class variables for generic behavior parameters.
-* Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability, and compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
+* Complete rewrite based on benchMT learning.  Simplified code with ObjDict for GpuItem parameters and use of
+class variables for generic behavior parameters.
+* Use lspci as the starting point for developing GPU list and classify by vendor, readability, writability,
+and compute capability.  Build in potential to be generic GPU util, instead of AMD focused.
 * Test for readability and writability of all GPUs and apply utilities as appropriate.
 * Add assessment of compute capability.
-* Eliminated the use of lshw to determine driver compatibility and display of driver details is now informational with no impact on the utilities.
+* Eliminated the use of lshw to determine driver compatibility and display of driver details is now
+informational with no impact on the utilities.
 * Add p-state masking capability for Type 2 GPUs.
 * Optimized pac writing to GPUs.
 
@@ -297,7 +314,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Implement requirements file for with and without a venv.
 * Found and fixed a few minor bugs.
 * Fixed issue with *amdgpu-plot* becoming corrupt over time.
-* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems in systems with many GPUs.
+* Implemented clean shutdown of monitor and better buffering to plot. This could have caused in problems
+in systems with many GPUs.
 
 #### New in Previous Release  -  [v2.5.2](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.2)
 
@@ -313,15 +331,19 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 #### New in Previous Release  -  [v2.5.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.5.0)
 
-* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters that update at an interval defined by the *--sleep N* option.
-* Errors in reading non-critical parameters will now show a warning the first time and are disabled for future reads.
+* Implemented the *--plot* option for amdgpu-monitor.  This will display plots of critical GPU parameters
+that update at an interval defined by the *--sleep N* option.
+* Errors in reading non-critical parameters will now show a warning the first time and are disabled for
+future reads.
 * Fixed a bug in implementation of compatibility checks and improved usage of try/except.
 
 #### New in Previous Release  -  [v2.4.0](https://github.com/Ricks-Lab/amdgpu-utils/releases/tag/v2.4.0)
 
 * Implemented *amdgpu-pac* feature for type 2 Freq/Voltage controlled GPUs, which includes the Radeon VII.
-* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU, even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
-* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display execute complete message in terminal, and update messages in PAC message box.
+* Implemented the *amdgpu-pac --force_write* option, which writes all configuration parameters to the GPU,
+even if unchanged.  The default behavior is changed to now only write changed configuration parameters.
+* Indicate number of changes to be written by PAC, and if no changes, don't execute bash file.  Display
+execute complete message in terminal, and update messages in PAC message box.
 * Implemented a new GPU type 0, which represent some older cards whose p-states can not be changed.
 * Tuned *amdgpu-pac* window format.
 
@@ -331,13 +353,15 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Added Python2 compatible utility to check *amdgpu-utils* compatibility.
 * Fixed confusing mode/level fileptr names.
 * Removed CUSTOM PPM mode until I figure out syntax.
-* Implemented classification of card type based on how it implements frequency/voltage control.  This is reported by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
+* Implemented classification of card type based on how it implements frequency/voltage control.  This is
+reported by *amdgpu-ls* and alters the behavior of both *amdgpu-pac* and *amdgpu-monitor*.
 * Changed dpkg error to a warning to handle custom driver installs.
 * Initial [User Guide](docs/USER_GUIDE.md) - [Need contributors!](https://github.com/Ricks-Lab/amdgpu-utils/issues/13)
 
 #### New in Previous Release  -  v2.3.0
 
-* Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending credential entry.
+* Implemented a message box in amdgpu-pac to indicate details of PAC execution and indicate if sudo is pending
+credential entry.
 * Implement more robust classification of card compatibility and only use compatible GPUs in the utilities.
 * Official release of amdgpu-pciid which updates a local list of GPU names from the official pci.ids website.
 * Optimized refresh of data by moving static items to a different function and only read those that are dynamic.
@@ -346,10 +370,14 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 #### New in Previous Release  -  v2.2.0
 
-* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files correctly when a some other card is resident in a PCIe slot.
-* Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging and the target filename.
+* Major bug fix in the way HWMON directory was determined.  This fixes an issue in not seeing sensor files
+correctly when a some other card is resident in a PCIe slot.
+* Implemented logging option *--log* for amdgpu-monitor. A red indicator will indicate active logging
+and the target filename.
 * Implemented energy meter in amdgpu-monitor.
-* Implemented the ability to check the GPU extracted ID in a pci.ids file for correct model name.  Implemented a function to extract only AMD information for the pci.ids file and store in the file amd_pci_id.txt which is included in this distribution.
+* Implemented the ability to check the GPU extracted ID in a pci.ids file for correct model name.
+Implemented a function to extract only AMD information for the pci.ids file and store in the file
+amd_pci_id.txt which is included in this distribution.
 * Optimized long, short, and decoded GPU model names.
 * Alpha release of a utility to update device decode data from the pci.ids website.
 
@@ -357,7 +385,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Significant bug fixes and error proofing.  Added messages to stderr for missing driver related files.
 * Added fan monitor and control features.
-* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and useful for those who have installed GPU waterblocks.
+* Implemented --no_fan option across all tools.  This eliminates the reading and display of fan parameters and
+useful for those who have installed GPU waterblocks.
 * Implemented P-state masking, which limits available P-states to those specified. Useful for power management.
 * Fixed implementation of global variables that broke with implementation of modules in library.
 * Added more validation checks before writing parameters to cards.
@@ -366,12 +395,15 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Many bug fixes!
 * First release of amdgpu-pac.
-* Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver version.
+* Add check of amdgpu driver in the check of environment for all utilities.  Add display of amdgpu driver
+version.
 * Split list functions of the original amdgpu-monitor into amdgpu-ls.
 * Added --clinfo option to amdgpu-ls which will list openCL platform details for each GPU.
-* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes available for each GPU.
+* Added --ppm option to amdgpu-ls which will display the table of available power/performance modes
+available for each GPU.
 * Error messages are now output to stderr instead stdout.
-* Added power cap and power/performance mode to the monitor utilities.  I have also included them in the amdgpu-ls display in addtion to the power cap limits.
+* Added power cap and power/performance mode to the monitor utilities.  I have also included them in
+the amdgpu-ls display in addtion to the power cap limits.
 
 #### New in Previous Release  -  v1.1.0
 

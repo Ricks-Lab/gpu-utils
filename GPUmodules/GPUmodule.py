@@ -30,7 +30,7 @@ __docformat__ = 'reStructuredText'
 
 import re
 import subprocess
-import shlex
+from shlex import split as shlex_split
 import os
 import sys
 import logging
@@ -38,7 +38,7 @@ from typing import Union, List, Dict, TextIO, IO, Generator, Any, Tuple, Set
 from pathlib import Path
 from uuid import uuid4
 from enum import Enum
-import glob
+from glob import glob
 from datetime import datetime
 from numpy import nan as np_nan
 
@@ -789,7 +789,7 @@ class GpuItem:
                 if isinstance(self.prm[name], str):
                     return int(self.prm[name]) if self.prm[name].isnumeric() else None
                 return self.prm[name]
-        if name in self.prm.keys():
+        if name in self.prm:
             return self.prm[name]
         return None
 
@@ -865,7 +865,7 @@ class GpuItem:
         set_ocl_ver = None
         for source_name, source_value in params.items():
             # Set primary parameter
-            if source_name not in self.prm.keys():
+            if source_name not in self.prm:
                 raise KeyError('Populate dict contains unmatched key: {}'.format(source_name))
             self.prm[source_name] = source_value
 
@@ -897,7 +897,7 @@ class GpuItem:
         :param ocl_dict: dictionary of opencl name and values.
         """
         for ocl_name, ocl_val in ocl_dict.items():
-            if ocl_name in self.clinfo.keys():
+            if ocl_name in self.clinfo:
                 self.clinfo[ocl_name] = ocl_val
 
     def get_clinfo_value(self, name: str) -> Union[int, str, list, None]:
@@ -1266,7 +1266,7 @@ class GpuItem:
                                 param = re.sub(r'\[\d]:', '', param)
                                 LOGGER.debug('Curve: index: %s param: %s, val1 %s, val2: %s',
                                              index, param, lineitems[1], lineitems[2])
-                                if index in self.vddc_curve_range.keys():
+                                if index in self.vddc_curve_range:
                                     self.vddc_curve_range[index].update({param: [lineitems[1], lineitems[2]]})
                                 else:
                                     self.vddc_curve_range[index] = {}
@@ -1311,7 +1311,7 @@ class GpuItem:
         LOGGER.debug('NV command:\n%s', cmd_str)
         nsmi_item = None
         try:
-            nsmi_item = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+            nsmi_item = subprocess.check_output(shlex_split(cmd_str), shell=False).decode().split('\n')
             LOGGER.debug('NV raw query response: [%s]', nsmi_item)
         except (subprocess.CalledProcessError, OSError) as except_err:
             LOGGER.debug('NV query %s error: [%s]', nsmi_item, except_err)
@@ -1337,11 +1337,11 @@ class GpuItem:
                 return None
             if not self.prm.readable and parameter != 'id':
                 return None
-        if sensor_type not in self._sensor_details[vendor].keys():
+        if sensor_type not in self._sensor_details[vendor]:
             env.GUT_CONST.process_message('Error: Invalid sensor_type [{}]'.format(sensor_type))
             return None
         sensor_dict = self._sensor_details[vendor][sensor_type]
-        if parameter not in sensor_dict.keys():
+        if parameter not in sensor_dict:
             env.GUT_CONST.process_message('Error: Invalid parameter [{}]'.format(parameter))
             return None
         if not self.param_is_active(parameter):
@@ -1355,7 +1355,7 @@ class GpuItem:
         ret_dict = {}
         target_sensor = sensor_dict[parameter]
         if target_sensor['type'] in (self.SensorType.InputLabelX, self.SensorType.AllPStates):
-            sensor_files = glob.glob(os.path.join(sensor_path, target_sensor['sensor'][0]))
+            sensor_files = glob(os.path.join(sensor_path, target_sensor['sensor'][0]))
         else:
             sensor_files = target_sensor['sensor']
         for sensor_file in sensor_files:
@@ -1375,7 +1375,7 @@ class GpuItem:
                     if target_sensor['type'] == self.SensorType.AllPStates:
                         # clock_name: {ps_num: {'value': ps_val, 'state': ps_sts}}
                         clock_name = re.sub(r'.*pp_dpm_', '', sensor_file)
-                        if clock_name not in self.all_pstates.keys():
+                        if clock_name not in self.all_pstates:
                             self.all_pstates.update({clock_name: {}})
                         for ps_value in values:
                             ps_val_list = re.sub(':', '', ps_value).split()
@@ -1385,7 +1385,7 @@ class GpuItem:
                                 ps_sts = False
                                 if len(ps_val_list) > 2:
                                     ps_sts = True
-                                if ps_num not in self.all_pstates[clock_name].keys():
+                                if ps_num not in self.all_pstates[clock_name]:
                                     self.all_pstates[clock_name].update({ps_num: {'value': ps_val, 'state': ps_sts}})
                                 else:
                                     self.all_pstates[clock_name][ps_num]['value'] = ps_val
@@ -1481,7 +1481,7 @@ class GpuItem:
         :param data_type: specifies the set of sensors to read
         :return: True if successful, else False and card will have read disabled
         """
-        if data_type not in self.nv_query_items.keys():
+        if data_type not in self.nv_query_items:
             raise TypeError('Invalid SensorSet value: [{}]'.format(data_type))
 
         sensor_dict = GpuItem.nv_query_items[data_type]
@@ -1495,7 +1495,7 @@ class GpuItem:
                         env.GUT_CONST.cmd_nvidia_smi, self.prm.pcie_id, qry_string)
             LOGGER.debug('NV command:\n%s', cmd_str)
             try:
-                nsmi_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+                nsmi_items = subprocess.check_output(shlex_split(cmd_str), shell=False).decode().split('\n')
                 LOGGER.debug('NV query (single-call) result: [%s]', nsmi_items)
             except (subprocess.CalledProcessError, OSError) as except_err:
                 LOGGER.debug('NV query %s error: [%s]', nsmi_items, except_err)
@@ -1656,7 +1656,7 @@ class GpuItem:
                                    'clinfo': {'func': None, 'name': 'CLINFO'},
                                    'pstate': {'func': None, 'name': 'P-State'},
                                    'ppm': {'func': self.read_gpu_ppm_table, 'name': 'PPM'}}
-        if param_name not in param_table_definitions.keys(): return
+        if param_name not in param_table_definitions: return
 
         pre = '   '
         color = self.mark_up_codes['none'] if env.GUT_CONST.no_markup else self.mark_up_codes['data']
@@ -1774,14 +1774,13 @@ class GpuItem:
                                     return sensor_key, '{}{}{}'.format(color, description, color_reset)
                         else:
                             if filename in sensor_files:
-                                if sensor_key in self._GPU_Param_Labels.keys():
+                                if sensor_key in self._GPU_Param_Labels:
                                     if not env.GUT_CONST.no_markup: color = self.mark_up_codes['green']
                                     description = self._GPU_Param_Labels[sensor_key]
                                     return sensor_key, '{}{}{}'.format(color, description.strip(), color_reset)
-                                else:
-                                    if not env.GUT_CONST.no_markup: color = self.mark_up_codes['yellow']
-                                    description = '{}Ignored by gpu-utils{}'.format(color, color_reset)
-                                    return sensor_key, description
+                                if not env.GUT_CONST.no_markup: color = self.mark_up_codes['yellow']
+                                description = '{}Ignored by gpu-utils{}'.format(color, color_reset)
+                                return sensor_key, description
         if not env.GUT_CONST.no_markup: color = self.mark_up_codes['yellow']
         return 'None', '{}Not defined in gpu-utils{}'.format(color, color_reset)
 
@@ -2067,7 +2066,7 @@ class GpuList:
             # Get more GPU details from lspci -k -s
             cmd_str = '{} -k -s {}'.format(env.GUT_CONST.cmd_lspci, pcie_id)
             try:
-                lspci_items = subprocess.check_output(shlex.split(cmd_str), shell=False).decode().split('\n')
+                lspci_items = subprocess.check_output(shlex_split(cmd_str), shell=False).decode().split('\n')
             except (subprocess.CalledProcessError, OSError) as except_err:
                 message = 'Fatal Error [{}]: Can not get GPU details with lspci.'.format(except_err)
                 LOGGER.debug(message)
@@ -2107,7 +2106,7 @@ class GpuList:
 
             # Set compute flag
             if self.opencl_map:
-                if pcie_id in self.opencl_map.keys():
+                if pcie_id in self.opencl_map:
                     if 'device_version' in self.opencl_map[pcie_id]:
                         opencl_device_version = self.opencl_map[pcie_id]['device_version']
                         compute = True
@@ -2124,7 +2123,7 @@ class GpuList:
                         driver_module = driver_module_items[1].strip()
 
             # Get full card path
-            device_dirs = glob.glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
+            device_dirs = glob(os.path.join(env.GUT_CONST.card_root, 'card?/device'))
             # Match system device directory to pcie ID.
             for device_dir in device_dirs:
                 sysfspath = str(Path(device_dir).resolve())
@@ -2147,7 +2146,7 @@ class GpuList:
                         search_path = os.path.join(try_path, '????:{}'.format(pcie_id))
                     else:
                         search_path = os.path.join(try_path, pcie_id)
-                    sys_pci_dirs = glob.glob(search_path)
+                    sys_pci_dirs = glob(search_path)
                     if sys_pci_dirs:
                         # Found a match
                         break
@@ -2166,7 +2165,7 @@ class GpuList:
             # Get full hwmon path
             if card_path:
                 LOGGER.debug('Card dir [%s] contents:\n%s', card_path, list(os.listdir(card_path)))
-                hw_file_srch = glob.glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
+                hw_file_srch = glob(os.path.join(card_path, env.GUT_CONST.hwmon_sub) + '?')
                 LOGGER.debug('HW file search: %s', hw_file_srch)
                 if len(hw_file_srch) > 1:
                     env.GUT_CONST.process_message('More than one hwmon file found: {}'.format(hw_file_srch))
@@ -2255,7 +2254,7 @@ class GpuList:
         if not env.GUT_CONST.cmd_clinfo: return False
 
         # Run the clinfo command
-        with subprocess.Popen(shlex.split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
+        with subprocess.Popen(shlex_split('{} --raw'.format(env.GUT_CONST.cmd_clinfo)),
                               shell=False, stdout=subprocess.PIPE) as cmd:
 
             # Clinfo Keywords and related opencl_map key.
@@ -2724,9 +2723,9 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
     if isinstance(data_value_raw, float):
         if data_name == 'energy': return '{:.3e}'.format(data_value_raw) if data_value_raw > 0.0000001 else '---'
         return round(data_value_raw, 3)
-    elif isinstance(data_value_raw, int):
+    if isinstance(data_value_raw, int):
         return data_value_raw
-    elif not data_value_raw:
+    if not data_value_raw:
         return '---'
     return str(data_value_raw)
 
