@@ -58,7 +58,7 @@ class GpuEnum(Enum):
     """
     Replace __str__ method of Enum so that name excludes type and can be used as key in other dicts.
     """
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -126,19 +126,19 @@ class GpuItem:
     APU_Skip_List: Set[str] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
                                'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
                                'power_cap_range', 'power_cap', *_fan_item_list}
-
-    # Define Class Labels
-    GPU_Type = GpuEnum('type',
-                       'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
-    GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
-    GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
     _apu_gpus: Set[str] = {'Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
                            'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
                            'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
                            'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
                            'Barcelo', 'Beema', 'Mullins'}
 
-    # Table parameters labels
+    # Define Classification Enum objects.
+    GPU_Type = GpuEnum('type',
+                       'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
+    GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
+    GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
+    
+    # Define table parameters labels.
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                                    'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
                                    'fan_pwm', 'sclk_f_val', 'sclk_ps_val', 'mclk_f_val', 'mclk_ps_val', 'ppm']
@@ -162,7 +162,7 @@ class GpuItem:
         'mclk_ps_val':    'Mclk Pstate',
         'ppm':            'Perf Mode'}
 
-    # Complete GPU print items, use skip lists where appropriate
+    # Complete GPU print items, use skip lists where appropriate.
     _GPU_CLINFO_Labels: Dict[str, str] = {
         'opencl_version':     '   Device OpenCL C Version',
         'device_name':        '   Device Name',
@@ -534,7 +534,7 @@ class GpuItem:
         done after setting of env.  Doing it at the instantiation of a GpuItem assures that.
         """
         if cls._finalized: return
-        cls.finalized = True
+        cls._finalized = True
         if not env.GUT_CONST.show_fans:
             for fan_item in cls._fan_item_list:
                 # Remove fan params from GPU_Param_Labels
@@ -544,6 +544,12 @@ class GpuItem:
                 if fan_item in cls.table_param_labels:
                     del cls.table_param_labels[fan_item]
                 # Remove fan params from SensorSets
+                for sensor_set in (cls.SensorSet.Static, cls.SensorSet.Dynamic, cls.SensorSet.Monitor, cls.SensorSet.All):
+                    if fan_item in cls.sensor_sets[sensor_set]['HWMON']:
+                        try:
+                            cls.sensor_sets[sensor_set]['HWMON'].remove(fan_item)
+                        except ValueError: pass
+                """
                 if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON']:
@@ -552,13 +558,13 @@ class GpuItem:
                     cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
                 if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
                     cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
+                """
                 # Remove fan params from table param list
                 if fan_item in cls.table_parameters:
                     try:
                         cls.short_table_parameters.remove(fan_item)
                         cls.table_parameters.remove(fan_item)
-                    except ValueError:
-                        pass
+                    except ValueError: pass
 
     @classmethod
     def is_apu(cls, name: str) -> bool:
@@ -749,7 +755,7 @@ class GpuItem:
                 if 'vddgfx' in self.prm['voltages']:
                     if isinstance(self.prm['voltages']['vddgfx'], str):
                         return int(self.prm['voltages']['vddgfx'])
-                    return int(self.prm['voltages']['vddgfx'])
+                    #return self.prm['voltages']['vddgfx'] # Maybe return None instead
                 for value in self.prm['voltages'].values():
                     return value
             if name == 'sclk_ps_val':
@@ -760,7 +766,7 @@ class GpuItem:
                         if clock_name in self.prm['frequencies']:
                             if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
-                            return int(self.prm['frequencies'][clock_name])
+                            #return self.prm['frequencies'][clock_name] # Maybe return None instead
                 if self.prm['sclk_ps'][1]:
                     return self.prm['sclk_ps'][1]
                 if self.prm['frequencies']:
@@ -775,7 +781,7 @@ class GpuItem:
                         if clock_name in self.prm['frequencies']:
                             if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
-                            return int(self.prm['frequencies'][clock_name])
+                            #return self.prm['frequencies'][clock_name] # Maybe return None instead
                 if self.prm['mclk_ps'][1]:
                     return self.prm['mclk_ps'][1]
                 return None
@@ -789,7 +795,8 @@ class GpuItem:
                     return int(self.prm[name])
                 if isinstance(self.prm[name], str):
                     return int(self.prm[name]) if self.prm[name].isnumeric() else None
-                return self.prm[name]
+                return None
+                #return self.prm[name] # Maybe return None instead.
         if name in self.prm:
             return self.prm[name]
         return None
@@ -2286,13 +2293,17 @@ class GpuList:
                 return t_dict
 
             # Initialize dict variables
-            ocl_vendor = ocl_index = ocl_pcie_id = ocl_pcie_bus_id = ocl_pcie_slot_id = None
+            ocl_pcie_id: Union[str, None] = None
+            ocl_index: Union[str, None] = None
+            ocl_vendor: Union[str, None] = None
+            ocl_pcie_slot_id: Union[str, None] = None
+            ocl_pcie_bus_id: Union[str, None] = None
             temp_map = init_temp_map()
 
             # Read each line from clinfo --raw
             for line in cmd.stdout:
                 linestr = line.decode('utf-8').strip()
-                if len(linestr) < 1: continue
+                if not linestr: continue
                 if linestr[0] != '[': continue
                 line_items = linestr.split(maxsplit=2)
                 if len(line_items) != 3: continue
