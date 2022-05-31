@@ -27,6 +27,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 # pylint: disable=consider-using-f-string
+# pylint: disable=bad-continuation
 
 import re
 import subprocess
@@ -1908,7 +1909,7 @@ class GpuItem:
 
 class GpuList:
     """
-    A list of GpuItem indexed with uuid.  It also contains a table of parameters used for tabular printouts
+    A list of GpuItem indexed with uuid.  It also contains a table of parameters used for status reporting.
     """
     def __init__(self) -> None:
         self.list: Dict[str, GpuItem] = {}
@@ -1926,7 +1927,7 @@ class GpuList:
         return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
 
     def __getitem__(self, uuid: str) -> GpuItem:
-        if uuid in self.list.keys():
+        if uuid in self.list:
             return self.list[uuid]
         raise KeyError('KeyError: invalid uuid: {}'.format(uuid))
 
@@ -2437,26 +2438,18 @@ class GpuList:
         result_list = GpuList()
         for uuid, gpu in self.items():
             if vendor != GpuItem.GPU_Vendor.ALL:
-                if reverse:
-                    if vendor == gpu.prm.vendor: continue
-                else:
-                    if vendor != gpu.prm.vendor: continue
+                if ((reverse and (vendor == gpu.prm.vendor)) or
+                   (not reverse and (vendor != gpu.prm.vendor))): continue
             if gpu_type != GpuItem.GPU_Type.ALL:
-                if reverse:
-                    if gpu_type == gpu.prm.gpu_type: continue
-                else:
-                    if gpu_type != gpu.prm.gpu_type: continue
+                if ((reverse and (gpu_type == gpu.prm.gpu_type)) or
+                   (not reverse and (gpu_type != gpu.prm.gpu_type))): continue
             if compatibility != GpuItem.GPU_Comp.ALL:
                 if compatibility == GpuItem.GPU_Comp.Readable:
-                    if reverse:
-                        if gpu.prm.readable: continue
-                    else:
-                        if not gpu.prm.readable: continue
+                    if ((reverse and gpu.prm.readable) or
+                       (not reverse and not gpu.prm.readable)): continue
                 elif compatibility == GpuItem.GPU_Comp.Writable:
-                    if reverse:
-                        if gpu.prm.writable: continue
-                    else:
-                        if not gpu.prm.writable: continue
+                    if ((reverse and gpu.prm.writable) or
+                       (not reverse and not gpu.prm.writable)): continue
             result_list[uuid] = gpu
 
         return result_list

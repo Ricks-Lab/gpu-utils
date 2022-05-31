@@ -1,4 +1,4 @@
-__version__ = '3.7.4'
+__version__ = '3.7.5'
 #__status__ = 'Development Status :: 5 - Production/Stable'
 __status__ = 'Development Status :: 4 - Beta'
 __author__ = 'RicksLab'
