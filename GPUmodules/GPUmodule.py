@@ -44,10 +44,7 @@ from datetime import datetime
 from numpy import nan as np_nan
 
 from GPUmodules import __version__, __status__, __credits__
-try:
-    from GPUmodules import env
-except ImportError:
-    import env
+from GPUmodules import env
 
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -89,6 +86,7 @@ class GpuItem:
     # pylint: disable=attribute-defined-outside-init
     # pylint: disable=too-many-instance-attributes
     mark_up_codes = env.GUT_CONST.mark_up_codes
+
     _finalized: bool = False
     _button_labels: Dict[str, str] = {'loading':     'Load%',
                                       'power':       'Power',
@@ -102,42 +100,23 @@ class GpuItem:
 
     _fan_item_list: Set[str] = {'fan_enable', 'fan_target', 'fan_speed', 'fan_speed_range',
                                 'pwm_mode', 'fan_pwm', 'fan_pwm_range'}
-    short_list: Set[str] = {'vendor', 'pp_features', 'readable', 'writable', 'compute', 'card_num', 'id',
-                            'model_device_decode', 'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
-
-    # List of parameters for non-compatible AMD GPUs.
-    GPU_NC_Param_List: Set[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
-
-    # Vendor and Type skip lists for reporting
-    AMD_Skip_List: Set[str] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
-    NV_Skip_List: Set[str] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
-                              'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
-                              'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                              'temp_crits', 'voltages'}
-    MODERN_Skip_List: Set[str] = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
-    LEGACY_Skip_List: Set[str] = {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
-                                  'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
-                                  'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
-                                  'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
-                                  'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range'}
-    LegacyAPU_Skip_List: Set[str] = {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
-                                     'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                                     'power_cap_range', 'power', 'power_cap', *_fan_item_list}
-    APU_Skip_List: Set[str] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
-                               'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                               'power_cap_range', 'power_cap', *_fan_item_list}
     _apu_gpus: Set[str] = {'Carrizo', 'Renoir', 'Cezanne', 'Wrestler', 'Llano', 'Ontario', 'Trinity',
                            'Richland', 'Kabini', 'Kaveri', 'Picasso', 'Bristol Ridge', 'Raven Ridge',
                            'Hondo', 'Desna', 'Zacate', 'Weatherford', 'Godavari', 'Temash', 'WinterPark',
                            'BeaverCreek', 'Lucienne', 'Rembrandt', 'Dali', 'Stoney Ridge', 'Pollock',
                            'Barcelo', 'Beema', 'Mullins'}
 
+    # List of parameters for non-compatible AMD GPUs.
+    short_list: Set[str] = {'vendor', 'pp_features', 'readable', 'writable', 'compute', 'card_num', 'id',
+                            'model_device_decode', 'gpu_type', 'card_path', 'sys_card_path', 'hwmon_path', 'pcie_id'}
+    GPU_NC_Param_List: Set[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
+
     # Define Classification Enum objects.
     GPU_Type = GpuEnum('type',
                        'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
-    
+
     # Define table parameters labels.
     table_parameters: List[str] = ['model_display', 'loading', 'mem_loading', 'mem_vram_usage', 'mem_gtt_usage',
                                    'power', 'power_cap', 'energy', 'temp_val', 'vddgfx_val',
@@ -237,6 +216,32 @@ class GpuItem:
         'ppm':                 'Power Profile Mode',
         'power_dpm_state':     'Power DPM State',
         'power_dpm_force':     'Power DPM Force Performance Level'}
+
+    # AMD Type skip lists.
+    unsupported_skip_list = set(_GPU_Param_Labels) - GPU_NC_Param_List
+    amd_type_skip_lists: Dict[GPU_Type, Set] = {
+        GPU_Type.Unsupported: unsupported_skip_list,
+        GPU_Type.Modern:      {'vddc_range', 'sclk_f_range', 'mclk_f_range'},
+        GPU_Type.Legacy:      {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
+                               'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
+                               'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
+                               'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed',
+                               'vddc_range', 'frequencies', 'sclk_f_range', 'mclk_f_range'},
+        GPU_Type.LegacyAPU:   {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+                               'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                               'power_cap_range', 'power', 'power_cap', *_fan_item_list},
+        GPU_Type.APU:         {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
+                               'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                               'power_cap_range', 'power_cap', *_fan_item_list}}
+    # Vendor specific skip lists.
+    vendor_skip_lists: Dict[GPU_Vendor, Set] = {
+        GPU_Vendor.ASPEED: unsupported_skip_list,
+        GPU_Vendor.MATROX: unsupported_skip_list,
+        GPU_Vendor.AMD:    {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'},
+        GPU_Vendor.NVIDIA: {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+                            'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
+                            'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                            'temp_crits', 'voltages'}}
 
     # GPU sensor reading details
     SensorSet = Enum('set', 'None Test Static Dynamic Info State Monitor All')
@@ -549,16 +554,6 @@ class GpuItem:
                         try:
                             cls.sensor_sets[sensor_set]['HWMON'].remove(fan_item)
                         except ValueError: pass
-                """
-                if fan_item in cls.sensor_sets[cls.SensorSet.Static]['HWMON']:
-                    cls.sensor_sets[cls.SensorSet.Static]['HWMON'].remove(fan_item)
-                if fan_item in cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON']:
-                    cls.sensor_sets[cls.SensorSet.Dynamic]['HWMON'].remove(fan_item)
-                if fan_item in cls.sensor_sets[cls.SensorSet.Monitor]['HWMON']:
-                    cls.sensor_sets[cls.SensorSet.Monitor]['HWMON'].remove(fan_item)
-                if fan_item in cls.sensor_sets[cls.SensorSet.All]['HWMON']:
-                    cls.sensor_sets[cls.SensorSet.All]['HWMON'].remove(fan_item)
-                """
                 # Remove fan params from table param list
                 if fan_item in cls.table_parameters:
                     try:
@@ -755,7 +750,6 @@ class GpuItem:
                 if 'vddgfx' in self.prm['voltages']:
                     if isinstance(self.prm['voltages']['vddgfx'], str):
                         return int(self.prm['voltages']['vddgfx'])
-                    #return self.prm['voltages']['vddgfx'] # Maybe return None instead
                 for value in self.prm['voltages'].values():
                     return value
             if name == 'sclk_ps_val':
@@ -764,9 +758,9 @@ class GpuItem:
                 if self.prm['frequencies']:
                     for clock_name in ('sclk', 'clocks.gr'):
                         if clock_name in self.prm['frequencies']:
-                            if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
+                            if isinstance(self.prm['frequencies'][clock_name], str) and\
+                                    self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
-                            #return self.prm['frequencies'][clock_name] # Maybe return None instead
                 if self.prm['sclk_ps'][1]:
                     return self.prm['sclk_ps'][1]
                 if self.prm['frequencies']:
@@ -779,9 +773,9 @@ class GpuItem:
                 if self.prm['frequencies']:
                     for clock_name in ('mclk', 'clocks.mem'):
                         if clock_name in self.prm['frequencies']:
-                            if isinstance(self.prm['frequencies'][clock_name], str) and self.prm['frequencies'][clock_name].isnumeric():
+                            if isinstance(self.prm['frequencies'][clock_name], str) and\
+                                    self.prm['frequencies'][clock_name].isnumeric():
                                 return int(self.prm['frequencies'][clock_name])
-                            #return self.prm['frequencies'][clock_name] # Maybe return None instead
                 if self.prm['mclk_ps'][1]:
                     return self.prm['mclk_ps'][1]
                 return None
@@ -796,7 +790,6 @@ class GpuItem:
                 if isinstance(self.prm[name], str):
                     return int(self.prm[name]) if self.prm[name].isnumeric() else None
                 return None
-                #return self.prm[name] # Maybe return None instead.
         if name in self.prm:
             return self.prm[name]
         return None
@@ -885,14 +878,10 @@ class GpuItem:
                 set_ocl_ver = source_value
             elif source_name == 'gpu_type' and source_value:
                 self.prm.gpu_type = source_value
-                if source_value == GpuItem.GPU_Type.Legacy:
-                    self.read_skip = GpuItem.LEGACY_Skip_List
-                elif source_value == GpuItem.GPU_Type.Modern:
-                    self.read_skip = GpuItem.MODERN_Skip_List
-                elif source_value == GpuItem.GPU_Type.APU:
-                    self.read_skip = GpuItem.MODERN_Skip_List
-                elif source_value == GpuItem.GPU_Type.LegacyAPU:
-                    self.read_skip = GpuItem.LegacyAPU_Skip_List
+                try:
+                    self.read_skip = self.amd_type_skip_lists[self.prm.gpu_type]
+                except KeyError:
+                    pass
 
         # Compute platform requires that compute bool be set first
         if set_ocl_ver:
@@ -1625,9 +1614,8 @@ class GpuItem:
         Print list of disabled parameters.
         """
         param_lists = []
-        if env.GUT_CONST.verbose:
-            if self.read_skip:
-                param_lists.append('Skipped')
+        if env.GUT_CONST.verbose and self.read_skip:
+            param_lists.append('Skipped')
         if self.read_disabled:
             param_lists.append('Disabled')
         if not param_lists:
@@ -1820,36 +1808,23 @@ class GpuItem:
         :param newline:  Display terminating newline if True
         """
         for param_name, param_label in self._GPU_Param_Labels.items():
-            if short:
-                if param_name not in self.short_list:
-                    continue
+            if short and param_name not in self.short_list:
+                continue
 
             # Hard limits on what types/vendors can print what params
-            if self.prm.vendor == GpuItem.GPU_Vendor.NVIDIA:
-                if param_name in self.NV_Skip_List:
+            try:
+                if param_name in GpuItem.vendor_skip_lists[self.prm.vendor]:
                     continue
-            elif self.prm.vendor == GpuItem.GPU_Vendor.AMD:
-                if param_name in self.AMD_Skip_List:
-                    continue
-            elif self.prm.gpu_type in (GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU):
+            except KeyError:
+                pass
+            if self.prm.gpu_type in (GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU):
                 if param_name in self._fan_item_list:
-                    continue
-            elif self.prm.vendor == GpuItem.GPU_Vendor.ASPEED or self.prm.gpu_type == self.GPU_Type.Unsupported:
-                if param_name not in self.GPU_NC_Param_List:
                     continue
 
             # Situations where parameter limits can be overridden by force_all
             if not env.GUT_CONST.force_all:
-                if param_name in self.read_skip:
+                if not self.prm.readable and param_name not in self.GPU_NC_Param_List:
                     continue
-                if self.prm.gpu_type == self.GPU_Type.LegacyAPU:
-                    if param_name in self.LegacyAPU_Skip_List:
-                        continue
-                    if 'Range' in param_label:
-                        continue
-                if not self.prm.readable:
-                    if param_name not in self.GPU_NC_Param_List:
-                        continue
                 if not self.param_is_active(param_name):
                     continue
 
