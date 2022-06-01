@@ -146,6 +146,7 @@ def main() -> None:
         sys.exit(0)
 
     # Print out user requested details
+    gpu_list.read_gpu_pstates()
     if args.long:
         gpu_list.print(long=args.long)
     elif args.short:
@@ -155,7 +156,6 @@ def main() -> None:
         com_gpu_list.print_table(title='Status of Compatible GPUs:')
     elif args.pstates or args.ppm or args.features or args.clinfo:
         if args.pstates:
-            gpu_list.read_gpu_pstates()
             gpu_list.print_param_table(param_name='pstate')
         elif args.ppm:
             gpu_list.print_param_table(param_name='ppm')
