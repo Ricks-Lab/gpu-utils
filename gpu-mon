@@ -61,17 +61,6 @@ import signal
 from typing import Callable
 
 
-"""
-base_prefix = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
-print('base_prefix: {}, sys_prefix: {}'.format(base_prefix, sys.prefix))
-if base_prefix != sys.prefix:
-    sys.path.append('/usr/lib/python3/dist-packages')
-print(sys.path)
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk
-"""
-
 try:
     import gi
     gi.require_version('Gtk', '3.0')
@@ -160,15 +149,15 @@ class MonitorWindow(Gtk.Window):
         row_start = row
 
         row = row_start
-        row_labels = {'card_num': Gtk.Label(name='white_label')}
+        row_labels = {'card_num': Gtk.Label(name='white_label', halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)}
         row_labels['card_num'].set_markup('<b>Card #</b>')
         for param_name, param_label in Gpu.GpuItem.table_param_labels.items():
-            row_labels[param_name] = Gtk.Label(name='white_label')
+            row_labels[param_name] = Gtk.Label(name='white_label', halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
             row_labels[param_name].set_markup('<b>{}</b>'.format(param_label))
         for row_label_item in row_labels.values():
             lbox = Gtk.Box(spacing=6, name='head_box')
             set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-            set_gtk_prop(row_label_item, top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
+            set_gtk_prop(row_label_item, top=1, bottom=1, right=4, left=4)
             lbox.pack_start(row_label_item, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1

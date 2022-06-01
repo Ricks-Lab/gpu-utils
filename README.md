@@ -125,11 +125,14 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.5
 
-* Nothing yet.
+* Fixed placement of read pstate data in *gpu-ls* for complete P-state details in the output.
+* Improved implementation of Vddc Range for CurvePts type AMD GPU.
+* Optimized by GPU type skip lists.
 
 ## Development Plans
 
-* Add status read capabilities for Intel GPUs.
+* Add status read capabilities for Intel GPUs.  Need someone to provide `gpu-ls --raw --no_markup`
+output for Intel GPU.
 * Add pac capabilities for Nvidia GPUs.
 
 ## Known Issues
