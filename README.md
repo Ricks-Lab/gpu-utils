@@ -128,6 +128,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Fixed placement of read pstate data in *gpu-ls* for complete P-state details in the output.
 * Improved implementation of Vddc Range for CurvePts type AMD GPU.
 * Optimized by GPU type skip lists.
+* Disable clock and voltage range reading/displaying when pp_od_clk_voltage reading is not possible.
 
 ## Development Plans
 

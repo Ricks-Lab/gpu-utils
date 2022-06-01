@@ -709,18 +709,20 @@ class GpuItem:
         if parameter_name in self.read_skip: return False
         return True
 
-    def disable_param_read(self, parameter_name: str) -> None:
+    def disable_param_read(self, parameter_name: Union[Tuple[str, ...], str, None]) -> None:
         """
         Disable further reading of the specified parameter.
 
-        :param parameter_name:
+        :param parameter_name: A single parameter name to be disabled.
         :return:
         """
-        if self.param_is_active(parameter_name):
-            message = 'Warning: Can not read parameter: {}, ' \
-                      'disabling for this GPU: {}'.format(parameter_name, self.prm.card_num)
-            env.GUT_CONST.process_message(message, log_flag=True)
-            self.read_disabled.append(parameter_name)
+        if isinstance(parameter_name, str): parameter_name = (parameter_name, )
+        for target_param in parameter_name:
+            if self.param_is_active(target_param):
+                message = 'Warning: Can not read parameter: {}, ' \
+                          'disabling for this GPU: {}'.format(target_param, self.prm.card_num)
+                env.GUT_CONST.process_message(message, log_flag=True)
+                self.read_disabled.append(target_param)
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Union[int, float, str, list, None, datetime]:
         """
@@ -2177,7 +2179,8 @@ class GpuList:
                             pp_od_file_details = file_ptr.read()
                     except OSError as except_err:
                         pp_od_file_details = '{} not readable'.format(pp_od_clk_voltage_file)
-                        self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
+                        self[gpu_uuid].disable_param_read(('pp_od_clk_voltage', 'sclk_f_range',
+                                                           'mclk_f_range', 'vddc_range'))
                         message = 'Error: system support issue for {}: [{}]'.format(pcie_id, except_err)
                         LOGGER.debug(message)
                         print(message)
@@ -2186,7 +2189,8 @@ class GpuList:
                     else:
                         LOGGER.debug('%s exists, opened, and read.', pp_od_clk_voltage_file)
                         if not pp_od_file_details:
-                            self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
+                            self[gpu_uuid].disable_param_read(('pp_od_clk_voltage', 'sclk_f_range',
+                                                               'mclk_f_range', 'vddc_range'))
                             LOGGER.debug('%s exists, but empty on read.', pp_od_clk_voltage_file)
                             gpu_type = GpuItem.GPU_Type.Unsupported
                             readable = True
@@ -2214,6 +2218,8 @@ class GpuList:
                             gpu_type = GpuItem.GPU_Type.Legacy
 
                 if not os.path.isfile(pp_od_clk_voltage_file):
+                    self[gpu_uuid].disable_param_read(('pp_od_clk_voltage', 'sclk_f_range',
+                                                       'mclk_f_range', 'vddc_range'))
                     LOGGER.debug('%s file does not exist', pp_od_clk_voltage_file)
 
             # Set GPU parameters
