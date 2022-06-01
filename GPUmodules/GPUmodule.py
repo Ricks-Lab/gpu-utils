@@ -218,10 +218,14 @@ class GpuItem:
         'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # AMD Type skip lists.
-    unsupported_skip_list = set(_GPU_Param_Labels) - GPU_NC_Param_List
+    _unsupported_skip_list: Set = set(_GPU_Param_Labels) - GPU_NC_Param_List
+    _range_skip: Set = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
     amd_type_skip_lists: Dict[GPU_Type, Set] = {
-        GPU_Type.Unsupported: unsupported_skip_list,
-        GPU_Type.Modern:      {'vddc_range', 'sclk_f_range', 'mclk_f_range'},
+        GPU_Type.Unsupported: _unsupported_skip_list,
+        GPU_Type.Modern:      _range_skip,
+        GPU_Type.CurvePts:    _range_skip,
+        GPU_Type.PStatesNE:   _range_skip,
+        GPU_Type.PStates:     {},  # No parameters are skipped
         GPU_Type.Legacy:      {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
@@ -235,8 +239,8 @@ class GpuItem:
                                'power_cap_range', 'power_cap', *_fan_item_list}}
     # Vendor specific skip lists.
     vendor_skip_lists: Dict[GPU_Vendor, Set] = {
-        GPU_Vendor.ASPEED: unsupported_skip_list,
-        GPU_Vendor.MATROX: unsupported_skip_list,
+        GPU_Vendor.ASPEED: _unsupported_skip_list,
+        GPU_Vendor.MATROX: _unsupported_skip_list,
         GPU_Vendor.AMD:    {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'},
         GPU_Vendor.NVIDIA: {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
                             'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
@@ -1837,8 +1841,6 @@ class GpuItem:
             if param_name == 'unique_id':
                 if self.prm.unique_id is None:
                     continue
-            if self.prm.gpu_type == self.GPU_Type.CurvePts and param_name == 'vddc_range':
-                continue
             if isinstance(self.get_params_value(param_name), float):
                 if not env.GUT_CONST.no_markup: color = self.mark_up_codes['data']
                 print('{}{}: {}{:.3f}{}'.format(pre, param_label, color,
