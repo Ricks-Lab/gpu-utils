@@ -222,10 +222,10 @@ class GpuItem:
     _range_skip: Set = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
     amd_type_skip_lists: Dict[GPU_Type, Set] = {
         GPU_Type.Unsupported: _unsupported_skip_list,
-        GPU_Type.Modern:      _range_skip,
-        GPU_Type.CurvePts:    _range_skip,
+        GPU_Type.Modern:      {},
+        GPU_Type.CurvePts:    {},
         GPU_Type.PStatesNE:   _range_skip,
-        GPU_Type.PStates:     {},  # No parameters are skipped
+        GPU_Type.PStates:     {},
         GPU_Type.Legacy:      {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
@@ -960,10 +960,9 @@ class GpuItem:
         if pstate[1] < mclk_min or pstate[1] > mclk_max:
             return False
         if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
-            vddc_range = self.prm.vddc_range
             try:
-                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
-                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[0])))
+                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[1])))
             except TypeError:
                 return False
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
@@ -982,13 +981,13 @@ class GpuItem:
         sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(sclk_range[1])))
         if pstate[1] < sclk_min or pstate[1] > sclk_max:
             return False
-        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
-            vddc_range = self.prm.vddc_range
+        if self.prm.gpu_type in {self.GPU_Type.PStatesNE, self.GPU_Type.PStates}:
             try:
-                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[0])))
-                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(vddc_range[1])))
+                vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[0])))
+                vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[1])))
             except TypeError:
                 return False
+            print('{}:{} {}:{}'.format(pstate[2] , vddc_min , pstate[2] , vddc_max))
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -1045,8 +1044,8 @@ class GpuItem:
         sclk_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[curve_pts[0]]['SCLK'][1])))
         if curve_pts[1] < sclk_min or curve_pts[1] > sclk_max:
             return False
-        vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str('650mV')))
-        vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.vddc_curve_range[curve_pts[0]]['VOLT'][1])))
+        vddc_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[0])))
+        vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[1])))
         if curve_pts[2] < vddc_min or curve_pts[2] > vddc_max:
             return False
         return True
@@ -1223,9 +1222,9 @@ class GpuItem:
                     lineitems: List[any] = line.split()
                     lineitems_len = len(lineitems)
                     if self.prm.gpu_type in (self.GPU_Type.Undefined, self.GPU_Type.Supported, self.GPU_Type.Modern):
-                        if len(lineitems) == 3:
+                        if lineitems_len == 3:
                             self.prm.gpu_type = self.GPU_Type.PStates
-                        elif len(lineitems) == 2:
+                        elif lineitems_len == 2:
                             self.prm.gpu_type = self.GPU_Type.CurvePts
                         else:
                             env.GUT_CONST.process_message('Error: Invalid pstate entry length {} for{}: '.format(
@@ -1279,6 +1278,15 @@ class GpuItem:
             LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
             self.disable_param_read(parameter_file)
+
+        if self.prm.gpu_type == self.GPU_Type.CurvePts:
+            try:
+                max_state = max(self.vddc_curve)
+                min_lim = min(self.vddc_curve_range[0]['VOLT'][0], self.vddc_curve[0][1])
+                max_lim = max(self.vddc_curve_range[max_state]['VOLT'][1], self.vddc_curve[max_state][1])
+                self.prm.vddc_range = [min_lim, max_lim]
+            except KeyError:
+                self.prm.vddc_range = [None, None]
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:

@@ -383,8 +383,8 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['vddc_curve_range'].set_markup(
                     '<b>VDDC Curve Points: </b> Ranges {}-{}, {}-{} '.format(gpu.vddc_curve_range[0]['SCLK'][0],
                                                                              gpu.vddc_curve_range[0]['SCLK'][1],
-                                                                             gpu.vddc_curve_range[0]['VOLT'][0],
-                                                                             gpu.vddc_curve_range[0]['VOLT'][1]))
+                                                                             gpu.prm.vddc_range[0],
+                                                                             gpu.prm.vddc_range[1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['vddc_curve_range'], top=1, bottom=1,
                              right=4, left=4, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6, name='dark_box')
