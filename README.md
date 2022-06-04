@@ -125,7 +125,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.6
 
-* Nothing yet.
+* Update installation guide due to deprecation of apt-key.
 
 ## Development Plans
 

@@ -84,9 +84,10 @@ You may need to open a new terminal window in order for the path to the utilitie
 
 ### Rickslab.com Debian Installation
 
-First, remove any previous PyPI installation and exit that terminal.  If you also have a Debian
-installed version, the pip uninstall will likely fail, unless you remove the Debian package first.  You 
-can skip this step if you are certain no over install types have been installed:
+First, remove any previous PyPI installation and exit that terminal.  If you
+also have a Debian installed version, the pip uninstall will likely fail,
+unless you remove the Debian package first.  You can skip this step if you
+are certain no other install types are still installed:
 
 ```shell
 sudo apt purge rickslab-gpu-utils
@@ -96,12 +97,19 @@ pip uninstall rickslab-gpu-utils
 exit
 ```
 
+If you had previously (before 3.7.6) installed from rickslab.com, you should
+delete the key from the apt keyring:
+
+```shell
+sudo apt-key del C98B8839
+```
+
 Next, add the *rickslab-gpu-utils* repository:
 
 ```shell
-wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo apt-key add -
+wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo gpg --dearmour -o /usr/share/keyrings/rickslab-agent.gpg
 
-echo 'deb [arch=amd64] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/rickslab-agent.gpg] https://debian.rickslab.com/gpu-utils/ eddore main' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
 
 sudo apt update
 ```
@@ -112,12 +120,20 @@ Then install the package with apt:
 sudo apt install rickslab-gpu-utils
 ```
 
+If you decide to no longer use this type of install, you can remove
+rickslab-gpu-utils from the system repository list by executing the following:
+
+```shell
+echo '' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+```
+
 ### Official Debian Package Installation
 
-First, verify you are running a linux distribution based on Debian 11.3 or later.  Then remove any previous PyPI
-installation and exit that terminal.  If you also have a Debian installed versions, the pip uninstall will likely fail,
-unless you remove the Debian package first. You can skip this step if you are certain no over install types have
-been installed:
+First, verify you are running a linux distribution based on Debian 11.3 or later.
+Then remove any previous PyPI installation and exit that terminal.  If you also
+have a Debian installed versions, the pip uninstall will likely fail, unless you
+remove the Debian package first. You can skip this step if you are certain no
+over install types have been installed:
 
 ```shell
 sudo apt purge ricks-amdgpu-utils
@@ -127,9 +143,13 @@ pip uninstall rickslab-gpu-utils
 exit
 ```
 
-If you had previously added https://debian.rickslab.com/gpu-utils/ as a repository source, then you will need to
-remove this in order to download from the official debian repository.  In Ubuntu, you can remove from within the
-'Software and Updates GUI'.
+If you had previously added https://debian.rickslab.com/gpu-utils/ as a repository
+source, then you will need to remove this in order to download from the official
+debian repository.  This can be accomplished with the following shell command:
+
+```shell
+echo '' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
+```
 
 ```shell
 sudo apt update
