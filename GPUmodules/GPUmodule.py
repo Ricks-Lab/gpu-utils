@@ -1480,7 +1480,7 @@ class GpuItem:
         for table_item, status in self.table_parameters_status.items():
             if env.GUT_CONST.debug:
                 print('{}: {}: {}'.format(table_item, status, self.get_params_value(table_item)))
-            if self.get_params_value(table_item) in (None, '', np_nan):
+            if format_table_value(self.get_params_value(table_item), table_item) in {None, '', np_nan, '---'}:
                 self.table_parameters_status[table_item] = False
         if env.GUT_CONST.debug:
             print('')
@@ -2716,7 +2716,7 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
         data_value_raw = re.sub(PATTERNS['MHz'], '', data_value_raw).strip()
         if data_value_raw.isnumeric():
             return int(data_value_raw)
-    if not data_value_raw:
+    if data_value_raw in {'', None, '-1', 'NA'}:
         return '---'
     return str(data_value_raw)
 
