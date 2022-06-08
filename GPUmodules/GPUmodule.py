@@ -1888,19 +1888,6 @@ class GpuItem:
 
         for table_item in self.table_parameters:
             gpu_state[table_item] = format_table_value(self.get_params_value(table_item), table_item)
-            """
-            gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
-            if gpu_state_str == 'nan':
-                gpu_state[table_item] = np_nan
-            elif gpu_state_str.isnumeric():
-                gpu_state[table_item] = int(gpu_state_str)
-            elif re.fullmatch(PATTERNS['IS_FLOAT'], gpu_state_str):
-                gpu_state[table_item] = float(gpu_state_str)
-            elif gpu_state_str == '' or gpu_state_str == '-1' or gpu_state_str == 'NA' or gpu_state_str is None:
-                gpu_state[table_item] = 'NA'
-            else:
-                gpu_state[table_item] = gpu_state_str
-            """
         return gpu_state
 
 
@@ -2729,7 +2716,6 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
         data_value_raw = re.sub(PATTERNS['MHz'], '', data_value_raw).strip()
         if data_value_raw.isnumeric():
             return int(data_value_raw)
-        return data_value_raw
     if not data_value_raw:
         return '---'
     return str(data_value_raw)
