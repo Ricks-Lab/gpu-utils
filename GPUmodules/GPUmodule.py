@@ -1887,6 +1887,8 @@ class GpuItem:
                      'Card#': int(self.prm.card_num)}
 
         for table_item in self.table_parameters:
+            gpu_state[table_item] = format_table_value(self.get_params_value(table_item), table_item)
+            """
             gpu_state_str = str(re.sub(PATTERNS['MHz'], '', str(self.get_params_value(table_item)))).strip()
             if gpu_state_str == 'nan':
                 gpu_state[table_item] = np_nan
@@ -1898,6 +1900,7 @@ class GpuItem:
                 gpu_state[table_item] = 'NA'
             else:
                 gpu_state[table_item] = gpu_state_str
+            """
         return gpu_state
 
 
@@ -2715,10 +2718,17 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
     :param data_name:
     :return: Formatted data value
     """
+    if data_value_raw == 'nan':
+        return np_nan
     if isinstance(data_value_raw, float):
         if data_name == 'energy': return '{:.3e}'.format(data_value_raw) if data_value_raw > 0.0000001 else '---'
         return round(data_value_raw, 3)
     if isinstance(data_value_raw, int):
+        return data_value_raw
+    if isinstance(data_value_raw, str):
+        data_value_raw = re.sub(PATTERNS['MHz'], '', data_value_raw).strip()
+        if data_value_raw.isnumeric():
+            return int(data_value_raw)
         return data_value_raw
     if not data_value_raw:
         return '---'
