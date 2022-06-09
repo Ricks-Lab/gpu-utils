@@ -125,7 +125,9 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.7
 
-* Nothing yet
+* Add check of rickslab public key in apt-key.  Users should follow new protocol of adding
+it to a shared keyring as described in UsersGuide.  Apt-key is being deprecated and is just
+a better practice to use a shared keyring.
 
 ## Development Plans
 
@@ -160,7 +162,7 @@ interface shows actual values instead of set values.
 
 * Update installation guide due to deprecation of apt-key.
 * Fixed inconsistency in table/plot item formats.
-* 
+
 ### New in Previous Release -  v3.7.5
 
 * Fixed placement of read P-state data in *gpu-ls* for complete P-state details in the output.

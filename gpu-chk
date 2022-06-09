@@ -243,6 +243,32 @@ def is_in_venv() -> bool:
     return False
 
 
+def check_apt_key() -> bool:
+    """
+    Check if rickslab public key is in apt-key keyring.
+
+    :return: True if key not in apt-key
+    """
+    rickslab_key = 'C98B8839'
+    apt_key_cmd = shutil.which('apt-key')
+    cmdstr = '{} list {}'.format(apt_key_cmd, rickslab_key)
+    print('Checking apt-key keyring:')
+    try:
+        with subprocess.Popen(shlex_split(cmdstr), shell=False, stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            output, _error = p.communicate()
+    except (subprocess.CalledProcessError, OSError):
+        print('          {} Could not check if rickslab repository is setup to use apt-key keyring.  '
+              'Please see latest project README.{}'.format(COLORS['warn'], COLORS['reset']))
+    else:
+        if output:
+            print('          {} Looks like rickslab repository is setup to use apt-key keyring.  '
+                  'Please see latest project README.{}'.format(COLORS['error'], COLORS['reset']))
+            return False
+    print('          {} rickslab repository is not using apt-key keyring. {}'.format(COLORS['ok'], COLORS['reset']))
+    return True
+
+
 def main() -> None:
     """
     Main flow for chk utility.
@@ -273,6 +299,8 @@ def main() -> None:
         print('Virtual Environment not configured. Only required by developers.')
 
     if not is_in_venv():
+        pass
+    if not check_apt_key():
         pass
     print('')
 
