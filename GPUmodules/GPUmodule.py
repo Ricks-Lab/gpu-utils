@@ -43,7 +43,6 @@ from glob import glob
 from datetime import datetime
 from numpy import nan as np_nan
 
-from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import env
 
 
@@ -989,7 +988,7 @@ class GpuItem:
                 vddc_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddc_range[1])))
             except TypeError:
                 return False
-            print('{}:{} {}:{}'.format(pstate[2] , vddc_min , pstate[2] , vddc_max))
+            print('{}:{} {}:{}'.format(pstate[2], vddc_min, pstate[2], vddc_max))
             if pstate[2] < vddc_min or pstate[2] > vddc_max:
                 return False
         return True
@@ -2719,22 +2718,3 @@ def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, f
     if data_value_raw in {'', None, '-1', 'NA'}:
         return '---'
     return str(data_value_raw)
-
-
-def about() -> None:
-    """
-    Print details about this module.
-    """
-    print(__doc__)
-    print('Author: ', __author__)
-    print('Copyright: ', __copyright__)
-    print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
-    print('License: ', __license__)
-    print('Version: ', __version__)
-    print('Maintainer: ', __maintainer__)
-    print('Status: ', __status__)
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    about()

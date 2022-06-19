@@ -41,7 +41,7 @@ import shutil
 from time import mktime as time_mktime
 from datetime import datetime
 from typing import Dict, Union, TextIO, Set
-from GPUmodules import __version__, __status__, __credits__, __required_pversion__, __required_kversion__
+from GPUmodules import __required_pversion__, __required_kversion__
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -300,8 +300,8 @@ class GutConst:
         LOGGER.debug('Using python: %s', current_pversion)
         if current_pversion[:2] < __required_pversion__:
             print('Using python {}.{}.{}, but {} requires python {}.{} or higher.'.format(
-                  current_pversion[0], current_pversion[1], current_pversion[2],
-                  __program_name__, __required_pversion__[0], __required_pversion__[1]),
+                current_pversion[0], current_pversion[1], current_pversion[2],
+                __program_name__, __required_pversion__[0], __required_pversion__[1]),
                   file=sys.stderr)
             return -1
 
@@ -310,8 +310,9 @@ class GutConst:
         current_kversion = tuple([int(x) for x in re.sub('-.*', '', current_kversion_str).split('.')])
         LOGGER.debug('Using Linux Kernel: %s', current_kversion_str)
         if current_kversion < __required_kversion__:
-            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(current_kversion_str,
-                  __program_name__, __required_kversion__[0], __required_kversion__[1]), file=sys.stderr)
+            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(
+                current_kversion_str, __program_name__, __required_kversion__[0],
+                __required_kversion__[1]), file=sys.stderr)
             return -2
 
         # Check Linux Init Type
@@ -473,23 +474,3 @@ class GutConst:
 
 
 GUT_CONST = GutConst()
-
-
-def about() -> None:
-    """
-    Display details of this module.
-    """
-    print(__doc__)
-    print('Author: ', __author__)
-    print('Copyright: ', __copyright__)
-    print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
-    print('License: ', __license__)
-    print('Version: ', __version__)
-    print('Install Type: ', GUT_CONST.install_type)
-    print('Maintainer: ', __maintainer__)
-    print('Status: ', __status__)
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    about()

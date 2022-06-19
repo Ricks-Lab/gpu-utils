@@ -64,7 +64,7 @@ class GutConst:
     _dpkg_tool = {'Debian': 'dpkg', 'Ubuntu': 'dpkg', 'Arch': 'pacman', 'Gentoo': 'portage'}
 
     def __init__(self):
-        self.DEBUG = False
+        self.debug = False
 
     def check_env(self) -> dict:
         """
@@ -82,7 +82,7 @@ class GutConst:
                                              current_pversion[2]))
         if current_pversion[:2] < __required_pversion__:
             print('          {} but rickslab-gpu-utils requires python {}.{} or newer {}'.format(
-                  COLORS['error'], __required_pversion__[0], __required_pversion__[1], COLORS['reset']))
+                COLORS['error'], __required_pversion__[0], __required_pversion__[1], COLORS['reset']))
             ret_val['python'] = False
         else:
             print('          {} Python version OK. {}'.format(COLORS['ok'], COLORS['reset']))
@@ -94,7 +94,7 @@ class GutConst:
         print('Using Linux Kernel: {}'.format(current_kversion_str))
         if current_kversion < __required_kversion__:
             print('          {} but rickslab-gpu-utils requires {}.{} or newer {}'.format(
-                  COLORS['error'], __required_kversion__[0], __required_kversion__[1], COLORS['reset']))
+                COLORS['error'], __required_kversion__[0], __required_kversion__[1], COLORS['reset']))
             ret_val['kernel'] = False
         else:
             print('          {} OS kernel OK. {}'.format(COLORS['ok'], COLORS['reset']))
@@ -128,7 +128,7 @@ class GutConst:
                     distributor = lsbr_item.strip()
                 if re.search('Description', lsbr_line):
                     lsbr_item = re.sub(r'Description:\s*', '', lsbr_line)
-                    if self.DEBUG: print('Distro Description: {}'.format(lsbr_item))
+                    if self.debug: print('Distro Description: {}'.format(lsbr_item))
                     description = lsbr_item.strip()
 
             if distributor:
@@ -168,7 +168,7 @@ class GutConst:
             for dpkg_line in dpkg_out:
                 for driverpkg in ('amdgpu', 'rocm'):
                     if re.search(driverpkg, dpkg_line):
-                        if self.DEBUG: print('Debug: ' + dpkg_line)
+                        if self.debug: print('Debug: ' + dpkg_line)
                         dpkg_items = dpkg_line.split()
                         if len(dpkg_items) > 2:
                             if re.fullmatch(r'.*none.*', dpkg_items[2]): continue
@@ -203,7 +203,7 @@ def is_venv_installed() -> bool:
             return True
     print('python3 venv is NOT installed')
     print('          {} Python3 venv package \'python3-venv\' is recommended for developers {}'.format(
-          COLORS['warn'], COLORS['reset']))
+        COLORS['warn'], COLORS['reset']))
     return False
 
 

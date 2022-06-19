@@ -43,11 +43,7 @@ except ModuleNotFoundError as error:
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
 
-try:
-    from GPUmodules import env
-except ImportError:
-    import env
-from GPUmodules import __version__, __status__, __credits__
+from GPUmodules import env
 
 ColorDict = Dict[str, str]
 LOGGER = logging.getLogger('gpu-utils')
@@ -235,22 +231,3 @@ class GuiProps:
             provider.load_from_data(css)
             style_context = Gtk.StyleContext()
             style_context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
-
-def about() -> None:
-    """
-    Display details of this module.
-    """
-    print(__doc__)
-    print('Author: ', __author__)
-    print('Copyright: ', __copyright__)
-    print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
-    print('License: ', __license__)
-    print('Version: ', __version__)
-    print('Maintainer: ', __maintainer__)
-    print('Status: ', __status__)
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    about()

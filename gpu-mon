@@ -58,7 +58,7 @@ from shlex import split as shlex_split
 import shutil
 from time import sleep
 import signal
-from typing import Callable
+from typing import Callable, Any
 
 
 try:
@@ -81,7 +81,7 @@ set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 
 
-def ctrl_c_handler(target_signal: signal.Signals, _frame) -> None:
+def ctrl_c_handler(target_signal: Any, _frame: Any) -> None:
     """
     Signal catcher for ctrl-c to exit monitor loop.
 
@@ -161,6 +161,7 @@ class MonitorWindow(Gtk.Window):
             lbox.pack_start(row_label_item, True, True, 0)
             grid.attach(lbox, col, row, 1, 1)
             row += 1
+
         for gpu in gpu_list.gpus():
             devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
             devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
