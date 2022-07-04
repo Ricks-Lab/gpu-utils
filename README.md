@@ -125,7 +125,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.7.8
 
-* Nothing yet.
+* Improved read/write status summary.
+* Made monitor window not resizable.
 
 ## Development Plans
 

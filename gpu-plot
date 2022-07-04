@@ -52,7 +52,7 @@ import threading
 import os
 import logging
 from time import sleep
-from typing import Dict, Set, Tuple, List
+from typing import Dict, Set, Tuple, List, Union
 import warnings
 import numpy as np
 
@@ -345,6 +345,7 @@ class GPUPlotWindow(Gtk.Window):
 
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         self.set_border_width(0)
+        self.set_resizable(False)
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_file:
@@ -521,7 +522,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
     ldf = plot_data.df
     tick_inc = None
-    plot_limits = {}
+    plot_limits: Dict[str, Union[float, int, None]] = {}
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
@@ -572,7 +573,6 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
 
         # Update GPU Plots
         # Setting limits may be based on all data
-        plot_limits = {}
         for comp_num in gc.gui_components['card_plots']:
             active_gpu = plot_data.com_gpu_list.select_gpu(comp_num)
             for axis_name, plot_items in plot_data.plot_list.items():
@@ -912,8 +912,7 @@ def main() -> None:
     if args.stdin or args.simlog:
         threading.Thread(target=read_from_stdin, daemon=True, args=[args.sleep, plot_data]).start()
     else:
-        print('Compatible GPUs:')
-        Gpu.print_gpu_rw_summary(com_gpu_list)
+        print('Compatible GPUs:\n    {}'.format(com_gpu_list))
         threading.Thread(target=read_from_gpus, daemon=True, args=[args.sleep, plot_data]).start()
 
     print('{} waiting for initial data'.format(__program_name__), end='', flush=True)

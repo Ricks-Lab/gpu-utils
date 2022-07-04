@@ -1907,7 +1907,12 @@ class GpuList:
         return str(self.list)
 
     def __str__(self) -> str:
-        return 'GPU_List: Number of GPUs: {}'.format(self.num_gpus())
+        num_gpus = self.num_gpus()
+        return 'Total of {} {}: {} {} rw, {} {} r-only, and {} {} w-only\n'.format(
+            num_gpus['total'], 'GPU' if num_gpus['total'] == 1 else 'GPUs',
+            num_gpus['rw'], 'is' if num_gpus['rw'] == 1 else 'are',
+            num_gpus['r-only'], 'is' if num_gpus['r-only'] == 1 else 'are',
+            num_gpus['w-only'], 'is' if num_gpus['w-only'] == 1 else 'are')
 
     def __getitem__(self, uuid: str) -> GpuItem:
         if uuid in self.list:
@@ -2648,17 +2653,6 @@ class GpuList:
 
 
 # Utility Helper Functions
-def print_gpu_rw_summary(gpu_list: GpuList) -> None:
-    """
-    Print formatted display of all GPU read/write status.
-
-    :param gpu_list: Target list of GPUs for the summary.
-    """
-    num_gpus = gpu_list.num_gpus()
-    print('{} total GPUs, {} rw, {} r-only, {} w-only\n'.format(num_gpus['total'], num_gpus['rw'],
-                                                                num_gpus['r-only'], num_gpus['w-only']))
-
-
 def print_driver_vendor_summary(gpu_list: GpuList) -> None:
     """
     Display vendor and driver details.

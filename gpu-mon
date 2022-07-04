@@ -117,6 +117,7 @@ class MonitorWindow(Gtk.Window):
             sys.exit(-1)
         Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
         self.set_border_width(0)
+        self.set_resizable(False)
         GPUgui.GuiProps.set_style()
 
         if env.GUT_CONST.icon_file:
@@ -204,6 +205,7 @@ def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> 
     """
     # SEMAPHORE ############
     if not UD_SEM.acquire(blocking=False):
+        if env.GUT_CONST.verbose: print('Update while updating, skipping new update')
         LOGGER.debug('Update while updating, skipping new update')
         return
     ########################
@@ -319,8 +321,7 @@ def main() -> None:
     gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
 
     # Check number of readable/writable
-    print('All GPUs:')
-    Gpu.print_gpu_rw_summary(gpu_list)
+    print('All GPUs:\n    {}'.format(gpu_list))
 
     # Select GPU's appropriate for monitor
     com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
@@ -331,7 +332,7 @@ def main() -> None:
     if num_gpus['total'] == 0:
         print('No readable and compatible GPUs detected, exiting...')
         sys.exit(-1)
-    Gpu.print_gpu_rw_summary(com_gpu_list)
+    print('    {}'.format(com_gpu_list))
 
     if args.log:
         env.GUT_CONST.log = True

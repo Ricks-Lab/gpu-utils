@@ -1307,7 +1307,7 @@ def main() -> None:
 
     # Check number of readable/writable GPUs again
     print('All GPUs:')
-    Gpu.print_gpu_rw_summary(gpu_list)
+    print(gpu_list)
 
     # Select GPU's appropriate for pac
     com_gpu_list = gpu_list.list_gpus(compatibility=Gpu.GpuItem.GPU_Comp.Writable)
@@ -1323,7 +1323,7 @@ def main() -> None:
         print('None are writable, exiting...')
         sys.exit(-1)
     # Check writable and compatible
-    Gpu.print_gpu_rw_summary(com_gpu_list)
+    print(com_gpu_list)
 
     com_gpu_list.read_gpu_pstates()
     com_gpu_list.read_gpu_ppm_table()
