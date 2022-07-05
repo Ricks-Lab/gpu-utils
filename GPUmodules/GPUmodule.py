@@ -1908,11 +1908,15 @@ class GpuList:
 
     def __str__(self) -> str:
         num_gpus = self.num_gpus()
+
+        def num_is_are(num: int, singular: str = 'is', plural: str = 'are') -> Tuple[int, str]:
+            return num, plural if num != 1 else singular
+
         return 'Total of {} {}: {} {} rw, {} {} r-only, and {} {} w-only\n'.format(
-            num_gpus['total'], 'GPU' if num_gpus['total'] == 1 else 'GPUs',
-            num_gpus['rw'], 'is' if num_gpus['rw'] == 1 else 'are',
-            num_gpus['r-only'], 'is' if num_gpus['r-only'] == 1 else 'are',
-            num_gpus['w-only'], 'is' if num_gpus['w-only'] == 1 else 'are')
+            *num_is_are(num_gpus['total'], 'GPU', 'GPUs'),
+            *num_is_are(num_gpus['rw']),
+            *num_is_are(num_gpus['r-only']),
+            *num_is_are(num_gpus['w-only']))
 
     def __getitem__(self, uuid: str) -> GpuItem:
         if uuid in self.list:
