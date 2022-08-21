@@ -1910,6 +1910,14 @@ class GpuList:
         num_gpus = self.num_gpus()
 
         def num_is_are(num: int, singular: str = 'is', plural: str = 'are') -> Tuple[int, str]:
+            """
+            Determine if singular or plural references are needed.  Return correct version.
+
+            :param num: Quantity
+            :param singular: Singular version of word
+            :param plural: Plural version of word
+            :return: Either singular or plural version of word.
+            """
             return num, plural if num != 1 else singular
 
         return 'Total of {} {}: {} {} rw, {} {} r-only, and {} {} w-only\n'.format(
