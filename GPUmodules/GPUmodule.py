@@ -2003,10 +2003,12 @@ class GpuList:
 
         for lspci_line in lspci_output:
             if re.search(PATTERNS['PCI_GPU'], lspci_line):
+                if re.search(PATTERNS['NOT_PCI_GPU'], lspci_line):
+                    LOGGER.debug('Excluded possible GPU pci: %s', lspci_line)
+                    continue
                 LOGGER.debug('Found GPU pci: %s', lspci_line)
                 pciid = re.search(env.GUT_CONST.PATTERNS['PCI_ADD'], lspci_line)
-                if pciid:
-                    pci_list.append(pciid.group(0))
+                if pciid: pci_list.append(pciid.group(0))
         return pci_list
 
     def set_gpu_list(self, clinfo_flag: bool = False) -> bool:
