@@ -128,6 +128,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Improved read/write status summary.
 * Made monitor window not resizable.
 * Ignore 'Non-VGA' PCIe entries.
+* Fixed AMD/ATI regex.
 
 ## Development Plans
 

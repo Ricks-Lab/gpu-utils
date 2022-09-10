@@ -101,7 +101,7 @@ class GutConst:
                 'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
                 'ALPHA':        re.compile(r'[a-zA-Z]+'),
                 'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
-                'AMD_GPU':      re.compile(r'(AMD|ATI)', re.IGNORECASE),
+                'AMD_GPU':      re.compile(r'(AMD|ATI)'),
                 'NV_GPU':       re.compile(r'NVIDIA', re.IGNORECASE),
                 'INTC_GPU':     re.compile(r'INTEL', re.IGNORECASE),
                 'ASPD_GPU':     re.compile(r'ASPEED', re.IGNORECASE),
