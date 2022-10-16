@@ -65,20 +65,24 @@ try:
     import gi
     gi.require_version('Gtk', '3.0')
     from gi.repository import GLib, Gtk
+    GTK = True
 except ModuleNotFoundError as error:
     print('gi import error: {}'.format(error))
     print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
-    sys.exit(0)
+    GTK = False
 
 from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
-set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
+if not GTK:
+    env.GUT_CONST.process_message('Gtk import error, Gui disabled', log_flag=True)
+else:
+    set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 
 
 def ctrl_c_handler(target_signal: Any, _frame: Any) -> None:
@@ -100,169 +104,188 @@ UD_SEM = threading.Semaphore()
 ########################
 
 
-class MonitorWindow(Gtk.Window):
-    """
-    Custom PAC Gtk window.
-    """
-    quit: bool = False
-    item_width: int = env.GUT_CONST.mon_field_width
-    label_width: int = 12
+if not GTK:
+    class MonitorWindow:
+        """
+        PAC window with no Gtk support.
+        """
+        quit: bool = False
+        gui_enabled: bool = False
+        item_width: int = env.GUT_CONST.mon_field_width
+        label_width: int = 12
 
-    def __init__(self, gpu_list, devices):
+        def __init__(self):
+            LOGGER.debug('started with Gtk disabled')
 
-        init_chk_value = Gtk.init_check(sys.argv)
-        LOGGER.debug('init_check: %s', init_chk_value)
-        if not init_chk_value[0]:
-            print('Gtk Error, Exiting')
-            sys.exit(-1)
-        Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
-        self.set_border_width(0)
-        self.set_resizable(False)
-        GPUgui.GuiProps.set_style()
+        def set_quit(self, _arg2, _arg3) -> None:
+            """
+            Set quit flag when Gtk quit is selected.
+            """
+            self.quit = True
+else:
+    class MonitorWindow(Gtk.Window):
+        """
+        Custom PAC Gtk window.
+        """
+        quit: bool = False
+        gui_enabled: bool = True
+        item_width: int = env.GUT_CONST.mon_field_width
+        label_width: int = 12
 
-        if env.GUT_CONST.icon_file:
-            LOGGER.debug('Icon file: [%s]', env.GUT_CONST.icon_file)
-            if os.path.isfile(env.GUT_CONST.icon_file):
-                self.set_icon_from_file(env.GUT_CONST.icon_file)
+        def __init__(self, gpu_list, devices):
 
-        grid = Gtk.Grid()
-        self.add(grid)
+            init_chk_value = Gtk.init_check(sys.argv)
+            LOGGER.debug('init_check: %s', init_chk_value)
+            if not init_chk_value[0]:
+                print('Gtk Error, Exiting')
+                sys.exit(-1)
+            Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
+            self.set_border_width(0)
+            self.set_resizable(False)
+            GPUgui.GuiProps.set_style()
 
-        col = 0
-        row = 0
-        num_amd_gpus = gpu_list.num_gpus()['total']
-        if env.GUT_CONST.debug:
-            debug_label = Gtk.Label(name='warn_label')
-            debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
-            lbox = Gtk.Box(spacing=6, name='warn_box')
-            set_gtk_prop(debug_label, top=1, bottom=1, right=1, left=1)
-            lbox.pack_start(debug_label, True, True, 0)
-            grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
-        row += 1
-        if env.GUT_CONST.log:
-            log_label = Gtk.Label(name='warn_label')
-            log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
-            lbox = Gtk.Box(spacing=6, name='warn_box')
-            set_gtk_prop(log_label, top=1, bottom=1, right=1, left=1)
-            lbox.pack_start(log_label, True, True, 0)
-            grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
-        row += 1
-        row_start = row
+            if env.GUT_CONST.icon_file:
+                LOGGER.debug('Icon file: [%s]', env.GUT_CONST.icon_file)
+                if os.path.isfile(env.GUT_CONST.icon_file):
+                    self.set_icon_from_file(env.GUT_CONST.icon_file)
 
-        row = row_start
-        row_labels = {'card_num': Gtk.Label(name='white_label', halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)}
-        row_labels['card_num'].set_markup('<b>Card #</b>')
-        for param_name, param_label in Gpu.GpuItem.table_param_labels.items():
-            row_labels[param_name] = Gtk.Label(name='white_label', halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
-            row_labels[param_name].set_markup('<b>{}</b>'.format(param_label))
-        for row_label_item in row_labels.values():
-            lbox = Gtk.Box(spacing=6, name='head_box')
-            set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-            set_gtk_prop(row_label_item, top=1, bottom=1, right=4, left=4)
-            lbox.pack_start(row_label_item, True, True, 0)
-            grid.attach(lbox, col, row, 1, 1)
+            grid = Gtk.Grid()
+            self.add(grid)
+
+            col = 0
+            row = 0
+            num_amd_gpus = gpu_list.num_gpus()['total']
+            if env.GUT_CONST.debug:
+                debug_label = Gtk.Label(name='warn_label')
+                debug_label.set_markup('<big><b> DEBUG Logger Active </b></big>')
+                lbox = Gtk.Box(spacing=6, name='warn_box')
+                set_gtk_prop(debug_label, top=1, bottom=1, right=1, left=1)
+                lbox.pack_start(debug_label, True, True, 0)
+                grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
             row += 1
+            if env.GUT_CONST.log:
+                log_label = Gtk.Label(name='warn_label')
+                log_label.set_markup('<big><b> Logging to:    </b>{}</big>'.format(env.GUT_CONST.log_file))
+                lbox = Gtk.Box(spacing=6, name='warn_box')
+                set_gtk_prop(log_label, top=1, bottom=1, right=1, left=1)
+                lbox.pack_start(log_label, True, True, 0)
+                grid.attach(lbox, 0, row, num_amd_gpus+1, 1)
+            row += 1
+            row_start = row
 
-        for gpu in gpu_list.gpus():
-            devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
-            devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
-            devices[gpu.prm.uuid]['card_num'].set_use_markup(True)
-            for param_name in Gpu.GpuItem.table_param_labels:
-                devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
-                                                              name='white_label')
-                devices[gpu.prm.uuid][param_name].set_width_chars(self.item_width)
-                set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=self.item_width)
-
-        for gui_component in devices.values():
-            col += 1
             row = row_start
-            for comp_name, comp_item in gui_component.items():
-                comp_item.set_text('')
-                if comp_name == 'card_num':
-                    lbox = Gtk.Box(spacing=6, name='head_box')
-                else:
-                    lbox = Gtk.Box(spacing=6, name='med_box')
+            row_labels = {'card_num': Gtk.Label(name='white_label', halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)}
+            row_labels['card_num'].set_markup('<b>Card #</b>')
+            for param_name, param_label in Gpu.GpuItem.table_param_labels.items():
+                row_labels[param_name] = Gtk.Label(name='white_label', halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+                row_labels[param_name].set_markup('<b>{}</b>'.format(param_label))
+            for row_label_item in row_labels.values():
+                lbox = Gtk.Box(spacing=6, name='head_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
-                set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=self.item_width)
-                lbox.pack_start(comp_item, True, True, 0)
+                set_gtk_prop(row_label_item, top=1, bottom=1, right=4, left=4)
+                lbox.pack_start(row_label_item, True, True, 0)
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-    def set_quit(self, _arg2, _arg3) -> None:
+            for gpu in gpu_list.gpus():
+                devices[gpu.prm.uuid] = {'card_num':  Gtk.Label(name='white_label')}
+                devices[gpu.prm.uuid]['card_num'].set_markup('<b>CARD{}</b>'.format(gpu.get_params_value('card_num')))
+                devices[gpu.prm.uuid]['card_num'].set_use_markup(True)
+                for param_name in Gpu.GpuItem.table_param_labels:
+                    devices[gpu.prm.uuid][param_name] = Gtk.Label(label=gpu.get_params_value(str(param_name)),
+                                                                  name='white_label')
+                    devices[gpu.prm.uuid][param_name].set_width_chars(self.item_width)
+                    set_gtk_prop(devices[gpu.prm.uuid][param_name], width_chars=self.item_width)
+
+            for gui_component in devices.values():
+                col += 1
+                row = row_start
+                for comp_name, comp_item in gui_component.items():
+                    comp_item.set_text('')
+                    if comp_name == 'card_num':
+                        lbox = Gtk.Box(spacing=6, name='head_box')
+                    else:
+                        lbox = Gtk.Box(spacing=6, name='med_box')
+                    set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
+                    set_gtk_prop(comp_item, top=1, bottom=1, right=3, left=3, width_chars=self.item_width)
+                    lbox.pack_start(comp_item, True, True, 0)
+                    grid.attach(lbox, col, row, 1, 1)
+                    row += 1
+
+        def set_quit(self, _arg2, _arg3) -> None:
+            """
+            Set quit flag when Gtk quit is selected.
+            """
+            self.quit = True
+
+
+    def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
         """
-        Set quit flag when Gtk quit is selected.
+        Update monitor data with data read from GPUs.
+
+        :param gpu_list: A gpuList object with all gpuItems
+        :param devices: A dictionary linking Gui items with data.
+        :param cmd: Subprocess return from running plot.
         """
-        self.quit = True
+        # SEMAPHORE ############
+        if not UD_SEM.acquire(blocking=False):
+            if env.GUT_CONST.verbose: print('Update while updating, skipping new update')
+            LOGGER.debug('Update while updating, skipping new update')
+            return
+        ########################
+        gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
+        if env.GUT_CONST.log:
+            gpu_list.print_log(env.GUT_CONST.log_file_ptr)
+        if env.GUT_CONST.plot:
+            try:
+                gpu_list.print_plot(cmd.stdin)
+            except (OSError, KeyboardInterrupt) as except_err:
+                LOGGER.debug('gpu-plot has closed: [%s]', except_err)
+                print('gpu-plot has closed')
+                env.GUT_CONST.plot = False
 
+        # update gui
+        for uuid, gui_component in devices.items():
+            for comp_name, comp_item in gui_component.items():
+                if comp_name == 'card_num':
+                    comp_item.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
+                else:
+                    data_value_raw = gpu_list[uuid].get_params_value(comp_name)
+                    LOGGER.debug('raw data value: %s', data_value_raw)
+                    data_value_raw = Gpu.format_table_value(data_value_raw, comp_name)
+                    data_value = str(data_value_raw)[:MonitorWindow.item_width]
+                    comp_item.set_text(data_value)
+                set_gtk_prop(comp_item, width_chars=MonitorWindow.item_width)
 
-def update_data(gpu_list: Gpu.GpuList, devices: dict, cmd: subprocess.Popen) -> None:
-    """
-    Update monitor data with data read from GPUs.
+        while Gtk.events_pending():
+            Gtk.main_iteration_do(True)
+        # SEMAPHORE ############
+        UD_SEM.release()
+        ########################
 
-    :param gpu_list: A gpuList object with all gpuItems
-    :param devices: A dictionary linking Gui items with data.
-    :param cmd: Subprocess return from running plot.
-    """
-    # SEMAPHORE ############
-    if not UD_SEM.acquire(blocking=False):
-        if env.GUT_CONST.verbose: print('Update while updating, skipping new update')
-        LOGGER.debug('Update while updating, skipping new update')
-        return
-    ########################
-    gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
-    if env.GUT_CONST.log:
-        gpu_list.print_log(env.GUT_CONST.log_file_ptr)
-    if env.GUT_CONST.plot:
-        try:
-            gpu_list.print_plot(cmd.stdin)
-        except (OSError, KeyboardInterrupt) as except_err:
-            LOGGER.debug('gpu-plot has closed: [%s]', except_err)
-            print('gpu-plot has closed')
-            env.GUT_CONST.plot = False
+    def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList, devices: dict,
+                cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
+        """
+        Method called for monitor refresh.
 
-    # update gui
-    for uuid, gui_component in devices.items():
-        for comp_name, comp_item in gui_component.items():
-            if comp_name == 'card_num':
-                comp_item.set_markup('<b>Card{}</b>'.format(gpu_list[uuid].get_params_value('card_num')))
-            else:
-                data_value_raw = gpu_list[uuid].get_params_value(comp_name)
-                LOGGER.debug('raw data value: %s', data_value_raw)
-                data_value_raw = Gpu.format_table_value(data_value_raw, comp_name)
-                data_value = str(data_value_raw)[:MonitorWindow.item_width]
-                comp_item.set_text(data_value)
-            set_gtk_prop(comp_item, width_chars=MonitorWindow.item_width)
-
-    while Gtk.events_pending():
-        Gtk.main_iteration_do(True)
-    # SEMAPHORE ############
-    UD_SEM.release()
-    ########################
-
-
-def refresh(refreshtime: int, update_data_func: Callable, gpu_list: Gpu.GpuList, devices: dict,
-            cmd: subprocess.Popen, gmonitor: Gtk.Window) -> None:
-    """
-    Method called for monitor refresh.
-
-    :param refreshtime:  Amount of seconds to sleep after refresh.
-    :param update_data_func: Function that does actual data update.
-    :param gpu_list: A gpuList object with all gpuItems
-    :param devices: A dictionary linking Gui items with data.
-    :param cmd: Subprocess return from running plot.
-    :param gmonitor:
-    """
-    while True:
-        if gmonitor.quit:
-            print('Quitting...')
-            Gtk.main_quit()
-            sys.exit(0)
-        GLib.idle_add(update_data_func, gpu_list, devices, cmd)
-        tst = 0.0
-        sleep_interval = 0.2
-        while tst < refreshtime:
-            sleep(sleep_interval)
-            tst += sleep_interval
+        :param refreshtime:  Amount of seconds to sleep after refresh.
+        :param update_data_func: Function that does actual data update.
+        :param gpu_list: A gpuList object with all gpuItems
+        :param devices: A dictionary linking Gui items with data.
+        :param cmd: Subprocess return from running plot.
+        :param gmonitor:
+        """
+        while True:
+            if gmonitor.quit:
+                print('Quitting...')
+                Gtk.main_quit()
+                sys.exit(0)
+            GLib.idle_add(update_data_func, gpu_list, devices, cmd)
+            tst = 0.0
+            sleep_interval = 0.2
+            while tst < refreshtime:
+                sleep(sleep_interval)
+                tst += sleep_interval
 
 
 def main() -> None:
@@ -343,6 +366,12 @@ def main() -> None:
 
     if args.plot:
         args.gui = True
+    if not MonitorWindow.gui_enabled:
+        args.gui = False
+        env.GUT_CONST.process_message('Gtk not found, Gui disabled', log_flag=True)
+        if args.plot:
+            env.GUT_CONST.process_message('Gtk not found, plot disabled', log_flag=True)
+            args.plot = False
     if args.gui:
         # Display Gtk style Monitor
         devices = {}
