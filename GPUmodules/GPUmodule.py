@@ -1864,6 +1864,7 @@ class GpuItem:
                 if not env.GUT_CONST.no_markup:
                     if vendor.name == 'AMD': color = self.mark_up_codes['amd']
                     elif vendor.name == 'NVIDIA': color = self.mark_up_codes['nvidia']
+                    elif vendor.name == 'INTEL': color = self.mark_up_codes['intel']
                     else: color = self.mark_up_codes['other']
                 print('{}{}: {} {} {}'.format(pre, param_label, color, vendor, color_reset))
             elif self.get_params_value(param_name) == '':

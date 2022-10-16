@@ -90,7 +90,8 @@ class GutConst:
                                      'ok':        '\033[1;37;42m',
                                      'nvidia':    '\033[1;30;42m',
                                      'warn':      '\033[1;30;43m',
-                                     'other':     '\033[1;37;44m',
+                                     'intel':     '\033[1;37;44m',
+                                     'other':     '\033[1;37;45m',
                                      'label':     '\033[1;37;46m',
                                      'reset':     '\033[0;0;0m'}
 
@@ -103,7 +104,7 @@ class GutConst:
                 'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
                 'AMD_GPU':      re.compile(r'(AMD|ATI)'),
                 'NV_GPU':       re.compile(r'NVIDIA', re.IGNORECASE),
-                'INTC_GPU':     re.compile(r'INTEL', re.IGNORECASE),
+                'INTC_GPU':     re.compile(r'INTEL'),
                 'ASPD_GPU':     re.compile(r'ASPEED', re.IGNORECASE),
                 'MTRX_GPU':     re.compile(r'MATROX', re.IGNORECASE),
                 'InputLabelX':  re.compile(r'[a-zA-Z]*(\d|\*)_(input|label)'),  # 'freq*_input'

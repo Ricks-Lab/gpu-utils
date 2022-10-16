@@ -129,6 +129,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Made monitor window not resizable.
 * Ignore 'Non-VGA' PCIe entries.
 * Fixed AMD/ATI regex.
+* Changed INTEL color to blue and other to magenta.
 
 ## Development Plans
 
