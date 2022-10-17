@@ -65,8 +65,9 @@ try:
     import gi
     gi.require_version('Gtk', '3.0')
     from gi.repository import GLib, Gtk
+    from GPUmodules import GPUgui
     GTK = True
-except ModuleNotFoundError as error:
+except (ModuleNotFoundError, ValueError) as error:
     print('gi import error: {}'.format(error))
     print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
@@ -74,7 +75,6 @@ except ModuleNotFoundError as error:
     GTK = False
 
 from GPUmodules import __version__, __status__, __credits__
-from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
