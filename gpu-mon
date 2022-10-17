@@ -79,10 +79,6 @@ from GPUmodules import GPUmodule as Gpu
 from GPUmodules import env
 
 LOGGER = logging.getLogger('gpu-utils')
-if not GTK:
-    env.GUT_CONST.process_message('Gtk import error, Gui disabled', log_flag=True)
-else:
-    set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 
 
 def ctrl_c_handler(target_signal: Any, _frame: Any) -> None:
@@ -105,6 +101,8 @@ UD_SEM = threading.Semaphore()
 
 
 if not GTK:
+    env.GUT_CONST.process_message('Gtk import error, Gui disabled', log_flag=True)
+
     class MonitorWindow:
         """
         PAC window with no Gtk support.
@@ -123,6 +121,8 @@ if not GTK:
             """
             self.quit = True
 else:
+    set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
+
     class MonitorWindow(Gtk.Window):
         """
         Custom PAC Gtk window.
