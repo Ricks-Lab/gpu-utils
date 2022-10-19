@@ -159,7 +159,7 @@ interface shows actual values instead of set values.
 ### New in Current Release -  v3.8.0
 
 * Prep for next official Debian release.
-* 
+
 ### New in Previous Release -  v3.7.8
 
 * Improved read/write status summary.
