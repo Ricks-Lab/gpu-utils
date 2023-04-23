@@ -1209,7 +1209,14 @@ class GpuItem:
         try:
             with open(file_path, 'r', encoding='utf-8') as card_file:
                 for line in card_file:
+                    if not isinstance(line, str):
+                        env.GUT_CONST.process_message('Read non-string item [{}] from {}'.format(line, parameter_file))
+                        self.disable_param_read(parameter_file)
+                        return
                     line = line.strip()
+                    line = line.strip('\x00')
+                    if not line:
+                        LOGGER.debug('Null data received, usually caused by invalid pp_feature mask.')
                     if re.fullmatch('OD_.*:$', line):
                         if re.fullmatch('OD_.CLK:$', line):
                             clk_name = line.strip()
@@ -1228,7 +1235,7 @@ class GpuItem:
                         elif lineitems_len == 2:
                             self.prm.gpu_type = self.GPU_Type.CurvePts
                         else:
-                            env.GUT_CONST.process_message('Error: Invalid pstate entry length {} for{}: '.format(
+                            env.GUT_CONST.process_message('Error: Invalid pstate entry length {} for {}: '.format(
                                 lineitems_len, os.path.join(self.prm.card_path, 'pp_od_clk_voltage')))
                             LOGGER.debug('Invalid line length for pstate line item: %s', line)
                             continue
@@ -2038,9 +2045,13 @@ class GpuList:
             self.amd_wattman = self.amd_writable = False
 
         # TODO: Need to research on specifically which bits are required to write to GPU.
+        self.amd_wattman = self.amd_writable = self.amd_featuremask & 0x4000
+        """
         self.amd_wattman = self.amd_writable = (self.amd_featuremask == int(0xffff7fff) or
+                                                self.amd_featuremask == int(0xfff7ffff) or
                                                 self.amd_featuremask == int(0xffffffff) or
                                                 self.amd_featuremask == int(0xfffd7fff))
+        """
 
         # Check NV read/writability
         if env.GUT_CONST.cmd_nvidia_smi:

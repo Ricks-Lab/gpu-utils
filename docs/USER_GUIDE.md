@@ -176,6 +176,13 @@ with compatible cards.  Modifying AMD GPU properties requires that the AMD ppfea
 be set to 0xfffd7fff. This can be accomplished by adding `amdgpu.ppfeaturemask=0xfffd7fff`
 to the `GRUB_CMDLINE_LINUX_DEFAULT` value in `/etc/default/grub` and executing `sudo update-grub`:
 
+I found a more specific way of determining the ppfeaturemask value that sets only the required
+bits.  I have not yet tested on enough systems to know it is robust:
+
+```shell
+printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))"
+```
+
 ```shell
 cd /etc/default
 sudo vi grub
