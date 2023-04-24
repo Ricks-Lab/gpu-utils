@@ -111,8 +111,8 @@ class GpuItem:
     GPU_NC_Param_List: Set[str] = {*short_list, 'model', 'driver', 'model_device_decode'}
 
     # Define Classification Enum objects.
-    GPU_Type = GpuEnum('type',
-                       'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE PStates CurvePts')
+    GPU_Type = GpuEnum('type', 'ALL Undefined Unsupported Supported Legacy LegacyAPU APU Modern PStatesNE '
+                               'PStates CurvePts Offset')
     GPU_Comp = GpuEnum('Compatibility', 'None ALL ReadWrite ReadOnly WriteOnly Readable Writable')
     GPU_Vendor = GpuEnum('vendor', 'Undefined ALL AMD NVIDIA INTEL ASPEED MATROX PCIE')
 
@@ -206,6 +206,7 @@ class GpuItem:
         'temp_crits':          'Critical Temps (C)',
         'voltages':            'Current Voltages (V)',
         'vddc_range':          '   Vddc Range',
+        'vddgfx_offset':       '   Vddgfx Offset',
         'frequencies':         'Current Clk Frequencies (MHz)',
         'frequencies_max':     'Maximum Clk Frequencies (MHz)',
         'sclk_ps':             'Current SCLK P-State',
@@ -218,13 +219,13 @@ class GpuItem:
 
     # AMD Type skip lists.
     _unsupported_skip_list: Set = set(_GPU_Param_Labels) - GPU_NC_Param_List
-    _range_skip: Set = {'vddc_range', 'sclk_f_range', 'mclk_f_range'}
     amd_type_skip_lists: Dict[GPU_Type, Set] = {
         GPU_Type.Unsupported: _unsupported_skip_list,
         GPU_Type.Modern:      {},
-        GPU_Type.CurvePts:    {},
-        GPU_Type.PStatesNE:   _range_skip,
-        GPU_Type.PStates:     {},
+        GPU_Type.Offset:      {'vddc_range'},
+        GPU_Type.CurvePts:    {'vddgfx_offset'},
+        GPU_Type.PStatesNE:   {'vddc_range', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset'},
+        GPU_Type.PStates:     {'vddgfx_offset'},
         GPU_Type.Legacy:      {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
                                'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
                                'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
@@ -244,7 +245,7 @@ class GpuItem:
         GPU_Vendor.NVIDIA: {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
                             'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
                             'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                            'temp_crits', 'voltages'}}
+                            'temp_crits', 'voltages', 'vddgfx_offset'}}
 
     # GPU sensor reading details
     SensorSet = Enum('set', 'None Test Static Dynamic Info State Monitor All')
@@ -410,6 +411,8 @@ class GpuItem:
                                    'link_spd':         ('pcie.link.gen.current', ),
                                    'pstates':          ('pstate', )}}
 
+    pp_od_clk_voltage_headers = ['OD_SCLK', 'OD_MCLK', 'OD_VDDC_CURVE', 'OD_RANGE', 'OD_VDDGFX_OFFSET']
+
     def __repr__(self) -> str:
         """
         Return dictionary representing all parts of the GpuItem object.
@@ -477,6 +480,7 @@ class GpuItem:
             'fan_pwm_range': [None, None],
             'fan_target': None,
             'temp_crits': None,
+            'vddgfx_offset': None,
             'vddgfx': None,
             'vddc_range': ['', ''],
             'temperatures': None,
@@ -1200,12 +1204,13 @@ class GpuItem:
         parameter_file = 'pp_od_clk_voltage'
         if not self.param_is_active(parameter_file): return
 
-        range_mode = False
         file_path = os.path.join(self.prm.card_path, parameter_file)
         if not os.path.isfile(file_path):
             env.GUT_CONST.process_message('Error getting p-states: {}'.format(file_path))
             self.disable_param_read(parameter_file)
             return
+        od_mode = GpuEnum('od_mode', 'none value range curve offset')
+        current_mode = od_mode.none
         try:
             with open(file_path, 'r', encoding='utf-8') as card_file:
                 for line in card_file:
@@ -1217,44 +1222,62 @@ class GpuItem:
                     line = line.strip('\x00')
                     if not line:
                         LOGGER.debug('Null data received, usually caused by invalid pp_feature mask.')
+                        continue
+                    
+                    # Determine data type from header value. Also set card type from header types.
                     if re.fullmatch('OD_.*:$', line):
                         if re.fullmatch('OD_.CLK:$', line):
+                            current_mode = od_mode.value
                             clk_name = line.strip()
                         elif re.fullmatch('OD_VDDC_CURVE:$', line):
-                            clk_name = line.strip()
-                        elif re.fullmatch('OD_RANGE:$', line):
+                            current_mode = od_mode.curve
+                            self.prm.gpu_type = self.GPU_Type.CurvePts
                             clk_name = ''
-                            range_mode = True
+                        elif re.fullmatch('OD_VDDGFX_OFFSET:$', line):
+                            current_mode = od_mode.offset
+                            self.prm.gpu_type = self.GPU_Type.Offset
+                            clk_name = ''
+                        elif re.fullmatch('OD_RANGE:$', line):
+                            current_mode = od_mode.range
+                            clk_name = ''
                         continue
+
+                    # Split data line.
                     line = re.sub(r'@', ' ', line)
                     lineitems: List[any] = line.split()
+                    if not lineitems: continue
                     lineitems_len = len(lineitems)
-                    if self.prm.gpu_type in (self.GPU_Type.Undefined, self.GPU_Type.Supported, self.GPU_Type.Modern):
-                        if lineitems_len == 3:
-                            self.prm.gpu_type = self.GPU_Type.PStates
-                        elif lineitems_len == 2:
-                            self.prm.gpu_type = self.GPU_Type.CurvePts
-                        else:
-                            env.GUT_CONST.process_message('Error: Invalid pstate entry length {} for {}: '.format(
-                                lineitems_len, os.path.join(self.prm.card_path, 'pp_od_clk_voltage')))
-                            LOGGER.debug('Invalid line length for pstate line item: %s', line)
-                            continue
-                    if not range_mode:
+
+                    if current_mode == od_mode.value:
+                        # Verify if data format matches pstate type.
+                        if self.prm.gpu_type not in (self.GPU_Type.PStates, self.GPU_Type.PStatesNE, self.GPU_Type.APU,
+                                                     self.GPU_Type.CurvePts, self.GPU_Type.Offset):
+                            if lineitems_len == 3:
+                                self.prm.gpu_type = self.GPU_Type.PStates
+                            if lineitems_len == 2:
+                                self.prm.gpu_type = self.GPU_Type.APU
+                            elif lineitems_len > 3 or lineitems_len < 2:
+                                env.GUT_CONST.process_message('Error: Invalid pstate entry length {} for {}: '.format(
+                                    lineitems_len, os.path.join(self.prm.card_path, 'pp_od_clk_voltage')))
+                                LOGGER.debug('Invalid line length for pstate line item: %s', line)
+                                continue
+                    
+                        # Read in data based on data type.
                         lineitems[0] = int(re.sub(':', '', lineitems[0]))
-                        if self.prm.gpu_type in (self.GPU_Type.PStatesNE, self.GPU_Type.PStates):
-                            if clk_name == 'OD_SCLK:':
-                                self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                            elif clk_name == 'OD_MCLK:':
-                                self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
-                        else:
-                            # Type GPU_Type.CurvePts
-                            if clk_name == 'OD_SCLK:':
-                                self.sclk_state[lineitems[0]] = [lineitems[1], '-']
-                            elif clk_name == 'OD_MCLK:':
-                                self.mclk_state[lineitems[0]] = [lineitems[1], '-']
-                            elif clk_name == 'OD_VDDC_CURVE:':
-                                self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
-                    else:
+                        if lineitems_len == 2: lineitems.append('-')
+                        if clk_name == 'OD_SCLK:':
+                            self.sclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+                        elif clk_name == 'OD_MCLK:':
+                            self.mclk_state[lineitems[0]] = [lineitems[1], lineitems[2]]
+
+                    elif current_mode == od_mode.curve:
+                        lineitems[0] = int(re.sub(':', '', lineitems[0]))
+                        self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
+                        
+                    elif current_mode == od_mode.offset:
+                        self.prm.vddgfx_offset = lineitems[0]
+
+                    elif current_mode == od_mode.range:
                         if lineitems[0] == 'SCLK:':
                             self.prm.sclk_f_range = [lineitems[1], lineitems[2]]
                         elif lineitems[0] == 'MCLK:':
@@ -1293,7 +1316,7 @@ class GpuItem:
                 min_lim = min(self.vddc_curve_range[0]['VOLT'][0], self.vddc_curve[0][1])
                 max_lim = max(self.vddc_curve_range[max_state]['VOLT'][1], self.vddc_curve[max_state][1])
                 self.prm.vddc_range = [min_lim, max_lim]
-            except KeyError:
+            except (KeyError, ValueError):
                 self.prm.vddc_range = [None, None]
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuEnum = GPU_Vendor.AMD,
@@ -1834,6 +1857,8 @@ class GpuItem:
             # Hard limits on what types/vendors can print what params
             try:
                 if param_name in GpuItem.vendor_skip_lists[self.prm.vendor]:
+                    continue
+                if param_name in GpuItem.amd_type_skip_lists[self.prm.gpu_type]:
                     continue
             except KeyError:
                 pass
