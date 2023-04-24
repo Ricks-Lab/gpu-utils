@@ -1858,8 +1858,6 @@ class GpuItem:
             try:
                 if param_name in GpuItem.vendor_skip_lists[self.prm.vendor]:
                     continue
-                if param_name in GpuItem.amd_type_skip_lists[self.prm.gpu_type]:
-                    continue
             except KeyError:
                 pass
             if self.prm.gpu_type in (GpuItem.GPU_Type.LegacyAPU, GpuItem.GPU_Type.APU):
@@ -1868,6 +1866,8 @@ class GpuItem:
 
             # Situations where parameter limits can be overridden by force_all
             if not env.GUT_CONST.force_all:
+                if param_name in GpuItem.amd_type_skip_lists[self.prm.gpu_type]:
+                    continue
                 if not self.prm.readable and param_name not in self.GPU_NC_Param_List:
                     continue
                 if not self.param_is_active(param_name):
