@@ -125,7 +125,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.8.3
 
-* Nothing yet
+* Implementation of gpu-pac capability for VDDGFX Offset mode type of AMD GPUs.
 
 ## Development Plans
 

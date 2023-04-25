@@ -161,8 +161,8 @@ class PACWindow(Gtk.Window):
             if env.GUT_CONST.show_fans and fan_pwm_range and None not in fan_pwm_range:
                 # Fan PWM Value
                 devices[gpu.prm.uuid]['fan_pwm_range'] = Gtk.Label(name='white_label')
-                devices[gpu.prm.uuid]['fan_pwm_range'].set_markup('<b>Fan PWM: </b> Range ({} - {} %)'.format(
-                                                                  fan_pwm_range[0], fan_pwm_range[1]))
+                devices[gpu.prm.uuid]['fan_pwm_range'].set_markup(
+                    '<b>Fan PWM: </b> Range ({} - {} %)'.format(fan_pwm_range[0], fan_pwm_range[1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['fan_pwm_range'], top=1, bottom=1, right=4, left=4, align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=6, name='dark_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
@@ -380,10 +380,9 @@ class PACWindow(Gtk.Window):
 
             if gpu.get_params_value('gpu_type') == gpu.GPU_Type.Offset:
                 # VDDGFX OFFSET
-                vddgfx_offset_range = [-5, 5]
                 devices[gpu.prm.uuid]['vddgfx_offset'] = Gtk.Label(name='white_label')
-                devices[gpu.prm.uuid]['vddgfx_offset'].set_markup('<b>VddGFX Offset: </b> Range ({} - {} mv)'.format(
-                    vddgfx_offset_range[0], vddgfx_offset_range[1]))
+                devices[gpu.prm.uuid]['vddgfx_offset'].set_markup('<b>VddGFX Offset: </b> Range ({} to {} mv)'.format(
+                    gpu.prm.vddgfx_offset_range[0], gpu.prm.vddgfx_offset_range[1]))
                 set_gtk_prop(devices[gpu.prm.uuid]['vddgfx_offset'], align=(0.0, 0.5), top=1, bottom=1, right=4, left=4)
                 lbox = Gtk.Box(spacing=6, name='dark_box')
                 set_gtk_prop(lbox, top=1, bottom=1, right=1, left=1)
@@ -391,7 +390,7 @@ class PACWindow(Gtk.Window):
                 grid.attach(lbox, col, row, 1, 1)
                 row += 1
 
-                # Card Power Cap Value and Entry
+                # VDDGFX Offset Value and Entry
                 devices[gpu.prm.uuid]['vddgfx_offset_cur'] = Gtk.Label(name='white_label')
                 set_gtk_prop(devices[gpu.prm.uuid]['vddgfx_offset_cur'], top=1, bottom=1, right=2, left=2)
                 devices[gpu.prm.uuid]['vddgfx_offset_ent'] = Gtk.Entry()
@@ -650,8 +649,13 @@ class PACWindow(Gtk.Window):
 
         for gpu in gpu_list.gpus():
             devices[gpu.prm.uuid]['power_cap_cur'].set_text('    Current: {:3d}W    Set: '.format(
-                                                          gpu.get_params_value('power_cap', num_as_int=True)))
+                gpu.get_params_value('power_cap', num_as_int=True)))
             devices[gpu.prm.uuid]['power_cap_ent'].set_text(str(gpu.get_params_value('power_cap', num_as_int=True)))
+            if gpu.get_params_value('gpu_type') == gpu.GPU_Type.Offset:
+                devices[gpu.prm.uuid]['vddgfx_offset_cur'].set_text('    Current: {:3d}mV   Set: '.format(
+                                                              gpu.get_params_value('vddgfx_offset', num_as_int=True)))
+                devices[gpu.prm.uuid]['vddgfx_offset_ent'].set_text(
+                                                         str(gpu.get_params_value('vddgfx_offset', num_as_int=True)))
             if env.GUT_CONST.show_fans:
                 devices[gpu.prm.uuid]['fan_pwm_cur'].set_text('    Current: {:3d}%    Set: '.format(
                                                             gpu.get_params_value('fan_pwm', num_as_int=True)))
@@ -672,7 +676,7 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['sclk_pst_mask_cur'].set_text(
                     '    SCLK Default: {}    Set Mask: '.format(gpu.prm.sclk_mask))
                 devices[gpu.prm.uuid]['sclk_pst_mask_ent'].set_text(gpu.prm.sclk_mask)
-            elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+            elif gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, gpu.GPU_Type.Offset):
                 for ps, psd in gpu.sclk_state.items():
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -697,7 +701,7 @@ class PACWindow(Gtk.Window):
                 devices[gpu.prm.uuid]['mclk_pst_mask_cur'].set_text(
                     '    MCLK Default: {}    Set Mask: '.format(gpu.prm.mclk_mask))
                 devices[gpu.prm.uuid]['mclk_pst_mask_ent'].set_text(gpu.prm.mclk_mask)
-            elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+            elif gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, gpu.GPU_Type.Offset):
                 for ps, psd in gpu.mclk_state.items():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
                     item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
@@ -972,7 +976,7 @@ class PACWindow(Gtk.Window):
                 else:
                     print('# Invalid mclk pstate values', file=fileptr)
                     print('Invalid mclk pstate values')
-        elif gpu.get_params_value('gpu_type') == gpu.GPU_Type.CurvePts:
+        elif gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, gpu.GPU_Type.Offset):
             # Sclk Curve End Points
             for comp_name, comp_item in devices[uuid]['sclk_pstate'].items():
                 if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
@@ -1013,34 +1017,55 @@ class PACWindow(Gtk.Window):
                 else:
                     print('# Invalid mclk curve end point values', file=fileptr)
                     print('Invalid mclk curve end point values')
-            # VDDC Curve Points
-            for comp_name, comp_item in devices[uuid]['vddc_curve_pt'].items():
-                if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
-                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
+            if gpu.get_params_value('gpu_type') in (gpu.GPU_Type.CurvePts, ):
+                # VDDC Curve Points
+                for comp_name, comp_item in devices[uuid]['vddc_curve_pt'].items():
+                    if not comp_item['gtk_ent_f_obj'].get_text().isnumeric():
+                        print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()),
+                              file=fileptr)
+                        print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
+                        continue
+                    if not comp_item['gtk_ent_v_obj'].get_text().isnumeric():
+                        print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()),
+                              file=fileptr)
+                        print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()))
+                        continue
+                    curve_pts = [comp_name,
+                                 int(comp_item['gtk_ent_f_obj'].get_text()),
+                                 int(comp_item['gtk_ent_v_obj'].get_text())]
+                    print('# Vddc curve point: {} : {} MHz, {} mV'.format(curve_pts[0], curve_pts[1], curve_pts[2]),
                           file=fileptr)
-                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_f_obj'].get_text()))
-                    continue
-                if not comp_item['gtk_ent_v_obj'].get_text().isnumeric():
-                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()),
-                          file=fileptr)
-                    print('# Invalid vddc curve point entry: {}'.format(comp_item['gtk_ent_v_obj'].get_text()))
-                    continue
-                curve_pts = [comp_name,
-                             int(comp_item['gtk_ent_f_obj'].get_text()),
-                             int(comp_item['gtk_ent_v_obj'].get_text())]
-                print('# Vddc curve point: {} : {} MHz, {} mV'.format(curve_pts[0], curve_pts[1], curve_pts[2]),
-                      file=fileptr)
-                if gpu.is_valid_vddc_curve_pts(curve_pts):
-                    if gpu.is_changed_vddc_curve_pt(curve_pts) or not env.GUT_CONST.write_delta_only:
-                        changed += 1
-                        commit_needed = True
-                        print("sudo sh -c \"echo \'vc {} {} {}\' >  {}\"".format(curve_pts[0], curve_pts[1],
-                              curve_pts[2], device_file), file=fileptr)
+                    if gpu.is_valid_vddc_curve_pts(curve_pts):
+                        if gpu.is_changed_vddc_curve_pt(curve_pts) or not env.GUT_CONST.write_delta_only:
+                            changed += 1
+                            commit_needed = True
+                            print("sudo sh -c \"echo \'vc {} {} {}\' >  {}\"".format(curve_pts[0], curve_pts[1],
+                                  curve_pts[2], device_file), file=fileptr)
+                        else:
+                            print('# Vddc curve point {} unchanged, skipping'.format(comp_name), file=fileptr)
                     else:
-                        print('# Vddc curve point {} unchanged, skipping'.format(comp_name), file=fileptr)
+                        print('# Invalid Vddc curve point values', file=fileptr)
+                        print('Invalid Vddc curve point values')
+            elif gpu.get_params_value('gpu_type') in (gpu.GPU_Type.Offset, ):
+                # VDDCGFX OFFSET
+                if not devices[uuid]['vddgfx_offset_ent'].get_text().isnumeric():
+                    print('# Invalid vddgfx offset entry: {}'.format(devices[uuid]['vddgfx_offset_ent'].get_text()),
+                          file=fileptr)
+                    print('# Invalid vddgfx offset entry: {}'.format(devices[uuid]['vddgfx_offset_ent'].get_text()))
                 else:
-                    print('# Invalid Vddc curve point values', file=fileptr)
-                    print('Invalid Vddc curve point values')
+                    vddgfx_offset_val = int(devices[uuid]['vddgfx_offset_ent'].get_text())
+                    print('# Vddgfx offset: {} mV'.format(vddgfx_offset_val), file=fileptr)
+                    if gpu.is_valid_vddgfx_offset(vddgfx_offset_val):
+                        if gpu.is_changed_vddgfx_offset(vddgfx_offset_val) or not env.GUT_CONST.write_delta_only:
+                            changed += 1
+                            commit_needed = True
+                            print("sudo sh -c \"echo \'vo {}\' >  {}\"".format(
+                                vddgfx_offset_val, device_file), file=fileptr)
+                        else:
+                            print('# Vddgfx offset {} unchanged, skipping'.format(vddgfx_offset_val), file=fileptr)
+                    else:
+                        print('# Invalid Vddgfx offset value', file=fileptr)
+                        print('Invalid Vddgfx offset value')
 
         # PPM
         ppm_mode_file = os.path.join(gpu.prm.card_path, 'pp_power_profile_mode')

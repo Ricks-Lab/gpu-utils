@@ -206,7 +206,7 @@ class GpuItem:
         'temp_crits':          'Critical Temps (C)',
         'voltages':            'Current Voltages (V)',
         'vddc_range':          '   Vddc Range',
-        'vddgfx_offset':       '   Vddgfx Offset',
+        'vddgfx_offset':       '   Vddgfx Offset (mV)',
         'frequencies':         'Current Clk Frequencies (MHz)',
         'frequencies_max':     'Maximum Clk Frequencies (MHz)',
         'sclk_ps':             'Current SCLK P-State',
@@ -480,7 +480,8 @@ class GpuItem:
             'fan_pwm_range': [None, None],
             'fan_target': None,
             'temp_crits': None,
-            'vddgfx_offset': None,
+            'vddgfx_offset': 0,
+            'vddgfx_offset_range': [-10, 10],
             'vddgfx': None,
             'vddc_range': ['', ''],
             'temperatures': None,
@@ -790,7 +791,7 @@ class GpuItem:
                 return None
 
         # Set type for params that could be float or int
-        if name in {'fan_pwm', 'fan_speed', 'power_cap', 'power'}:
+        if name in {'fan_pwm', 'fan_speed', 'power_cap', 'power', 'vddgfx_offset'}:
             if num_as_int:
                 if isinstance(self.prm[name], int):
                     return self.prm[name]
@@ -1038,6 +1039,32 @@ class GpuItem:
             return True
         return False
 
+    def is_changed_vddgfx_offset(self, test_vddgfx_offset: int) -> bool:
+        """
+        Check if given vddgfx_offset value is changed.
+
+        :param test_vddgfx_offset: Integer vddgfx_offset value to be tested
+        :return: Return True if changed
+        """
+        if not isinstance(test_vddgfx_offset, int): return False
+        if test_vddgfx_offset == self.prm.vddgfx_offset:
+            return False
+        return True
+
+    def is_valid_vddgfx_offset(self, test_vddgfx_offset: int) -> bool:
+        """
+        Check if given vddgfx_offset value is valid.
+
+        :param test_vddgfx_offset: Integer vddgfx_offset value to be tested
+        :return: Return True if valid
+        """
+        if not isinstance(test_vddgfx_offset, int): return False
+        vgo_min = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddgfx_offset_range[0])))
+        vgo_max = int(re.sub(PATTERNS['END_IN_ALPHA'], '', str(self.prm.vddgfx_offset_range[1])))
+        if test_vddgfx_offset < vgo_min or test_vddgfx_offset > vgo_max:
+            return False
+        return True
+
     def is_valid_vddc_curve_pts(self, curve_pts: List[int]) -> bool:
         """
         Check if given sclk pstate value is valid.
@@ -1223,7 +1250,7 @@ class GpuItem:
                     if not line:
                         LOGGER.debug('Null data received, usually caused by invalid pp_feature mask.')
                         continue
-                    
+
                     # Determine data type from header value. Also set card type from header types.
                     if re.fullmatch('OD_.*:$', line):
                         if re.fullmatch('OD_.CLK:$', line):
@@ -1261,7 +1288,7 @@ class GpuItem:
                                     lineitems_len, os.path.join(self.prm.card_path, 'pp_od_clk_voltage')))
                                 LOGGER.debug('Invalid line length for pstate line item: %s', line)
                                 continue
-                    
+
                         # Read in data based on data type.
                         lineitems[0] = int(re.sub(':', '', lineitems[0]))
                         if lineitems_len == 2: lineitems.append('-')
@@ -1273,9 +1300,15 @@ class GpuItem:
                     elif current_mode == od_mode.curve:
                         lineitems[0] = int(re.sub(':', '', lineitems[0]))
                         self.vddc_curve[lineitems[0]] = [lineitems[1], lineitems[2]]
-                        
+
                     elif current_mode == od_mode.offset:
-                        self.prm.vddgfx_offset = lineitems[0]
+                        if isinstance(lineitems[0], str):
+                            if lineitems[0].isnumeric():
+                                self.prm.vddgfx_offset = int(lineitems[0])
+                            elif re.fullmatch(env.GUT_CONST.PATTERNS['NUM_END_IN_ALPHA'], lineitems[0]):
+                                self.prm.vddgfx_offset = int(re.sub(PATTERNS['END_IN_ALPHA'], '', lineitems[0]))
+                        elif isinstance(lineitems[0], int):
+                            self.prm.vddgfx_offset = lineitems[0]
 
                     elif current_mode == od_mode.range:
                         if lineitems[0] == 'SCLK:':
@@ -2070,13 +2103,11 @@ class GpuList:
             self.amd_wattman = self.amd_writable = False
 
         # TODO: Need to research on specifically which bits are required to write to GPU.
-        self.amd_wattman = self.amd_writable = self.amd_featuremask & 0x4000
-        """
+        #self.amd_wattman = self.amd_writable = self.amd_featuremask & 0x4000
         self.amd_wattman = self.amd_writable = (self.amd_featuremask == int(0xffff7fff) or
                                                 self.amd_featuremask == int(0xfff7ffff) or
                                                 self.amd_featuremask == int(0xffffffff) or
                                                 self.amd_featuremask == int(0xfffd7fff))
-        """
 
         # Check NV read/writability
         if env.GUT_CONST.cmd_nvidia_smi:
