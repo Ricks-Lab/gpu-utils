@@ -397,7 +397,7 @@ class PACWindow(Gtk.Window):
                 set_gtk_prop(devices[gpu.prm.uuid]['vddgfx_offset_ent'], top=1, bottom=1, right=0, left=2, xalign=1,
                              width_chars=5, max_length=5)
                 devices[gpu.prm.uuid]['vddgfx_offset_ent_unit'] = Gtk.Label(name='white_label')
-                devices[gpu.prm.uuid]['vddgfx_offset_ent_unit'].set_text('mV  (value or \'reset\')')
+                devices[gpu.prm.uuid]['vddgfx_offset_ent_unit'].set_text('mV  (value)')
                 set_gtk_prop(devices[gpu.prm.uuid]['vddgfx_offset_ent_unit'], top=1, bottom=1, right=0, left=0,
                              align=(0.0, 0.5))
                 lbox = Gtk.Box(spacing=2, name='med_box')
@@ -1048,10 +1048,10 @@ class PACWindow(Gtk.Window):
                         print('Invalid Vddc curve point values')
             elif gpu.get_params_value('gpu_type') in (gpu.GPU_Type.Offset, ):
                 # VDDCGFX OFFSET
-                if not devices[uuid]['vddgfx_offset_ent'].get_text().isnumeric():
-                    print('# Invalid vddgfx offset entry: {}'.format(devices[uuid]['vddgfx_offset_ent'].get_text()),
+                if not devices[uuid]['vddgfx_offset_ent'].get_text().lstrip('-+').isnumeric():
+                    print('# Invalid vddgfx offset entry: [{}]'.format(devices[uuid]['vddgfx_offset_ent'].get_text()),
                           file=fileptr)
-                    print('# Invalid vddgfx offset entry: {}'.format(devices[uuid]['vddgfx_offset_ent'].get_text()))
+                    print('# Invalid vddgfx offset entry: [{}]'.format(devices[uuid]['vddgfx_offset_ent'].get_text()))
                 else:
                     vddgfx_offset_val = int(devices[uuid]['vddgfx_offset_ent'].get_text())
                     print('# Vddgfx offset: {} mV'.format(vddgfx_offset_val), file=fileptr)
@@ -1064,8 +1064,8 @@ class PACWindow(Gtk.Window):
                         else:
                             print('# Vddgfx offset {} unchanged, skipping'.format(vddgfx_offset_val), file=fileptr)
                     else:
-                        print('# Invalid Vddgfx offset value', file=fileptr)
-                        print('Invalid Vddgfx offset value')
+                        print('# Invalid Vddgfx offset value, out of range.', file=fileptr)
+                        print('Invalid Vddgfx offset value, out of range.')
 
         # PPM
         ppm_mode_file = os.path.join(gpu.prm.card_path, 'pp_power_profile_mode')
