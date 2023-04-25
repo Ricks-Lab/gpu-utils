@@ -232,10 +232,10 @@ class GpuItem:
                                'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
                                'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'vddc_range',
                                'frequencies', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset', 'vddgfx_offset_range'},
-        GPU_Type.LegacyAPU:   {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+        GPU_Type.LegacyAPU:   {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm', 'vddc_range',
                                'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used', 'power_cap_range',
                                'power', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range', *_fan_item_list},
-        GPU_Type.APU:         {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm',
+        GPU_Type.APU:         {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm', 'vddc_range',
                                'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
                                'power_cap_range', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range', *_fan_item_list}}
     # Vendor specific skip lists.
