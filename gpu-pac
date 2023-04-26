@@ -826,8 +826,9 @@ class PACWindow(Gtk.Window):
         changed = 0
         gpu = gpu_list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
-        print('# {}'.format(gpu.prm.card_path), file=fileptr)
+        print('# Card{}  Model: {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
+        print('#          Type: {}'.format(gpu.prm.gpu_type), file=fileptr)
+        print('#          Path: {}'.format(gpu.prm.card_path), file=fileptr)
         if not env.GUT_CONST.write_delta_only:
             print('# Force Write mode.')
         else:
@@ -1256,8 +1257,10 @@ class PACWindow(Gtk.Window):
 
         gpu = gpu_list[uuid]
         print('# ', file=fileptr)
-        print('# Card{}  {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
-        print('# {}'.format(gpu.prm.card_path), file=fileptr)
+        print('# Card{}  Model: {}'.format(gpu.prm.card_num, gpu.get_params_value('model')), file=fileptr)
+        print('#          Type: {}'.format(gpu.prm.gpu_type), file=fileptr)
+        print('#          Path: {}'.format(gpu.prm.card_path), file=fileptr)
+        print('# Reset mode.')
         print('# ', file=fileptr)
         print('set -x', file=fileptr)
 
