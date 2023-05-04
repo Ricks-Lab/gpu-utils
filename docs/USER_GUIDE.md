@@ -129,7 +129,19 @@ echo '' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
 
 ### Official Debian Package Installation
 
-First, verify you are running a linux distribution based on Debian 11.3 or later.
+First you should verify the availability of the package by distribution with the following command:
+```shell
+rmadison rickslab-gpu-utils
+```
+
+Current package availability is as follows:
+```text
+ rickslab-gpu-utils | 3.6.0-2 | jammy/universe   | source, all
+ rickslab-gpu-utils | 3.6.0-3 | kinetic/universe | source, all
+ rickslab-gpu-utils | 3.8.0-1 | lunar/universe   | source, all
+ rickslab-gpu-utils | 3.8.0-1 | mantic/universe  | source, all
+```
+
 Then remove any previous PyPI installation and exit that terminal.  If you also
 have a Debian installed versions, the pip uninstall will likely fail, unless you
 remove the Debian package first. You can skip this step if you are certain no
@@ -142,6 +154,7 @@ sudo apt autoremove
 pip uninstall rickslab-gpu-utils
 exit
 ```
+
 
 If you had previously added https://debian.rickslab.com/gpu-utils/ as a repository
 source, then you will need to remove this in order to download from the official
