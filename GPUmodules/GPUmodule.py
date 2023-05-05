@@ -2254,6 +2254,7 @@ class GpuList:
                     try:
                         with open(pp_od_clk_voltage_file, 'r', encoding='utf-8') as file_ptr:
                             pp_od_file_details = file_ptr.read()
+                            print('pp_od_file_details: [{}]'.format(pp_od_file_details))
                         if not pp_od_file_details:
                             self[gpu_uuid].disable_param_read('pp_od_clk_voltage')
                             writable = False
