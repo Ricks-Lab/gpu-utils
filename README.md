@@ -125,7 +125,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.8.3
 
-* Nothing yet
+* Implementation of gpu-pac capability for VDDGFX Offset mode type of AMD GPUs. Does not
+seem to work for negative values.
 
 ## Development Plans
 
@@ -135,6 +136,7 @@ and `clinfo` output for Intel GPU.
 
 ## Known Issues
 
+* Seems like over/under clocking capabilities are disabled for Workstation cards.
 * Reset of Curve Points for Vega20 (Radeon VII) does not work.
 * Some windows do not support scrolling or resize, making it unusable for lower resolution installations.
 * I/O error when selecting CUSTOM ppm.  Maybe it requires arguments to specify the custom configuration.

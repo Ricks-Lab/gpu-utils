@@ -99,6 +99,7 @@ class GutConst:
                 'PCIIID_L0':    re.compile(r'^[\da-fA-F]{4}.*'),
                 'PCIIID_L1':    re.compile(r'^\t[\da-fA-F]{4}.*'),
                 'PCIIID_L2':    re.compile(r'^\t\t[\da-fA-F]{4}.*'),
+                'NUM_END_IN_ALPHA': re.compile(r'\d+[a-zA-Z]+$'),
                 'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
                 'ALPHA':        re.compile(r'[a-zA-Z]+'),
                 'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
