@@ -53,7 +53,8 @@ import sys
 import logging
 from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUmodule as Gpu
-from GPUmodules import env
+from GPUmodules.env import GUT_CONST
+from GPUmodules.GPUKeys import SensorSet
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -109,16 +110,16 @@ def main() -> None:
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
-        print('Install Type: ', env.GUT_CONST.install_type)
+        print('Install Type: ', GUT_CONST.install_type)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         sys.exit(0)
 
     if args.short: args.no_fan = True
-    env.GUT_CONST.set_args(args, __program_name__)
+    GUT_CONST.set_args(args, __program_name__)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
 
-    if env.GUT_CONST.check_env() < 0:
+    if GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
@@ -134,7 +135,7 @@ def main() -> None:
     Gpu.print_driver_vendor_summary(gpu_list)
 
     # Read data static/dynamic/info/state driver information for GPUs
-    gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
+    gpu_list.read_gpu_sensor_set(data_type=SensorSet.All)
 
     # Check number of readable/writable GPUs again
     print(gpu_list)
