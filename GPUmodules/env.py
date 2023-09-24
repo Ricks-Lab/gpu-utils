@@ -40,7 +40,7 @@ from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Set
+from typing import Dict, Union, TextIO, Set, Optional
 from GPUmodules import __required_pversion__, __required_kversion__
 
 LOGGER = logging.getLogger('gpu-utils')
@@ -132,8 +132,8 @@ class GutConst:
     TIME_FORMAT: str = '%d-%b-%Y %H:%M:%S'
 
     def __init__(self):
-        self.calling_program = ''
-        self.args: Union[argparse.Namespace, None] = None
+        self.calling_program: str = ''
+        self.args: Optional[argparse.Namespace] = None
         self.repository_path: str = self._repository_path
         self.install_type: Union[str, None] = None
         self.package_path: str = inspect.getfile(inspect.currentframe())

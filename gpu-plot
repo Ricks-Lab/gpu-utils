@@ -89,14 +89,15 @@ from pandas.plotting import register_matplotlib_converters
 from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
-from GPUmodules import env
+from GPUmodules.env import GUT_CONST
+from GPUmodules.GPUKeys import SensorSet
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
-PATTERNS = env.GutConst.PATTERNS
+PATTERNS = GUT_CONST.PATTERNS
 
 # SEMAPHORE ############
 PD_SEM = threading.Semaphore()
@@ -343,15 +344,15 @@ class GPUPlotWindow(Gtk.Window):
             gp_y_size = def_gp_y_size
             bp_y_size = def_bp_y_size
 
-        Gtk.Window.__init__(self, title=env.GUT_CONST.gui_window_title)
+        Gtk.Window.__init__(self, title=GUT_CONST.gui_window_title)
         self.set_border_width(0)
         self.set_resizable(False)
         GPUgui.GuiProps.set_style()
 
-        if env.GUT_CONST.icon_file:
-            LOGGER.debug('Icon file: [%s]', env.GUT_CONST.icon_file)
-            if os.path.isfile(env.GUT_CONST.icon_file):
-                self.set_icon_from_file(env.GUT_CONST.icon_file)
+        if GUT_CONST.icon_file:
+            LOGGER.debug('Icon file: [%s]', GUT_CONST.icon_file)
+            if os.path.isfile(GUT_CONST.icon_file):
+                self.set_icon_from_file(GUT_CONST.icon_file)
 
         grid = Gtk.Grid()
         self.add(grid)
@@ -661,16 +662,16 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
     header = True
     sync_add = 0
     while not plot_data.quit:
-        if env.GUT_CONST.simlog: sleep(refresh_time/4.0)
+        if GUT_CONST.simlog: sleep(refresh_time/4.0)
         ndf = pd.DataFrame()
 
         # Process a set of GPUs at a time
         skip_update = False
         read_time = 0.0
         for _gpu_index in range(0, plot_data.num_gpus + sync_add):
-            start_time = env.GUT_CONST.now(env.GUT_CONST.useltz)
+            start_time = GUT_CONST.now(GUT_CONST.useltz)
             line = sys.stdin.readline()
-            tmp_read_time = (env.GUT_CONST.now(env.GUT_CONST.useltz) - start_time).total_seconds()
+            tmp_read_time = (GUT_CONST.now(GUT_CONST.useltz) - start_time).total_seconds()
             if tmp_read_time > read_time:
                 read_time = tmp_read_time
 
@@ -698,15 +699,15 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
                     new_line_items.append(item)
             line_items = tuple(new_line_items)
             rdf = pd.DataFrame.from_records([line_items], columns=header_item)
-            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
+            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
             sync_add = 1 if ndf['Time'].tail(plot_data.num_gpus).nunique() > 1 else 0
 
         LOGGER.debug('dataFrame %s:\n%s',
-                     env.GUT_CONST.now(env.GUT_CONST.useltz).strftime(env.GUT_CONST.TIME_FORMAT), ndf.to_string())
+                     GUT_CONST.now(GUT_CONST.useltz).strftime(GUT_CONST.TIME_FORMAT), ndf.to_string())
 
-        if not env.GUT_CONST.simlog:
+        if not GUT_CONST.simlog:
             if read_time < 0.003:
                 skip_update = True
                 LOGGER.debug('skipping update')
@@ -733,7 +734,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
         # Update plots
         #########################
         if plot_data.quit:
-            env.GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()))
+            GUT_CONST.process_message('Exit stack size: {}'.format(get_stack_size()))
             PD_SEM.acquire()
             PD_SEM.release()
             sys.exit(0)
@@ -773,7 +774,7 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
     while not plot_data.quit:
         ndf = pd.DataFrame()
 
-        plot_data.com_gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.Monitor)
+        plot_data.com_gpu_list.read_gpu_sensor_set(data_type=SensorSet.Monitor)
 
         # Process a set of GPUs at a time
         skip_update = False
@@ -782,7 +783,7 @@ def read_from_gpus(refresh_time: int, plot_data: PlotData) -> None:
             LOGGER.debug('gpu_plot_data: %s', gpu_plot_data)
 
             rdf = pd.DataFrame.from_records([tuple(gpu_plot_data.values())], columns=tuple(gpu_plot_data))
-            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=env.GUT_CONST.TIME_FORMAT, exact=False)
+            rdf['datetime'] = pd.to_datetime(rdf['Time'], format=GUT_CONST.TIME_FORMAT, exact=False)
             ndf = pd.concat([ndf, rdf], ignore_index=True)
             del rdf
 
@@ -861,7 +862,7 @@ def main() -> None:
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
         print('Version: ', __version__)
-        print('Install Type: ', env.GUT_CONST.install_type)
+        print('Install Type: ', GUT_CONST.install_type)
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         import matplotlib
@@ -870,12 +871,12 @@ def main() -> None:
         print('numpy version: ', np.__version__)
         sys.exit(0)
 
-    env.GUT_CONST.set_args(args, __program_name__)
+    GUT_CONST.set_args(args, __program_name__)
     LOGGER.debug('########## %s %s', __program_name__, __version__)
     LOGGER.debug('pandas version: %s', pd.__version__)
     LOGGER.debug('numpy version: %s', np.__version__)
 
-    if env.GUT_CONST.check_env() < 0:
+    if GUT_CONST.check_env() < 0:
         print('Error in environment. Exiting...')
         sys.exit(-1)
 
@@ -888,7 +889,7 @@ def main() -> None:
         sys.exit(-1)
 
     # Read data static/dynamic/info/state driver information for GPUs
-    gpu_list.read_gpu_sensor_set(data_type=Gpu.GpuItem.SensorSet.All)
+    gpu_list.read_gpu_sensor_set(data_type=SensorSet.All)
 
     # Select GPU's appropriate for monitor
     com_gpu_list = Gpu.set_mon_plot_compatible_gpu_list(gpu_list)
