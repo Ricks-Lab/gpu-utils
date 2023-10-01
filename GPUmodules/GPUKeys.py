@@ -31,6 +31,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=invalid-name
 
 from enum import Enum, auto
+from typing import List
 
 
 class GpuEnum(Enum):
@@ -42,6 +43,11 @@ class GpuEnum(Enum):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+    @classmethod
+    def list(cls) -> List[str]:
+        """ Return a list of name from current UpsEnum object """
+        return list(map(lambda c: c.name, cls))
 
 
 class GpuType(GpuEnum):

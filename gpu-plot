@@ -523,7 +523,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
     #######################
     ldf = plot_data.df
     tick_inc = None
-    plot_limits: Dict[str, Union[float, int, None]] = {}
+    plot_limits: Dict[str, Dict[str, Union[float, int, None]]] = {}
     try:
         time_val = ldf[ldf['Card#'].isin([plot_data.gpu_name_list[0]])]['Time'].iloc[-1]
         gc.gui_components['info_bar']['gtk_obj'].set_markup('<big><b>Time   {}</b></big>'.format(time_val))
@@ -582,11 +582,11 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                 for test_item in plot_items:
                     if active_gpu.table_parameters_status[test_item]: active_plot_items.append(test_item)
                 if axis_name == 'ax1':
-                    max_val = 10*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 10) + 10
-                    min_val = 10*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 10) - 5
+                    max_val = 10*(np.nanmax(ldf.loc[:, active_plot_items]).max(initial=100.0) // 10) + 10
+                    min_val = 10*(np.nanmin(ldf.loc[:, active_plot_items]).min(initial=0.0) // 10) - 5
                 else:
-                    max_val = 100*(np.nanmax(ldf.loc[:, active_plot_items]).max() // 100) + 300
-                    min_val = 100*(np.nanmin(ldf.loc[:, active_plot_items]).min() // 100) - 100
+                    max_val = 100*(np.nanmax(ldf.loc[:, active_plot_items]).max(initial=100.0) // 100) + 300
+                    min_val = 100*(np.nanmin(ldf.loc[:, active_plot_items]).min(initial=0.0) // 100) - 100
                 if not plot_limits[axis_name]['min'] or min_val < plot_limits[axis_name]['min']:
                     plot_limits[axis_name]['min'] = min_val
                 if not plot_limits[axis_name]['max'] or max_val > plot_limits[axis_name]['max']:
@@ -624,8 +624,8 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                         comp_item[axis_name].text(x=ldf[ldf['Card#'].isin([comp_num])]['datetime'].iloc[-1],
                                                   y=ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1],
                                                   s=str(int(ldf[ldf['Card#'].isin([comp_num])][plot_item].iloc[-1])),
-                                                  bbox=dict(boxstyle='round,pad=0.2',
-                                                  facecolor=gc.get_color(plot_item)),
+                                                  bbox={'boxstyle': 'round,pad=0.2',
+                                                        'facecolor': gc.get_color(plot_item)},
                                                   fontsize=6)
 
                 # Set axis range and tick increments

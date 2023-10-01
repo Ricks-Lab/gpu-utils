@@ -796,7 +796,7 @@ class PACWindow(Gtk.Window):
 
         # Specify output batch file name
         out_filename = os.path.join(os.getcwd(), 'pac_writer_{}.sh'.format(uuid4().hex))
-        fileptr = open(out_filename, 'x', encoding='utf-8')
+        fileptr = open(out_filename, mode='x', encoding='utf-8')
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
@@ -1147,8 +1147,8 @@ class PACWindow(Gtk.Window):
         if GUT_CONST.execute_pac:
             # Execute bash file
             print('Writing {} changes to GPU {}'.format(changed, gpu.prm.card_path))
-            cmd = subprocess.Popen(out_filename, shell=True)
-            cmd.wait()
+            with subprocess.Popen(out_filename, shell=True) as cmd:
+                cmd.wait()
             print('PAC execution complete.')
 
             if refresh:
@@ -1228,7 +1228,7 @@ class PACWindow(Gtk.Window):
             self.update_message(devices, message, 'red')
         # specify output batch file name
         out_filename = os.path.join(os.getcwd(), 'pac_resetter_{}.sh'.format(uuid4().hex))
-        fileptr = open(out_filename, 'x', encoding='utf-8')
+        fileptr = open(out_filename, mode='x', encoding='utf-8')
         # Output header
         print('#!/bin/sh', file=fileptr)
         print('###########################################################################', file=fileptr)
@@ -1284,8 +1284,8 @@ class PACWindow(Gtk.Window):
         print('Batch file completed: {}'.format(out_filename))
         if GUT_CONST.execute_pac:
             print('Writing changes to GPU {}'.format(gpu.prm.card_path))
-            cmd = subprocess.Popen(out_filename, shell=True)
-            cmd.wait()
+            with subprocess.Popen(out_filename, shell=True) as cmd:
+                cmd.wait()
             print('')
             if refresh:
                 # Dismiss execute_pac message

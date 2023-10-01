@@ -58,7 +58,7 @@ from shlex import split as shlex_split
 import shutil
 from time import sleep
 import signal
-from typing import Callable, Any
+from typing import Callable, Any, Optional
 
 
 try:
@@ -113,7 +113,7 @@ if not GTK:
         item_width: int = GUT_CONST.mon_field_width
         label_width: int = 12
 
-        def __init__(self):
+        def __init__(self, gpu_list: Optional[Gpu.GpuList] = None, devices: dict = None):
             LOGGER.debug('started with Gtk disabled')
 
         def set_quit(self, _arg2, _arg3) -> None:
@@ -133,7 +133,7 @@ else:
         item_width: int = GUT_CONST.mon_field_width
         label_width: int = 12
 
-        def __init__(self, gpu_list, devices):
+        def __init__(self, gpu_list: Gpu.GpuList, devices: dict):
 
             init_chk_value = Gtk.init_check(sys.argv)
             LOGGER.debug('init_check: %s', init_chk_value)
