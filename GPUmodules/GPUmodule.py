@@ -2456,7 +2456,7 @@ class GpuList:
             vendor_name = vendor.name
         except AttributeError as error:
             raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(
-                vendor, [member.name for member in GpuVendor])) from error
+                vendor, GpuVendor.list())) from error
         results_dict = {'vendor': vendor_name, 'total': 0, 'rw': 0, 'r-only': 0, 'w-only': 0}
         for gpu in self.gpus():
             if vendor != GpuVendor.ALL:
@@ -2487,17 +2487,17 @@ class GpuList:
             _ = compatibility.name
         except AttributeError as error:
             raise AttributeError('Error: {} not a valid compatibility name: {}'.format(
-                compatibility, [member.name for member in GpuCompatibility])) from error
+                compatibility, GpuCompatibility.list())) from error
         try:
             _ = gpu_type.name
         except AttributeError as error:
             raise AttributeError('Error: {} not a valid type name: [{}]'.format(
-                gpu_type, [member.name for member in GpuType])) from error
+                gpu_type, GpuType.list())) from error
         try:
             _ = vendor.name
         except AttributeError as error:
             raise AttributeError('Error: {} not a valid vendor name: [{}]'.format(
-                vendor, [member.name for member in GpuVendor])) from error
+                vendor, GpuVendor.list())) from error
 
         result_list = GpuList()
         for uuid, gpu in self.items():
