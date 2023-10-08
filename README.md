@@ -20,6 +20,12 @@ appropriate kernel version with the AMD ppfeaturemask set to enable this capabil
 ## Installation
 
 There are 4 methods of installation available and are summarized here:
+If you get a key expired message during `apt update`, try updating the project PUBLIC.KEY with the 
+following command:
+
+```shell
+wget -q -O - https://debian.rickslab.com/PUBLIC.KEY | sudo gpg --dearmour -o /usr/share/keyrings/rickslab-agent.gpg
+```
 
 * [Repository](https://github.com/Ricks-Lab/gpu-utils/blob/master/docs/USER_GUIDE.md#repository-installation) -
 This approach is recommended for those interested in contributing to the project or helping to troubleshoot
