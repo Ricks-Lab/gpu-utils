@@ -2396,7 +2396,7 @@ class GpuList:
 
                 # Check for NV pcie_id details
                 if 'CL_DEVICE_PCI_BUS_ID_NV' in param_str:
-                    ocl_pcie_bus_id = str(hex(int(line_items[2].strip())))
+                    ocl_pcie_bus_id: Optional[str] = str(hex(int(line_items[2].strip())))
                     if ocl_pcie_slot_id is not None:
                         ocl_pcie_id = '{}:{}.0'.format(ocl_pcie_bus_id[2:].zfill(2), ocl_pcie_slot_id[2:].zfill(2))
                         ocl_pcie_slot_id = ocl_pcie_bus_id = None

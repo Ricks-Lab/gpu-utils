@@ -104,13 +104,17 @@ def main() -> None:
 
     # About me
     if args.about:
+        current_pversion = sys.version_info
         print(__doc__)
         print('Author: ', __author__)
         print('Copyright: ', __copyright__)
         print('Credits: ', *['\n      {}'.format(item) for item in __credits__])
         print('License: ', __license__)
-        print('Version: ', __version__)
+        print('Rickslab-gpu-utils Version: ', __version__)
         print('Install Type: ', GUT_CONST.install_type)
+        print('Python Version: {}.{}.{}'.format(current_pversion[0],
+                                                current_pversion[1],
+                                                current_pversion[2]))
         print('Maintainer: ', __maintainer__)
         print('Status: ', __status__)
         sys.exit(0)
