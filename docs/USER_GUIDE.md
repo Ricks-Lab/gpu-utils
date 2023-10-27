@@ -30,24 +30,30 @@ For a developer/contributor to the project, it is expected that you duplicate th
 using a virtual environment. So far, my development activities for this project have used python3.6. 
 The following are details on setting up a virtual environment with python3.6:
 
-```shell
+```commandline
 sudo apt install -y python3.6-venv
 sudo apt install -y python3.6-dev
 ```
 
 Clone the repository from GitHub with the following command:
 
-```shell
+```commandline
 git clone https://github.com/Ricks-Lab/gpu-utils.git
 cd gpu-utils
 ```
 
 Initialize your *rickslab-gpu-utils-env* if it is your first time to use it. From the project root directory, execute:
 
-```shell
+```commandline
 python3.6 -m venv rickslab-gpu-utils-env
 source rickslab-gpu-utils-env/bin/activate
+pip install --upgrade pip
 pip install --no-cache-dir -r requirements-venv.txt
+```
+
+If you get errors installing `vext`, you may need to use the `--use-pep517`:
+```commandline
+pip install --no-cache-dir --use-pep517 -r requirements-venv.txt
 ```
 
 On newer systems, I have found that I get a `ModuleNotFoundError: No module named 'numpy'`, even though `numpy` was
@@ -60,7 +66,7 @@ You then run the desired commands by specifying the full path: `./gpu-ls`
 
 First, remove any previous Debian package and any ricks-amdgpu-utils PyPI installations:
 
-```shell
+```commandline
 sudo apt purge rickslab-gpu-utils
 sudo apt purge ricks-amdgpu-utils
 sudo apt autoremove
@@ -70,13 +76,13 @@ pip3 uninstall ricks-amdgpu-utils
 Install the latest package from [PyPI](https://pypi.org/project/rickslab-gpu-utils/) with the following
 commands:
 
-```shell
+```commandline
 pip3 install rickslab-gpu-utils
 ```
 
 Or, use the pip upgrade option if you have already installed a previous version:
 
-```shell
+```commandline
 pip3 install rickslab-gpu-utils -U
 ```
 
@@ -89,7 +95,7 @@ also have a Debian installed version, the pip uninstall will likely fail,
 unless you remove the Debian package first.  You can skip this step if you
 are certain no other install types are still installed:
 
-```shell
+```commandline
 sudo apt purge rickslab-gpu-utils
 sudo apt purge ricks-amdgpu-utils
 sudo apt autoremove
@@ -100,7 +106,7 @@ exit
 If you had previously (before 3.7.6) installed from rickslab.com, you should
 delete the key from the apt keyring:
 
-```shell
+```commandline
 sudo apt-key del C98B8839
 ```
 
@@ -116,7 +122,7 @@ sudo apt update
 
 Then install the package with apt:
 
-```shell
+```commandline
 sudo apt install rickslab-gpu-utils
 ```
 
@@ -130,7 +136,7 @@ echo '' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
 ### Official Debian Package Installation
 
 First you should verify the availability of the package by distribution with the following command:
-```shell
+```commandline
 rmadison rickslab-gpu-utils
 ```
 
@@ -147,7 +153,7 @@ have a Debian installed versions, the pip uninstall will likely fail, unless you
 remove the Debian package first. You can skip this step if you are certain no
 over install types have been installed:
 
-```shell
+```commandline
 sudo apt purge ricks-amdgpu-utils
 sudo apt purge rickslab-gpu-utils
 sudo apt autoremove
@@ -164,7 +170,7 @@ debian repository.  This can be accomplished with the following shell command:
 echo '' | sudo tee /etc/apt/sources.list.d/rickslab-gpu-utils.list
 ```
 
-```shell
+```commandline
 sudo apt update
 sudo apt install rickslab-gpu-utils
 ```
@@ -175,7 +181,7 @@ sudo apt install rickslab-gpu-utils
 First, this set of utilities is written and tested with Python3.6.  If you are using an older
 version, you will likely see syntax errors.  If you are encountering problems, then execute:
 
-```shell
+```commandline
 gpu-chk
 ```
 
@@ -196,7 +202,7 @@ bits.  I have not yet tested on enough systems to know it is robust:
 printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))"
 ```
 
-```shell
+```commandline
 cd /etc/default
 sudo vi grub
 ```
@@ -209,7 +215,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.ppfeaturemask=0xfffd7fff"
 
 After saving, update grub:
 
-```shell
+```commandline
 sudo update-grub
 ```
 
