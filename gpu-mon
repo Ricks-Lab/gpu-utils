@@ -72,6 +72,12 @@ except (ModuleNotFoundError, ValueError) as error:
     print('gi is required for {}'.format(__program_name__))
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
+except ImportError as error:
+    print('gi import error: {}'.format(error))
+    print('If not using system python version, you may get a circular import error.')
+    print('Using non-gui version of gpu-mon.')
+    sleep(3)
+
     GTK = False
 
 from GPUmodules import __version__, __status__, __credits__
