@@ -60,6 +60,10 @@ except ModuleNotFoundError as error:
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
+except ImportError as error:
+    print('gi import error: {}'.format(error))
+    print('If not using system python version, you may get a circular import error.')
+    sys.exit(0)
 
 from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui

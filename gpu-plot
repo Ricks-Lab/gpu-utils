@@ -66,11 +66,15 @@ except ModuleNotFoundError as error:
     print('   In a venv, first install vext:  pip install --no-cache-dir vext')
     print('   Then install vext.gi:  pip install --no-cache-dir vext.gi')
     sys.exit(0)
+except ImportError as error:
+    print('gi import error: {}'.format(error))
+    print('If not using system python version, you may get a circular import error.')
+    sys.exit(0)
 
 try:
     from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
     import matplotlib.pyplot as plt
-except ModuleNotFoundError as error:
+except (ModuleNotFoundError, ImportError) as error:
     print('matplotlib import error: {}'.format(error))
     print('matplotlib is required for {}'.format(__program_name__))
     print('Use \'sudo apt install python3-matplotlib\' to install')
@@ -78,7 +82,7 @@ except ModuleNotFoundError as error:
 
 try:
     import pandas as pd
-except ModuleNotFoundError as error:
+except (ModuleNotFoundError, ImportError) as error:
     print('Pandas import error: {}'.format(error))
     print('Pandas is required for {}'.format(__program_name__))
     print('Install pip3 if needed: \'sudo apt install python3-pip\'')

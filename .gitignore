@@ -1,6 +1,7 @@
 .idea/
 GPUmodules/__pycache__/
 *-env/
+*-env-test/
 dist/
 build/
 *.egg-info/
