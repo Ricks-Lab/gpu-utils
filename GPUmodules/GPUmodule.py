@@ -228,7 +228,6 @@ class GpuItem:
                                               'mem_gtt_used', 'power_cap_range', 'power', 'power_cap', 'vddgfx_offset',
                                               'vddgfx_offset_range', *_fan_item_list}
     amd_type_skip_lists[GpuType.APU] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm', 'vddc_range',
-                                        'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
                                         'power_cap_range', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range',
                                         *_fan_item_list}
 
