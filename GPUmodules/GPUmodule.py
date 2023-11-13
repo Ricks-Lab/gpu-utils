@@ -205,25 +205,32 @@ class GpuItem:
         'power_dpm_force':     'Power DPM Force Performance Level'}
 
     # AMD Type skip lists.
+    amd_type_skip_lists: Dict[GpuType, Set] = {}
     _unsupported_skip_list: Set = set(_GPU_Param_Labels) - GPU_NC_Param_List
-    amd_type_skip_lists: Dict[GpuType, Set] = {
-        GpuType.Unsupported: _unsupported_skip_list,
-        GpuType.Modern:      {},
-        GpuType.Offset:      {'vddc_range'},
-        GpuType.CurvePts:    {'vddgfx_offset', 'vddgfx_offset_range'},
-        GpuType.PStatesNE:   {'vddc_range', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset', 'vddgfx_offset_range'},
-        GpuType.PStates:     {'vddgfx_offset', 'vddgfx_offset_range'},
-        GpuType.Legacy:      {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
-                              'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
-                              'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
-                              'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'vddc_range',
-                              'frequencies', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset', 'vddgfx_offset_range'},
-        GpuType.LegacyAPU:   {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm', 'vddc_range',
-                              'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used', 'power_cap_range',
-                              'power', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range', *_fan_item_list},
-        GpuType.APU:         {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm', 'vddc_range',
-                              'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
-                              'power_cap_range', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range', *_fan_item_list}}
+    for amd_gpu_type in GpuType:
+        amd_type_skip_lists.update({amd_gpu_type: set()})
+    amd_type_skip_lists[GpuType.Undefined] = _unsupported_skip_list
+    amd_type_skip_lists[GpuType.Unsupported] = _unsupported_skip_list
+    amd_type_skip_lists[GpuType.Offset] = {'vddc_range'}
+    amd_type_skip_lists[GpuType.CurvePts] = {'vddgfx_offset', 'vddgfx_offset_range'}
+    amd_type_skip_lists[GpuType.PStatesNE] = {'vddc_range', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset',
+                                              'vddgfx_offset_range'}
+    amd_type_skip_lists[GpuType.PStates] = {'vddgfx_offset', 'vddgfx_offset_range'}
+    amd_type_skip_lists[GpuType.Legacy] = {'vbios', 'loading', 'mem_loading', 'sclk_ps', 'mclk_ps', 'ppm', 'power',
+                                           'power_cap', 'power_cap_range', 'mem_vram_total', 'mem_vram_used',
+                                           'mem_gtt_total', 'mem_gtt_used', 'mem_vram_usage', 'mem_gtt_usage',
+                                           'fan_speed_range', 'fan_enable', 'fan_target', 'fan_speed', 'vddc_range',
+                                           'frequencies', 'sclk_f_range', 'mclk_f_range', 'vddgfx_offset',
+                                           'vddgfx_offset_range'}
+    amd_type_skip_lists[GpuType.LegacyAPU] = {'unique_id', 'vbios', 'loading', 'sclk_ps', 'mclk_ps', 'ppm',
+                                              'vddc_range', 'mem_vram_total', 'mem_gtt_total', 'mem_vram_used',
+                                              'mem_gtt_used', 'power_cap_range', 'power', 'power_cap', 'vddgfx_offset',
+                                              'vddgfx_offset_range', *_fan_item_list}
+    amd_type_skip_lists[GpuType.APU] = {'unique_id', 'loading', 'ppm', 'pwm_mode', 'fan_pwm', 'vddc_range',
+                                        'mem_vram_total', 'mem_gtt_total', 'mem_vram_used', 'mem_gtt_used',
+                                        'power_cap_range', 'power_cap', 'vddgfx_offset', 'vddgfx_offset_range',
+                                        *_fan_item_list}
+
     # Vendor specific skip lists.
     vendor_skip_lists: Dict[GpuVendor, Set] = {
         GpuVendor.ASPEED: _unsupported_skip_list,
