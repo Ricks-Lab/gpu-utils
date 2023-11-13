@@ -204,9 +204,10 @@ class GpuItem:
         'power_dpm_state':     'Power DPM State',
         'power_dpm_force':     'Power DPM Force Performance Level'}
 
+    # Skip list initialization
+    _unsupported_skip_list: Set = set(_GPU_Param_Labels) - GPU_NC_Param_List
     # AMD Type skip lists.
     amd_type_skip_lists: Dict[GpuType, Set] = {}
-    _unsupported_skip_list: Set = set(_GPU_Param_Labels) - GPU_NC_Param_List
     for amd_gpu_type in GpuType:
         amd_type_skip_lists.update({amd_gpu_type: set()})
     amd_type_skip_lists[GpuType.Undefined] = _unsupported_skip_list
@@ -232,14 +233,16 @@ class GpuItem:
                                         *_fan_item_list}
 
     # Vendor specific skip lists.
-    vendor_skip_lists: Dict[GpuVendor, Set] = {
-        GpuVendor.ASPEED: _unsupported_skip_list,
-        GpuVendor.MATROX: _unsupported_skip_list,
-        GpuVendor.AMD:    {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'},
-        GpuVendor.NVIDIA: {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
-                           'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
-                           'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
-                           'temp_crits', 'voltages', 'vddgfx_offset'}}
+    vendor_skip_lists: Dict[GpuVendor, Set] = {}
+    for vendor in GpuVendor:
+        vendor_skip_lists.update({vendor: set()})
+    vendor_skip_lists[GpuVendor.ASPEED] = _unsupported_skip_list
+    vendor_skip_lists[GpuVendor.MATROX] = _unsupported_skip_list
+    vendor_skip_lists[GpuVendor.AMD] = {'frequencies_max', 'compute_mode', 'serial_number', 'card_index'}
+    vendor_skip_lists[GpuVendor.NVIDIA] = {'fan_enable', 'fan_speed', 'fan_pwm_range', 'fan_speed_range', 'pwm_mode',
+                                           'mem_gtt_total', 'mem_gtt_used', 'mem_gtt_usage', 'pp_features',
+                                           'mclk_ps', 'mclk_f_range', 'sclk_f_range', 'vddc_range', 'power_dpm_force',
+                                           'temp_crits', 'voltages', 'vddgfx_offset'}
 
     # GPU sensor reading details
     sensor_sets = {SensorSet.Static:       {'HWMON':  ['power_cap_range', 'temp_crits',

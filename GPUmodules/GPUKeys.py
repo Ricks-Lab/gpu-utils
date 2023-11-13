@@ -96,7 +96,6 @@ class GpuVendor(GpuEnum):
 class SensorSet(GpuEnum):
     """ Enum object to define keys for GPU Sensor Sets.
     """
-    Test = auto()
     Static = auto()
     Dynamic = auto()
     Info = auto()
@@ -120,7 +119,7 @@ class SensorType(GpuEnum):
 
 
 class OdMode(GpuEnum):
-    """ Enum object to define keys for GPU Sensor Types.
+    """ Enum object to define keys for GPU overdrive modes.
     """
     none = auto()
     value = auto()
