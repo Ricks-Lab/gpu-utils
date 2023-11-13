@@ -131,7 +131,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 ## New in Development -  v3.8.4
 
-* Nothing yet.
+* Fixed GpuType and GpuVendor dictionary initialization as described in update to issue 139.
 
 ## Development Plans
 
