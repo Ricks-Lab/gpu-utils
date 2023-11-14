@@ -132,6 +132,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 ## New in Development -  v3.8.4
 
 * Fixed GpuType and GpuVendor dictionary initialization as described in update to issue 139.
+* Fixed skip list for APU which incorrectly included memory parameters.
 
 ## Development Plans
 
