@@ -133,7 +133,7 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 
 * Fixed GpuType and GpuVendor dictionary initialization as described in update to issue 139.
 * Fixed skip list for APU which incorrectly included memory parameters.
-* Updated setup.py to specify compatible versions for pandas and matplotlib.
+* Fixed matplotlib 3.5.* compatibility issues.
 
 ## Development Plans
 
