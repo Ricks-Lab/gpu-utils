@@ -28,6 +28,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=line-too-long
 # pylint: disable=consider-using-f-string
 # pylint: disable=bad-continuation
+# pylint: disable=no-member
 
 import re
 import subprocess
@@ -721,7 +722,7 @@ class GpuItem:
                 GUT_CONST.process_message(message, log_flag=True)
                 self.read_disabled.append(target_param)
 
-    def get_params_value(self, name: str, num_as_int: bool = False) -> Optional[Union[int, float, str, list, GpuEnum, datetime]]:
+    def get_params_value(self, name: str, num_as_int: bool = False) -> Optional[Union[dict, int, float, str, list, GpuEnum, datetime]]:
         """
         Get parameter value for given name.
 
@@ -1915,15 +1916,14 @@ class GpuItem:
                                                 self.get_params_value(param_name), color_reset))
             elif isinstance(self.get_params_value(param_name), dict):
                 if not GUT_CONST.no_markup: color = self.mark_up_codes['data']
-                param_dict = self.get_params_value(param_name)
+                param_dict: Dict = self.get_params_value(param_name)
                 print('{}{}: {}{}{}'.format(pre, param_label, color,
                                             {key: param_dict[key] for key in sorted(param_dict)}, color_reset))
             elif param_name == 'vendor':
                 vendor = self.get_params_value(param_name)
                 if not GUT_CONST.no_markup:
-                    if vendor.name == 'AMD': color = self.mark_up_codes['amd']
-                    elif vendor.name == 'NVIDIA': color = self.mark_up_codes['nvidia']
-                    elif vendor.name == 'INTEL': color = self.mark_up_codes['intel']
+                    if vendor.name in (GpuVendor.AMD.name, GpuVendor.NVIDIA.name, GpuVendor.INTEL.name):
+                        color = self.mark_up_codes[vendor.name]
                     else: color = self.mark_up_codes['other']
                 print('{}{}: {} {} {}'.format(pre, param_label, color, vendor, color_reset))
             elif self.get_params_value(param_name) == '':
