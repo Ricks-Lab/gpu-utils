@@ -45,12 +45,11 @@ from numpy import nan as np_nan
 
 from GPUmodules.env import GUT_CONST
 from GPUmodules.GPUKeys import GpuEnum, GpuType, GpuCompatibility, GpuVendor, SensorSet, SensorType, OdMode
-from GPUmodules.RegexPatterns import PatternKeys
+from GPUmodules.RegexPatterns import PatternKeys as PK
 
 
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = GUT_CONST.PATTERNS
-PK = PatternKeys
 
 
 class ObjDict(dict):

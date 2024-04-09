@@ -69,14 +69,14 @@ from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules.env import GUT_CONST
-from GPUmodules.GPUKeys import GpuType, GpuCompatibility, SensorSet, PatternKeys
+from GPUmodules.GPUKeys import GpuType, GpuCompatibility, SensorSet
+from GPUmodules.RegexPatterns import PatternKeys as PK
 
 MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = GUT_CONST.PATTERNS
-PK = PatternKeys
 
 
 class PACWindow(Gtk.Window):

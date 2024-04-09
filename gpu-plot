@@ -95,6 +95,7 @@ from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules.env import GUT_CONST
 from GPUmodules.GPUKeys import SensorSet
+from GPUmodules.RegexPatterns import PatternKeys as PK
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -102,7 +103,6 @@ register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = GUT_CONST.PATTERNS
-PK = GUT_CONST.PatternKeys
 
 # SEMAPHORE ############
 PD_SEM = threading.Semaphore()
