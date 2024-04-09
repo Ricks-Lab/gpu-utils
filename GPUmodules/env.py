@@ -40,8 +40,9 @@ from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Set, Optional
+from typing import Dict, Union, TextIO, Set, Optional, Pattern
 from GPUmodules import __required_pversion__, __required_kversion__
+from GPUmodules.RegexPatterns import RegexPatterns
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -95,34 +96,7 @@ class GutConst:
                                      'label':     '\033[1;37;46m',
                                      'reset':     '\033[0;0;0m'}
 
-    PATTERNS = {'HEXRGB':       re.compile(r'^#[\da-fA-F]{6}'),
-                'PCIIID_L0':    re.compile(r'^[\da-fA-F]{4}.*'),
-                'PCIIID_L1':    re.compile(r'^\t[\da-fA-F]{4}.*'),
-                'PCIIID_L2':    re.compile(r'^\t\t[\da-fA-F]{4}.*'),
-                'NUM_END_IN_ALPHA': re.compile(r'\d+[a-zA-Z]+$'),
-                'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
-                'ALPHA':        re.compile(r'[a-zA-Z]+'),
-                'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
-                'AMD_GPU':      re.compile(r'(AMD|ATI)'),
-                'NV_GPU':       re.compile(r'NVIDIA', re.IGNORECASE),
-                'INTC_GPU':     re.compile(r'INTEL'),
-                'ASPD_GPU':     re.compile(r'ASPEED', re.IGNORECASE),
-                'MTRX_GPU':     re.compile(r'MATROX', re.IGNORECASE),
-                'InputLabelX':  re.compile(r'[a-zA-Z]*(\d|\*)_(input|label)'),  # 'freq*_input'
-                'MHz':          re.compile(r'M[Hh]z'),
-                'PPM_CHK':      re.compile(r'[*].*'),
-                'PCI_GPU':      re.compile(r'(VGA|3D|Display)', re.IGNORECASE),
-                'NOT_PCI_GPU':  re.compile(r'Non-?VGA', re.IGNORECASE),
-                'PCI_ADD':      re.compile(r'^(([\da-fA-F]{4}:)?[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PCI_ADD_LONG': re.compile(r'^([\da-fA-F]{4}:[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PCI_ADD_SHRT': re.compile(r'^([\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PPM_NOTCHK':   re.compile(r'\s+'),
-                'VALID_PS_STR': re.compile(r'\d+(\s\d)*'),
-                'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
-                'DIGITS':       re.compile(r'^\d+\d*$'),
-                'VAL_ITEM':     re.compile(r'.*_val$'),
-                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|])', re.IGNORECASE),
-                'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
+    PATTERNS = RegexPatterns()
 
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root: str = '/sys/class/drm/'
