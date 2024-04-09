@@ -102,6 +102,7 @@ register_matplotlib_converters()
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = GUT_CONST.PATTERNS
+PK = GUT_CONST.PatternKeys
 
 # SEMAPHORE ############
 PD_SEM = threading.Semaphore()
@@ -695,7 +696,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
                     new_line_items.append(np.nan)
                 elif item.isnumeric():
                     new_line_items.append(int(item))
-                elif re.fullmatch(PATTERNS['IS_FLOAT'], item):
+                elif re.fullmatch(PATTERNS[PK.IS_FLOAT], item):
                     new_line_items.append(float(item))
                 elif item in ('', '-1', 'NA', 'None') or item is None:
                     new_line_items.append(np.nan)

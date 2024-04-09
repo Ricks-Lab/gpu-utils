@@ -69,13 +69,14 @@ from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules.env import GUT_CONST
-from GPUmodules.GPUKeys import GpuType, GpuCompatibility, SensorSet
+from GPUmodules.GPUKeys import GpuType, GpuCompatibility, SensorSet, PatternKeys
 
 MAX_CHAR = 54
 CHAR_WIDTH = 8
 set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 LOGGER = logging.getLogger('gpu-utils')
 PATTERNS = GUT_CONST.PATTERNS
+PK = PatternKeys
 
 
 class PACWindow(Gtk.Window):
@@ -670,12 +671,12 @@ class PACWindow(Gtk.Window):
             if gpu.get_params_value('gpu_type') in (GpuType.PStates, ):
                 for ps, psd in gpu.sclk_state.items():
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[0]))
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[1]))
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[gpu.prm.uuid]['sclk_pst_mask_cur'].set_text(
@@ -684,8 +685,8 @@ class PACWindow(Gtk.Window):
             elif gpu.get_params_value('gpu_type') in (GpuType.CurvePts, GpuType.Offset):
                 for ps, psd in gpu.sclk_state.items():
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[0]))
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[gpu.prm.uuid]['sclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                 devices[gpu.prm.uuid]['sclk_pst_mask_cur'].set_text(
@@ -695,12 +696,12 @@ class PACWindow(Gtk.Window):
             if gpu.get_params_value('gpu_type') in (GpuType.PStates, ):
                 for ps, psd in gpu.mclk_state.items():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[0]))
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[1]))
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
                 devices[gpu.prm.uuid]['mclk_pst_mask_cur'].set_text(
@@ -709,8 +710,8 @@ class PACWindow(Gtk.Window):
             elif gpu.get_params_value('gpu_type') in (GpuType.CurvePts, GpuType.Offset):
                 for ps, psd in gpu.mclk_state.items():
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_cur_obj'].set_text('    {}:  {}'.format(ps, psd[0]))
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[0]))
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[gpu.prm.uuid]['mclk_pstate'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
                 devices[gpu.prm.uuid]['mclk_pst_mask_cur'].set_text(
@@ -720,12 +721,12 @@ class PACWindow(Gtk.Window):
             if gpu.get_params_value('gpu_type') == GpuType.CurvePts:
                 for ps, psd in gpu.vddc_curve.items():
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_cur_obj'].set_text('    {}:  {}, {}'.format(ps, *psd))
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[0]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[0]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[0]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[0]))
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj'].set_text(item_value)
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_f_obj_unit'].set_text(item_unit + '     ')
-                    item_value = re.sub(PATTERNS['END_IN_ALPHA'], '', str(psd[1]))
-                    item_unit = re.sub(PATTERNS['IS_FLOAT'], '', str(psd[1]))
+                    item_value = re.sub(PATTERNS[PK.END_IN_ALPHA], '', str(psd[1]))
+                    item_unit = re.sub(PATTERNS[PK.IS_FLOAT], '', str(psd[1]))
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj'].set_text(str(item_value))
                     devices[gpu.prm.uuid]['vddc_curve_pt'][ps]['gtk_ent_v_obj_unit'].set_text(item_unit)
 
@@ -861,7 +862,7 @@ class PACWindow(Gtk.Window):
             changed += 1
             print('# Powercap entry: {}, Resetting to default'.format(new_power_cap_str), file=fileptr)
             print("sudo sh -c \"echo \'0\' >  {}\"".format(power_cap_file), file=fileptr)
-        elif re.fullmatch(PATTERNS['DIGITS'], new_power_cap_str):
+        elif re.fullmatch(PATTERNS[PK.DIGITS], new_power_cap_str):
             new_power_cap = int(new_power_cap_str)
             power_cap_range = gpu.get_params_value('power_cap_range')
             print('# Powercap Old: {}'.format(old_power_cap), end='', file=fileptr)
@@ -899,7 +900,7 @@ class PACWindow(Gtk.Window):
                 changed += 1
                 print('# PWM entry: {}, Disabling fan control'.format(new_pwm_str), file=fileptr)
                 print("sudo sh -c \"echo \'0\' >  {}\"".format(pwm_enable_file), file=fileptr)
-            elif re.fullmatch(PATTERNS['DIGITS'], new_pwm_str):
+            elif re.fullmatch(PATTERNS[PK.DIGITS], new_pwm_str):
                 new_pwm = int(new_pwm_str)
                 print('# Fan PWM Old: {}'.format(old_pwm), end='', file=fileptr)
                 print(' New: {}'.format(new_pwm), end='', file=fileptr)
