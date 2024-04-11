@@ -172,8 +172,9 @@ def main() -> None:
     else:
         gpu_list.print()
 
-    for key, value in GUT_CONST.PATTERNS.patterns.items():
-        print('{}\n   {}'.format(key, value))
+    if GUT_CONST.debug:
+        for key, value in GUT_CONST.PATTERNS.patterns.items():
+            print('{}\n   {}'.format(key, value))
     sys.exit(0)
 
 

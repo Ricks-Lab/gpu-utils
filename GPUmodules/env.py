@@ -284,15 +284,18 @@ class GutConst:
 
         # Check Linux Kernel version
         current_kversion_str = release()
-        current_kversion = tuple([int(x) for x in re.sub('-.*', '', current_kversion_str).split('.')])
         LOGGER.debug('Using Linux Kernel: %s', current_kversion_str)
-        if current_kversion < __required_kversion__:
-            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(
-                current_kversion_str, __program_name__, __required_kversion__[0],
-                __required_kversion__[1]), file=sys.stderr)
-            return -2
+        try:
+            current_kversion = tuple([int(x) for x in re.sub('(-.*)|([a-zA-Z]+)', '', current_kversion_str).split('.')])
+            if current_kversion < __required_kversion__:
+                print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(
+                    current_kversion_str, __program_name__, __required_kversion__[0],
+                    __required_kversion__[1]), file=sys.stderr)
+                return -2
+        except ValueError:
+            print('Linux Kernel version check skipped.')
 
-        # Check Linux Init Type
+                # Check Linux Init Type
         init_type = 'Unknown'
         cmd_init = '/sbin/init' if os.path.isfile('/sbin/init') else shutil.which('init')
         if cmd_init:
