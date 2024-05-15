@@ -40,8 +40,9 @@ from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Set, Optional
+from typing import Dict, Union, TextIO, Set, Optional, Pattern
 from GPUmodules import __required_pversion__, __required_kversion__
+from GPUmodules.RegexPatterns import RegexPatterns
 
 LOGGER = logging.getLogger('gpu-utils')
 
@@ -85,44 +86,17 @@ class GutConst:
                                      'green':     '\033[32m',
                                      'red':       '\033[31m',
                                      # Named formats
-                                     'amd':       '\033[1;37;41m',
+                                     'AMD':       '\033[1;37;41m',
                                      'error':     '\033[1;37;41m',
                                      'ok':        '\033[1;37;42m',
-                                     'nvidia':    '\033[1;30;42m',
+                                     'NVIDIA':    '\033[1;30;42m',
                                      'warn':      '\033[1;30;43m',
-                                     'intel':     '\033[1;37;44m',
+                                     'INTEL':     '\033[1;37;44m',
                                      'other':     '\033[1;37;45m',
                                      'label':     '\033[1;37;46m',
                                      'reset':     '\033[0;0;0m'}
 
-    PATTERNS = {'HEXRGB':       re.compile(r'^#[\da-fA-F]{6}'),
-                'PCIIID_L0':    re.compile(r'^[\da-fA-F]{4}.*'),
-                'PCIIID_L1':    re.compile(r'^\t[\da-fA-F]{4}.*'),
-                'PCIIID_L2':    re.compile(r'^\t\t[\da-fA-F]{4}.*'),
-                'NUM_END_IN_ALPHA': re.compile(r'\d+[a-zA-Z]+$'),
-                'END_IN_ALPHA': re.compile(r'[a-zA-Z]+$'),
-                'ALPHA':        re.compile(r'[a-zA-Z]+'),
-                'AMD_FEATURES': re.compile(r'^(Current pp)*\s*:*\s*features:*\s+', re.IGNORECASE),
-                'AMD_GPU':      re.compile(r'(AMD|ATI)'),
-                'NV_GPU':       re.compile(r'NVIDIA', re.IGNORECASE),
-                'INTC_GPU':     re.compile(r'INTEL'),
-                'ASPD_GPU':     re.compile(r'ASPEED', re.IGNORECASE),
-                'MTRX_GPU':     re.compile(r'MATROX', re.IGNORECASE),
-                'InputLabelX':  re.compile(r'[a-zA-Z]*(\d|\*)_(input|label)'),  # 'freq*_input'
-                'MHz':          re.compile(r'M[Hh]z'),
-                'PPM_CHK':      re.compile(r'[*].*'),
-                'PCI_GPU':      re.compile(r'(VGA|3D|Display)', re.IGNORECASE),
-                'NOT_PCI_GPU':  re.compile(r'Non-?VGA', re.IGNORECASE),
-                'PCI_ADD':      re.compile(r'^(([\da-fA-F]{4}:)?[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PCI_ADD_LONG': re.compile(r'^([\da-fA-F]{4}:[\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PCI_ADD_SHRT': re.compile(r'^([\da-fA-F]{2}:[\da-fA-F]{2}.[\da-fA-F])'),
-                'PPM_NOTCHK':   re.compile(r'\s+'),
-                'VALID_PS_STR': re.compile(r'\d+(\s\d)*'),
-                'IS_FLOAT':     re.compile(r'[-+]?\d*\.?\d+|[-+]?\d+'),
-                'DIGITS':       re.compile(r'^\d+\d*$'),
-                'VAL_ITEM':     re.compile(r'.*_val$'),
-                'GPU_GENERIC':  re.compile(r'(^\s|intel|amd|nvidia|amd/ati|ati|radeon|\[|])', re.IGNORECASE),
-                'GPUMEMTYPE':   re.compile(r'^mem_(gtt|vram)_.*')}
+    PATTERNS = RegexPatterns()
 
     featuremask: str = '/sys/module/amdgpu/parameters/ppfeaturemask'
     card_root: str = '/sys/class/drm/'
@@ -310,15 +284,18 @@ class GutConst:
 
         # Check Linux Kernel version
         current_kversion_str = release()
-        current_kversion = tuple([int(x) for x in re.sub('-.*', '', current_kversion_str).split('.')])
         LOGGER.debug('Using Linux Kernel: %s', current_kversion_str)
-        if current_kversion < __required_kversion__:
-            print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(
-                current_kversion_str, __program_name__, __required_kversion__[0],
-                __required_kversion__[1]), file=sys.stderr)
-            return -2
+        try:
+            current_kversion = tuple([int(x) for x in re.sub('(-.*)|([a-zA-Z]+)', '', current_kversion_str).split('.')])
+            if current_kversion < __required_kversion__:
+                print('Using Linux Kernel {}, but {} requires > {}.{}.'.format(
+                    current_kversion_str, __program_name__, __required_kversion__[0],
+                    __required_kversion__[1]), file=sys.stderr)
+                return -2
+        except ValueError:
+            print('Linux Kernel version check skipped.')
 
-        # Check Linux Init Type
+                # Check Linux Init Type
         init_type = 'Unknown'
         cmd_init = '/sbin/init' if os.path.isfile('/sbin/init') else shutil.which('init')
         if cmd_init:

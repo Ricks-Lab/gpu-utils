@@ -95,6 +95,7 @@ from GPUmodules import GPUgui
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules.env import GUT_CONST
 from GPUmodules.GPUKeys import SensorSet
+from GPUmodules.RegexPatterns import PatternKeys as PK
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -695,7 +696,7 @@ def read_from_stdin(refresh_time: int, plot_data: PlotData) -> None:
                     new_line_items.append(np.nan)
                 elif item.isnumeric():
                     new_line_items.append(int(item))
-                elif re.fullmatch(PATTERNS['IS_FLOAT'], item):
+                elif re.fullmatch(PATTERNS[PK.IS_FLOAT], item):
                     new_line_items.append(float(item))
                 elif item in ('', '-1', 'NA', 'None') or item is None:
                     new_line_items.append(np.nan)
