@@ -40,7 +40,7 @@ from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Set, Optional, Pattern
+from typing import Dict, Union, TextIO, Set, Optional
 from GPUmodules import __required_pversion__, __required_kversion__
 from GPUmodules.RegexPatterns import RegexPatterns
 

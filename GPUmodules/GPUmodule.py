@@ -27,7 +27,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 # pylint: disable=consider-using-f-string
-# pylint: disable=bad-continuation
+# pylint: disable=bad-continuation-in-string
 # pylint: disable=no-member
 
 import re
