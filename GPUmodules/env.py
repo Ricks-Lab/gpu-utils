@@ -40,7 +40,7 @@ from shlex import split as shlex_split
 import shutil
 from time import mktime as time_mktime
 from datetime import datetime
-from typing import Dict, Union, TextIO, Set, Optional, Pattern
+from typing import Dict, TextIO, Set, Optional
 from GPUmodules import __required_pversion__, __required_kversion__
 from GPUmodules.RegexPatterns import RegexPatterns
 
@@ -48,8 +48,7 @@ LOGGER = logging.getLogger('gpu-utils')
 
 
 class GutConst:
-    """
-    GPU Utils constants used throughout the project.
+    """ GPU Utils constants used throughout the project.
     """
     # Private class variables
     _verified_distros: Set[str] = {'Debian', 'Ubuntu', 'Neon', 'Gentoo', 'Arch', 'Devuan'}
@@ -109,7 +108,7 @@ class GutConst:
         self.calling_program: str = ''
         self.args: Optional[argparse.Namespace] = None
         self.repository_path: str = self._repository_path
-        self.install_type: Union[str, None] = None
+        self.install_type: Optional[str] = None
         self.package_path: str = inspect.getfile(inspect.currentframe())
 
         if 'dist-packages' in self.package_path: self.install_type = 'debian'
@@ -127,9 +126,9 @@ class GutConst:
             print('Error: Invalid pciid path')
             self.sys_pciid = None
 
-        self.distro: Dict[str, Union[str, None]] = {'Distributor': None, 'Description': None}
-        self.amdfeaturemask: Union[int, None] = None
-        self.log_file_ptr: Union[TextIO, None] = None
+        self.distro: Dict[str, Optional[str]] = {'Distributor': None, 'Description': None}
+        self.amdfeaturemask: Optional[int] = None
+        self.log_file_ptr: Optional[TextIO] = None
 
         # From args
         self.no_markup: bool = False
@@ -148,11 +147,11 @@ class GutConst:
         # Time
         self.ltz: datetime.tzinfo = datetime.utcnow().astimezone().tzinfo
         # Command access
-        self.cmd_lsb_release: Union[str, None] = None
-        self.cmd_lspci: Union[str, None] = None
-        self.cmd_clinfo: Union[str, None] = None
-        self.cmd_dpkg: Union[str, None] = None
-        self.cmd_nvidia_smi: Union[str, None] = None
+        self.cmd_lsb_release: Optional[str] = None
+        self.cmd_lspci: Optional[str] = None
+        self.cmd_clinfo: Optional[str] = None
+        self.cmd_dpkg: Optional[str] = None
+        self.cmd_nvidia_smi: Optional[str] = None
 
         # base_prefix = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
         # print('base_prefix: {}, sys_prefix: {}'.format(base_prefix, sys.prefix))
@@ -160,8 +159,7 @@ class GutConst:
         #     sys.path.append('/usr/lib/python3/dist-packages')
 
     def set_args(self, args: argparse.Namespace, program_name: str = '') -> None:
-        """
-        Set arguments for the give args object.
+        """ Set arguments for the give args object.
 
         :param args: The object return by args parser.
         :param program_name: The name of the calling program.
@@ -213,8 +211,7 @@ class GutConst:
 
     @staticmethod
     def now(ltz: bool = False) -> datetime:
-        """
-        Get the current datetime object.
+        """ Get the current datetime object.
 
         :param ltz: Flag to get local time instead of UTC
         :return: datetime obj of current time
@@ -223,8 +220,7 @@ class GutConst:
 
     @staticmethod
     def utc2local(utc: datetime) -> datetime:
-        """
-        Return local time for given UTC time.
+        """ Return local time for given UTC time.
 
         :param utc: Time for UTC
         :return: Time for local time zone
@@ -235,9 +231,8 @@ class GutConst:
         return utc + offset
 
     def process_message(self, message: str, log_flag: bool = False) -> None:
-        """
-        For given message, print to stderr and/or LOGGER depending on command line options and
-        the value of log_flag.
+        """ For given message, print to stderr and/or LOGGER depending on command line options and
+            the value of log_flag.
 
         :param message: A string containing the message to be processed.
         :param log_flag:  If True, write to LOGGER.
@@ -247,8 +242,7 @@ class GutConst:
         if log_flag: LOGGER.debug(message)
 
     def read_amdfeaturemask(self) -> int:
-        """
-        Read and return the amdfeaturemask as an int.
+        """ Read and return the amdfeaturemask as an int.
 
         :return: AMD Feature Mask
         """
@@ -267,8 +261,7 @@ class GutConst:
         return self.amdfeaturemask
 
     def check_env(self) -> int:
-        """
-        Check the compatibility of the user environment.
+        """ Check the compatibility of the user environment.
 
         :return: Return status: ok=0, python issue= -1, kernel issue= -2, command issue= -3
         """
@@ -295,7 +288,7 @@ class GutConst:
         except ValueError:
             print('Linux Kernel version check skipped.')
 
-                # Check Linux Init Type
+        # Check Linux Init Type
         init_type = 'Unknown'
         cmd_init = '/sbin/init' if os.path.isfile('/sbin/init') else shutil.which('init')
         if cmd_init:
@@ -363,8 +356,7 @@ class GutConst:
         return 0
 
     def read_amd_driver_version(self) -> bool:
-        """
-        Read the AMD driver version and store in GutConst object.
+        """ Read the AMD driver version and store in GutConst object.
 
         :return: True on success.
         """
@@ -380,8 +372,7 @@ class GutConst:
         return False
 
     def read_amd_driver_version_gentoo(self) -> bool:
-        """
-        Read the AMD driver version and store in GutConst object.
+        """ Read the AMD driver version and store in GutConst object.
 
         :return: True if successful
         """
@@ -406,8 +397,7 @@ class GutConst:
         return False
 
     def read_amd_driver_version_arch(self) -> bool:
-        """
-        Read the AMD driver version and store in GutConst object.
+        """ Read the AMD driver version and store in GutConst object.
 
         :return: True if successful
         """
@@ -429,8 +419,7 @@ class GutConst:
         return False
 
     def read_amd_driver_version_debian(self) -> bool:
-        """
-        Read the AMD driver version and store in GutConst object.
+        """ Read the AMD driver version and store in GutConst object.
 
         :return: True if successful
         """

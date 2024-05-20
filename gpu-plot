@@ -623,7 +623,7 @@ def update_data(gc: GuiComponents, plot_data: PlotData) -> None:
                                                 color=GPUgui.GuiProps.color_name_to_hex(axis_label_col), fontsize=10)
                 for plot_item in active_plot_items:
                     if gc.plot_items[plot_item]:
-                        comp_item[axis_name].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'],
+                        comp_item[axis_name].plot(ldf[ldf['Card#'].isin([comp_num])]['datetime'].values,
                                                   ldf[ldf['Card#'].isin([comp_num])][plot_item].values,
                                                   color=gc.get_color(plot_item), linewidth=0.5)
                         comp_item[axis_name].text(x=ldf[ldf['Card#'].isin([comp_num])]['datetime'].iloc[-1],

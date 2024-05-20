@@ -27,7 +27,7 @@ __docformat__ = 'reStructuredText'
 # pylint: disable=multiple-statements
 # pylint: disable=line-too-long
 # pylint: disable=consider-using-f-string
-# pylint: disable=bad-continuation
+# pylint: disable=bad-continuation-in-string
 # pylint: disable=no-member
 
 import re
@@ -721,8 +721,7 @@ class GpuItem:
                 self.read_disabled.append(target_param)
 
     def get_params_value(self, name: str, num_as_int: bool = False) -> Optional[Union[dict, int, float, str, list, GpuEnum, datetime]]:
-        """
-        Get parameter value for given name.
+        """ Get parameter value for given name.
 
         :param name:  Parameter name
         :param num_as_int: Convert float to int if True
@@ -890,8 +889,7 @@ class GpuItem:
             self.prm.compute_platform = set_ocl_ver if self.prm.compute else 'None'
 
     def set_clinfo_values(self, ocl_dict: Dict[str, Union[int, str, list]]) -> None:
-        """
-        Set clinfo values in GPU item dictionary.
+        """ Set clinfo values in GPU item dictionary.
 
         :param ocl_dict: dictionary of opencl name and values.
         """
@@ -900,8 +898,7 @@ class GpuItem:
                 self.clinfo[ocl_name] = ocl_val
 
     def get_clinfo_value(self, name: str) -> Union[int, str, list, None]:
-        """
-        Get clinfo parameter value for give name.
+        """ Get clinfo parameter value for give name.
 
         :param name:  clinfo Parameter name
         :return: clinfo Parameter value
@@ -1205,9 +1202,8 @@ class GpuItem:
         return rdata if return_data else None
 
     def read_gpu_pstates(self) -> None:
-        """
-        Read GPU pstate definitions and parameter ranges from driver files.
-        Set card type based on pstate configuration
+        """ Read GPU pstate definitions and parameter ranges from driver files.
+            Set card type based on pstate configuration
         """
         if not self.is_amd_readable(): return
         parameter_file = 'pp_od_clk_voltage'
@@ -1335,9 +1331,8 @@ class GpuItem:
 
     def read_gpu_sensor(self, parameter: str, vendor: GpuVendor = GpuVendor.AMD,
                         sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
-        """
-        Read sensor for the given parameter name.  Process per sensor_details dict using the specified
-        vendor name and sensor_type.
+        """ Read sensor for the given parameter name.  Process per sensor_details dict using the specified
+            vendor name and sensor_type.
 
         :param parameter: GpuItem parameter name (AMD)
         :param vendor: GPU vendor name enum object
@@ -1352,8 +1347,7 @@ class GpuItem:
         return None
 
     def read_gpu_sensor_nv(self, parameter: str) -> Union[None, bool, int, str, tuple, list, dict]:
-        """
-        Function to read a single sensor from NV GPU.
+        """ Function to read a single sensor from NV GPU.
 
         :param parameter:  Target parameter for reading
         :return: read results
@@ -1377,9 +1371,8 @@ class GpuItem:
 
     def read_gpu_sensor_generic(self, parameter: str, vendor: GpuVendor = GpuVendor.AMD,
                                 sensor_type: str = 'HWMON') -> Union[None, bool, int, str, tuple, list, dict]:
-        """
-        Read sensor for the given parameter name.  Process per sensor_details dict using the specified
-        vendor name and sensor_type.
+        """ Read sensor for the given parameter name.  Process per sensor_details dict using the specified
+            vendor name and sensor_type.
 
         :param parameter: GpuItem parameter name (AMD)
         :param vendor: GPU vendor name enum object
@@ -1497,9 +1490,8 @@ class GpuItem:
         raise ValueError('Invalid sensor type: {}'.format(target_sensor['type']))
 
     def read_gpu_sensor_set(self, data_type: SensorSet = SensorSet.All) -> bool:
-        """
-        Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
-        by data_type.
+        """ Read GPU sensor data from HWMON and DEVICE sensors using the sensor set defined
+            by data_type.
 
         :param data_type: Specifies the sensor set: Dynamic, Static, Info, State, All Monitor
         :return: True on success.
@@ -1515,8 +1507,7 @@ class GpuItem:
         return False
 
     def update_table_items_status(self) -> None:
-        """
-        Update the readable status of table related parameters.
+        """ Update the readable status of table related parameters.
         """
         if GUT_CONST.debug:
             print('### read_time_val: {}'.format(
@@ -1530,8 +1521,7 @@ class GpuItem:
             print('')
 
     def read_gpu_sensor_set_nv(self, data_type: SensorSet = SensorSet.All) -> bool:
-        """
-        Use the nvidia_smi tool to query GPU parameters.
+        """ Use the nvidia_smi tool to query GPU parameters.
 
         :param data_type: specifies the set of sensors to read
         :return: True if successful, else False and card will have read disabled
@@ -1667,8 +1657,7 @@ class GpuItem:
         return return_status
 
     def print_disabled_params(self) -> None:
-        """
-        Print list of disabled parameters.
+        """ Print list of disabled parameters.
         """
         param_lists = []
         if GUT_CONST.verbose and self.read_skip:
@@ -1698,8 +1687,7 @@ class GpuItem:
             print('{}'.format(color_reset))
 
     def print_param_table(self, param_name: str, short: bool = True) -> None:
-        """
-        Print human friendly table of specified parameters.
+        """ Print human friendly table of specified parameters.
 
         :param param_name: Target parameter key name.
         :param short: Print short gpu first if True
@@ -1744,8 +1732,7 @@ class GpuItem:
             print('{}{}No {} Data Available{}'.format(pre, color, param_details['name'], color_reset))
 
     def print_pstates(self) -> None:
-        """
-        Print human friendly table of p-states.
+        """ Print human friendly table of p-states.
         """
         if not self.is_amd_readable(): return
 
@@ -1934,8 +1921,7 @@ class GpuItem:
 
 
 class GpuList:
-    """
-    A list of GpuItem indexed with uuid.  It also contains a table of parameters used for status reporting.
+    """ A list of GpuItem indexed with uuid.  It also contains a table of parameters used for status reporting.
     """
     def __init__(self) -> None:
         self.list: Dict[str, GpuItem] = {}
@@ -2316,8 +2302,7 @@ class GpuList:
                             'CL_DEVICE_VERSION':                            'device_version'}
 
             def init_temp_map() -> dict:
-                """
-                Return an initialized clinfo dict.
+                """ Return an initialized clinfo dict.
 
                 :return:  Initialized clinfo dict
                 """
@@ -2687,8 +2672,7 @@ class GpuList:
 
 # Utility Helper Functions
 def print_driver_vendor_summary(gpu_list: GpuList) -> None:
-    """
-    Display vendor and driver details.
+    """ Display vendor and driver details.
 
     :param gpu_list: Target list of GPUs for the summary.
     """
@@ -2711,8 +2695,7 @@ def print_driver_vendor_summary(gpu_list: GpuList) -> None:
 
 
 def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
-    """
-    Function to select only Monitor/Plot compatible GPUs.
+    """ Function to select only Monitor/Plot compatible GPUs.
 
     :return: The resultant list of GPUs
     """
@@ -2724,8 +2707,7 @@ def set_mon_plot_compatible_gpu_list(gpu_list: GpuList) -> GpuList:
 
 
 def format_table_value(data_value_raw: Any, data_name: str) -> Union[str, int, float]:
-    """
-    Format fields for monitor table.
+    """ Format fields for monitor table.
 
     :param data_value_raw:
     :param data_name:
