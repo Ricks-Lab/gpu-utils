@@ -916,8 +916,7 @@ class GpuItem:
         return False
 
     def is_valid_fan_pwm(self, pwm_value: int) -> bool:
-        """
-        Check if a given fan_pwm value is valid.
+        """ Check if a given fan_pwm value is valid.
 
         :param pwm_value: Target fan_pwm value to be tested.
         :return: True if valid
