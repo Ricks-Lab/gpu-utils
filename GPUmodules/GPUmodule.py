@@ -1088,8 +1088,7 @@ class GpuItem:
         return [int(ppm_item[0]), ppm_item[1]]
 
     def read_raw_sensors(self) -> None:
-        """
-        Read all possible device driver files and populate self's raw dictionary.
+        """ Read all possible device driver files and populate self's raw dictionary.
         """
         for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
             if path and os.path.isdir(path):
@@ -1145,6 +1144,12 @@ class GpuItem:
                     if not self.prm.pp_features:
                         if re.search(GUT_CONST.PATTERNS[PK.AMD_FEATURES], line_str):
                             self.prm.pp_features = re.sub(GUT_CONST.PATTERNS[PK.AMD_FEATURES], '', line_str)
+        except PermissionError as except_err:
+            LOGGER.debug('Error: Can not read ppfeatures driver file %s, error: [%s]', self.prm.pcie_id,
+                         except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.disable_param_read(parameter_file)
+            return None
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
@@ -1452,8 +1457,14 @@ class GpuItem:
                                 values.append(sensor_label_file.readline().strip())
                         else:
                             values.append(os.path.basename(sensor_file))
-                except OSError as err:
-                    LOGGER.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
+                except PermissionError as except_err:
+                    LOGGER.debug('Error: Can not read GPU [%s] driver file [%s], error: [%s]',
+                                 self.prm.pcie_id, target_sensor, except_err)
+                    print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+                    self.disable_param_read(parameter)
+                    return None
+                except OSError as except_err:
+                    LOGGER.debug('Exception [%s]: Can not read HW file: %s', except_err, file_path)
                     self.disable_param_read(parameter)
                     return False
             else:
