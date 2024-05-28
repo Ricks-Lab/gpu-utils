@@ -51,6 +51,7 @@ __docformat__ = 'reStructuredText'
 import argparse
 import sys
 import logging
+from platform import release
 from GPUmodules import __version__, __status__, __credits__
 from GPUmodules import GPUmodule as Gpu
 from GPUmodules.env import GUT_CONST
@@ -60,8 +61,7 @@ LOGGER = logging.getLogger('gpu-utils')
 
 
 def main() -> None:
-    """
-    Main flow for gpu-ls.
+    """ Main flow for gpu-ls.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--about', help='README',
@@ -104,7 +104,9 @@ def main() -> None:
 
     # About me
     if args.about:
+        GUT_CONST.check_env()
         current_pversion = sys.version_info
+        current_kversion_str = release()
         print(__doc__)
         print('Author: ', __author__)
         print('Copyright: ', __copyright__)
@@ -112,6 +114,8 @@ def main() -> None:
         print('License: ', __license__)
         print('Rickslab-gpu-utils Version: ', __version__)
         print('Install Type: ', GUT_CONST.install_type)
+        print('Distro: {}'.format(GUT_CONST.distro))
+        print('Kernel Version: {}'.format(current_kversion_str))
         print('Python Version: {}.{}.{}'.format(current_pversion[0],
                                                 current_pversion[1],
                                                 current_pversion[2]))
@@ -172,9 +176,6 @@ def main() -> None:
     else:
         gpu_list.print()
 
-    if GUT_CONST.debug:
-        for key, value in GUT_CONST.PATTERNS.patterns.items():
-            print('{}\n   {}'.format(key, value))
     sys.exit(0)
 
 
