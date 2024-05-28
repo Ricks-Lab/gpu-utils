@@ -73,7 +73,7 @@ class ObjDict(dict):
 
 
 class GpuItem:
-    """An object to store GPU details.
+    """ An object to store GPU details.
     """
     # pylint: disable=attribute-defined-outside-init
     # pylint: disable=too-many-instance-attributes
@@ -408,8 +408,7 @@ class GpuItem:
     pp_od_clk_voltage_headers = ['OD_SCLK', 'OD_MCLK', 'OD_VDDC_CURVE', 'OD_RANGE', 'OD_VDDGFX_OFFSET']
 
     def __repr__(self) -> str:
-        """
-        Return dictionary representing all parts of the GpuItem object.
+        """ Return dictionary representing all parts of the GpuItem object.
 
         :return: Dictionary of core GPU parameters.
         """
@@ -419,16 +418,14 @@ class GpuItem:
                     'ppm_modes': self.ppm_modes})
 
     def __str__(self) -> str:
-        """
-        Return simple string representing the GpuItem object.
+        """ Return simple string representing the GpuItem object.
 
         :return: GPU_item informational string
         """
         return 'GPU_Item: uuid={}'.format(self.prm.uuid)
 
     def __init__(self, item_id: str):
-        """
-        Initialize GpuItem object.
+        """ Initialize GpuItem object.
 
         :param item_id:  UUID of the new item.
         """
@@ -536,9 +533,8 @@ class GpuItem:
 
     @classmethod
     def finalize_fan_option(cls) -> None:
-        """
-        Finalize class variables of gpu parameters based on command line options. This must be
-        done after setting of env.  Doing it at the instantiation of a GpuItem assures that.
+        """ Finalize class variables of gpu parameters based on command line options. This must be
+            done after setting of env.  Doing it at the instantiation of a GpuItem assures that.
         """
         if cls._finalized: return
         cls._finalized = True
@@ -565,8 +561,7 @@ class GpuItem:
 
     @classmethod
     def is_apu(cls, name: str) -> bool:
-        """
-        Check if given GPU name is an APU.
+        """ Check if given GPU name is an APU.
 
         :param name: Target GPU name
         :return: True if name matches APU name
@@ -579,8 +574,7 @@ class GpuItem:
 
     @classmethod
     def get_button_label(cls, name: str) -> str:
-        """
-        Return button label for given parameter name.
+        """ Return button label for given parameter name.
 
         :param name: Parameter name
         :return:  Button label
@@ -695,8 +689,7 @@ class GpuItem:
         return fit_name
 
     def param_is_active(self, parameter_name: str) -> bool:
-        """
-        Return True if given parameter is not skipped and not disabled.
+        """ Return True if given parameter is not skipped and not disabled.
 
         :param parameter_name:
         :return:
@@ -706,8 +699,7 @@ class GpuItem:
         return True
 
     def disable_param_read(self, parameter_name: Union[Tuple[str, ...], str, None]) -> None:
-        """
-        Disable further reading of the specified parameter.
+        """ Disable further reading of the specified parameter.
 
         :param parameter_name: A single parameter name to be disabled.
         :return:
@@ -924,8 +916,7 @@ class GpuItem:
         return False
 
     def is_valid_fan_pwm(self, pwm_value: int) -> bool:
-        """
-        Check if a given fan_pwm value is valid.
+        """ Check if a given fan_pwm value is valid.
 
         :param pwm_value: Target fan_pwm value to be tested.
         :return: True if valid
@@ -1096,8 +1087,7 @@ class GpuItem:
         return [int(ppm_item[0]), ppm_item[1]]
 
     def read_raw_sensors(self) -> None:
-        """
-        Read all possible device driver files and populate self's raw dictionary.
+        """ Read all possible device driver files and populate self's raw dictionary.
         """
         for (sensor_type, path) in {'DEVICE': self.prm.card_path, 'HWMON': self.prm.hwmon_path}.items():
             if path and os.path.isdir(path):
@@ -1153,6 +1143,12 @@ class GpuItem:
                     if not self.prm.pp_features:
                         if re.search(GUT_CONST.PATTERNS[PK.AMD_FEATURES], line_str):
                             self.prm.pp_features = re.sub(GUT_CONST.PATTERNS[PK.AMD_FEATURES], '', line_str)
+        except PermissionError as except_err:
+            LOGGER.debug('Error: Can not read ppfeatures driver file %s, error: [%s]', self.prm.pcie_id,
+                         except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.disable_param_read(parameter_file)
+            return None
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
@@ -1193,8 +1189,13 @@ class GpuItem:
                         LOGGER.debug('Valid ppm line: %s', linestr)
                         self.ppm_modes[line_items[0]] = line_items[1:]
                 self.ppm_modes['-1'] = ['AUTO', 'Auto']
+        except PermissionError as except_err:
+            LOGGER.debug('Error: Can not read pstate driver file %s, error: [%s]', self.prm.pcie_id, except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.disable_param_read(parameter_file)
+            return None
         except OSError as except_err:
-            LOGGER.debug('Error: system support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
+            LOGGER.debug('Error: System support issue for %s, error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
             self.disable_param_read(parameter_file)
             return None
@@ -1315,6 +1316,11 @@ class GpuItem:
                             else:
                                 GUT_CONST.process_message('Error: Invalid CURVE entry: {}'.format(file_path))
 
+        except PermissionError as except_err:
+            LOGGER.debug('Error: Can not read pstate driver file %s, error: [%s]', self.prm.pcie_id, except_err)
+            print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+            self.disable_param_read(parameter_file)
+            return None
         except OSError as except_err:
             LOGGER.debug('Error: system support issue for %s error: [%s]', self.prm.pcie_id, except_err)
             print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
@@ -1450,8 +1456,14 @@ class GpuItem:
                                 values.append(sensor_label_file.readline().strip())
                         else:
                             values.append(os.path.basename(sensor_file))
-                except OSError as err:
-                    LOGGER.debug('Exception [%s]: Can not read HW file: %s', err, file_path)
+                except PermissionError as except_err:
+                    LOGGER.debug('Error: Can not read GPU [%s] driver file [%s], error: [%s]',
+                                 self.prm.pcie_id, target_sensor, except_err)
+                    print('Error: System support issue for GPU [{}]'.format(self.prm.pcie_id))
+                    self.disable_param_read(parameter)
+                    return None
+                except OSError as except_err:
+                    LOGGER.debug('Exception [%s]: Can not read HW file: %s', except_err, file_path)
                     self.disable_param_read(parameter)
                     return False
             else:
