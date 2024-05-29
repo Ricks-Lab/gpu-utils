@@ -134,6 +134,8 @@ parameters to be written to the GPU.  The default behavior is to only write chan
 * Optimized regex compile strategy for improved performance.
 * Fixed issue with handling of alpha strings in kernel version.
 * Fixed matplotlib deprecation issue.
+* Enhanced `gpu-ls --about` output.
+* Catch and report PermissionError for driver files.
 * Prep for debian repository release.
 
 ## Development Plans
