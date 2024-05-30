@@ -123,16 +123,14 @@ if not GTK:
             LOGGER.debug('started with Gtk disabled')
 
         def set_quit(self, _arg2, _arg3) -> None:
-            """
-            Set quit flag when Gtk quit is selected.
+            """ Set quit flag when Gtk quit is selected.
             """
             self.quit = True
 else:
     set_gtk_prop = GPUgui.GuiProps.set_gtk_prop
 
     class MonitorWindow(Gtk.Window):
-        """
-        Custom PAC Gtk window.
+        """ Custom PAC Gtk window.
         """
         quit: bool = False
         gui_enabled: bool = True
