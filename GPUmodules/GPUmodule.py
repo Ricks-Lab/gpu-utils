@@ -1999,7 +1999,7 @@ class GpuList:
 
         :return: GpuUItem
         """
-        return self.__iter__()
+        return iter(self)
 
     def add(self, gpu_item: GpuItem) -> None:
         """ Add given GpuItem to the GpuList.
